@@ -16,7 +16,7 @@ An S4 class to represent information on the nodes of a network.
 
 \item{\code{attributes}}{A data.frame that contains all information describing the nodes}
 
-\item{\code{neighbourhood}}{A matrix that describes the neighborhood of the nodes}
+\item{\code{neighborhood}}{A matrix that describes the neighborhood of the nodes}
 }}
 
 \seealso{

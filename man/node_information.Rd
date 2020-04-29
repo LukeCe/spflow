@@ -4,12 +4,12 @@
 \alias{node_information}
 \title{Create an S4 object that contains information in the nodes of a network}
 \usage{
-node_information(network_id, neighbourhood = NULL, attributes = NULL)
+node_information(network_id, neighborhood = NULL, attributes = NULL)
 }
 \arguments{
 \item{network_id}{A character that serves as identifier for the network}
 
-\item{neighbourhood}{A matrix that describes the neighborhood of the nodes}
+\item{neighborhood}{A matrix that describes the neighborhood of the nodes}
 
 \item{attributes}{A data.frame that contains all information describing the nodes}
 }
