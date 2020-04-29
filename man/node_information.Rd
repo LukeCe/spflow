@@ -19,8 +19,4 @@ The S4 class node_information
 \description{
 Create an S4 object that contains information in the nodes of a network
 }
-\seealso{
-Other node_information: 
-\code{\link{node_information-class}}
-}
 \concept{node_information}

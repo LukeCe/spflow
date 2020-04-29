@@ -2,6 +2,8 @@
 
 export("%>%")
 export(node_information)
+export(od_pair_information)
+exportClasses(od_pair_information)
 import(Matrix)
 import(methods)
 importClassesFrom(Matrix,Matrix)

@@ -19,8 +19,4 @@ An S4 class to represent information on the nodes of a network.
 \item{\code{neighborhood}}{A matrix that describes the neighborhood of the nodes}
 }}
 
-\seealso{
-Other node_information: 
-\code{\link{node_information}}
-}
-\concept{node_information}
+\concept{node_information network_data}

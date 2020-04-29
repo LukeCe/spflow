@@ -21,6 +21,11 @@ savely_as <- function(obj, class, ...) {
   return(as(obj,class, ...))
 }
 
+savely_to_list <- function(obj) {
+  if (is.list(obj)) return(obj)
+  else return(list(obj))
+}
+
 try_coercion <- function(obj,class) {
 
   obj_as_class <- try(savely_as(obj,class),silent = TRUE)
@@ -56,4 +61,8 @@ NULL
 # primitives ------------------------------------------------------------------
 has_equal_elements <- function(obj) {
   length(unique(obj)) <= 1
+}
+
+is_one_of <- function(.obj, .classes) {
+  return(any(class(.obj) %in% .classes))
 }

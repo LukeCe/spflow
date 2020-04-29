@@ -19,6 +19,14 @@ The package provides a new class for representing network data.
 The package provides functions to estimate spatial interaction models.
 }
 
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/LukeCe/spflow}
+  \item Report bugs at \url{https://github.com/LukeCe/spflow/issues}
+}
+
+}
 \author{
 \strong{Maintainer}: Lukas Dargel \email{lukas.dargel@mailbox.org} (\href{https://orcid.org/0000-0002-4839-506X}{ORCID})
 
