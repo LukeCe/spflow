@@ -13,3 +13,10 @@ Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.0
+Imports: 
+    magrittr,
+    Matrix
+Collate: 
+    'utils.R'
+    'network-data.R'
+    'spflow-package.R'
