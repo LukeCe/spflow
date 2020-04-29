@@ -1,15 +1,14 @@
 Package: spflow
-Title: What the Package Does (One Line, Title Case)
+Title: Spatial Econometric Interaction Models in R.
 Version: 0.0.0.9000
 Authors@R: 
-    person(given = "First",
-           family = "Last",
+    person(given = "Lukas",
+           family = "Dargel",
            role = c("aut", "cre"),
-           email = "first.last@example.com",
-           comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: What the package does (one paragraph).
-License: `use_mit_license()`, `use_gpl3_license()` or friends to
-    pick a license
+           email = "lukas.dargel@mailbox.org",
+           comment = c(ORCID = "0000-0002-4839-506X"))
+Description: The package provides functions to estimate spatial econometric interaction models (= spatial flow models).
+License: CC BY 4.0
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
