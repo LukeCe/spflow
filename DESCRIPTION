@@ -20,3 +20,5 @@ Collate:
     'utils.R'
     'network-data.R'
     'spflow-package.R'
+URL: https://github.com/LukeCe/spflow
+BugReports: https://github.com/LukeCe/spflow/issues
