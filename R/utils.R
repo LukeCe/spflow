@@ -57,10 +57,23 @@ try_coercion <- function(obj,class) {
 #' @usage lhs \%>\% rhs
 NULL
 
+# indexation ------------------------------------------------------------------
+pull_slot <- function(.slot,.obj) {
+  slot(.obj,.slot)
+}
+
+pull_slots <- function(.obj, .slots) {
+  lapply(.slots, pull_slot, .obj)
+}
+
 
 # primitives ------------------------------------------------------------------
 has_equal_elements <- function(obj) {
   length(unique(obj)) <= 1
+}
+
+has_distinct_elements <- function(obj) {
+  length(unique(obj)) == length(obj)
 }
 
 is_one_of <- function(.obj, .classes) {

@@ -1,4 +1,4 @@
-#' @include utils.R
+#' @include utils.R compact_purrr.R
 
 # nodes -----------------------------------------------------------------------
 # class unions to allow NULL in slots
@@ -209,7 +209,39 @@ setValidity("network_data", function(object) {
     return(error_msg)
   }
 
-  stop("check consistency on nodes and matching origins/destinations")
+  network_names <- lapply(object@nodes, slot, name = "network_id")
+  od_names <- lapply(object@pairs, pull_slots,.slots = c("origin_id","destination_id"))
+  od_keys <- lapply(od_names, reduce, paste, sep = "_")
+
+  if (!(has_distinct_elements(network_names)
+        & has_distinct_elements(od_keys))
+      ) {
+    error_msg <- "The identification of all sets of nodes and od_pairs must be unique!"
+    return(error_msg)
+  }
+
+
+
+  network_sizes <- lapply(object@nodes, slot, name = "count")
+  names(network_sizes) <- network_names
+
+  od_names <- reduce(od_names,c)
+  od_sizes <-
+    lapply(object@pairs, pull_slots,.slots = c("origin_count","destination_count")) %>%
+    reduce(c) %>%
+    setNames(.,od_names)
+
+  consitent_node_numbers <-
+    lapply(network_names,
+           function(.name,.net,.od) c(.net[[.name]],.od[[.name]]),
+           .net = network_sizes, .od = od_sizes) %>%
+    rapply(., has_equal_elements)
+
+  if (!all(consitent_node_numbers)) {
+    error_msg <- "The number of nodes in network [%s] is not consitent!" %>%
+      sprintf(.,paste(od_names[!consitent_node_numbers],sep = " and "))
+    return(error_msg)
+  }
 
   return(TRUE)
 })
@@ -226,8 +258,8 @@ setValidity("network_data", function(object) {
 network_data <- function(...) {
 
   information_list <- list(...)
-  is_node_information <- rapply(information_list, is, "node_information")
-  is_pair_information <- rapply(information_list, is, "od_pair_information")
+  is_node_information <- rapply(information_list, is, class2 = "node_information")
+  is_pair_information <- rapply(information_list, is, class2 = "od_pair_information")
 
   assert(
     length(information_list) == sum(is_node_information, is_pair_information),
