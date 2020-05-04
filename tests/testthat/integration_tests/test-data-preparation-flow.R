@@ -49,30 +49,30 @@ context("Format od pair data")
 pairs_11 <- od_pair_information(
   origin_id = key1,
   destination_id = key1,
-  pair_attributes = matrix(rnorm(nb_nodes_1^2),nrow = nb_nodes_1, ncol = nb_nodes_1))
+  pair_data = matrix(rnorm(nb_nodes_1^2),nrow = nb_nodes_1, ncol = nb_nodes_1))
 
 pairs_22 <- od_pair_information(
   origin_id = key2,
   destination_id = key2,
-  pair_attributes = matrix(rnorm(nb_nodes_2^2),nrow = nb_nodes_2, ncol = nb_nodes_2))
+  pair_data = matrix(rnorm(nb_nodes_2^2),nrow = nb_nodes_2, ncol = nb_nodes_2))
 
 pairs_12 <- od_pair_information(
   origin_id = key1,
   destination_id = key2,
-  pair_attributes = matrix(rnorm(nb_nodes_2^2),nrow = nb_nodes_1, ncol = nb_nodes_2))
+  pair_data = matrix(rnorm(nb_nodes_2^2),nrow = nb_nodes_1, ncol = nb_nodes_2))
 
 nb_nodes_1_dbl <- nb_nodes_1*2
 pairs_11_dbl <- od_pair_information(
   origin_id = key1,
   destination_id = key1,
-  pair_attributes = matrix(rnorm(nb_nodes_1_dbl^2),nrow = nb_nodes_1_dbl, ncol = nb_nodes_1_dbl))
+  pair_data = matrix(rnorm(nb_nodes_1_dbl^2),nrow = nb_nodes_1_dbl, ncol = nb_nodes_1_dbl))
 
 # invalid_objects
 pairs_11_fail <- pairs_11
 pairs_11_fail@origin_count <- nb_nodes_1 + 1
 
 pairs_22_fail <- pairs_22
-pairs_22_fail@pair_attributes <-
+pairs_22_fail@pair_data <-
   list(Matrix(rnorm((nb_nodes_2 + 1)^2),
               nrow = nb_nodes_2 + 1,
               ncol = nb_nodes_2 + 1))

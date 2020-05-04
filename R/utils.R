@@ -44,6 +44,14 @@ try_coercion <- function(obj,class) {
   paste0(x,y)
 }
 
+replace_empty <- function(.x , .replace) {
+  sub("^$", .replace, .x )
+}
+
+replace_NA_chr <- function(.x , .replace) {
+  sub("NA.", .replace, .x )
+}
+
 # pipe ------------------------------------------------------------------------
 #' Pipe operator
 #'
@@ -56,6 +64,15 @@ try_coercion <- function(obj,class) {
 #' @importFrom magrittr %>%
 #' @usage lhs \%>\% rhs
 NULL
+
+"%||%" <- function(x, y) {
+  if (is.null(x)) y else x
+}
+
+"%|!|%" <- function(x, y) {
+  if (is.null(x)) x else y
+}
+
 
 # indexation ------------------------------------------------------------------
 pull_slot <- function(.slot,.obj) {
