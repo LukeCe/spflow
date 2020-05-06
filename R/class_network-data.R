@@ -1,35 +1,32 @@
 #' @include class_node-information.R class_od-pair-information.R class_virtual.R compact-purrr.R utils.R
 
 
-#' An S4 class that contains [node_information] and [od_pair_information] for one or multiple networks
+#' An S4 class that contains [sp_network] and [sp_network_pair] for one or multiple networks
 #'
-#' @slot nodes A list of [node_information] objects
-#' @slot pairs A list of [od_pair_information] objects
-setClass("network_data",
+#' @slot nodes A list of [sp_network] objects
+#' @slot pairs A list of [sp_network_pair] objects
+setClass("sp_multi_network",
          slots = c(nodes = "list",
                    pairs = "list"))
 
-
-#' @keywords internal
-#' @family network_data
-#' @seealso node_information od_pair_information
-setValidity("network_data", function(object) {
+# validity --------------------------------------------------------------------
+setValidity("sp_multi_network", function(object) {
 
   valid_pairs <-
-    c(rapply(object@pairs, is_one_of, .classes = c("od_pair_information","NULL")),
+    c(rapply(object@pairs, is_one_of, .classes = c("sp_network_pair","NULL")),
       rapply(object@pairs, validObject))
 
   if (!all(valid_pairs)) {
-    error_msg <- "All objecets in the pairs accessors must be of class od_pair_information."
+    error_msg <- "All objecets in the pairs accessors must be of class sp_network_pair."
     return(error_msg)
   }
 
   valid_nodes <-
-    c(rapply(object@nodes, is_one_of, .classes = c("node_information","NULL")),
+    c(rapply(object@nodes, is_one_of, .classes = c("sp_network","NULL")),
       rapply(object@nodes, validObject))
 
   if (!all(valid_nodes)) {
-    error_msg <- "All objecets in the nodes accessors must be of class node_information."
+    error_msg <- "All objecets in the nodes accessors must be of class sp_network."
     return(error_msg)
   }
 
@@ -68,26 +65,48 @@ setValidity("network_data", function(object) {
   return(TRUE)
 })
 
+# get and set -----------------------------------------------------------------
 
-#' Create an S4 class that contains [node_information] and [od_pair_information] for one or multiple networks
+
+# methods ---------------------------------------------------------------------
+setMethod(
+  f = "interaction_data",
+  signature = "sp_multi_network",
+  definition = function(object, pair_id, interaction_id) { # data ----
+
+
+    origin_id <- strsplit(pair_id,"_")[[1]][1]
+    destination_id <- strsplit(pair_id,"_")[[1]][2]
+
+
+
+
+    return(object@node_data)
+  })
+
+# constructors ----------------------------------------------------------------
+
+#' Create an S4 class that contains [sp_network] and [sp_network_pair] for one or multiple networks
 #'
-#' @param ... objects of of type [node_information] and [od_pair_information]
+#' @param ... objects of of type [sp_network] and [sp_network_pair]
 #'
 #' @return A S4 network data object
 #' @export
-network_data <- function(...) {
+sp_multi_network <- function(...) {
 
   information_list <- list(...)
-  is_node_information <- rapply(information_list, is, class2 = "node_information")
-  is_pair_information <- rapply(information_list, is, class2 = "od_pair_information")
+  is_sp_network <- rapply(information_list, is, class2 = "sp_network")
+  is_pair_information <- rapply(information_list, is, class2 = "sp_network_pair")
 
   assert(
-    length(information_list) == sum(is_node_information, is_pair_information),
-    "All information that is not of type node_information or od_pair_information is discarded!",
+    length(information_list) == sum(is_sp_network, is_pair_information),
+    "All information that is not of type sp_network or sp_network_pair is discarded!",
     warn = TRUE
   )
 
-  return(new("network_data",
-             nodes = information_list[is_node_information],
+  return(new("sp_multi_network",
+             nodes = information_list[is_sp_network],
              pairs = information_list[is_pair_information]))
 }
+
+

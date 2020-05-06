@@ -1,10 +1,10 @@
-# network_data ----------------------------------------------------------------
-context("Test network_data")
+# sp_multi_network ----------------------------------------------------------------
+context("Test sp_multi_network")
 
 test_that("Correct construction",{
-  test_object <- network_data()
+  test_object <- sp_multi_network()
 
-  expect_s4_class(test_object,"network_data")
+  expect_s4_class(test_object,"sp_multi_network")
 })
 
 

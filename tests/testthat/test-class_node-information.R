@@ -1,9 +1,9 @@
-context("Test node_information")
+context("Test sp_network")
 
 test_that("Abusive input ==> ERROR",{
 
   expect_error({
-    test_object <- node_information(network_id = "cars",
+    test_object <- sp_network(network_id = "cars",
                                     neighborhood = "cars",
                                     node_data = "cars")
   },
@@ -14,7 +14,7 @@ test_that("Abusive input ==> ERROR",{
 test_that("Inconsisten input ==> ERROR",{
 
   expect_error({
-    test_object <- node_information(network_id = "cars",
+    test_object <- sp_network(network_id = "cars",
                                     neighborhood = diag(1,nrow(cars) + 1),
                                     node_data = cars)
   },
@@ -23,11 +23,38 @@ test_that("Inconsisten input ==> ERROR",{
 
 })
 
-test_that("Correct construction",{
+test_that("Correct S4 construction ",{
 
-  test_object <- node_information(network_id = "cars",
+  test_object <- sp_network(network_id = "cars",
                                   neighborhood = diag(1,nrow = nrow(cars), ncol = nrow(cars)),
                                   node_data = cars)
 
-  expect_s4_class(test_object,"node_information")
+  expect_s4_class(test_object,"sp_network")
+})
+
+test_that("Correct S4 accessors",{
+
+  test_object <- sp_network(
+    network_id = "cars",
+    neighborhood = diag(1,nrow = nrow(cars), ncol = nrow(cars)),
+    node_data = cars)
+
+  expect_equal(test_object@node_data,data(test_object))
+  expect_equal(test_object@node_data %>% names(),variable_names(test_object))
+  expect_equal(test_object@count,count(test_object))
+  expect_equal(test_object@network_id,id(test_object))
+  expect_equal(test_object@neighborhood, neighborhood(test_object))
+
+})
+
+test_that("Correct data replacements",{
+
+  test_object <- sp_network(network_id = "cars",
+                                  neighborhood = diag(1,nrow = nrow(cars), ncol = nrow(cars)),
+                                  node_data = cars)
+
+  data(test_object) <- rbind(cars,cars)
+
+  expect_equal(rbind(cars,cars),data(test_object))
+  expect_equal(nrow(cars)*2,count(test_object))
 })

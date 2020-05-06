@@ -1,6 +1,6 @@
 spflow <- function(
   formula,
-  network_data,
+  sp_multi_network,
   origin_id,
   destination_id = origin_id,
   model_specifications
@@ -10,7 +10,7 @@ spflow <- function(
   assert(is(formula,"formula"),
          "A valid formula is required!")
 
-  assert(is(network_data,"network_data"),
+  assert(is(sp_multi_network,"sp_multi_network"),
          "The data musst be a network data object!")
 
   assert(is(c(origin_id,destination_id),"character"),
@@ -19,7 +19,17 @@ spflow <- function(
   assert(is(model_specifications,"character"),
          "If provided, the model specifications must be of specify_flow_model class!")
 
-  # check for inconsistent inputs
+  # derive the interaction model data
+  interaction_model_data <-
+
+  od_pair_id <- origin_id %p% "_" %p% destination_id
+
+  by_case_formula <- expand_flow_formula(formula)
+  by_case_variables <- lapply(by_case_formula, get_all_var_names)
+
+
+  # derive ihe interaction model frame
+
 
 
 

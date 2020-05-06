@@ -3,9 +3,14 @@ assert <- function(expr, error_msg, warn = FALSE) {
   if (expr) {
     return(invisible(TRUE))
   }
-
   do.call(ifelse(warn,yes = "warning",no = "stop"),
           list(error_msg = error_msg, call. = FALSE))
+}
+
+assert_valid_case <- function(argument,cases) {
+  assert(all(argument %in% cases),
+         "The what argument can only be a subset of the character vector [%s]!" %>%
+           sprintf(.,deparse(cases)))
 }
 
 # classes ---------------------------------------------------------------------
@@ -26,6 +31,10 @@ savely_to_list <- function(obj) {
   else return(list(obj))
 }
 
+setGenericVerif <- function(x,y) {
+  if ( !isGeneric(x))  setGeneric(x,y)
+}
+
 try_coercion <- function(obj,class) {
 
   obj_as_class <- try(savely_as(obj,class),silent = TRUE)
@@ -37,6 +46,20 @@ try_coercion <- function(obj,class) {
                  class))
 
   return(obj_as_class)
+}
+
+# naming ----------------------------------------------------------------------
+named_list <- function(names, init = NULL) {
+
+  named_list <- vector("list", length(names))
+  names(named_list) <- names
+  named_list[] <- list(init)
+
+  return(named_list)
+}
+
+get_all_var_names <- function(f) {
+  labels(terms(tt$interactions))
 }
 
 # strings ---------------------------------------------------------------------
