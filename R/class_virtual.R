@@ -1,14 +1,15 @@
 # virtual classes to allow empty slots
+setClassUnion("maybe_data.table", c("NULL", "data.frame")) # data.table is no exported -> resort to data.frame
 setClassUnion("maybe_Matrix"    , c("NULL", "Matrix"))
 setClassUnion("maybe_list"      , c("NULL", "list"))
 setClassUnion("maybe_numeric"   , c("NULL", "numeric"))
-setClassUnion("maybe_data.frame", c("NULL", "data.frame"))
+
 
 # Generics
 setGenericVerif("count",  function(object, ...){standardGeneric("count")})
 
-setGenericVerif("data",   function(object, ...){standardGeneric("data")})
-setGenericVerif("data<-", function(object,value, ...){standardGeneric("data<-")})
+setGenericVerif("dat",   function(object, ...){standardGeneric("dat")})
+setGenericVerif("dat<-", function(object,value, ...){standardGeneric("dat<-")})
 
 setGenericVerif("id",   function(object, ...){standardGeneric("id")})
 setGenericVerif("id<-", function(object,value, ...){standardGeneric("id<-")})

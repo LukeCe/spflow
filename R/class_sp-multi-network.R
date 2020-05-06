@@ -1,10 +1,12 @@
-#' @include class_node-information.R class_od-pair-information.R class_virtual.R compact-purrr.R utils.R
+#' @include class_sp-network.R class_sp-network-pair.R class_virtual.R compact-purrr.R utils.R
 
 
 #' An S4 class that contains [sp_network] and [sp_network_pair] for one or multiple networks
 #'
 #' @slot nodes A list of [sp_network] objects
 #' @slot pairs A list of [sp_network_pair] objects
+#'
+#' @export
 setClass("sp_multi_network",
          slots = c(nodes = "list",
                    pairs = "list"))

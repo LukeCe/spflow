@@ -15,17 +15,15 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.0
 Imports: 
     magrittr,
-    Matrix,
-    formula.tools,
-    data.table
+    data.table,
+    Matrix
 Collate: 
-    '_exp_factor_matrix.R'
     'utils.R'
     'compact-purrr.R'
     'class_virtual.R'
-    'class_od-pair-information.R'
-    'class_node-information.R'
-    'class_network-data.R'
+    'class_sp-network-pair.R'
+    'class_sp-network.R'
+    'class_sp-multi-network.R'
     'interpret-flow-formula.R'
     'spflow-package.R'
     'spflow.R'

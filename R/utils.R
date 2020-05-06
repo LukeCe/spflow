@@ -19,6 +19,18 @@ class_union_null <- function(class) {
   setClassUnion(new, members = c(class,"NULL"))
 }
 
+coerce_to <- function(obj, class, ...) {
+
+  assert(canCoerce(obj, class),
+         "Object [%s] must be coercible to a [%s]!" %>%
+           sprintf(.,
+                   deparse(substitute(obj,parent.frame())),
+                   class))
+
+  return(as(obj,class,...))
+
+}
+
 savely_as <- function(obj, class, ...) {
   if (is.null(obj))
     return(NULL)
@@ -38,11 +50,10 @@ setGenericVerif <- function(x,y) {
 try_coercion <- function(obj,class) {
 
   obj_as_class <- try(savely_as(obj,class),silent = TRUE)
-  name_obj <- deparse(substitute(obj))
 
-  assert(class(obj_as_class) != "try-error",
+  assert(!"try-error" %in% class(obj_as_class),
          sprintf("Object [%s] must be coercible to a [%s]!",
-                 name_obj,
+                 deparse(substitute(obj,parent.frame())),
                  class))
 
   return(obj_as_class)
@@ -96,6 +107,10 @@ NULL
   if (is.null(x)) x else y
 }
 
+# factors ---------------------------------------------------------------------
+factor_in_order <- function(x) {
+  factor(x,levels = as.character(unique(x)))
+}
 
 # indexation ------------------------------------------------------------------
 pull_slot <- function(.slot,.obj) {

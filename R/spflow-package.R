@@ -11,7 +11,7 @@
 #' The package provides functions to estimate spatial interaction models.
 #'
 #' @docType package
-#' @import methods Matrix
+#' @import Matrix
 #' @keywords internal
 "_PACKAGE"
 

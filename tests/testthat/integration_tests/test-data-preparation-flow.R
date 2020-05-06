@@ -25,14 +25,14 @@ nb_nodes_2 <- nrow(attributes_2)
 context("Format node data")
 
 # valid objects
-nodes1 <- sp_network(key1,neighborhood = diag(2,nb_nodes_1,nb_nodes_1))
-nodes2 <- sp_network(key2,neighborhood = diag(2,nb_nodes_2,nb_nodes_2))
+nodes1 <- sp_network(key1,node_neighborhood = diag(2,nb_nodes_1,nb_nodes_1))
+nodes2 <- sp_network(key2,node_neighborhood = diag(2,nb_nodes_2,nb_nodes_2))
 
 # invalid objects
 nodes1_fail <- nodes1
-nodes1_fail@count <- nb_nodes_1 + 1
+nodes1_fail@node_count <- nb_nodes_1 + 1
 nodes2_fail <- nodes2
-nodes2_fail@neighborhood <- Diagonal(2,nb_nodes_2 + 1)
+nodes2_fail@node_neighborhood <- Diagonal(2,nb_nodes_2 + 1)
 
 describe("Format node data", {
 
@@ -47,35 +47,38 @@ context("Format od pair data")
 
 # valid objects
 pairs_11 <- sp_network_pair(
-  origin_id = key1,
-  destination_id = key1,
-  pair_data = matrix(rnorm(nb_nodes_1^2),nrow = nb_nodes_1, ncol = nb_nodes_1))
+  origin_network_id = key1,
+  destination_network_id = key1,
+  node_pair_data = data.frame(rnorm(nb_nodes_1^2)),
+  origin_node_count = nb_nodes_1)
 
 pairs_22 <- sp_network_pair(
-  origin_id = key2,
-  destination_id = key2,
-  pair_data = matrix(rnorm(nb_nodes_2^2),nrow = nb_nodes_2, ncol = nb_nodes_2))
+  origin_network_id = key2,
+  destination_network_id = key2,
+  node_pair_data = data.frame(rnorm(nb_nodes_2^2)),
+  origin_node_count = nb_nodes_2
+)
 
 pairs_12 <- sp_network_pair(
-  origin_id = key1,
-  destination_id = key2,
-  pair_data = matrix(rnorm(nb_nodes_2^2),nrow = nb_nodes_1, ncol = nb_nodes_2))
+  origin_network_id = key1,
+  destination_network_id = key2,
+  node_pair_data = data.frame(rnorm(nb_nodes_2*nb_nodes_1)),
+  origin_node_count = nb_nodes_1)
 
 nb_nodes_1_dbl <- nb_nodes_1*2
 pairs_11_dbl <- sp_network_pair(
-  origin_id = key1,
-  destination_id = key1,
-  pair_data = matrix(rnorm(nb_nodes_1_dbl^2),nrow = nb_nodes_1_dbl, ncol = nb_nodes_1_dbl))
+  origin_network_id = key1,
+  destination_network_id = key1,
+  node_pair_data = data.frame(rnorm(nb_nodes_1_dbl^2)),
+  origin_node_count = nb_nodes_1_dbl)
 
 # invalid_objects
 pairs_11_fail <- pairs_11
-pairs_11_fail@origin_count <- nb_nodes_1 + 1
+pairs_11_fail@origin_node_count <- nb_nodes_1 + 1
 
 pairs_22_fail <- pairs_22
-pairs_22_fail@pair_data <-
-  list(Matrix(rnorm((nb_nodes_2 + 1)^2),
-              nrow = nb_nodes_2 + 1,
-              ncol = nb_nodes_2 + 1))
+pairs_22_fail@node_pair_data <-
+  data.table::data.table(rnorm(1 + (nb_nodes_2^2)))
 
 describe("Format origin destination pair data", {
 
