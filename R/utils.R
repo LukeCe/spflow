@@ -59,6 +59,30 @@ try_coercion <- function(obj,class) {
   return(obj_as_class)
 }
 
+# formulas --------------------------------------------------------------------
+to_rhs_formula <- function(variables) {
+  formula("~ " %p% paste(unlist(variables), collapse = " + "))
+}
+
+pull_rhs <- function(formula) {
+
+  if (is_two_sided_formula(formula))
+    return(formula[c(1,3)])
+
+  if (is(formula,"forumula"))
+    return(formula)
+
+  stop("Object is not a formula!")
+}
+
+pull_lhs <- function(formula) {
+
+  if (is_two_sided_formula(formula))
+    return(formula[c(1,2)])
+
+  stop("Object is not a two sided formula!")
+}
+
 # naming ----------------------------------------------------------------------
 named_list <- function(names, init = NULL) {
 
@@ -76,6 +100,11 @@ get_all_var_names <- function(f) {
 # strings ---------------------------------------------------------------------
 '%p%' <- function(x, y) {
   paste0(x,y)
+}
+
+concat_by <- function(string = "_", ..., add_spaces = TRUE) {
+  if (add_spaces) string <- " " %p% string %p% " "
+  paste(..., sep = string)
 }
 
 replace_empty <- function(.x , .replace) {
@@ -133,4 +162,16 @@ has_distinct_elements <- function(obj) {
 
 is_one_of <- function(.obj, .classes) {
   return(any(class(.obj) %in% .classes))
+}
+
+is_single_character <- function(x) {
+  is.character(x) && (length(x) == 1L)
+}
+
+is_single_logical <- function(x) {
+  is.logical(x) && (length(x) == 1L)
+}
+
+is_two_sided_formula <- function(formula) {
+  is(formula,"formula") && (length(formula)==3)
 }

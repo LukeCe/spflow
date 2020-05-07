@@ -3,52 +3,60 @@
 
 #' An S4 class that contains [sp_network] and [sp_network_pair] for one or multiple networks
 #'
-#' @slot nodes A list of [sp_network] objects
-#' @slot pairs A list of [sp_network_pair] objects
+#' @slot networks A list of [sp_network] objects
+#' @slot network_pairs A list of [sp_network_pair] objects
 #'
 #' @export
 setClass("sp_multi_network",
-         slots = c(nodes = "list",
-                   pairs = "list"))
+         slots = c(networks = "list",
+                   network_pairs = "list"))
 
 # validity --------------------------------------------------------------------
 setValidity("sp_multi_network", function(object) {
 
   valid_pairs <-
-    c(rapply(object@pairs, is_one_of, .classes = c("sp_network_pair","NULL")),
-      rapply(object@pairs, validObject))
+    c(rapply(object@network_pairs, is_one_of,
+             .classes = c("sp_network_pair","NULL")),
+      rapply(object@network_pairs, validObject))
 
   if (!all(valid_pairs)) {
-    error_msg <- "All objecets in the pairs accessors must be of class sp_network_pair."
+    error_msg <-
+      "All objects in the network_pairs accessor " %p%
+      "must be of class sp_network_pair!"
     return(error_msg)
   }
 
   valid_nodes <-
-    c(rapply(object@nodes, is_one_of, .classes = c("sp_network","NULL")),
-      rapply(object@nodes, validObject))
+    c(rapply(object@networks, is_one_of, .classes = c("sp_network","NULL")),
+      rapply(object@networks, validObject))
 
   if (!all(valid_nodes)) {
-    error_msg <- "All objecets in the nodes accessors must be of class sp_network."
+    error_msg <-
+      "All objects in the netwoks accessor must be of class sp_network."
     return(error_msg)
   }
 
-  network_names <- lapply(object@nodes, slot, name = "network_id")
-  od_names <- lapply(object@pairs, pull_slots,.slots = c("origin_id","destination_id"))
+  network_names <- lapply(object@networks, slot, name = "network_id")
+  od_names <- lapply(object@network_pairs, pull_slots,
+                     .slots = c("origin_network_id",
+                                "destination_network_id"))
   od_keys <- lapply(od_names, reduce, paste, sep = "_")
 
   if (!(has_distinct_elements(network_names)
         & has_distinct_elements(od_keys))
       ) {
-    error_msg <- "The identification of all sets of nodes and od_pairs must be unique!"
+    error_msg <-
+      "The identification of all networks and network_pairs must be unique!"
     return(error_msg)
   }
 
-  network_sizes <- lapply(object@nodes, slot, name = "count")
+  network_sizes <- lapply(object@networks, slot, name = "node_count")
   names(network_sizes) <- network_names
 
   od_names <- reduce(od_names,c)
   od_sizes <-
-    lapply(object@pairs, pull_slots,.slots = c("origin_count","destination_count")) %>%
+    lapply(object@network_pairs, pull_slots,
+           .slots = c("origin_node_count","destination_node_count")) %>%
     reduce(c) %>%
     setNames(.,od_names)
 
@@ -59,7 +67,8 @@ setValidity("sp_multi_network", function(object) {
     rapply(., has_equal_elements)
 
   if (!all(consitent_node_numbers)) {
-    error_msg <- "The number of nodes in network [%s] is not consitent!" %>%
+    error_msg <-
+      "The number of nodes in network [%s] is not consitent!" %>%
       sprintf(.,paste(od_names[!consitent_node_numbers],sep = " and "))
     return(error_msg)
   }
@@ -68,6 +77,19 @@ setValidity("sp_multi_network", function(object) {
 })
 
 # get and set -----------------------------------------------------------------
+setMethod(
+  f = "id",
+  signature = "sp_multi_network",
+  definition = function(object,what = slotNames(object)) { # id ----
+
+    assert(what %in% slotNames(object),
+           "The ids can only be accessed for [%s]!" %>%
+             sprintf(., concat_by("and", slotNames(object))))
+
+    lapply(what, function(.w) rapply(slot(object,.w), id))
+    return(ids)
+  })
+
 
 
 # methods ---------------------------------------------------------------------
@@ -79,10 +101,6 @@ setMethod(
 
     origin_id <- strsplit(pair_id,"_")[[1]][1]
     destination_id <- strsplit(pair_id,"_")[[1]][2]
-
-
-
-
     return(object@node_data)
   })
 
@@ -107,8 +125,8 @@ sp_multi_network <- function(...) {
   )
 
   return(new("sp_multi_network",
-             nodes = information_list[is_sp_network],
-             pairs = information_list[is_pair_information]))
+             networks = information_list[is_sp_network],
+             network_pairs = information_list[is_pair_information]))
 }
 
 
