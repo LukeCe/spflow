@@ -20,7 +20,7 @@ derive_role_formulas <- function(
   # early returns for shortcuts notations
   role_control <- control[[role]]
   if (role_control == "all") {
-    return(named_list(use_cases, ~ .))
+    return(named_list(use_cases, ~ . + 0))
   }
 
   null_formulas <- named_list(use_cases, ~0)
@@ -81,14 +81,15 @@ expand_case_formulas <- function(rhs_formula) {
   specific_vars_indexes <- attr(terms_formula,"specials") %>% compact()
   specific_formulas <-
     lapply(specific_vars_indexes,
-           function(.i) eval(parse(text = all_varibales[.i])))
+           function(.i) eval(parse(text = all_varibales[.i]))) %>%
+    lapply(remove_intercept)
 
 
   # determine the generic variables used for all remaining cases
   drop_specials <- c(unlist(specific_vars_indexes),
                      length(all_varibales) + 1)
   generic_vars <- all_varibales[-drop_specials]
-  generic_formula <- to_rhs_formula(generic_vars)
+  generic_formula <- to_rhs_formula(generic_vars) %>% remove_intercept()
 
   # default to generic formula for all cases
   case_formulas <- named_list(cases, generic_formula)

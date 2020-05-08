@@ -60,8 +60,10 @@ try_coercion <- function(obj,class) {
 }
 
 # formulas --------------------------------------------------------------------
-to_rhs_formula <- function(variables) {
-  formula("~ " %p% paste(unlist(variables), collapse = " + "))
+remove_intercept <- function(formula) {
+  reformulate(
+    labels(terms(formula, data = data.frame("." = ".")) ),
+    intercept = FALSE)
 }
 
 pull_rhs <- function(formula) {
@@ -82,6 +84,12 @@ pull_lhs <- function(formula) {
 
   stop("Object is not a two sided formula!")
 }
+
+to_rhs_formula <- function(variables) {
+  formula("~ " %p% paste(unlist(variables), collapse = " + "))
+}
+
+
 
 # naming ----------------------------------------------------------------------
 named_list <- function(names, init = NULL) {
