@@ -4,7 +4,7 @@
 # = = = = = = = = = = = = = = = = = = =
 # Description:
 #
-# Test of all objects harmonize with each other and that inconcistent data is
+# Test if all objects harmonize with each other and that inconcistent data is
 # detected.
 # - - - - - - - - - - - - - - - - - - -
 # Date: avril 2020
@@ -112,6 +112,4 @@ describe("Combine nodes and pairs into multinet", {
   })
 })
 
-# understand formula ----------------------------------------------------------
-context("Interpret the structural formula")
 

@@ -12,7 +12,7 @@
 #'
 #' @return A list of control parameters
 #' @export
-control <- function(
+spflow_control <- function(
   estimation_method = "s2sls",
   hessian_method = "mixed",
   sdm_variables = "same",

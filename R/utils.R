@@ -172,6 +172,10 @@ is_one_of <- function(.obj, .classes) {
   return(any(class(.obj) %in% .classes))
 }
 
+is_one_sided_formula <- function(formula) {
+  is(formula,"formula") && (length(formula) == 2)
+}
+
 is_single_character <- function(x) {
   is.character(x) && (length(x) == 1L)
 }

@@ -133,7 +133,7 @@ setReplaceMethod(
 #'
 #' @param origin_network_id A character that serves as identifier for the origin network
 #' @param destination_network_id A character that serves as identifier for the destination network
-#' @param pair_data A list of matrices that contain information on node pairs (origins are in rows and destinations are in columns)
+#' @param node_pair_data
 #'
 #' @family sp_network_pair sp_multi_network
 #'

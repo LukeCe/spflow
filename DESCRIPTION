@@ -24,8 +24,8 @@ Collate:
     'class_sp-network-pair.R'
     'class_sp-network.R'
     'class_sp-multi-network.R'
-    'control.R'
-    'interpret-flow-formula.R'
+    'expand-flow-formula.R'
+    'spflow-control.R'
     'spflow-package.R'
     'spflow.R'
 URL: https://github.com/LukeCe/spflow

@@ -1,8 +1,20 @@
+#' Spatial interaction model
+#'
+#' @inheritParams sp_network_pair
+#' @param flow_forumula A formulas corresponding to the structural interaction model
+#' @param sp_multi_network A [sp_multi_network()] object.
+#' @param network_pair_id A character indicating the id of a [sp_network_pair()]
+#' @param flow_control A [spflow_control()] list to fine tune the estimation
+#' @param use_sdm A logical which adds spatial lags of origin and destination attributes as explanatory variables to the model.
+#' @param use_intra A logical which adds sperate set of coefficients for intra-observational flows (origin == destination) to the model.
+#'
+#' @return A spflow_model object
+#' @export
 spflow <- function(
-  formula,
+  flow_formula,
   sp_multi_network,
   network_pair_id = ids(sp_multi_network,"network_pairs")[[1]],
-  control = spflow::control(),
+  flow_control = spflow_control(),
   origin_network_id = NULL,
   destination_network_id = NULL,
   use_sdm = TRUE,
@@ -38,11 +50,10 @@ spflow <- function(
   # ... test the arguments provided by control by calling it again
   control <- do.call(spflow::control, control)
 
-  ### Interpret the flow formula
-  # 1. The flow formula must be carried to all data sources...
-  #    [Interactions] ~ [Origins] + [Destinations] + [Intra] + [Pair]
-  # 2. The formula must account for lagged (SDM) variables and instruments
-  flow_formulas <- expand_flow_formula(formula)
+  flow_formulas <- expand_roles_and_cases(
+    flow_formula,
+    flow_control,
+    use_intra)
 
   # The formulas for the explanatory variably have to extenden
 
@@ -50,7 +61,7 @@ spflow <- function(
 
   od_pair_id <- origin_network_id %p% "_" %p% destination_network_id
 
-  by_case_formula <- expand_flow_formula(formula)
+  by_case_formula <- expand_main_formula(formula)
   by_case_variables <- lapply(by_case_formula, get_all_var_names)
 
 
