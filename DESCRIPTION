@@ -1,14 +1,15 @@
 Package: spflow
 Title: Spatial Econometric Interaction Models in R
 Version: 0.0.0.9000
-Authors@R: 
+Authors@R: c(
     person(given = "Lukas",
            family = "Dargel",
            role = c("aut", "cre"),
            email = "lukas.dargel@mailbox.org",
-           comment = c(ORCID = "0000-0002-4839-506X"))
+           comment = c(ORCID = "0000-0002-4839-506X")),
+    person("Thibault", "Laurent", email = "thibault.laurent@tse-fr.eu", role = c("aut")))
 Description: The package provides functions to estimate spatial econometric interaction models (= spatial flow models).
-License: CC BY 4.0
+License: GPL-3
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
@@ -19,12 +20,13 @@ Imports:
     Matrix
 Collate: 
     'utils.R'
-    'compact-purrr.R'
     'class_virtual.R'
     'class_sp-network-pair.R'
     'class_sp-network.R'
     'class_sp-multi-network.R'
+    'example_data.R'
     'expand-flow-formula.R'
+    'sp_flow_model_frame.R'
     'spflow-control.R'
     'spflow-package.R'
     'spflow.R'
@@ -32,5 +34,9 @@ URL: https://github.com/LukeCe/spflow
 BugReports: https://github.com/LukeCe/spflow/issues
 Suggests:
     spelling,
-    covr
+    covr,
+    sp,
+    spdep
 Language: en-US
+Depends: 
+    R (>= 2.10)

@@ -6,3 +6,4 @@
 ^pkgdown$
 ^LICENSE\.md$
 ^R\_*.R$
+^scripts$
