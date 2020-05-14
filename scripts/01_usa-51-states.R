@@ -13,10 +13,10 @@
 # - - - - - - - - - - - - - - - - - - -
 # Date: Mai 2020
 
+load_all()
 library("sp")
 library("spdep")
-library("spflow")
-source("scripts/create_grid.R")
+source("scripts/00_create_grid.R")
 
 # invent data for the 51 states of the USA
 usa_data <-
@@ -27,7 +27,7 @@ usa_data <-
                     "CO", "NE", "MO", "KY", "WV", "VA", "MD", "DE", "AZ",
                     "NM", "KS", "AR", "TN", "NC", "SC", "DC", "OK", "LA",
                     "MS", "AL", "GA", "HI", "TX", "FL"),
-    "invented_gdp" = c(35, 29, 30, 29, 26, 35, 31, 28, 32, 40, 32, 27, 33, 32,
+    "X" = c(35, 29, 30, 29, 26, 35, 31, 28, 32, 40, 32, 27, 33, 32,
                        31, 32, 25, 35, 32, 31, 35, 32, 38, 29, 35, 31, 27, 29,
                        30, 33, 38, 30, 30, 30, 40, 35, 34, 34, 33, 37, 31, 31,
                        31, 27, 32, 31, 30, 28, 29, 29, 34))
@@ -55,6 +55,10 @@ usa_4_nearest_neighbours <- usa_grid %>%
   knn2nb() %>%
   nb2listw() %>%
   listw2mat()
+
+# add a spatial lag
+usa_data <- cbind(usa_data,
+                  X_lag = usa_4_nearest_neighbours %*% usa_data$X)
 
 usa_net <- sp_network(
   network_id = "usa",

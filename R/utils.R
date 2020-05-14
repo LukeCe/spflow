@@ -60,6 +60,21 @@ try_coercion <- function(obj,class) {
 }
 
 # formulas --------------------------------------------------------------------
+combine_formulas <- function(..., intercept = FALSE) {
+
+  labels <- list(...) %>%
+    flatlist() %>%
+    lapply(extract_terms_labels) %>%
+    unlist() %>%
+    unique()
+
+  return(reformulate(labels, intercept = intercept))
+}
+
+extract_terms_labels <- function(formula) {
+  labels(terms(formula, data = data.frame("." = ".")))
+}
+
 remove_intercept <- function(formula) {
   reformulate(
     labels(terms(formula, data = data.frame("." = ".")) ),
@@ -89,7 +104,58 @@ to_rhs_formula <- function(variables) {
   formula("~ " %p% paste(unlist(variables), collapse = " + "))
 }
 
+fix_contrast_model_matrix <- function(
+  formula = ~ .,
+  data ) {
+  if (is(data,"data.table")) {
+    factor_contrasts <-
+      data[,sapply(data, is.factor), with = FALSE] %>%
+      lapply(contrasts, contrasts = FALSE)
+  } else {
+    factor_contrasts <-
+      data[,sapply(data, is.factor), drop = FALSE] %>%
+      lapply(contrasts, contrasts = FALSE)
+  }
+  model.matrix(formula, data,contrasts.arg = factor_contrasts)
+}
 
+# FP sytle --------------------------------------------------------------------
+# collection of functions that help to program in a functional style
+# most of these come from or are inspiried by compact purrr files found
+# in rlang and feasts packages.
+# https://github.com/tidyverts/feasts/blob/master/R/compact-purrr.R
+# https://github.com/r-lib/rlang/blob/master/R/compat-purrr.R
+
+compact <- function(.x) {
+  Filter(length, .x)
+}
+
+flatlist <- function(lst) {
+  do.call(c, lapply(lst, function(x) if(is.list(x)) flatlist(x) else list(x)))
+}
+
+reduce <- function(.x, .f, ..., .init) {
+  f <- function(x, y) .f(x, y, ...)
+  Reduce(f, .x, init = .init)
+}
+
+translist <- function(.l) {
+
+  all_inner_names <-
+    reduce(lapply(.l, names),c) %>%
+    reduce(c) %>%
+    unique()
+
+  .l_ordered <- lapply(.l, "[", all_inner_names)
+
+  result <-
+    lapply(seq_along(all_inner_names),
+           function(i) lapply(.l_ordered, .subset2, i))
+
+  names(result) <-  all_inner_names
+
+  return(lapply(result, compact))
+}
 
 # naming ----------------------------------------------------------------------
 named_list <- function(names, init = NULL) {
@@ -99,6 +165,14 @@ named_list <- function(names, init = NULL) {
   named_list[] <- list(init)
 
   return(named_list)
+}
+
+lookup <- function(values, names = as.character(values)) {
+  structure(values, names = names)
+}
+
+list_lookup <- function(values, names = as.character(values)) {
+  as.list(lookup(names = names,names))
 }
 
 get_all_var_names <- function(f) {
@@ -113,6 +187,17 @@ get_all_var_names <- function(f) {
 concat_by <- function(string = "_", ..., add_spaces = TRUE) {
   if (add_spaces) string <- " " %p% string %p% " "
   paste(..., sep = string)
+}
+
+map2 <- function(.x, .y, .f, ...) {
+  mapply(.f, .x, .y, MoreArgs = list(...), SIMPLIFY = FALSE)
+}
+
+pairwise_ids <- function(ids) {
+  nb_ids <- length(ids)
+  pair_ids <- concat_by("_",rep(ids, nb_ids), rep(ids, each = nb_ids),
+                        add_spaces = FALSE)
+  return(pair_ids)
 }
 
 replace_empty <- function(.x , .replace) {
@@ -158,8 +243,15 @@ pull_slots <- function(.obj, .slots) {
   lapply(.slots, pull_slot, .obj)
 }
 
+# ---- matrices ---------------------------------------------------------------
+stack_cols <- function(mat ,rows = "row", cols = "col", value = "value") {
+  cbind(expand.grid(row = factor_in_order(rownames(mat)),
+                    col = factor_in_order(colnames(mat))),
+        value = as.vector(mat)) %>%
+    `names<-`(c(rows,cols,value))
+}
 
-# primitives ------------------------------------------------------------------
+# ---- primitives -------------------------------------------------------------
 has_equal_elements <- function(obj) {
   length(unique(obj)) <= 1
 }

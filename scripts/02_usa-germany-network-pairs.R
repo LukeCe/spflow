@@ -9,7 +9,8 @@
 # - - - - - - - - - - - - - - - - - - -
 # Date: Mai 2020
 
-library("spflow")
+library("sp")
+load_all()
 data("germany_grid")
 data("germany_net")
 data("usa_grid")
@@ -27,10 +28,10 @@ n_usa <- count(usa_net)
 index_ge <- seq_len(n_ge)
 index_usa <- seq_len(n_usa) + n_ge
 
-dist_ge_ge   <- stack_cols(all_dist[index_ge, index_ge])
-dist_ge_usa  <- stack_cols(all_dist[index_ge, index_usa])
-dist_usa_ge  <- stack_cols(all_dist[index_usa,index_ge])
-dist_usa_usa <- stack_cols(all_dist[index_usa,index_usa])
+dist_ge_ge   <- stack_cols(all_dist[index_ge, index_ge],value = "distance")
+dist_ge_usa  <- stack_cols(all_dist[index_ge, index_usa],value = "distance")
+dist_usa_ge  <- stack_cols(all_dist[index_usa,index_ge],value = "distance")
+dist_usa_usa <- stack_cols(all_dist[index_usa,index_usa],value = "distance")
 
 within_ge_pairs <- sp_network_pair(
   origin_network_id = "ge",
@@ -64,7 +65,7 @@ usa_to_ge_pairs <- sp_network_pair(
   destination_key_column = "col"
 )
 
-multi_net_usa_ge <- sp_multi_network(
+multi_net_examples <- sp_multi_network(
   germany_net,
   usa_net,
   within_ge_pairs,
@@ -73,4 +74,4 @@ multi_net_usa_ge <- sp_multi_network(
   usa_to_ge_pairs
 )
 
-usethis::use_data(multi_net_usa_ge,overwrite = TRUE)
+usethis::use_data(multi_net_examples,overwrite = TRUE)

@@ -13,17 +13,17 @@
 # - - - - - - - - - - - - - - - - - - -
 # Date: Mai 2020
 
+load_all()
 library("sp")
 library("spdep")
-library("spflow")
-source("scripts/create_grid.R")
+source("scripts/00_create_grid.R")
 
 # invent data for the 16 states of germany
 germany_data <-
   data.frame("state_ids" = c("SH", "HH", "MV", "NW", "HB", "BB", "BE", "RP",
                              "NI", "ST", "SN", "SL", "HE", "TH", "BW", "BY"),
-             "invented_gdp" = c(10, 15, 20,  7, 20, 25, 15, 10,
-                                30, 20, 15, 10, 15, 10,  7, 7))
+             "X" = c(10, 15, 20,  7, 20, 25, 15, 10,
+                     30, 20, 15, 10, 15, 10,  7, 7))
 
 # add stylized geographic information
 state_coordinates <- list(
@@ -40,6 +40,10 @@ germany_contingency <- germany_grid %>%
   poly2nb() %>%
   nb2listw() %>%
   listw2mat()
+
+# add a spatial lag
+germany_data <- cbind(germany_data,
+                      X_lag = germany_contingency %*% germany_data$X)
 
 germany_net <- sp_network(
   network_id = "ge",
