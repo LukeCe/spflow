@@ -10,8 +10,19 @@
 
 load_all()
 library("spflow")
+source("scripts/02_usa-germany-network-pairs.R")
 source("scripts/03_example-model-parameters.R")
-data("multi_net_examples")
+data("germany_net")
+data("usa_net")
+
+multi_net_examples <- sp_multi_network(
+  germany_net,
+  usa_net,
+  within_ge_pairs,
+  within_usa_pairs,
+  ge_to_usa_pairs,
+  usa_to_ge_pairs
+)
 
 # extract the exogenous variables and add intraregional ones
 assign_columns <- c("intra_X","intra_X_lag")
@@ -79,6 +90,10 @@ flows <- invers_model_filters %>%
   lapply(data.frame)
 
 # add the simulated flows to the initial data
-simulated_flows <- mapply(cbind,flows, pair_variables_mat, SIMPLIFY = FALSE)
+mapply(set_columns,
+       multi_net_examples %>% network_pairs(),
+       flows,
+       SIMPLIFY = FALSE) %>%
+  invisible()
 
-usethis::use_data(simulated_flows,overwrite = TRUE)
+usethis::use_data(multi_net_examples,overwrite = TRUE)

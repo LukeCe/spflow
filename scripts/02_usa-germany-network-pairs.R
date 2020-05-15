@@ -64,14 +64,3 @@ usa_to_ge_pairs <- sp_network_pair(
   origin_key_column = "row",
   destination_key_column = "col"
 )
-
-multi_net_examples <- sp_multi_network(
-  germany_net,
-  usa_net,
-  within_ge_pairs,
-  within_usa_pairs,
-  ge_to_usa_pairs,
-  usa_to_ge_pairs
-)
-
-usethis::use_data(multi_net_examples,overwrite = TRUE)

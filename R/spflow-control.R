@@ -16,7 +16,10 @@ spflow_control <- function(
   estimation_method = "s2sls",
   hessian_method = "mixed",
   sdm_variables = "same",
-  instrumental_variables = "same"
+  instrumental_variables = "same",
+  use_intra = TRUE,
+  use_sdm = TRUE,
+  model = "model_9"
 ) {
 
   # check estimator
@@ -40,6 +43,9 @@ spflow_control <- function(
          "The sdm_variables must either be declared as a formula " %p%
          "or as a string with one of the keywords [none, or all, or same]!")
 
+  if (!use_sdm)
+    sdm_variables <- "none"
+
   # check instrumental variables
   if (estimation_method != "s2sls")
     instrumental_variables <- "none"
@@ -49,10 +55,18 @@ spflow_control <- function(
          "The instrumental_variables must either be declared as a formula " %p%
            "or as a string with one of the keywords [none, or all, or same]!")
 
+  possible_models <- ("model_" %p% 1:9)
+  assert(model %in% possible_models,
+         "The model can only be one of:\\n" %p%
+           paste0(possible_models,collapse =  "\\n"))
+
   return(list(
     "estimation_method" = estimation_method,
     "hessian_method" = hessian_method,
     "sdm_variables" = sdm_variables,
-    "instrumental_variables" = instrumental_variables
+    "instrumental_variables" = instrumental_variables,
+    "use_intra" = use_intra,
+    "use_sdm" = use_intra,
+    "model" = model
   ))
 }

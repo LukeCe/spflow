@@ -7,15 +7,16 @@
 # Test if all objects harmonize with each other and that inconcistent data is
 # detected.
 # - - - - - - - - - - - - - - - - - - -
-# Date: avril 2020
+# Date: April 2020
 
 # setup test examples
-attributes_1 <- cars
-attributes_2 <- cbind(cars,cars)
+attributes_1 <- iris
+attributes_2 <- cbind(attributes_1,attributes_1)
 
-key1 <- "cars1"
-key2 <- "cars2"
+key1 <- "iris1"
+key2 <- "iris2"
 
+pair_key11 <- key1 %p% "_" %p% key2
 nb_nodes_1 <- nrow(attributes_1)
 nb_nodes_2 <- nrow(attributes_2)
 
@@ -106,9 +107,9 @@ describe("Combine nodes and pairs into multinet", {
 
   it("Recognizes duplication",{
     expect_error({sp_multi_network(pairs_11,pairs_11,pairs_22,pairs_12)},
-                 "The identification of all sets of nodes and od_pairs must be unique!")
+                 "The identification of all networks and network_pairs must be unique!")
     expect_error({sp_multi_network(nodes1,nodes1,nodes2)},
-                 "The identification of all sets of nodes and od_pairs must be unique!")
+                 "The identification of all networks and network_pairs must be unique!")
   })
 })
 

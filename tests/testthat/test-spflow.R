@@ -29,3 +29,7 @@ test_that("Inconsisten input ==> ERROR", {
 
 })
 
+
+
+
+

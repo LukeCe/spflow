@@ -13,14 +13,14 @@ test_that("Expansion of explanatories works", {
 
   test_formula <- ~ . + O_(x + z)
   origin_formula <- full_formulas
-  origin_formula$Orig_ <- remove_intercept(~ x + z)
+  origin_formula$orig_ <- remove_intercept(~ x + z)
   expect_equal(
     object = expand_case_formulas(rhs_formula = test_formula),
     expected = origin_formula)
 
   test_formula <- ~ x + G_(z)
   mixed_formula <- named_list(cases, remove_intercept( ~ x))
-  mixed_formula$Pair_ <- remove_intercept(~ z)
+  mixed_formula$pair_ <- remove_intercept(~ z)
 
   expect_equal(
     object = expand_case_formulas(rhs_formula = test_formula),
@@ -58,16 +58,16 @@ test_that("Separation of the five parts of the formula works", {
   expect_equal(object = forumula_case_split$interactions,
                expected = ~ Sepal.Length - 1)
   # O
-  expect_equal(object = forumula_case_split$Orig_,
+  expect_equal(object = forumula_case_split$orig_,
                expected = ~ . + log(Sepal.Width) - 1 )
   # D
-  expect_equal(object = forumula_case_split$Dest_,
+  expect_equal(object = forumula_case_split$dest_,
                expected =  ~ . +  I(Petal.Length + Petal.Width) - 1 )
   # I
-  expect_equal(object = forumula_case_split$Intra_,
+  expect_equal(object = forumula_case_split$intra_,
                expected =  ~ . - 1)
   # G
-  expect_equal(object = forumula_case_split$Pair_,
+  expect_equal(object = forumula_case_split$pair_,
                expected =  ~ Species - 1)
 })
 
@@ -114,16 +114,16 @@ test_that("Expansion shortcuts work correctly", {
     use_pairs = TRUE,
     use_intra = TRUE)
   # O
-  expect_equal(object = same_roles_object$Orig_,
+  expect_equal(object = same_roles_object$orig_,
                expected = ~ . + log(Sepal.Width) - 1 )
   # D
-  expect_equal(object = same_roles_object$Dest_,
+  expect_equal(object = same_roles_object$dest_,
                expected =  ~ . +  I(Petal.Length + Petal.Width) - 1 )
   # I
-  expect_equal(object = same_roles_object$Intra_,
+  expect_equal(object = same_roles_object$intra_,
                expected =  ~ . - 1)
   # G
-  expect_equal(object = same_roles_object$Pair_,
+  expect_equal(object = same_roles_object$pair_,
                expected =  ~ Species - 1)
 })
 
@@ -138,16 +138,16 @@ test_that("Explicit expansion works correctly", {
     use_pairs = TRUE,
     use_intra = TRUE)
   # O
-  expect_equal(object = explicit_roles_object$Orig_,
+  expect_equal(object = explicit_roles_object$orig_,
                expected = ~ Sepal.Width + Petal.Length - 1 )
   # D
-  expect_equal(object = explicit_roles_object$Dest_,
+  expect_equal(object = explicit_roles_object$dest_,
                expected =  ~ . - 1 )
   # I
-  expect_equal(object = explicit_roles_object$Intra_,
+  expect_equal(object = explicit_roles_object$intra_,
                expected =  ~ Species - 1)
   # G
-  expect_equal(object = explicit_roles_object$Pair_,
+  expect_equal(object = explicit_roles_object$pair_,
                expected =  ~ Sepal.Width - 1)
 })
 
@@ -163,8 +163,8 @@ test_that("Two sided formula is rejected in explicit expansion", {
     "The declaration of variable roles musst be a one sided formula or*")
 })
 
-# expand_roles_and_cases ------------------------------------------------------
-context("expand_roles_and_cases")
+# model_formula_decompose ------------------------------------------------------
+context("model_formula_decompose")
 
 test_that("Expansion to all roles and cases works correctly", {
 
@@ -175,11 +175,10 @@ test_that("Expansion to all roles and cases works correctly", {
     I_(.) +                                  # 4
     G_(Species)                              # 5
 
-  formulas_by_case_and_roles <- expand_roles_and_cases(
-    flow_forumula = initial_formula,
+  formulas_by_case_and_roles <- model_formula_decompose(
+    flow_formula = initial_formula,
     flow_control = spflow_control(sdm_variables = "same",
-                                  instrumental_variables = "same"),
-    use_intra = TRUE)
+                                  instrumental_variables = "same"))
 
   # list of lists
   # 3 roles -> [normal] [sdm] [instruments]
@@ -198,7 +197,7 @@ test_that("Expansion to all roles and cases works correctly", {
     formulas_by_case_and_roles[["normal_variables"]][case_names]
 
   normal_case_without_y_and_g <- normal_case_without_y
-  normal_case_without_y_and_g$Pair_ <- ~ - 1
+  normal_case_without_y_and_g$pair_ <- ~ - 1
 
   expect_equal(object = formulas_by_case_and_roles$sdm_variables,
                expected = normal_case_without_y_and_g)

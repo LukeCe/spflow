@@ -71,9 +71,15 @@ combine_formulas <- function(..., intercept = FALSE) {
   return(reformulate(labels, intercept = intercept))
 }
 
-extract_terms_labels <- function(formula) {
-  labels(terms(formula, data = data.frame("." = ".")))
+extract_terms_labels <- function(formula, fake_data = data.frame("." = ".")) {
+  labels(terms(formula, data = fake_data))
 }
+
+extract_matrix_vars <- function(formula,fake_data) {
+  model.matrix(formula,fake_data[0,],
+               drop.unused.levels = FALSE) %>% colnames()
+}
+
 
 remove_intercept <- function(formula) {
   reformulate(
@@ -130,8 +136,12 @@ compact <- function(.x) {
   Filter(length, .x)
 }
 
+flatten <- function(...) {
+  c(..., recursive = TRUE)
+}
+
 flatlist <- function(lst) {
-  do.call(c, lapply(lst, function(x) if(is.list(x)) flatlist(x) else list(x)))
+  do.call(c, lapply(lst, function(x) if( is.list(x)) flatlist(x) else list(x)))
 }
 
 reduce <- function(.x, .f, ..., .init) {
@@ -278,4 +288,15 @@ is_single_logical <- function(x) {
 
 is_two_sided_formula <- function(formula) {
   is(formula,"formula") && (length(formula)==3)
+}
+
+# ---- vectors ----------------------------------------------------------------
+insert_after <- function(vec,what,where,replace = TRUE) {
+  new_vec <- append(vec,what,where)
+  if (replace) new_vec[where] <- NULL
+  return(new_vec)
+}
+
+insert_after_value <- function(vec,what,value,replace = TRUE) {
+  insert_after(vec,what,where = which(vec == value), replace)
 }

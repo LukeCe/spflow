@@ -49,7 +49,7 @@ test_that("Correct S4 accessors", {
     expect_equal(test_object@node_pair_data, dat(test_object))
     expect_equal(test_object@node_pair_data %>% names,
                  variable_names(test_object))
-    expect_equivalent(c("cars", "cars", "cars_cars"), id(test_object))
+    expect_equivalent(c("cars_cars", "cars", "cars"), id(test_object))
     expect_equivalent(c(5, 10, 50), count(test_object))
 })
 

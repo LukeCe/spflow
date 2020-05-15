@@ -1,4 +1,4 @@
-#' @include utils.R compact-purrr.R class_virtual.R
+#' @include utils.R class_virtual.R
 
 #' An S4 class to represent information origin-destination pairs (od-pairs) composed of two nodes.
 #'
@@ -45,11 +45,11 @@ setValidity("sp_network_pair", function(object) {
   TRUE
 })
 
-# get and set -----------------------------------------------------------------
+# ---- get and set ------------------------------------------------------------
 setMethod(
   f = "count",
   signature = "sp_network_pair",
-  definition = function(object, what = cases) { # count ----
+  function(object, what = cases) { # ---- count -------------------------------
 
     counts <- c(
       "origins" = object@origin_node_count,
@@ -65,14 +65,14 @@ setMethod(
 setMethod(
   f = "dat",
   signature = "sp_network_pair",
-  definition = function(object) { # data ----
+  function(object) { # ---- dat -----------------------------------------------
     return(object@node_pair_data)
   })
 
 setReplaceMethod(
   f = "dat",
   signature = "sp_network_pair",
-  definition = function(
+  function(
     object,
     value,
     ...) {
@@ -86,12 +86,12 @@ setReplaceMethod(
 setMethod(
   f = "id",
   signature = "sp_network_pair",
-  definition = function(object,what = cases) { # id ----
+  function(object,what = cases) { # ---- id -----------------------------------
 
     ids <- c(
-      "origins" = object@origin_network_id,
-      "destinations" = object@destination_network_id,
-      "pairs" = object@network_pair_id
+      "network_pair_id" = object@network_pair_id,
+      "origin_network_id" = object@origin_network_id,
+      "destination_network_id" = object@destination_network_id
     )
     cases <- names(ids)
     assert_valid_case(what,cases)
@@ -102,7 +102,7 @@ setMethod(
 setReplaceMethod(
   f = "id",
   signature = "sp_network_pair",
-  definition = function(object,origin_network_id,destination_network_id) {
+  function(object,origin_network_id,destination_network_id) {
     object@origin_network_id      <- origin_network_id
     object@destination_network_id <- destination_network_id
     object@pair           <- origin_network_id %p% "_" %p% destination_network_id
@@ -114,21 +114,25 @@ setReplaceMethod(
 setMethod(
   f = "variable_names",
   signature = "sp_network_pair",
-  definition = function(object) { # variable_names ----
+  function(object) { # ---- variable_names ------------------------------------
     return(names(object@node_pair_data))
   })
 
 setReplaceMethod(
   f = "variable_names",
   signature = "sp_network_pair",
-  definition = function(object,value) {
+  function(object,value) {
     names(object@node_pair_data) <- value
     if (validObject(object))
       return(object)
   })
 
 
-# constructors ----------------------------------------------------------------
+# ---- mehtods ----------------------------------------------------------------
+
+
+
+# ---- constructors -----------------------------------------------------------
 #' Create an S4 object that contains information on origin-destination pairs
 #'
 #' @param origin_network_id A character that serves as identifier for the origin network
@@ -176,21 +180,21 @@ sp_network_pair <- function(
   if (data_has_origin_key) {
     data.table::setnames(network_pair@node_pair_data,
                          old = origin_key_column,
-                         new = "origin_id")
-    network_pair@node_pair_data[, origin_id := factor_in_order(origin_id)]
-    origin_node_count <- nlevels(network_pair@node_pair_data$origin_id)
+                         new = "orig_id")
+    network_pair@node_pair_data[, orig_id := factor_in_order(orig_id)]
+    origin_node_count <- nlevels(network_pair@node_pair_data$orig_id)
   }
 
   if (data_has_destination_key) {
     data.table::setnames(network_pair@node_pair_data,
                          old = destination_key_column,
-                         "destination_id")
+                         "dest_id")
 
     network_pair@node_pair_data[
-      , destination_id := factor_in_order(destination_id)]
+      , dest_id := factor_in_order(dest_id)]
 
     destination_node_count <-
-      nlevels(network_pair@node_pair_data$destination_id)
+      nlevels(network_pair@node_pair_data$dest_id)
   }
 
   # case when key variables not given ...
@@ -228,7 +232,7 @@ sp_network_pair <- function(
                       ) %>%
       rep(.,each = destination_node_count)
 
-    network_pair@node_pair_data[, origin_id := origin_node_key]
+    network_pair@node_pair_data[, orig_id := origin_node_key]
   }
 
   if (data_needs_destination_key) {
@@ -238,10 +242,10 @@ sp_network_pair <- function(
                          seq_len(destination_node_count))) %>%
       rep(., times = origin_node_count)
 
-    network_pair@node_pair_data[, destination_id := destination_node_key]
+    network_pair@node_pair_data[, dest_id := destination_node_key]
   }
 
-  data.table::setkey(network_pair@node_pair_data,origin_id,destination_id)
+  data.table::setkey(network_pair@node_pair_data,orig_id,dest_id)
   network_pair@origin_node_count <- origin_node_count
   network_pair@destination_node_count <- destination_node_count
   network_pair@node_pair_count <- node_pair_count

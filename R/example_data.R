@@ -5,15 +5,20 @@
 #'
 #' We provide the spatial objects which containt the geography of our example
 #' as well as the prepared [sp_network()] objects.
+#' Finally there is a multinetwork object which contains the two networks and
+#' four network pairs based on the same examples.
 #'
 #' @source inspired by <https://ialab.it.monash.edu/~dwyer/papers/maptrix.pdf.>
-"germany_net"
+"multi_net_usa_ge"
 
-#' @rdname germany_net
+#' @rdname multi_net_usa_ge
 "germany_grid"
 
-#' @rdname germany_net
+#' @rdname multi_net_usa_ge
 "usa_net"
 
-#' @rdname germany_net
+#' @rdname multi_net_usa_ge
 "usa_grid"
+
+#' @rdname multi_net_usa_ge
+"germany_net"

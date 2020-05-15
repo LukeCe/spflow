@@ -26,30 +26,29 @@
 #' @param flow_forumula A formulas corresponding to the structural interaction model
 #' @param flow_control A [spflow_control()] list to fine tune the estimation
 #'
+#' @keywords internal
 #' @return
-#' @export
-expand_roles_and_cases <- function(
-  flow_forumula,
-  flow_control,
-  use_intra
+model_formula_decompose <- function(
+  flow_formula,
+  flow_control
 ) {
 
   role_and_case_formulas <-
     list(
-      "normal_variables" = expand_main_formula(flow_forumula),
+      "normal_variables" = expand_main_formula(flow_formula),
       "sdm_variables" = {
         expand_role_formula(
-          main_formula = flow_forumula,
+          main_formula = flow_formula,
           role_formula = flow_control[["sdm_variables"]],
           use_pairs = FALSE,
-          use_intra = use_intra)
+          use_intra = flow_control$use_intra)
         },
       "instrumental_variables" = {
         expand_role_formula(
-          main_formula = flow_forumula,
+          main_formula = flow_formula,
           role_formula = flow_control[["instrumental_variables"]],
           use_pairs = TRUE,
-          use_intra = use_intra)
+          use_intra = flow_control$use_intra)
       }
     )
 
@@ -69,8 +68,8 @@ expand_role_formula <- function(
   # sdm never required for pairs
   # intra is optional
   null_roles <- structure(rep(FALSE,length(use_cases)), names = use_cases)
-  null_roles["Intra_"] <- !use_intra
-  null_roles["Pair_"] <- !use_pairs
+  null_roles["intra_"] <- !use_intra
+  null_roles["pair_"] <- !use_pairs
 
   # early returns for shortcuts notations
   if (role_formula == "all") {
@@ -164,9 +163,12 @@ expand_case_formulas <- function(rhs_formula) {
 
 D_ <- O_ <- I_ <- G_ <- function(l) to_rhs_formula(deparse(substitute(l)))
 define_case_prefixes <- function() {
-  c("O_"  = "Orig_",
-    "D_"  = "Dest_",
-    "I_"  = "Intra_",
-    "G_"  = "Pair_")
+  c("O_"  = "orig_",
+    "D_"  = "dest_",
+    "I_"  = "intra_",
+    "G_"  = "pair_")
 }
 
+define_variable_roles <- function() {
+  c("normal","sdm","instrumental") %p% "_variable"
+}

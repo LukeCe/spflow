@@ -1,4 +1,4 @@
-#' @include class_virtual.R compact-purrr.R utils.R
+#' @include class_virtual.R utils.R
 
 #' An S4 class to represent information on the nodes of a network.
 #'
@@ -7,7 +7,6 @@
 #' @slot node_data A data.frame that contains all information describing the nodes
 #' @slot node_neighborhood A matrix that describes the neighborhood of the nodes
 #'
-#' @importClassesFrom Matrix Matrix
 #' @family sp_network sp_multi_network
 #'
 #' @export
@@ -48,25 +47,25 @@ setValidity(
     TRUE
   })
 
-# get and set -----------------------------------------------------------------
+# ---- get and set ------------------------------------------------------------
 setMethod(
   f = "count",
   signature = "sp_network",
-  definition = function(object) { # count ----
+  function(object) { # ---- count ---------------------------------------------
     return(object@node_count)
   })
 
 setMethod(
   f = "dat",
   signature = "sp_network",
-  definition = function(object) { # data ----
+  function(object) { # ---- dat -----------------------------------------------
     return(object@node_data)
     })
 
 setReplaceMethod(
   f = "dat",
   signature = "sp_network",
-  definition = function(object,value) {
+  function(object,value) {
     object@node_data <- value
 
     # remove neighborhood if there is a mismatch in dimensions
@@ -84,14 +83,14 @@ setReplaceMethod(
 setMethod(
   f = "id",
   signature = "sp_network",
-  definition = function(object) { # id ----
+  function(object) { # ---- id ------------------------------------------------
     return(object@network_id)
   })
 
 setReplaceMethod(
   f = "id",
   signature = "sp_network",
-  definition = function(object,value) {
+  function(object,value) {
     object@network_id <- value
     if (validObject(object))
       return(object)
@@ -100,14 +99,14 @@ setReplaceMethod(
 setMethod(
   f = "neighborhood",
   signature = "sp_network",
-  definition = function(object) { # neighborhood ----
+  function(object) { # ---- neighborhood --------------------------------------
     return(object@node_neighborhood)
   })
 
 setReplaceMethod(
   f = "neighborhood",
   signature = "sp_network",
-  definition = function(object,value) {
+  function(object,value) {
     object@node_neighborhood <- value
 
     # remove node_data if there is a mismatch in dimensions
@@ -124,7 +123,7 @@ setReplaceMethod(
 setMethod(
   f = "variable_names",
   signature = "sp_network",
-  definition = function(object) { # variable_names ----
+  function(object) { # ---- variable_names ------------------------------------
     return(names(object@node_data))
   })
 
@@ -137,7 +136,7 @@ setReplaceMethod(
       return(object)
   })
 
-# constructors ----------------------------------------------------------------
+# ---- constructors -----------------------------------------------------------
 
 #' Create an S4 object that contains information in the nodes of a network
 #'

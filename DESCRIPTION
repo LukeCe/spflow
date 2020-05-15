@@ -24,12 +24,15 @@ Collate:
     'class_sp-network-pair.R'
     'class_sp-network.R'
     'class_sp-multi-network.R'
+    'class_sp_net_generalization.R'
     'example_data.R'
     'expand-flow-formula.R'
-    'sp_flow_model_frame.R'
+    'spatial-neighborhood.R'
     'spflow-control.R'
+    'spflow-model-matrix.R'
     'spflow-package.R'
     'spflow.R'
+    'spflow_sim.R'
 URL: https://github.com/LukeCe/spflow
 BugReports: https://github.com/LukeCe/spflow/issues
 Suggests:
