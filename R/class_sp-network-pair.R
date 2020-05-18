@@ -46,6 +46,7 @@ setValidity("sp_network_pair", function(object) {
 })
 
 # ---- get and set ------------------------------------------------------------
+#' @export
 setMethod(
   f = "count",
   signature = "sp_network_pair",
@@ -62,6 +63,7 @@ setMethod(
     return(counts[what])
   })
 
+#' @export
 setMethod(
   f = "dat",
   signature = "sp_network_pair",
@@ -83,6 +85,7 @@ setReplaceMethod(
                     ...)
   })
 
+#' @export
 setMethod(
   f = "id",
   signature = "sp_network_pair",
@@ -111,6 +114,9 @@ setReplaceMethod(
       return(object)
   })
 
+# ---- methods ----------------------------------------------------------------
+
+#' @export
 setMethod(
   f = "variable_names",
   signature = "sp_network_pair",
@@ -126,10 +132,6 @@ setReplaceMethod(
     if (validObject(object))
       return(object)
   })
-
-
-# ---- mehtods ----------------------------------------------------------------
-
 
 
 # ---- constructors -----------------------------------------------------------

@@ -48,6 +48,7 @@ setValidity(
   })
 
 # ---- get and set ------------------------------------------------------------
+#' @export
 setMethod(
   f = "count",
   signature = "sp_network",
@@ -55,6 +56,7 @@ setMethod(
     return(object@node_count)
   })
 
+#' @export
 setMethod(
   f = "dat",
   signature = "sp_network",
@@ -80,6 +82,7 @@ setReplaceMethod(
     }
     })
 
+#' @export
 setMethod(
   f = "id",
   signature = "sp_network",
@@ -96,6 +99,7 @@ setReplaceMethod(
       return(object)
   })
 
+#' @export
 setMethod(
   f = "neighborhood",
   signature = "sp_network",
@@ -120,6 +124,9 @@ setReplaceMethod(
       return(object)
   })
 
+# ---- methods ----------------------------------------------------------------
+
+#' @export
 setMethod(
   f = "variable_names",
   signature = "sp_network",
@@ -130,7 +137,7 @@ setMethod(
 setReplaceMethod(
   f = "variable_names",
   signature = "sp_network",
-  definition = function(object,value) {
+  function(object,value) {
     names(object@node_data) <- value
     if (validObject(object))
       return(object)

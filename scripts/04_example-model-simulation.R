@@ -8,14 +8,13 @@
 # - - - - - - - - - - - - - - - - - - -
 # Date: Mai 2020
 
-load_all()
 library("spflow")
 source("scripts/02_usa-germany-network-pairs.R")
 source("scripts/03_example-model-parameters.R")
 data("germany_net")
 data("usa_net")
 
-multi_net_examples <- sp_multi_network(
+multi_net_usa_ge <- sp_multi_network(
   germany_net,
   usa_net,
   within_ge_pairs,
@@ -26,10 +25,10 @@ multi_net_examples <- sp_multi_network(
 
 # extract the exogenous variables and add intraregional ones
 assign_columns <- c("intra_X","intra_X_lag")
-pair_ids <- id(multi_net_examples)$network_pairs %>% names
+pair_ids <- id(multi_net_usa_ge)$network_pairs %>% names
 
 pair_variables <- pair_ids %>%
-  lapply(function(.id) pair_merge(multi_net_examples,.id)) %>%
+  lapply(function(.id) pair_merge(multi_net_usa_ge,.id)) %>%
   lapply(function(.dat) .dat[,"(Intercept)" := 1]) %>%
   lapply(function(.dat) .dat[,"distance" := log(distance + 1)])
 
@@ -45,18 +44,18 @@ pair_variables_mat <- pair_variables %>%
   lapply(as.matrix)
 
 # compute spatial filter matrices for the simulations
-origin_ids <- lookup(pair_ids) %>%
+origin_ids <- spflow:::lookup(pair_ids) %>%
   lapply(function(.id)
-    id(multi_net_examples)$network_pairs[[.id]][["origin_network_id"]])
+    id(multi_net_usa_ge)$network_pairs[[.id]][["origin_network_id"]])
 
-destination_ids <- lookup(pair_ids) %>%
+destination_ids <- spflow:::lookup(pair_ids) %>%
   lapply(function(.id)
-    id(multi_net_examples)$network_pairs[[.id]][["destination_network_id"]])
+    id(multi_net_usa_ge)$network_pairs[[.id]][["destination_network_id"]])
 
 
 all_regions <- unlist(c(origin_ids,destination_ids)) %>% unique()
 
-sp_neighborhoods <- neighborhoods(multi_net_examples,all_regions)
+sp_neighborhoods <- neighborhoods(multi_net_usa_ge,all_regions)
 
 pair_neighborhoods <- mapply(
   function(.o, .d) expand_flow_neighborhood(sp_neighborhoods[[.o]],
@@ -66,7 +65,7 @@ pair_neighborhoods <- mapply(
 
 invers_model_filters <- list(
   "y9" = pair_neighborhoods %>%
-    lapply(invert_spatial_filter, rho["rho_" %p% c("d","o","w")]),
+    lapply(invert_spatial_filter, rho[paste0("rho_",c("d","o","w"))]),
   "y2" = pair_neighborhoods %>%
     lapply(function(.w) invert_spatial_filter(.w[["Wd"]], rho["rho_d"])))
 
@@ -86,14 +85,14 @@ spflow_sim_multi <- function(filters) {
 
 flows <- invers_model_filters %>%
   lapply(spflow_sim_multi) %>%
-  translist() %>%
+  spflow:::translist() %>%
   lapply(data.frame)
 
 # add the simulated flows to the initial data
 mapply(set_columns,
-       multi_net_examples %>% network_pairs(),
+       multi_net_usa_ge %>% network_pairs(),
        flows,
        SIMPLIFY = FALSE) %>%
   invisible()
 
-usethis::use_data(multi_net_examples,overwrite = TRUE)
+usethis::use_data(multi_net_usa_ge,overwrite = TRUE)

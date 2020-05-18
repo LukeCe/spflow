@@ -3,6 +3,7 @@
 setClassUnion("sp_net_generalization"    , c("sp_network", "sp_network_pair"))
 
 # ---- methods ----------------------------------------------------------------
+#' @export
 setMethod(
   f = "set_columns",
   signature = c("sp_network_pair"),

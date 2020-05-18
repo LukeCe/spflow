@@ -31,6 +31,9 @@ spflow_model_matrix <- function(
     destination_data_cases <- NULL
   }
 
+  neighbourhoods <- neighborhoods(sp_multi_network, c(orig_id, dest_id))
+  names(neighbourhoods) <- c("OW","DW")
+
   flow_formulas_by_cases <- model_formula_decompose(
     flow_formula = flow_formula,
     flow_control = flow_control) %>%
@@ -41,32 +44,38 @@ spflow_model_matrix <- function(
     destination_data_cases %|!|%
     model_matrix_expand_net(
       case_formulas = flow_formulas_by_cases[destination_data_cases],
-      case_data = dat(multi_net_examples, dest_id),
-      case_neighborhoods = neighborhoods(multi_net_examples, dest_id))
+      case_data = dat(sp_multi_network, dest_id),
+      case_neighborhood = neighbourhoods$DW)
 
   origin_model_matrices <-
     model_matrix_expand_net(
       case_formulas = flow_formulas_by_cases[origin_data_cases],
-      case_data = dat(multi_net_examples,orig_id),
-      case_neighborhoods = neighborhoods(multi_net_examples,orig_id))
+      case_data = dat(sp_multi_network,orig_id),
+      case_neighborhood = neighbourhoods$OW)
 
   pair_model_matrices <-
     model_matrix_expand_pairs(
       pair_formulas = flow_formulas_by_cases[pair_data_cases],
       network_pair = network_pairs(sp_multi_network,pair_id),
-      pair_neighborhoods =
-        neighborhoods(sp_multi_network, c(orig_id ,dest_id)),
+      pair_neighborhoods = neighbourhoods,
       flow_control = flow_control)
 
-  return(c(destination_model_matrix,
+  # add information on constant terms
+  n_intra <- nrow(origin_model_matrices$IX)
+  constants <- list("const" = 1,
+                    "const_intra" = n_intra %|!|% Matrix::Diagonal(n_intra))
+
+  return(c(constants,
+           destination_model_matrix,
            origin_model_matrices,
-           pair_model_matrices))
+           pair_model_matrices,
+           neighbourhoods))
 }
 
 model_matrix_expand_net <- function(
   case_formulas,
   case_data,
-  case_neighborhoods
+  case_neighborhood
   ) {
 
   # derive the global model matrix by combining
@@ -97,7 +106,7 @@ model_matrix_expand_net <- function(
 
   # add spatial lags to the model matrix
   left_lag_and_cbind <- function(.x1, .x2) {
-    cbind(.x2,case_neighborhoods[[1]] %*% .x1)
+    cbind(.x2,case_neighborhood %*% .x1)
   }
 
   model_matrix_global <- lag_requirements %>%
@@ -107,7 +116,8 @@ model_matrix_expand_net <- function(
 
   # split the matrix by variable type
   add_lag_suffixes <- function(lag_req) {
-    mapply(paste0, lag_req, c("","_lag1","_lag2","_lag3"))
+    map2(lag_req, c("",".lag1",".lag2",".lag3"),paste0) %>%
+      flatten()
   }
 
   colnames(model_matrix_global) <- add_lag_suffixes(lag_requirements)
@@ -176,11 +186,13 @@ model_matrix_expand_pairs <- function(
   # convert to matrices for efficiency
   data_template <- dat(network_pair)[0,!key_clomuns, with = FALSE]
 
-  case_variables <-
-    pair_formulas %>%
-    lapply(combine_formulas) %>%
-    lapply(extract_terms_labels,
-           fake_data = data_template) %>%
+  case_formulas <- lapply(pair_formulas, combine_formulas)
+  case_formulas$pair_ <-
+    remove_vars(.formula = case_formulas$pair_,
+                .vars = all.vars(case_formulas$interactions))
+
+  case_variables <- case_formulas %>%
+    lapply(extract_terms_labels, fake_data = data_template) %>%
     lapply(list_lookup)
 
   n_orig <- count(network_pair, "origins")
@@ -250,35 +262,28 @@ model_matrix_expand_pairs <- function(
               "G" = explanatory_matrices %>% flatten()))
 }
 
-define_spatial_lag_requirements <- function(
-  formulas_by_lag_type) {
 
-  required_lags <-  with(
-    formulas_by_lag_type,{
-      list(
-        "lag0" = normal_variables,
-        "lag1" = unique(c(sdm_variables, instrumental_variables)),
-        "lag2" = instrumental_variables,
-        "lag3" = intersect(sdm_variables,instrumental_variables)
-      )})
 
-  return(required_lags)
+apply_matrix_od_lags <- function(
+  G,
+  OW = NULL,
+  DW = NULL,
+  nb_lags = 0,
+  name = "") {
 
-}
+  suffixes <- c("","lag" %p% seq_len(nb_lags))[seq_len(nb_lags + 1)]
+  G_lags <- named_list(names = name %p% suffixes)
+  G_lags[[1]] <- G
 
-identify_auto_regressive_parameters <- function(model) {
-  names_rho <- switch(substr(model, 7, 7),
-                      "9" = c("rho_d", "rho_o", "rho_w"),
-                      "8" = c("rho_d", "rho_o", "rho_w"),
-                      "7" = c("rho_d", "rho_o"),
-                      "6" = "rho_odw",
-                      "5" = "rho_od",
-                      "4" = "rho_w",
-                      "3" = "rho_o",
-                      "2" = "rho_d",
-                      "1" = NULL)
+  # Default to identity
+  OW <- OW %||% Matrix::Diagonal(nrow(G))
+  DW <- DW %||% Matrix::Diagonal(ncol(G))
 
-  return(names_rho)
+  for (i in seq_len(nb_lags)) {
+    G_lags[[i + 1]] <- tcrossprod(OW %*% G_lags[[i]], DW)
+  }
+
+  return(G_lags)
 }
 
 compute_lagged_interactions <- function(
@@ -315,24 +320,48 @@ compute_lagged_interactions <- function(
   return(Y_lags)
 }
 
-apply_matrix_od_lags <- function(
-  G,
-  OW = NULL,
-  DW = NULL,
-  nb_lags = 0,
-  name = "") {
+define_spatial_lag_requirements <- function(
+  formulas_by_lag_type) {
 
-  suffixes <- c("","lag" %p% seq_len(nb_lags))[seq_len(nb_lags + 1)]
-  G_lags <- named_list(names = name %p% suffixes)
-  G_lags[[1]] <- G
+  required_lags <-  with(
+    formulas_by_lag_type,{
+      list(
+        "lag0" = normal_variables,
+        "lag1" = unique(c(sdm_variables, instrumental_variables)),
+        "lag2" = instrumental_variables,
+        "lag3" = intersect(sdm_variables,instrumental_variables)
+      )})
 
-  # Default to identity
-  OW <- OW %||% Matrix::Diagonal(nrow(G))
-  DW <- DW %||% Matrix::Diagonal(ncol(G))
+  return(required_lags)
 
-  for (i in seq_len(nb_lags)) {
-    G_lags[[i + 1]] <- tcrossprod(OW %*% G_lags[[i]], DW)
-  }
-
-  return(G_lags)
 }
+
+define_matrix_keys <- function() {
+  c("origin_neghborhood"       = "OW",
+    "destination_neighborhood" = "DW",
+    "constant"                 = "const",
+    "intra_constant"           = "const_intra",
+    "dest_"                    = "DX",
+    "orig_"                    = "OX",
+    "intra_"                   = "IX",
+    "pair_"                    = "G",
+    "interactions"             = "Y")
+}
+
+identify_auto_regressive_parameters <- function(model) {
+  names_rho <- switch(substr(model, 7, 7),
+                      "9" = c("rho_d", "rho_o", "rho_w"),
+                      "8" = c("rho_d", "rho_o", "rho_w"),
+                      "7" = c("rho_d", "rho_o"),
+                      "6" = "rho_odw",
+                      "5" = "rho_od",
+                      "4" = "rho_w",
+                      "3" = "rho_o",
+                      "2" = "rho_d",
+                      "1" = NULL)
+
+  return(names_rho)
+}
+
+
+

@@ -87,6 +87,13 @@ remove_intercept <- function(formula) {
     intercept = FALSE)
 }
 
+remove_vars <- function(.formula,.vars) {
+  c(.formula %>% as.character(),
+    "-" %p% .vars
+    ) %>% paste0(collapse = "") %>%
+    as.formula(.)
+}
+
 pull_rhs <- function(formula) {
 
   if (is_two_sided_formula(formula))
@@ -136,12 +143,16 @@ compact <- function(.x) {
   Filter(length, .x)
 }
 
-flatten <- function(...) {
-  c(..., recursive = TRUE)
+flatten <- function(..., use.names = TRUE) {
+  c(..., recursive = TRUE, use.names = use.names)
 }
 
 flatlist <- function(lst) {
   do.call(c, lapply(lst, function(x) if( is.list(x)) flatlist(x) else list(x)))
+}
+
+map2 <- function(.x, .y, .f, ...) {
+  mapply(.f, .x, .y, MoreArgs = list(...), SIMPLIFY = FALSE)
 }
 
 reduce <- function(.x, .f, ..., .init) {

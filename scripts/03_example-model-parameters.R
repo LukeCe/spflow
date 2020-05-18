@@ -34,4 +34,4 @@ rho <- c(rho_d = 0.45,
 # sd of errors
 sd_error <- c(sigma = 2)
 
-save(list = ls(),file = "data/simulation_parameters.rda")
+save(delta,rho,sd_error,file = "data/simulation_parameters.rda")
