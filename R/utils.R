@@ -178,7 +178,32 @@ translist <- function(.l) {
   return(lapply(result, compact))
 }
 
-# naming ----------------------------------------------------------------------
+# ---- math operations --------------------------------------------------------
+hadamarad_sum <- function(x,y = x) {
+  sum( x * y )
+}
+
+hadamarad_sum_matrix <- function(matrix_list) {
+
+  n_matrixes <- length(matrix_list)
+  result <- matrix(0, nrow = n_matrixes , ncol = n_matrixes)
+
+  for (i in seq_len(n_matrixes)) {
+    # diagonal elements
+    result[i,i] <- sum(matrix_list[[i]] * matrix_list[[i]])
+
+    for (j in seq_len(n_matrixes - i)) {
+      # exploit symmetry of Q for off diagonal elements
+      c <- i + j
+      result[i, c] <- sum(matrix_list[[i]] * matrix_list[[c]])
+      result[c, i] <- result[i, c]
+
+    }
+  }
+  return(result)
+}
+
+# ---- naming -----------------------------------------------------------------
 named_list <- function(names, init = NULL) {
 
   named_list <- vector("list", length(names))

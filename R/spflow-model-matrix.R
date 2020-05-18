@@ -62,8 +62,12 @@ spflow_model_matrix <- function(
 
   # add information on constant terms
   n_intra <- nrow(origin_model_matrices$IX)
-  constants <- list("const" = 1,
-                    "const_intra" = n_intra %|!|% Matrix::Diagonal(n_intra))
+  constants <- list(
+    "const" = 1 %>% data.table::setattr("is_instrument_var",FALSE),
+    "const_intra" = n_intra %|!|%
+      intra_regional_constant(
+        W = neighbourhoods$OW,
+        use_instruments = flow_control$estimation_method == "s2sls"))
 
   return(c(constants,
            destination_model_matrix,
@@ -154,7 +158,7 @@ model_matrix_expand_net <- function(
 
   # set attribute which allows easy subsetting
   mapply(function(.dat,.inst) {
-    data.table::setattr(.dat, "instrument_column",.inst)},
+    data.table::setattr(.dat, "is_instrument_var",.inst)},
          .dat = segment_model_matrices,
          .inst = instruments_by_model_segment,
          SIMPLIFY = FALSE) %>%
@@ -250,13 +254,13 @@ model_matrix_expand_pairs <- function(
   # all are instruments
   explanatory_matrices %>%
     lapply(function(.l)
-      lapply(.l,data.table::setattr,"instrument_column",TRUE)) %>%
+      lapply(.l,data.table::setattr,"is_instrument_var",TRUE)) %>%
     invisible()
 
   # except the first elements
   explanatory_matrices %>%
     lapply(function(.l)
-      data.table::setattr(.l[[1]], "instrument_column",FALSE))
+      data.table::setattr(.l[[1]], "is_instrument_var",FALSE))
 
   return(list("Y" = response_matrices %>% flatten(),
               "G" = explanatory_matrices %>% flatten()))
@@ -364,4 +368,34 @@ identify_auto_regressive_parameters <- function(model) {
 }
 
 
+intra_regional_constant <- function(W, use_instruments = FALSE) {
+
+  In <- list(
+    "In" =
+      Matrix::Diagonal(nrow(W)) %>%
+      data.table::setattr(x = ., name = "is_instrument_var", value = FALSE)
+  )
+  if (!use_instruments) {
+    return(In)
+  }
+
+  V <- Matrix::tcrossprod(W) # def. V = WW'
+  WV <- W %*% V
+  WW <- W %*% W
+  w_int <- list(
+    "W" = W,
+    "W'" = t(W),
+    "WW" = WW,
+    "WW'" = t(WW),
+    "V" = V,
+    "VV" = Matrix::tcrossprod(WV, W),
+    "WV" = WV,
+    "VW'" = t(WV)
+  ) %>%
+    lapply(data.table::setattr,
+           name = "is_instrument_var",
+           value = TRUE)
+
+  return(c(In,w_int))
+}
 

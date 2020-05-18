@@ -51,15 +51,16 @@ spflow <- function(
   flow_control <- do.call(spflow_control, flow_control)
 
   # transform ...
-  model_matrix <- sp_flow_model_matrix(
+  model_matrices <- spflow_model_matrix(
     sp_multi_network,
     network_pair_id,
     flow_formula,
     flow_control)
 
   # derive the model moments
+  model_moments <- spflow_model_moments()
 
-  # estimate coefficients
+  # moment based estimation
 
   # return
 

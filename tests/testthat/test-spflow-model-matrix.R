@@ -63,8 +63,6 @@ test_that("Output elements are correct", {
   # check the constant
   expect_true(example_matrices$const == 1)
   expect_equivalent(object = example_matrices$const_intra,
-                    expected = Matrix::Diagonal(n_ge))
-
-
+                    expected = intra_regional_constant(W_ge, TRUE))
 
 })
