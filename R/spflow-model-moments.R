@@ -3,12 +3,13 @@ spflow_model_moments <- function(
   estimator
 ) {
 
-  switch(estimator,
-    "s2sls" = derive_GMM_moments(model_matrices),
-    "mle" = derive_likelihood_moments(model_matrices),
-    "mcmc" = derive_likelihood_moments(model_matrices),
-    "ols" = derive_OLS_moments(model_matrices)
-  )
+
+  diagonal_blocks <- named_list(c("alpha","alpha_I","beta","gamma"))
+
+  diagonal_blocks$alpha <- moments$var$alpha(model_matrices$N)
+  diagonal_blocks$alpha_I <- moments$var$alpha_I(model_matrices$const_intra)
+
+
 }
 
 derive_GMM_moments <- function(

@@ -254,27 +254,6 @@ replace_NA_chr <- function(.x , .replace) {
   sub("NA.", .replace, .x )
 }
 
-# pipe ------------------------------------------------------------------------
-#' Pipe operator
-#'
-#' See \code{magrittr::\link[magrittr:pipe]{\%>\%}} for details.
-#'
-#' @name %>%
-#' @rdname pipe
-#' @keywords internal
-#' @export
-#' @importFrom magrittr %>%
-#' @usage lhs \%>\% rhs
-NULL
-
-"%||%" <- function(x, y) {
-  if (is.null(x)) y else x
-}
-
-"%|!|%" <- function(x, y) {
-  if (is.null(x)) x else y
-}
-
 # factors ---------------------------------------------------------------------
 factor_in_order <- function(x) {
   factor(x,levels = as.character(unique(x)))
@@ -289,12 +268,35 @@ pull_slots <- function(.obj, .slots) {
   lapply(.slots, pull_slot, .obj)
 }
 
+sequentialize_index <- function(index_list) {
+  len <- unlist(lapply(index_list, length))
+  shift <- cumsum(c(0,len))[1:length(index_list)]
+  mapply("+", index_list, as.list(shift),SIMPLIFY = FALSE)
+}
+
+
 # ---- matrices ---------------------------------------------------------------
 stack_cols <- function(mat ,rows = "row", cols = "col", value = "value") {
   cbind(expand.grid(row = factor_in_order(rownames(mat)),
                     col = factor_in_order(colnames(mat))),
         value = as.vector(mat)) %>%
     `names<-`(c(rows,cols,value))
+}
+
+rbind_fill0 <- function(mat_a, mat_b) {
+
+  if (ncol(mat_a) == ncol(mat_b))
+    return(rbind(mat_a,mat_b))
+
+  col_diff <- mat_a - mat_b
+  if (col_diff < 0) {
+    mat_0 <- matrix(nrow = nrow(mat_a),ncol = abs(col_diff))
+    return(rbind(cbind(mat_a,mat_0),mat_b))
+  }
+
+  mat_0 <- matrix(nrow = nrow(mat_b),ncol = col_diff)
+  return(rbind(mat_a,cbind(mat_0,mat_b)))
+
 }
 
 # ---- primitives -------------------------------------------------------------
@@ -324,6 +326,27 @@ is_single_logical <- function(x) {
 
 is_two_sided_formula <- function(formula) {
   is(formula,"formula") && (length(formula)==3)
+}
+
+# pipe ------------------------------------------------------------------------
+#' Pipe operator
+#'
+#' See \code{magrittr::\link[magrittr:pipe]{\%>\%}} for details.
+#'
+#' @name %>%
+#' @rdname pipe
+#' @keywords internal
+#' @export
+#' @importFrom magrittr %>%
+#' @usage lhs \%>\% rhs
+NULL
+
+"%||%" <- function(x, y) {
+  if (is.null(x)) y else x
+}
+
+"%|!|%" <- function(x, y) {
+  if (is.null(x)) x else y
 }
 
 # ---- vectors ----------------------------------------------------------------
