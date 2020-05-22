@@ -34,9 +34,9 @@ Collate:
     'spatial-neighborhood.R'
     'spflow-control.R'
     'spflow-model-matrix.R'
+    'spflow-model-moments.R'
     'spflow-package.R'
     'spflow.R'
-    'spflow_model_moments.R'
     'spflow_sim.R'
 URL: https://github.com/LukeCe/spflow
 BugReports: https://github.com/LukeCe/spflow/issues

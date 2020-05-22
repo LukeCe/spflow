@@ -1,203 +1,202 @@
-# ---- Variance Moments (Diag) ------------------------------------------------
-context("Variance Moment Block")
+# ---- SETUP ------------------------------------------------------------------
 data("germany_net")
 
-test_that("Diag Block - alpha", {
-  expect_equal(object = moments$var$alpha(10),
-               expected = 10)
-  expect_equal(object = moments$var$alpha(NULL),
-               expected = NULL, )
+# create test input values and vector references to test against
+test_object_names <- c("X","W","const_intra","N","G","Y")
+test_input <- named_list(test_object_names)
+
+test_input[["X"]] <- germany_net@node_data[,!"id", with = FALSE]
+test_input[["W"]] <- germany_net@node_neighborhood
+test_input[["const_intra"]] <-
+  intra_regional_constant(test_input$W, use_instruments = TRUE)
+
+n_sites <- nrow(test_input$X)
+test_input[["N"]] <- n_sites^2
+
+dummy_pair_data <- rnorm(test_input$N)
+test_input[["G"]] <-
+  replicate(3,matrix(dummy_pair_data, nrow = n_sites, ncol = n_sites),
+            simplify = FALSE)
+test_input[["Y"]] <-
+  matrix(dummy_pair_data, nrow = n_sites, ncol = n_sites)
+
+# ---- Variance Moments (Diag Blocks) -----------------------------------------
+context("Variance Moment : Diag Blocks")
+
+test_that("Diag Block - alpha => Correct output", {
+  actual_null <- moments$var$alpha(NULL)
+  expect_equal(object = actual_null, expected = NULL, )
+
+  actual <- moments$var$alpha(10)
+  expected <- matrix(10)
+  expect_equal(actual, expected)
 })
 
-test_that("Diag Block - alpha_I", {
-  expect_equal(object = moments$var$alpha_I(NULL),
-               expected = NULL)
+test_that("Diag Block - alpha_I => Correct output", {
 
-  W <- neighborhood(germany_net)
-  expect_equal(object =
-                 intra_regional_constant(W,use_instruments = FALSE) %>%
-                 moments$var$alpha_I(.),
-               expected = matrix(nrow(W)))
+  actual_null <- moments$var$alpha_I(NULL)
+  expect_equal(actual_null, expected = NULL)
 
-  example_intra_const <- intra_regional_constant(W,use_instruments = TRUE)
-  example_alpha_I <- moments$var$alpha_I(example_intra_const)
-  expect_equal(object = example_alpha_I,
-               expected = example_intra_const %>% hadamarad_sum_matrix())
+  test_W <- test_input$W
+  test_const_intra <- test_input$const_intra
+  actual_without_instruments <- moments$var$alpha_I(test_const_intra[1])
+  expected <- matrix(nrow(test_W))
+  expect_equal(actual_without_instruments,expected)
+
+  actual_with_instruments <- moments$var$alpha_I(test_const_intra)
+  expected <- hadamarad_sum_matrix(test_const_intra)
+  expect_equal(actual_with_instruments,expected)
 })
 
-test_that("Diag Block - beta", {
+test_that("Diag Block - beta => Correct output", {
 
-  expect_equal(object = moments$var$beta(NULL),
-               expected = NULL)
+  actual_null <- moments$var$beta(NULL)
+  expect_equal(actual_null, expected = NULL)
 
-  # equality of vector and matrix approach
-  eg_X <- list("OX" = cars, "DX" = cars) %>% lapply(as.matrix)
-  eg_X_vec <- cbind(eg_X$DX %x% rep(1,nrow(eg_X$OX)),
-                    rep(1,nrow(eg_X$DX)) %x% eg_X$DX)
+  test_X <- test_input$X %>% expand_O_D_I_mem()
+  actual <- moments$var$beta(test_X)
+  expected <- test_X %>% vec_reference_O_D_I_mem() %>% crossprod_mem()
+  expect_equal(actual,expected, check.attributes = FALSE)
 
-  expect_equivalent(object = moments$var$beta(eg_X) %>% as.matrix(),
-                    expected = crossprod(eg_X_vec))
-
-  # include intra
-  eg_IX <- c(eg_X,list("IX" = as.matrix(cars)))
-  n_obs <- nrow(eg_IX$IX)
-
-  eg_IX_vec <- cbind(eg_X_vec,
-                     eg_X_vec[,1:2] * as.vector(diag(n_obs)))
-  expect_equivalent(object = moments$var$beta(eg_IX) %>% as.matrix(),
-                    expected = crossprod(eg_IX_vec))
+  # drop intra
+  test_X$IX <- NULL
+  actual <- moments$var$beta(test_X)
+  expected <- test_X %>% vec_reference_O_D_I_mem() %>% crossprod_mem()
+  expect_equal(actual,expected, check.attributes = FALSE)
 })
 
-test_that("Diag Block - gamma", {
+test_that("Diag Block - gamma => Correct output", {
 
-  expect_equal(object = moments$var$gamma(NULL),
-               expected = NULL)
+  actual_null <- moments$var$gamma(NULL)
+  expect_equal(actual_null, expected = NULL)
 
-  # equality of vector and matrix approach
-  eg_G <- replicate(3, matrix(rnorm(100),10,10),simplify = FALSE)
-  eg_G_vec <- lapply(eg_G, as.vector) %>% reduce(cbind)
-
-  expect_equivalent(object = moments$var$gamma(eg_G) %>% as.matrix(),
-                    expected = crossprod(eg_G_vec))
-
+  test_G <- test_input$G
+  actual <- moments$var$gamma(test_G)
+  expected <- test_G %>% vec_reference_matrix_mem() %>% crossprod_mem()
+  expect_equal(actual, expected, check.attributes = FALSE)
 })
 
-# ---- Variance Moments (Off-diag) --------------------------------------------
-test_that("Off-diag Block - alpha:alpha_I", {
-  expect_equal(object = moments$var$alpha_alpha_I(NULL),
-               expected = NULL)
+# ---- Variance Moments (Off-diag Blocks) -------------------------------------
+context("Variance Moment : Off-diag Blocks")
 
-  test_list <- list(1,2,3) %>% lapply(rep,5)
-  expect_equal(object = moments$var$alpha_alpha_I(test_list),
-               expected = c(1,2,3)*5)
+test_that("Off-diag Block - alpha:alpha_I => Correct output", {
+  actual_null <- moments$var$alpha_alpha_I(NULL)
+  expect_equal(actual_null, expected = NULL)
+
+  test_const_intra <- test_input$const_intra
+  actual <- moments$var$alpha_alpha_I(test_const_intra)
+  expected <- test_const_intra %>%
+    vec_reference_matrix_mem() %>%
+    colSums()
+  expect_equal(actual, expected, check.attributes = FALSE)
 })
 
-test_that("Off-diag Block - alpha:beta", {
+test_that("Off-diag Block - alpha:beta => Correct output", {
+  actual_null <- moments$var$alpha_beta(NULL)
+  expect_equal(actual_null, expected = NULL)
 
-  expect_equal(object = moments$var$alpha_beta(NULL),
-               expected = NULL)
-
-  eg_X <- list("OX" = cars, "DX" = cars, "IX" = cars) %>% lapply(as.matrix)
-  eg_X_vec <- cbind(eg_X$DX %x% rep(1,nrow(eg_X$OX)),
-                    rep(1,nrow(eg_X$DX)) %x% eg_X$DX)
-
-  n_obs <- nrow(eg_X$IX)
-  eg_X_vec <- cbind(eg_X_vec, eg_X_vec[,1:2] * as.vector(diag(n_obs)))
-
-  expect_equivalent(object = moments$var$alpha_beta(eg_X),
-                    expected = colSums(eg_X_vec))
-
+  test_X <- test_input$X %>% expand_O_D_I_mem()
+  actual <- moments$var$alpha_beta(test_X)
+  expected <-
+    test_X %>%
+    vec_reference_O_D_I_mem() %>%
+    col_sums()
+  expect_equal(actual, expected, check.attributes = FALSE)
 })
 
-test_that("Off-diag Block - alpha:gamma", {
-  expect_equal(object = moments$var$alpha_gamma(NULL),
-               expected = NULL)
-
+test_that("Off-diag Block - alpha:gamma => Correct output", {
+  actual_null <- moments$var$alpha_gamma(NULL)
+  expect_equal(actual_null, expected = NULL)
 })
 
-test_that("Off-diag Block - alpha_I:beta", {
+test_that("Off-diag Block - alpha_I:beta => Correct output", {
 
-  # X
-  X_germany <- dat(germany_net)[,!"id", with = FALSE]
-  eg_X <- named_list(c("OX", "DX", "IX"),X_germany) %>% lapply(as.matrix)
+  actual_null <- moments$var$alpha_I_beta(NULL,NULL)
+  expect_equal(actual_null, expected = NULL)
 
-  # I
-  W <- neighborhood(germany_net)
-  eg_const_I <- intra_regional_constant(W,use_instruments = FALSE)
+  test_X <- test_input$X %>% expand_O_D_I_mem()
+  actual_null <- moments$var$alpha_I_beta(NULL, test_X)
+  expect_equal(actual_null, expected = NULL)
 
-  expect_equal(
-    object = moments$var$alpha_I_beta(X = NULL, const_intra = eg_const_I),
-    expected = NULL)
+  test_const_intra <- test_input$const_intra
+  actual_null <- moments$var$alpha_I_beta(test_const_intra, NULL)
+  expect_equal(actual_null, expected = NULL)
 
-  expect_equal(
-    object = moments$var$alpha_I_beta(X = eg_X, const_intra = NULL),
-    expected = NULL)
-
-  # equality of vector and matrix moment
-  # without instruments
-  eg_X_vec <- cbind(eg_X$DX %x% rep(1,nrow(eg_X$OX)),
-                    rep(1,nrow(eg_X$DX)) %x% eg_X$DX)
-  n_obs <- nrow(eg_X$IX)
-  eg_X_vec <- cbind(eg_X_vec, eg_X_vec[,1:2] * as.vector(diag(n_obs)))
-  eg_const_vec <-
-    eg_const_I %>%
-    lapply(as.vector) %>%
-    reduce(cbind)
-
-  expect_equivalent(
-    object = moments$var$alpha_I_beta(X = eg_X, const_intra =  eg_const_I),
-    expected = crossprod(eg_const_vec, eg_X_vec))
-
-  # with instruments
-  eg_const_I <- intra_regional_constant(W,use_instruments = TRUE)
-  eg_const_vec <- eg_const_I %>% lapply(as.vector) %>% reduce(cbind)
-
-  expect_equivalent(
-    object = moments$var$alpha_I_beta(X = eg_X, const_intra =  eg_const_I),
-    expected = crossprod(eg_const_vec, eg_X_vec))
-
+  actual <- moments$var$alpha_I_beta(test_const_intra, test_X)
+  expected <- crossprod(
+    x = test_const_intra %>% vec_reference_matrix_mem(),
+    y = test_X %>% vec_reference_O_D_I_mem()
+  )
+  expect_equal(actual, expected, check.attributes = FALSE)
 })
 
-test_that("Off-diag Block - alpha_I:gamma", {
-  W <- neighborhood(germany_net)
-  eg_const_I <- intra_regional_constant(W,use_instruments = TRUE)
+test_that("Off-diag Block - alpha_I:gamma => Correct output", {
 
-  n_obs <- nrow(W)
-  eg_G <- replicate(3, matrix(rnorm(n_obs^2),nrow = n_obs,ncol = n_obs),
-                    simplify = FALSE)
+  actual_null <- moments$var$alpha_I_gamma(NULL,NULL)
+  expect_equal(actual_null, expected = NULL)
 
-  expect_equal(
-    object = moments$var$alpha_I_gamma(const_intra = NULL,G = eg_G),
-    expected = NULL)
+  test_G <- test_input$G
+  actual_null <- moments$var$alpha_I_gamma(NULL, test_G)
+  expect_equal(actual_null, expected = NULL)
 
-  expect_equal(
-    object = moments$var$alpha_I_gamma(const_intra = NULL,G = eg_G),
-    expected = NULL)
+  test_const_intra <- test_input$const_intra
+  actual_null <- moments$var$alpha_I_gamma(test_const_intra, NULL)
+  expect_equal(actual_null, expected = NULL)
 
   # equaltiy of vector and matrix solutions
-  eg_G_vec <- lapply(eg_G, as.vector) %>% reduce(cbind)
-  eg_const_I_vec <- lapply(eg_const_I, as.vector) %>% reduce(cbind)
-
-  expect_equivalent(
-    object = {
-      moments$var$alpha_I_gamma(const_intra = eg_const_I, G = eg_G) %>%
-        as.matrix()},
-    expected = crossprod(eg_const_I_vec,eg_G_vec))
+  actual <- moments$var$alpha_I_gamma(test_const_intra, test_G)
+  expected <- crossprod(
+    x = test_const_intra %>% vec_reference_matrix_mem(),
+    y = test_G %>% vec_reference_matrix_mem()
+  )
+  expect_equal(actual, expected, check.attributes = FALSE)
 
 })
 
-test_that("Off-diag Block - beta:gamma", {
-  # X
-  X_germany <- dat(germany_net)[,!"id", with = FALSE]
-  eg_X <- named_list(c("OX", "DX", "IX"),X_germany) %>% lapply(as.matrix)
-  # G
-  n_obs <- nrow(X_germany)
-  eg_G <- replicate(3, matrix(rnorm(n_obs^2),nrow = n_obs,ncol = n_obs),
-                    simplify = FALSE)
+test_that("Off-diag Block - beta:gamma => Correct output", {
 
-  expect_equal(
-    object = moments$var$beta_gamma(X = NULL,G = eg_G),
-    expected = NULL)
+  actual_null <- moments$var$beta_gamma(NULL,NULL)
+  expect_equal(actual_null, expected = NULL)
 
-  expect_equal(
-    object = moments$var$beta_gamma(X = eg_X,G = NULL),
-    expected = NULL)
+  test_X <- test_input$X %>% expand_O_D_I_mem()
+  actual_null <- moments$var$beta_gamma(test_X, NULL)
+  expect_equal(actual_null, expected = NULL)
 
-  # equaltiy of vector and matrix solutions
-  eg_X_vec <- cbind(eg_X$DX %x% rep(1,nrow(eg_X$OX)),
-                    rep(1,nrow(eg_X$DX)) %x% eg_X$DX)
-  n_obs <- nrow(eg_X$IX)
-  eg_X_vec <- cbind(eg_X_vec, eg_X_vec[,1:2] * as.vector(diag(n_obs)))
+  test_G <- test_input$G
+  actual_null <- moments$var$beta_gamma(NULL, test_G)
+  expect_equal(actual_null, expected = NULL)
 
-  eg_G_vec <- lapply(eg_G, as.vector) %>% reduce(cbind)
+  actual <- moments$var$beta_gamma(test_X,test_G)
+  expected <- crossprod(
+    x = test_X %>% vec_reference_O_D_I_mem(),
+    y = test_G %>% vec_reference_matrix_mem()
+  )
+  expect_equal(actual, expected, check.attributes = FALSE)
+})
+# ---- Variance Moment (Full) -------------------------------------------------
+context("Variance Moment : Complete")
 
-  expect_equivalent(
-    object = moments$var$beta_gamma(X = eg_X,G = eg_G),
-    expected = crossprod(eg_X_vec,eg_G_vec))
+test_that("Variance Moment => Correct Output", {
+  test_model_matrices <- c(
+    list("const" = 1),
+    test_input["const_intra"],
+    list("X" = test_input$X %>% expand_O_D_I_mem()),
+    test_input["G"],
+    test_input["N"]
+  )
 
+  actual <- moments$empirical_var(test_model_matrices)
+  expected <- cbind(
+    test_model_matrices$const,
+    test_model_matrices$const_intra %>% vec_reference_matrix_mem(),
+    test_input$X %>% expand_O_D_I_mem() %>% vec_reference_O_D_I_mem(),
+    test_model_matrices$G %>% vec_reference_matrix_mem()) %>%
+    crossprod() %>%
+    Matrix::Matrix()
+  expect_equal(actual,expected, check.attributes = FALSE)
 })
 
-# ---- Covariance Moments -----------------------------------------------------
+# ---- Covariance Moments (Blocks) --------------------------------------------
 context("Covariance Moment Blocks")
 
 test_that("Cov Block - alpha", {
@@ -218,12 +217,12 @@ test_that("Cov Block - alpha_I", {
                expected = NULL)
 
 
-  test_intra_const <- intra_regional_constant(W,use_instruments = TRUE)
-  test_intra_const_vec <- lapply(test_intra_const, as.vector) %>% reduce(cbind)
+  test_const_intra <- intra_regional_constant(W,use_instruments = TRUE)
+  test_const_intra_vec <- lapply(test_const_intra, as.vector) %>% reduce(cbind)
 
   expect_equivalent(
-    object = moments$cov$alpha_I(Y = test_Y,const_intra = test_intra_const),
-    expected = crossprod(as.vector(test_Y),test_intra_const_vec))
+    object = moments$cov$alpha_I(Y = test_Y,const_intra = test_const_intra),
+    expected = crossprod(as.vector(test_Y),test_const_intra_vec))
 })
 
 test_that("Cov Block - beta", {
@@ -262,3 +261,6 @@ test_that("Cov Block - gamma", {
                     expected = crossprod(as.vector(test_Y), eg_G_vec))
 
 })
+
+# ---- Covariance Moment (Full) -----------------------------------------------
+context("Covariance Moment : Complete")

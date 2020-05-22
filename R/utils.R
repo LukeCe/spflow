@@ -203,6 +203,11 @@ hadamarad_sum_matrix <- function(matrix_list) {
   return(result)
 }
 
+col_sums <- function(x) {
+  matrix(colSums(x),nrow = 1)
+}
+
+
 # ---- naming -----------------------------------------------------------------
 named_list <- function(names, init = NULL) {
 
@@ -285,10 +290,10 @@ stack_cols <- function(mat ,rows = "row", cols = "col", value = "value") {
 
 rbind_fill0 <- function(mat_a, mat_b) {
 
-  if (ncol(mat_a) == ncol(mat_b))
+  if (is.null(mat_a) || is.null(mat_b) || (ncol(mat_a) == ncol(mat_b)))
     return(rbind(mat_a,mat_b))
 
-  col_diff <- mat_a - mat_b
+  col_diff <- ncol(mat_a) - ncol(mat_b)
   if (col_diff < 0) {
     mat_0 <- matrix(nrow = nrow(mat_a),ncol = abs(col_diff))
     return(rbind(cbind(mat_a,mat_0),mat_b))

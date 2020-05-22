@@ -1,26 +1,54 @@
 moments <- modules::module({
 
-  empirical_var <- function(flow_model_matrix) {
+  empirical_var <- function(flow_model_matrices) {
+   # The moment matrix is grouped into (4x4) blocks
+   # {alpha, alpha_I, beta, gamma}^2
+   # Of those 16 blocks 10 are unique and 6 are inferred by symmetry
 
-    # The moment is grouped into (4x4) block
-    # ([alpha] [alpha_I] [beta] [gamma])^2
-    # Of those 16 blocks 10 are unique and 6 are inferred by symmetry
+    # [alpha] blocks (4/10)
+    alpha_blocks <- with(flow_model_matrices, {
 
-    # The first 4 blocks correspond to the interactions with alpha
-    alpha_blocks <-
-      "alpha" %p% c("","_alpha_I","_beta","_gamma") %>%
-      named_list()
+      list(
+        "alpha"         = moments$var$alpha(N),
+        "alpha_alpha_I" = moments$var$alpha_alpha_I(const_intra),
+        "alpha_beta"    = moments$var$alpha_beta(X),
+        "alpha_gamma"   = moments$var$alpha_gamma(G)) %>%
+        reduce(cbind)
+    })
 
-    alpha_blocks[["alpha"]] <- moments$var$alpha(N = flow_model_matrix$N)
+    # [alpha_I] blocks (7/10)
+    alpha_I_blocks <- with(flow_model_matrices, {
+      list(
+        "alpha_I" = moments$var$alpha_I(const_intra),
+        "alpha_I_beta" = moments$var$alpha_I_beta(const_intra, X),
+        "alpha_I_gamma" = moments$var$alpha_I_gamma(const_intra, G)) %>%
+        reduce(cbind)
+    })
 
+    # [beta] blocks (9/10)
+    beta_blocks <- with(flow_model_matrices, {
+      list(
+      "beta" = moments$var$beta(X = flow_model_matrices$X),
+      "beta_gamma" = moments$var$beta_gamma(X = X, G = G)) %>%
+       reduce(cbind)
+      })
 
+    # [gamma] block (10/10)
+    gamma_block <- moments$var$gamma(G = flow_model_matrices$G)
+
+    combined_blocks <-
+      list(alpha_blocks,alpha_I_blocks,beta_blocks,gamma_block) %>%
+      reduce(rbind_fill0) %>%
+      Matrix::forceSymmetric(x = ., uplo = "U")
+
+    return(combined_blocks)
   }
   var <- modules::module({
     # ---- Variance Moments ---------------------------------------------------
     # ---- Diagonal Blocks ----
     modules::export("alpha","alpha_I","beta","gamma")
 
-    alpha <- function(N) {N}
+    alpha <- function(N) {N %|!|% matrix(N)}
 
     alpha_I <- function(const_intra) {
 
@@ -75,7 +103,8 @@ moments <- modules::module({
       block_beta[rows,cols] <- tcrossprod(colSums(X$DX),colSums(X$OX))
 
       if (is.null(X$IX)) {
-        return(forceSymmetric(block_beta,"U"))
+        block_beta <- Matrix::forceSymmetric(block_beta,"U")
+        return(as.matrix(block_beta))
       }
 
       # The last off-diagonal blocks correspond to the inner products:
@@ -88,7 +117,8 @@ moments <- modules::module({
         reduce(rbind)
 
 
-      return(forceSymmetric(block_beta,"U"))
+      block_beta <- Matrix::forceSymmetric(block_beta,"U")
+      return(as.matrix(block_beta))
     }
 
     gamma <- function(G) {
@@ -101,22 +131,26 @@ moments <- modules::module({
                     "beta_gamma")
 
     alpha_alpha_I <- function(const_intra) {
-      const_intra %|!|% rapply(const_intra,sum)
+      const_intra %|!|% (rapply(const_intra,sum) %>% matrix(nrow = 1))
     }
 
     alpha_beta <- function(X) {
+
+      if (is.null(X))
+        return(NULL)
+
       scaled_col_sums <-
         map2(
-          .x = X %>% lapply(colSums),
+          .x = X %>% lapply(col_sums),
           .y = X %>% derive_scalings(),
           .f = `*`) %>%
-        reduce(c)
+        reduce(cbind)
 
       return(scaled_col_sums)
     }
 
     alpha_gamma <- function(G) {
-      G %|!|% rapply(G,sum)
+      G %|!|% (rapply(G,sum) %>% matrix(nrow = 1))
     }
 
     alpha_I_beta <- function(const_intra,X) {
@@ -171,9 +205,16 @@ moments <- modules::module({
 
   })
 
+  empirical_covar <- function(Y,flow_model_matrices) {
 
-  empirical_covar <- function() {
+    result <- with(flow_model_matrices, {
+      c(moments$cov$alpha(Y),
+        moments$cov$alpha_I(Y, const_intra),
+        moments$cov$beta(Y, X),
+        moments$cov$gamma(Y, G))
+    })
 
+    return(result)
   }
   cov <- modules::module({
     # ---- Covariance Moments -------------------------------------------------
@@ -214,10 +255,6 @@ moments <- modules::module({
   })
 
    # ---- Helpers ------------------------------------------------------------
-  define_moment_blocks <- function() {
-    c("alpha","alpha_I","beta","gamma")
-  }
-
   derive_scalings <- function(X) {
 
      if (is.null(X))
