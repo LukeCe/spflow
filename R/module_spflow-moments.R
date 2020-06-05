@@ -205,7 +205,7 @@ moments <- modules::module({
 
   })
 
-  empirical_covar <- function(Y,flow_model_matrices) {
+  empirical_covar <- function(Y, flow_model_matrices) {
 
     result <- with(flow_model_matrices, {
       c(moments$cov$alpha(Y),
@@ -221,7 +221,7 @@ moments <- modules::module({
     modules::export("alpha","alpha_I","beta","gamma")
 
     alpha <- function(Y) {
-      sum(Y)
+      Y %|!|% sum(Y)
     }
 
     alpha_I <- function(Y,const_intra) {
@@ -283,6 +283,4 @@ moments <- modules::module({
 
      return(result)
    }
-
-
 })

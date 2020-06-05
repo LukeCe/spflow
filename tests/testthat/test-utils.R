@@ -36,9 +36,9 @@ test_that("Intercept removal works as intended", {
 })
 
 test_that("Model matrix without contrasts works", {
-  iris2 <- as.data.table(iris)
+  iris2 <- data.table::as.data.table(iris)
   iris2[ , id := 1:nrow(iris2)]
-  setkey(iris2, id)
+  data.table::setkey(iris2, id)
   test_model_matrix <- fix_contrast_model_matrix(
     ~ Petal.Length + Sepal.Length + Species - 1,
     iris2

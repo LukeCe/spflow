@@ -1,65 +1,52 @@
-spflow_model_moments <- function(
+spflow_model_moments_mat <- function(
   model_matrices,
   estimator
 ) {
 
-
-  diagonal_blocks <- named_list(c("alpha","alpha_I","beta","gamma"))
-
-  diagonal_blocks$alpha <- moments$var$alpha(model_matrices$N)
-  diagonal_blocks$alpha_I <- moments$var$alpha_I(model_matrices$const_intra)
-
-
-}
-
-derive_GMM_moments <- function(
-  model_matrices) {
-
-
-  # number of obsercations
+  # number of observations
   N <- length(model_matrices$Y[[1]])
 
-  # sum of squares of the response variable
-  TSS <- hadamarad_sum(model_matrices$Y[[1]])
-
-  # empirical variance of all exogenous variable (including instruments)
-  HH <- "1"
-
-  # empirical covariance of the exogenous variables (including instruments)
-  # with the response and all endogenous variables
-  HY <- "2"
-
+  # Full moments including all instrumental variables
+  HH <- moments$empirical_var(model_matrices)
+  HY <- model_matrices$Y %>%
+    lapply(moments$empirical_covar,model_matrices) %>%
+    reduce(cbind)
 
   # For the stage two moments is suffices to drop the instrumental variables
   variable_order <- c("const","const_intra","DX","OX","IX","G")
-  subset_stage2 <- !rapply(attr,which = "is_instrument_var")
+  keep_for_stage2 <- !rapply(
+    object = model_matrices[variable_order],
+    f = attr,
+    which = "is_instrument_var")
 
-  # empirical variance of all exogenous variable (without instruments)
-  ZZ <- "3"
+  ZZ <- HH[keep_for_stage2, keep_for_stage2]
+  ZY <- HY[keep_for_stage2,]
 
-  # empirical covariance of the exogenous variables (without instruments)
-  # with the response and all endogenous variables
-  ZY <- "4"
+  # total sum of squares is diffrent for GMM and liklihood based estimators
+  # because the lagged flows are considered as endogenous regressors and not
+  # as additional dependent variable
+  is_GMM_estimator <- estimator == "s2sls"
+  nb_lhs_vars <- ifelse(is_GMM_estimator,1,ncol(ZY))
 
+  TSS <- hadamarad_sum_matrix(model_matrices$Y[seq_len(nb_lhs_vars)])
 
-  return(list("N" = N,
-              "TSS" = TSS,
-              "HH" = HH,
-              "HY" = HY,
-              "ZZ" = ZZ,
-              "ZY" = ZY,))
+  model_moments <- list(
+    "N" = N,
+    "TSS" = TSS,
+    "HH" = HH,
+    "HY" = HY,
+    "ZZ" = ZZ,
+    "ZY" = ZY)
+  if (is_GMM_estimator)
+    return(model_moments)
 
+  # The likelihood estimators do not require the "first stage moments"
+  model_moments$HH <- NULL
+  model_moments$HY <- NULL
+
+  LL_moments <- list("traces" = stop("implement when we need it"))
+
+  return(c(model_moments,LL_moments))
 }
 
 
-derive_likelihood_moments <- function(
-  model_matrices) {
-
-  N <- length(model_matrices$Y[[1]])
-
-
-
-
-
-
-}
