@@ -61,8 +61,12 @@ spflow <- function(
   model_moments <- spflow_model_moments()
 
   # moment based estimation
+  estimation_results <- spflow_model_estimation(model_moments,estimator)
+
+  estimation_results$data <- model_matrices
+  estimation_results$fitted_values <- predict(estimation_results)
+  estimation_results$residuals <- model_data$Y - estimation_results$fitted_values
 
   # return
-
-
+  return(estimation_results)
 }

@@ -30,9 +30,10 @@ Collate:
     'class_sp_net_generalization.R'
     'example_data.R'
     'expand-flow-formula.R'
-    'module_spflow-moments.R'
+    'model-moments-by-blocks.R'
     'spatial-neighborhood.R'
     'spflow-control.R'
+    'spflow-model-estimation.R'
     'spflow-model-matrix.R'
     'spflow-model-moments.R'
     'spflow-package.R'
@@ -44,7 +45,8 @@ Suggests:
     spelling,
     covr,
     sp,
-    spdep
+    spdep,
+    mockery
 Language: en-US
 Depends: 
     R (>= 2.10)

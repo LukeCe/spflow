@@ -52,7 +52,7 @@ var_moment_block_alpha_I <- function(const_intra) {
   if (is.null(const_intra))
     return(NULL)
 
-  # preallocate empty block matrix
+  # pre-allocate empty block matrix
   block_size <- length(const_intra)
   block_alpha_I <- matrix(nrow = block_size, ncol = block_size)
 

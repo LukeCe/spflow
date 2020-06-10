@@ -1,3 +1,17 @@
+spflow_model_moments <- function(formulation,...) {
+
+  # TODO implement vector formulation
+  formulation <- "matrix"
+
+  model_moments <- switch(formulation,
+    "vector" = NULL,
+    "matrix" = spflow_model_moments_mat(...)
+  )
+
+  return(model_moments)
+
+}
+
 spflow_model_moments_mat <- function(
   model_matrices,
   estimator
@@ -7,17 +21,15 @@ spflow_model_moments_mat <- function(
   N <- length(model_matrices$Y[[1]])
 
   # Full moments including all instrumental variables
-  HH <- moments$empirical_var(model_matrices)
+  HH <- moment_empirical_var(model_matrices) %>% as.matrix()
   HY <- model_matrices$Y %>%
-    lapply(moments$empirical_covar,model_matrices) %>%
+    lapply(moment_empirical_covar,model_matrices) %>%
     reduce(cbind)
 
   # For the stage two moments is suffices to drop the instrumental variables
   variable_order <- c("const","const_intra","DX","OX","IX","G")
-  keep_for_stage2 <- !rapply(
-    object = model_matrices[variable_order],
-    f = attr,
-    which = "is_instrument_var")
+  keep_for_stage2 <-
+    !identify_instrumental_variables(model_matrices[variable_order])
 
   ZZ <- HH[keep_for_stage2, keep_for_stage2]
   ZY <- HY[keep_for_stage2,]
@@ -49,4 +61,9 @@ spflow_model_moments_mat <- function(
   return(c(model_moments,LL_moments))
 }
 
-
+identify_instrumental_variables <- function(model_matrices) {
+  rapply(
+    object = model_matrices,
+    f = attr,
+    which = "is_instrument_var")
+}
