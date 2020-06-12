@@ -56,6 +56,7 @@ spflow_model_moments_mat <- function(
   model_moments$HH <- NULL
   model_moments$HY <- NULL
 
+  # traces <- ftrace1(W)
   LL_moments <- list("traces" = stop("implement when we need it"))
 
   return(c(model_moments,LL_moments))
