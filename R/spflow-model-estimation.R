@@ -52,8 +52,11 @@ spflow_s2sls <- function(HH,HY,ZZ,ZY,TSS,N) {
     "est" = mu,
     "sd" = sd_mu)
 
+  results_df$"t.stat" <- results_df$est / results_df$sd
+  results_df$"p.value" <- 1 - pt(abs(results_df$est / results_df$sd), N - nb_delta)
+
   estimation_results <- spflow_model(
-    resluts_df = results_df,
+    results_df = results_df,
     varcov = varcov,
     sd_error = sqrt(sigma2),
     N = N,
@@ -65,24 +68,19 @@ spflow_s2sls <- function(HH,HY,ZZ,ZY,TSS,N) {
 }
 
 
-spflow_mle <- function()
-
 spflow_model <- function(
-  resluts_df,
+  results_df,
   varcov,
   sd_error,
   N,
   method,
   formulation) {
 
-  results_df$"t.stat" <- results_df$est / results_df$sd
-  results_df$"p.value" <- 1 - pt(abs(results_df$est / results_df$sd), N - nb_delta)
-
   structure(
     list(
       "results" = results_df,
       "varcov" = varcov,
-      "sd" = sqrt(sigma2),
+      "sd" = sd_error,
       "N" = N,
       "method" = "Spatial 2SLS",
       "residuals" = NULL,
@@ -92,3 +90,4 @@ spflow_model <- function(
     ),
     class = "spflow_model")
 }
+

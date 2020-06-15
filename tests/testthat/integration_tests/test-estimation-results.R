@@ -20,7 +20,7 @@ model9_formula_shortcut <- y9 ~ .
 model9_formula_complete <- y9 ~ O_(X) + D_(X) + I_(X) + G_(distance)
 
 # ---- formula and control-----------------------------------------------------
-test_that("Shortcut notations have same results" {
+test_that("Shortcut notations have same results", {
   result2 <- spflow(model9_formula_complete,multi_net_examples,"ge_ge")
   result2_short <- spflow(model2_formula_shortcut,multi_net_examples,"ge_ge")
 

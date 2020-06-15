@@ -222,6 +222,7 @@ case1_moments9$TSS <- crossprod(case1_vector_reference$Y9)
 beta <- solve(case1_moments1$ZZ,case1_moments1$ZY)
 cbind(true = delta, est = beta)
 
+case1_estimate1 <- data.frame("ols" = beta)
 # experiment s2sls-estimation model 9 ----------------------------------------------
 J <- case1_vector_reference$Y9[,-1]
 HJ <- case1_moments9$HY[,-1]
@@ -260,16 +261,22 @@ ESS2 <- crossprod(ZY_hat,mu)
 RSS2 <- TSS - ESS2
 sd2 <- sqrt(RSS2/case1_data$N)
 
+case1_estimate9 <- data.frame("s2sls" = mu)
+case1_sd_error9 <- data.frame("s2sls" = sd2)
+
 # ---- sort-test-case-data ----------------------------------------------------
 test_case_1 <- list(
   "description" = case_description,
   "data" = case1_data,
   "vector_reference" = case1_vector_reference,
   "which_instruments" = instrumental_variables,
+  "simulation_inputs" = case1_data_sim,
   "moments" = list("Y1" = case1_moments1,
                    "Y2" = case1_moments2,
                    "Y9" = case1_moments9),
-  "simulation_inputs" = case1_data_sim)
+  "parmeters" = list("Y1" = case1_estimate1,
+                     "Y9" = case1_estimate9),
+  "sd_error" = list("Y9" = case1_sd_error9))
 
 
 save(test_case_1,

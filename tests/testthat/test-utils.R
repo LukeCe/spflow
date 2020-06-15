@@ -1,7 +1,5 @@
 # formulas --------------------------------------------------------------------
-context("utils - formulas")
-
-test_that("Intercept removal works as intended", {
+test_that("remove_intercept: => correct output", {
 
   # standard removal
   formula_original <- Sepal.Length ~ .
@@ -35,32 +33,51 @@ test_that("Intercept removal works as intended", {
     expected = model.matrix(formula_stripped %>% pull_rhs(), iris))
 })
 
-test_that("Model matrix without contrasts works", {
+test_that("fix_contrast_model_matrix: data.table => correct output", {
+
   iris2 <- data.table::as.data.table(iris)
-  iris2[ , id := 1:nrow(iris2)]
-  data.table::setkey(iris2, id)
   test_model_matrix <- fix_contrast_model_matrix(
-    ~ Petal.Length + Sepal.Length + Species - 1,
+    ~ Petal.Length + Sepal.Length + Species,
     iris2
   ) %>% as.data.frame()
 
-  expect_length(test_model_matrix,2 + nlevels(iris$Species))
+  nb_normal_vars <- 2
+  nb_dummies_from_factor <- nlevels(iris$Species)
+  add_intercept <- 1
+  expected_len <- nb_normal_vars + nb_dummies_from_factor + add_intercept
+  expect_length(test_model_matrix, expected_len)
+
 
   test_model_matrix <- fix_contrast_model_matrix(
     ~ Petal.Length + Sepal.Length + Species - 1,
-    iris2,
-    .contrasts = 1
-  ) %>% as.data.frame()
-
-  expect_length(test_model_matrix,2 + (nlevels(iris$Species) - 1))
-
-
+    iris2) %>% as.data.frame()
+  expected_len <- nb_normal_vars + nb_dummies_from_factor
+  expect_length(test_model_matrix, expected_len)
 })
 
-# FP style --------------------------------------------------------------------
-context("utils - FP style")
+test_that("fix_contrast_model_matrix: data.frame => correct output", {
 
-test_that("List transposition works", {
+  iris2 <- iris
+  test_model_matrix <- fix_contrast_model_matrix(
+    ~ Petal.Length + Sepal.Length + Species,
+    iris2
+  ) %>% as.data.frame()
+
+  nb_normal_vars <- 2
+  nb_dummies_from_factor <- nlevels(iris$Species)
+  add_intercept <- 1
+  expected_len <- nb_normal_vars + nb_dummies_from_factor + add_intercept
+  expect_length(test_model_matrix, expected_len)
+
+
+  test_model_matrix <- fix_contrast_model_matrix(
+    ~ Petal.Length + Sepal.Length + Species - 1,
+    iris2) %>% as.data.frame()
+  expected_len <- nb_normal_vars + nb_dummies_from_factor
+  expect_length(test_model_matrix, expected_len)
+})
+# FP style --------------------------------------------------------------------
+test_that("translist: => correct output", {
 
   norm_list <- list("norm" = list("int" = 1, "par" = 1:2),
                     "sdm"  = list("par" = 1:3))

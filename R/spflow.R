@@ -15,9 +15,7 @@ spflow <- function(
   sp_multi_network,
   network_pair_id =
     id(sp_multi_network)["network_pairs"][[1]]["network_pair_id"],
-  flow_control = spflow_control(),
-  origin_network_id = NULL,
-  destination_network_id = NULL
+  flow_control = spflow_control()
 ) {
 
   ## check for abusive inputs ...
@@ -27,30 +25,19 @@ spflow <- function(
   assert(is(sp_multi_network,"sp_multi_network"),
          "The data musst be a network data object!")
 
-  # ... check correct types of ids
-  if (!is.null(origin_network_id) && !is.null(destination_network_id)) {
-
-    assert(is_single_character(origin_network_id)
-           && is_single_character(destination_network_id),
-           "The origin and destination network ids musst be " %p%
-           "characters of length 1!")
-
-    network_pair_id <- concat_by("_",c(origin_network_id,
-                                       destination_network_id))
-  }
-
+  ## ... check correct types of ids
   assert(is_single_character(network_pair_id),
          "The network_pair_id musst be a character of length 1!")
 
-  model_target <- id(sp_multi_network,network_pair_id = network_pair_id)
-  assert(is.character(model_target),
+  pair_exists <- any(network_pair_id == id(sp_multi_network)$network_pair_id)
+  assert(pair_exists,
          "The the network pair id [%s] is not available!" %>%
            sprintf(., network_pair_id))
 
-  # ... test the arguments provided to control by calling it again
+  ## ... test the arguments provided to control by calling it again
   flow_control <- do.call(spflow_control, flow_control)
 
-  # transform ...
+  ## transform ...
   model_matrices <- spflow_model_matrix(
     sp_multi_network,
     network_pair_id,
@@ -58,15 +45,52 @@ spflow <- function(
     flow_control)
 
   # derive the model moments
-  model_moments <- spflow_model_moments()
+  model_formulation <- "matrix"
+  model_moments <- spflow_model_moments(model_formulation, model_matrices)
 
   # moment based estimation
   estimation_results <- spflow_model_estimation(model_moments,estimator)
-
   estimation_results$data <- model_matrices
-  estimation_results$fitted_values <- predict(estimation_results)
-  estimation_results$residuals <- model_data$Y - estimation_results$fitted_values
+
+  rownames(estimation_results$results) <-
+    explanatory_varnames(model_matrices,model_formulation,model)
+
+  calculate_residuals <- FALSE
+  if (calculate_residuals) {
+    stop("Not yet available")
+
+    estimation_results$fitted_values <-
+      predict(estimation_results)
+    estimation_results$residuals <-
+      model_data$Y - estimation_results$fitted_values
+
+  }
+
 
   # return
   return(estimation_results)
+}
+
+
+
+explanatory_varnames <- function(
+  model_matrices,
+  model_formulation,
+  model) {
+
+  if (model_formulation == "matrix") {
+    exogenous_variables <- c("const","const_intra","DX","OX","IX","G")
+    explanatory_varnames <- rapply(model_matrices[exogenous_variables],
+                                   colnames)
+  }
+
+  if (model_formulation == "vector") {
+    nb_flow_variables <- 1 + (
+      identify_auto_regressive_parameters(model) %>%
+      length())
+    explanatory_varnames <- names(model_matrices)[-seq_len(nb_flow_variables)]
+  }
+
+  return(explanatory_varnames)
+
 }

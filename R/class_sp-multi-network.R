@@ -188,7 +188,7 @@ setMethod(
 #' @export
 sp_multi_network <- function(...) {
 
-  input_nets <- list(...) %>% flatlist()
+  input_nets <- list(...) %>% flatten() %||% list()
 
   assert(
     all(rapply(input_nets, is_one_of,

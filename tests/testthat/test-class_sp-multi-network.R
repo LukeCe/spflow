@@ -3,9 +3,9 @@ context("sp_multi_network - constructor")
 
 test_network_ids <- c("net1","net2")
 test_multi_net <- sp_multi_network(
-  lapply(test_network_ids, sp_network),
-  lapply(test_network_ids, function(.id)
-    sp_network_pair(.id, .id)))
+  c(lapply(test_network_ids, sp_network),
+    lapply(test_network_ids, function(.id) sp_network_pair(.id, .id)))
+  )
 
 test_that("Correct construction", {
     expect_s4_class(test_multi_net, "sp_multi_network")
@@ -57,12 +57,13 @@ test_that("Combining neworks works", {
                                  network_pair_id = "ge_ge")
 
   nrow_ge <- 16
-  ncol_ge <- 1
+  ncol_ge <- 2
   ncol_pairs <- 3
+  id_cols <- 2
 
+  expect_rows <- 16^2
+  expect_cols <- ncol_pairs + 2 * ncol_ge + id_cols
 
   expect_is(test_pair_merged,c("data.table"))
-  expect_equal(dim(test_pair_merged),c(nrow_ge^2,ncol_pairs + 2 * ncol_ge))
-
-
+  expect_equal(dim(test_pair_merged),c(expect_rows, expect_cols))
 })
