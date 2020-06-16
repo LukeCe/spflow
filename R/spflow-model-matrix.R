@@ -40,6 +40,7 @@ spflow_model_matrix <- function(
     translist()
 
   # derive all matrices from the three possible datasources
+  ## TODO assert that all variables are given
   destination_model_matrix <-
     destination_data_cases %|!|%
     model_matrix_expand_net(
@@ -135,9 +136,22 @@ model_matrix_expand_net <- function(
     lapply(define_spatial_lag_requirements) %>%
     lapply(add_lag_suffixes)
 
+  add_role_prefixes <- c("Intra_" = "intra_",
+                         "Orig_"  = "orig_",
+                         "Dest_" = "dest_")
+
+  role_prefixes <-
+    c("intra_" = "Intra_",
+      "orig_"  = "Orig_",
+      "dest_" = "Dest_")
+
   segment_model_matrices <-
     lag_requirements_by_model_segments %>%
-    lapply(function(.ind) model_matrix_global[,.ind])
+    lapply(function(.ind) model_matrix_global[,.ind]) %>%
+    mapply(prefix_columns,
+           obj = .,
+           prefix = role_prefixes[names(.)])
+
 
   ### add information on instruments
   is_instrument_attribute <- function(dat,num_inst) {
@@ -178,7 +192,7 @@ model_matrix_expand_pairs <- function(
 ) {
 
   # derive the global model matrix by combining
-  # all formulas for the same datasource
+  # all formulas for the same data source
   key_clomuns <- data.table::key(dat(network_pair))
 
   model_matrix_global <-
@@ -298,22 +312,24 @@ compute_lagged_interactions <- function(
   DW) {
 
   # destination case
-  if (any(c("rho_d","rho_od","rho_odw") %in% names_rho)) {
-    WY <- OW %*% Y
-  }
-  # origin case
   if (any(c("rho_o","rho_od","rho_odw") %in% names_rho)) {
     YW <- tcrossprod(Y,DW)
   }
+
+  # origin case
+  if (any(c("rho_d","rho_od","rho_odw") %in% names_rho)) {
+    WY <- OW %*% Y
+  }
+
   # orig-&-dest case
   if (any(c("rho_w","rho_odw") %in% names_rho)) {
     WYW <- OW %*% tcrossprod(Y,DW)
   }
 
   Y_lags <- switch(substr(model, 7, 7),   # (8.15) in LeSage book
-                   "9" = list(Y, "o" = WY, "d" = YW, "w" = WYW),
-                   "8" = list(Y, "o" = WY, "d" = YW, "w" = WYW),
-                   "7" = list(Y, "o" = WY, "d" = YW, "w" = WYW),
+                   "9" = list(Y, "d" = YW, "o" = WY, "w" = WYW),
+                   "8" = list(Y, "d" = YW, "o" = WY, "w" = WYW),
+                   "7" = list(Y, "d" = YW, "o" = WY, "w" = WYW),
                    "6" = list(Y, "odw" = (WY + YW + WYW)/3),
                    "5" = list(Y, "od"  = (WY + YW)/2),
                    "4" = list(Y, "w"   = WYW),

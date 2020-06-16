@@ -196,6 +196,17 @@ instrumental_variables <- list(
   "G" = c(FALSE,TRUE,TRUE)
 )
 
+# ---- model_matrices ---------------------------------------------------------
+#
+test_model_matrices <- c(
+  list("const" = 1),
+  test_input["const_intra"],
+  test_input$X %>% expand_O_D_I_mem(),
+  test_input["G"],
+  test_input["N"],
+  list("Y" = test_input["Y"])
+)
+
 # N, ZZ and HH are equal for all cases ()
 case1_moments1$N <- case1_moments2$N <- case1_moments9$N <-
   case1_data$N

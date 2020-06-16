@@ -22,5 +22,3 @@ test_that("spflow: abusive input => error", {
     # bad control object is tested trough spflow_control
 
 })
-
-

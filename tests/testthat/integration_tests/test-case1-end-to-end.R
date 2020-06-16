@@ -1,116 +1,67 @@
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-# Project: spflow - integration test for data preparation steps
+# Project: spflow - test case1 end 2 end
 # Author: Lukas Dargel
 # = = = = = = = = = = = = = = = = = = =
 # Description:
 #
-# Test if all objects harmonize with each other and that inconcistent data is
-# detected.
+# End to end test from clean data to results.
+# The test is based on test case1.
+# (256 flows within the 16 simulated states of germany.)
 # - - - - - - - - - - - - - - - - - - -
-# Date: April 2020
+# Date: June 2020
 
-# setup test examples
-attributes_1 <- iris
-attributes_2 <- cbind(attributes_1,attributes_1)
+load(here::here("tests/testthat/test_case_1.rda"))
+data("germany_grid")
 
-key1 <- "iris1"
-key2 <- "iris2"
+# setup the network object
+ge_df <- germany_grid@data
+ge_neigh <- test_case_1$data$W
+network_ge <- sp_network(network_id = "ge",
+                         node_neighborhood = ge_neigh,
+                         node_data = ge_df,
+                         node_id_column = "NOM")
 
-pair_key11 <- key1 %p% "_" %p% key2
-nb_nodes_1 <- nrow(attributes_1)
-nb_nodes_2 <- nrow(attributes_2)
+# setup the network pair object
+ge_flow_mat <- test_case_1$data$Y9[[1]]
+colnames(ge_flow_mat) <- ge_df$NOM
+rownames(ge_flow_mat) <- ge_df$NOM
+
+ge_pair_df <- ge_flow_mat %>%
+  stack_cols(.,rows = "orig", cols = "dest", value = "flow") %>%
+  cbind(., "dist" = test_case_1$vector_reference$G[,1])
+pairs_ge_ge <- sp_network_pair(origin_network_id = "ge",
+                               destination_network_id = "ge",
+                               node_pair_data = ge_pair_df,
+                               origin_key_column = "orig",
+                               destination_key_column = "dest")
+
+# combine them into a multi-network
+multi_net_ge <- sp_multi_network(network_ge, pairs_ge_ge)
 
 
+describe("Quick start estimation", {
 
-# nodes -----------------------------------------------------------------------
-context("Format node data")
+  describe("Allows sensefull default estimation for minimal user input.",{
 
-# valid objects
-nodes1 <- sp_network(key1,node_neighborhood = diag(2,nb_nodes_1,nb_nodes_1))
-nodes2 <- sp_network(key2,node_neighborhood = diag(2,nb_nodes_2,nb_nodes_2))
+    it("Works for the default s2sls estimation",{
+      default_results <- spflow(
+        flow_formula = flow ~ .,
+        multi_net_ge)
 
-# invalid objects
-nodes1_fail <- nodes1
-nodes1_fail@node_count <- nb_nodes_1 + 1
-nodes2_fail <- nodes2
-nodes2_fail@node_neighborhood <- Diagonal(2,nb_nodes_2 + 1)
+      expect_is(default_results,"spflow_model")
 
-describe("Format node data", {
+      actual_estimates <- default_results$results$est
+      expected_estimates <- test_case_1$parmeters$Y9$s2sls
+      expect_equal(actual_estimates,expected_estimates)
 
-  it("Recognizes inconsitencies",{
-    expect_error({validObject(nodes1_fail)})
-    expect_error({validObject(nodes2_fail)})
+      actual_sd <- default_results$sd
+      expected_sd <- test_case_1$sd_error$Y9$s2sls
+      expect_equal(actual_estimates,expected_estimates)
+
+    })
+
   })
 })
 
-# pairs -----------------------------------------------------------------------
-context("Format od pair data")
-
-# valid objects
-pairs_11 <- sp_network_pair(
-  origin_network_id = key1,
-  destination_network_id = key1,
-  node_pair_data = data.frame(rnorm(nb_nodes_1^2)),
-  origin_node_count = nb_nodes_1)
-
-pairs_22 <- sp_network_pair(
-  origin_network_id = key2,
-  destination_network_id = key2,
-  node_pair_data = data.frame(rnorm(nb_nodes_2^2)),
-  origin_node_count = nb_nodes_2
-)
-
-pairs_12 <- sp_network_pair(
-  origin_network_id = key1,
-  destination_network_id = key2,
-  node_pair_data = data.frame(rnorm(nb_nodes_2*nb_nodes_1)),
-  origin_node_count = nb_nodes_1)
-
-nb_nodes_1_dbl <- nb_nodes_1*2
-pairs_11_dbl <- sp_network_pair(
-  origin_network_id = key1,
-  destination_network_id = key1,
-  node_pair_data = data.frame(rnorm(nb_nodes_1_dbl^2)),
-  origin_node_count = nb_nodes_1_dbl)
-
-# invalid_objects
-pairs_11_fail <- pairs_11
-pairs_11_fail@origin_node_count <- nb_nodes_1 + 1
-
-pairs_22_fail <- pairs_22
-pairs_22_fail@node_pair_data <-
-  data.table::data.table(rnorm(1 + (nb_nodes_2^2)))
-
-describe("Format origin destination pair data", {
-
-  it("Recognizes inconsitencies",{
-    expect_error({validObject(pairs_11_fail)})
-    expect_error({validObject(pairs_22_fail)})
-  })
-})
-
-# multi network ---------------------------------------------------------------
-context("Combine to network data")
-
-
-multi_network <- sp_multi_network(nodes1,nodes2,pairs_11,pairs_22,pairs_12)
-
-describe("Combine nodes and pairs into multinet", {
-
-  it("Recognizes inconsitencies",{
-    expect_error({sp_multi_network(nodes1,nodes2,pairs_11_dbl)},
-                 "^[The number of nodes in network ].*\\[*\\] is not consitent\\!$")
-
-    expect_error({sp_multi_network(nodes1_fail)})
-    expect_error({sp_multi_network(pairs_11_fail)})
-  })
-
-  it("Recognizes duplication",{
-    expect_error({sp_multi_network(pairs_11,pairs_11,pairs_22,pairs_12)},
-                 "The identification of all networks and network_pairs must be unique!")
-    expect_error({sp_multi_network(nodes1,nodes1,nodes2)},
-                 "The identification of all networks and network_pairs must be unique!")
-  })
-})
 
 

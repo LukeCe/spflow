@@ -235,9 +235,10 @@ test_that("cov_moment_block_gamma: => correct output", {
 test_model_matrices <- c(
   list("const" = 1),
   test_input["const_intra"],
-  list("X" = test_input$X %>% expand_O_D_I_mem()),
+  test_input$X %>% expand_O_D_I_mem(),
   test_input["G"],
-  test_input["N"]
+  test_input["N"],
+  list("Y" = test_input["Y"])
 )
 
 test_model_matrices_vec_ref <- cbind(

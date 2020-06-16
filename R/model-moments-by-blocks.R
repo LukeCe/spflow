@@ -4,33 +4,45 @@ moment_empirical_var <- function(flow_model_matrices) {
   # {alpha, alpha_I, beta, gamma}^2
   # Of those 16 blocks 10 are unique and 6 are inferred by symmetry
 
-  # [alpha] blocks (4/10)
-  alpha_blocks <- with(flow_model_matrices, {
+  # The beta block is split into [D,O,I]
+  order_keys <- c("DX","OX","IX")
+  X <- flow_model_matrices[order_keys] %>% compact()
 
-    list(
-      "alpha"         = var_moment_block_alpha(N),
-      "alpha_alpha_I" = var_moment_block_alpha_alpha_I(const_intra),
-      "alpha_beta"    = var_moment_block_alpha_beta(X),
-      "alpha_gamma"   = var_moment_block_alpha_gamma(G)) %>%
-      reduce(cbind)
-  })
+  # [alpha] blocks (4/10)
+  if (flow_model_matrices$const == 1) {
+    N <- Reduce("*", dim(flow_model_matrices$Y[[1]]))
+    alpha_blocks <- list(
+        "alpha"         =
+          var_moment_block_alpha(N),
+        "alpha_alpha_I" =
+          var_moment_block_alpha_alpha_I(flow_model_matrices$const_intra),
+        "alpha_beta"    =
+          var_moment_block_alpha_beta(X),
+        "alpha_gamma"   =
+          var_moment_block_alpha_gamma(flow_model_matrices$G)) %>%
+        reduce(cbind)
+    }
 
   # [alpha_I] blocks (7/10)
-  alpha_I_blocks <- with(flow_model_matrices, {
-    list(
-      "alpha_I" = var_moment_block_alpha_I(const_intra),
-      "alpha_I_beta" = var_moment_block_alpha_I_beta(const_intra, X),
-      "alpha_I_gamma" = var_moment_block_alpha_I_gamma(const_intra, G)) %>%
+  alpha_I_blocks <- list(
+      "alpha_I" =
+        var_moment_block_alpha_I(flow_model_matrices$const_intra),
+      "alpha_I_beta" =
+        var_moment_block_alpha_I_beta(flow_model_matrices$const_intra,
+                                      X),
+      "alpha_I_gamma" =
+        var_moment_block_alpha_I_gamma(flow_model_matrices$const_intra,
+                                       flow_model_matrices$G)) %>%
       reduce(cbind)
-  })
 
   # [beta] blocks (9/10)
-  beta_blocks <- with(flow_model_matrices, {
-    list(
-      "beta" = var_moment_block_beta(X = flow_model_matrices$X),
-      "beta_gamma" = var_moment_block_beta_gamma(X = X, G = G)) %>%
+  beta_blocks <- list(
+      "beta" =
+        var_moment_block_beta(X = X),
+      "beta_gamma" =
+        var_moment_block_beta_gamma(X = X,
+                                    G = flow_model_matrices$G)) %>%
       reduce(cbind)
-  })
 
   # [gamma] block (10/10)
   gamma_block <- var_moment_block_gamma(G = flow_model_matrices$G)
@@ -76,10 +88,6 @@ var_moment_block_alpha_I <- function(const_intra) {
 
 var_moment_block_beta <- function(X) {
 
-  # The beta block is split into [D,O,I]
-  order_keys <- c("DX","OX","IX")
-  X <- X[order_keys] %>% compact()
-
   # The diagonal sub blocks define the dimensions
   # They correspond to the scaled inner product of each matrix
   scaling <- derive_scalings(X)
@@ -106,7 +114,7 @@ var_moment_block_beta <- function(X) {
 
   # The last off-diagonal blocks correspond to the inner products:
   # (OX'IX) and (DX'IX)
-  od_keys <- order_keys[1:2]
+  od_keys <- names(X)[1:2]
   rows <- indexes[od_keys] %>% flatten()
   cols <- indexes$IX
   block_beta[rows,cols] <-
@@ -198,12 +206,15 @@ var_moment_block_beta_gamma <- function(X,G) {
 
 # ---- Covariance Moments -------------------------------------------------
 moment_empirical_covar <- function(Y, flow_model_matrices) {
+
+  order_keys <- c("DX","OX","IX")
+  X <- flow_model_matrices[order_keys] %>% compact()
   result <- c(
     cov_moment_block_alpha(Y),
     cov_moment_block_alpha_I(Y, flow_model_matrices$const_intra),
-    cov_moment_block_beta(Y, flow_model_matrices$X),
+    cov_moment_block_beta(Y, X),
     cov_moment_block_gamma(Y, flow_model_matrices$G)
-  )
+  ) %>% reduce(c)
   return(result)
 }
 
@@ -231,7 +242,7 @@ cov_moment_block_alpha_I <- function(Y,const_intra) {
 }
 
 cov_moment_block_beta <- function(Y, X) {
-  matrix_prod_O_D_I(mat = Y,X = X)
+  matrix_prod_O_D_I(mat = Y,X = X) %>% as.vector()
 }
 
 cov_moment_block_gamma <- function(Y, G) {
@@ -255,16 +266,14 @@ derive_scalings <- function(X) {
 
 matrix_prod_O_D_I <- function(mat,X) {
 
- if (is.null(X) || is.null(mat))
-   return(NULL)
+  if (is.null(X) || is.null(mat))
+    return(NULL)
 
- result <- with(X,expr = {
-   list(
-     DX %|!|% colSums(mat) %*% DX,
-     OX %|!|% rowSums(mat) %*% OX,
-     IX %|!|% diag(mat) %*% IX
-   )}) %>%
-   reduce(cbind)
+  result <- list(
+    X$DX %|!|% colSums(mat) %*% X$DX,
+    X$OX %|!|% rowSums(mat) %*% X$OX,
+    X$IX %|!|% diag(mat) %*% X$IX) %>%
+    reduce(cbind)
 
- return(result)
+  return(result)
 }

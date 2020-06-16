@@ -230,6 +230,11 @@ get_all_var_names <- function(f) {
   labels(terms(tt$interactions))
 }
 
+prefix_columns <- function(obj,prefix){
+  colnames(obj) <- prefix %p% colnames(obj)
+  obj
+}
+
 # strings ---------------------------------------------------------------------
 '%p%' <- function(x, y) {
   paste0(x,y)
@@ -265,6 +270,10 @@ factor_in_order <- function(x) {
 }
 
 # indexation ------------------------------------------------------------------
+drop_elements <- function(object, drop_index) {
+  object[!drop_index]
+}
+
 pull_slot <- function(.slot,.obj) {
   slot(.obj,.slot)
 }
@@ -302,6 +311,10 @@ rbind_fill0 <- function(mat_a, mat_b) {
   mat_0 <- matrix(nrow = nrow(mat_b),ncol = col_diff)
   return(rbind(mat_a,cbind(mat_0,mat_b)))
 
+}
+
+drop_matrix_columns <- function(matrix, drop_index) {
+    matrix[,!drop_index, drop = FALSE]
 }
 
 # ---- primitives -------------------------------------------------------------
