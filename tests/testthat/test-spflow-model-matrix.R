@@ -1,6 +1,8 @@
 # spflow_model_matrix ---------------------------------------------------------
 context("Test spflow_model_matrix")
 
+# TODO rethink the tests for the model matrixes (are they even possible as unit test?)
+
 example_matrices <- spflow_model_matrix(
   sp_multi_network = multi_net_usa_ge,
   network_pair_id = "ge_ge",
@@ -25,7 +27,7 @@ test_that("Output elements are correct", {
 
 
   XX <- dat(multi_net_usa_ge,"ge")[,2:3] %>% as.matrix()
-  XX <- cbind(XX, W_ge %*% W_ge %*% XX)
+  XX <- cbind(XX, W_ge %*% W_ge %*% XX) %>% as.matrix()
   # check the attributes of [origin], [destination], [intra]
   expect_equivalent(object = example_matrices$DX, expected = XX)
   expect_equivalent(object = example_matrices$OX, expected = XX)

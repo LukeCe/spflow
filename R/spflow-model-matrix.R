@@ -117,7 +117,8 @@ model_matrix_expand_net <- function(
   model_matrix_global <- lag_requirements %>%
     rev() %>%
     lapply(function(.ind) model_matrix_global[,.ind]) %>%
-    reduce(left_lag_and_cbind)
+    reduce(left_lag_and_cbind) %>%
+    as.matrix()
 
   # split the matrix by variable type
   add_lag_suffixes <- function(lag_req) {
@@ -136,10 +137,6 @@ model_matrix_expand_net <- function(
     lapply(define_spatial_lag_requirements) %>%
     lapply(add_lag_suffixes)
 
-  add_role_prefixes <- c("Intra_" = "intra_",
-                         "Orig_"  = "orig_",
-                         "Dest_" = "dest_")
-
   role_prefixes <-
     c("intra_" = "Intra_",
       "orig_"  = "Orig_",
@@ -150,7 +147,8 @@ model_matrix_expand_net <- function(
     lapply(function(.ind) model_matrix_global[,.ind]) %>%
     mapply(prefix_columns,
            obj = .,
-           prefix = role_prefixes[names(.)])
+           prefix = role_prefixes[names(.)],
+           SIMPLIFY = FALSE)
 
 
   ### add information on instruments
@@ -162,9 +160,10 @@ model_matrix_expand_net <- function(
   }
 
   # information on the number of instruments
+  nb_inst <- 2
   instruments_by_model_segment <-
     lag_types_model_segments %>%
-    lapply(function(.l) length(.l["instrumental_variables"]) * 2) %>%
+    lapply(function(.l) length(.l["instrumental_variables"]) * nb_inst) %>%
     mapply(is_instrument_attribute,
            dat = segment_model_matrices,
            num_inst = .,
@@ -220,6 +219,7 @@ model_matrix_expand_pairs <- function(
     Matrix::Matrix(model_matrix_global[,col],
                    nrow = n_orig,
                    ncol = n_dest)
+    # TODO think about the use of symmetric Matrix classes
   }
 
   response_matrices <-
@@ -313,12 +313,12 @@ compute_lagged_interactions <- function(
 
   # destination case
   if (any(c("rho_o","rho_od","rho_odw") %in% names_rho)) {
-    YW <- tcrossprod(Y,DW)
+    WY <- DW %*% Y
   }
 
   # origin case
   if (any(c("rho_d","rho_od","rho_odw") %in% names_rho)) {
-    WY <- OW %*% Y
+    YW <- tcrossprod(Y,OW)
   }
 
   # orig-&-dest case
@@ -327,14 +327,14 @@ compute_lagged_interactions <- function(
   }
 
   Y_lags <- switch(substr(model, 7, 7),   # (8.15) in LeSage book
-                   "9" = list(Y, "d" = YW, "o" = WY, "w" = WYW),
-                   "8" = list(Y, "d" = YW, "o" = WY, "w" = WYW),
-                   "7" = list(Y, "d" = YW, "o" = WY, "w" = WYW),
+                   "9" = list(Y, "d" = WY, "o" = YW, "w" = WYW),
+                   "8" = list(Y, "d" = WY, "o" = YW, "w" = WYW),
+                   "7" = list(Y, "d" = WY, "o" = YW, "w" = WYW),
                    "6" = list(Y, "odw" = (WY + YW + WYW)/3),
                    "5" = list(Y, "od"  = (WY + YW)/2),
                    "4" = list(Y, "w"   = WYW),
-                   "3" = list(Y, "d"   = YW),
-                   "2" = list(Y, "o"   = WY),
+                   "3" = list(Y, "o"   = YW),
+                   "2" = list(Y, "d"   = WY),
                    "1" = list(Y))
 
   return(Y_lags)

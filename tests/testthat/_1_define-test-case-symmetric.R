@@ -44,9 +44,10 @@ input_data <- named_list(c("node_data",
                            "od_pair_data"))
 
 # Data describing origins and destinations
+ge_factor_id <- factor(germany_grid$NOM,levels = germany_grid$NOM)
 input_data$node_data <-
   data.table(X = germany_grid$X,
-             id = germany_grid$NOM,
+             id = ge_factor_id,
              key = "id")
 
 # A neighbourhood matrix for these locations
@@ -60,8 +61,8 @@ input_data$node_neighborhood <-
 # Next we create data describing the origin-destination pairs
 # Each pair is identified by an origin-id and a destination id.
 # Distance and Flows (= Y, to be simulated)
-od_ids <- expand.grid("orig_id" = germany_grid$NOM,
-                      "dest_id" = germany_grid$NOM)
+od_ids <- expand.grid("orig_id" = ge_factor_id,
+                      "dest_id" = ge_factor_id)
 pair_distance <-
   sp::coordinates(germany_grid) %>%
   dist() %>% as.matrix() %>% as.vector()
@@ -110,7 +111,7 @@ Z_const <- cbind(
 
 # X variables
 # For the SDM specification we include a spatial lag of X
-W <- input_data$node_neighborhood %>% as.matrix()
+W <- input_data$node_neighborhood
 X_lagged <- data.frame(
   "X" = as.vector(germany_grid$X),
   "X.lag1" = as.vector(W %*% germany_grid$X))
@@ -122,7 +123,7 @@ simulation_input$Z <- cbind(Z_const,X_vector,log(pair_data$pair_distance + 1))
 rm(Z_const,X_vector)
 
 # declare flow neighborhood
-In <- Matrix::Diagonal(n) %>% as.matrix()
+In <- Matrix::Diagonal(n)
 simulation_input$Wd <- In %x% W
 simulation_input$Wo <- W  %x% In
 simulation_input$Ww <- W  %x% W
@@ -205,13 +206,14 @@ rm(temp_intra)
 
 # ... X with instruments
 X_lagged2 <-
-  cbind(X_lagged, W %*% W %*% as.matrix(X_lagged)) %>% expand_O_D_I()
+  cbind(X_lagged, as.matrix(W %*% W %*% as.matrix(X_lagged))) %>% expand_O_D_I()
 
 # ...G with instruments
 G_transformed <- matrix(log(pair_data$pair_distance + 1),n,n)
 test_G_lag <- tcrossprod(W %*% G_transformed,W)
 test_G_lag2 <- tcrossprod(W %*% test_G_lag,W)
-G_lagged <- list(G_transformed,test_G_lag,test_G_lag2)
+G_lagged <- list(G_transformed,test_G_lag,test_G_lag2) %>%
+  lapply(as.matrix)
 rm(G_transformed,test_G_lag,test_G_lag2,pair_data)
 
 # ...Y lagged flows
