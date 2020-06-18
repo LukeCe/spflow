@@ -50,7 +50,8 @@ moment_empirical_var <- function(flow_model_matrices) {
   combined_blocks <-
     list(alpha_blocks,alpha_I_blocks,beta_blocks,gamma_block) %>%
     reduce(rbind_fill0) %>%
-    Matrix::forceSymmetric(x = ., uplo = "U")
+    Matrix::forceSymmetric(x = ., uplo = "U") %>%
+    as.matrix()
 
   return(combined_blocks)
 }
@@ -270,8 +271,8 @@ matrix_prod_O_D_I <- function(mat,X) {
     return(NULL)
 
   result <- list(
-    X$DX %|!|% colSums(mat) %*% X$DX,
-    X$OX %|!|% rowSums(mat) %*% X$OX,
+    X$DX %|!|% rowSums(mat) %*% X$DX,
+    X$OX %|!|% colSums(mat) %*% X$OX,
     X$IX %|!|% diag(mat) %*% X$IX) %>%
     reduce(cbind)
 

@@ -63,7 +63,7 @@ input_data$node_neighborhood <-
 od_ids <- expand.grid("orig_id" = germany_grid$NOM,
                       "dest_id" = germany_grid$NOM)
 pair_distance <-
-  coordinates(germany_grid) %>%
+  sp::coordinates(germany_grid) %>%
   dist() %>% as.matrix() %>% as.vector()
 
 # create place holders for the flows (Y)
@@ -233,7 +233,7 @@ relational_model_matrices <-
     list("const" = 1),
     list("const_intra" = const_intra),
     X_lagged2,
-    G_lagged)
+    list("G" = G_lagged))
 
 # ---- 2b. long form model matrix ---------------------------------------------
 # Define the long form model matrix which is used during estimation based on a
@@ -261,12 +261,14 @@ instrumental_variables <- list(
 )
 
 
+
 # ---- 3. model moments -------------------------------------------------------
 # Define the required model moments which are used for the estimation
 # procedures.
 requied_moments <- c(
   # general
   "HH","ZZ","N",
+  "H_index",
   # model specific
   "TSS1","TSS2","TSS9",
   "HY1","HY2","HY9",
@@ -292,6 +294,13 @@ model_moments$ZY9 <- crossprod(simulation_input$Z,compact_model_matrix$Y9)
 stopifnot(all(names(model_moments) == requied_moments),
           !any(rapply(model_moments, is.null)))
 
+# declare which input corresponds to which part of the moments
+model_moments$H_index <- list(
+  "const" = 1,
+  "const_intra" = 2:10,
+  "X" = 11:22,
+  "G" = 23:25
+)
 
 # ---- 4. estimation results --------------------------------------------------
 # Define the desired estimation results for each estimation method.
