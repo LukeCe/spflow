@@ -3,9 +3,9 @@
 #' The first example is a stylized version of Germany with 16 states.
 #' The second example is a stylized version of the USA with 51 states.
 #'
-#' We provide the spatial objects which containt the geography of our example
+#' We provide the spatial objects which contains the geography of our example
 #' as well as the prepared [sp_network()] objects.
-#' Finally there is a multinetwork object which contains the two networks and
+#' Finally there is a multi_network object which contains the two networks and
 #' four network pairs based on the same examples.
 #'
 #' @source inspired by <https://ialab.it.monash.edu/~dwyer/papers/maptrix.pdf.>

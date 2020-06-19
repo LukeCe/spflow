@@ -85,7 +85,7 @@ test_that("translist: => correct output", {
   norm_listT <- list("int" = list("norm" = 1),
                      "par" = list("norm" = 1:2, "sdm" = 1:3))
 
-  expect_equal(object = spflow::translist(norm_list),
+  expect_equal(object = translist(norm_list),
                expected = norm_listT)
 
 })

@@ -5,8 +5,8 @@
 #'
 #' @param estimation_method A character which indicates the estimation method
 #' @param hessian_method A character which indicates the method for hessian calculation
-#' @param sdm_variables A formula which can be used explicitly delcare the variables that should be used as sdm variables.
-#' @param instrumental_variables A formula which can be used explicitly delcare the variables that should be used as instruments during s2sls estimation.
+#' @param sdm_variables A formula which can be used explicitly declare the variables that should be used as sdm variables.
+#' @param instrumental_variables A formula which can be used explicitly declare the variables that should be used as instruments during s2sls estimation.
 #'
 #' @seealso spflow
 #'

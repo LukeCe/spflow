@@ -10,7 +10,7 @@
 # - - - - - - - - - - - - - - - - - - -
 # Date: June 2020
 
-load(here::here("tests/testthat/test_case_1_symmetric.rda"))
+load("../test_case_1_symmetric.rda")
 load_all()
 
 # setup the network object

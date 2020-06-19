@@ -1,7 +1,7 @@
 #' Expand the structural formula of a spatial interaction model
 #'
-#' Decomposes the stractural formulas of a spatial interaction model into one
-#' sided formuals which are then applied to five cases and in three diffrent
+#' Decomposes the structural formulas of a spatial interaction model into one
+#' sided formulas which are then applied to five cases and in three different
 #' roles.
 #' + 5 cases: **Interactions ~ Origins + Destinations + Intra + Pairs**
 #' + 3 roles: **normal_variables & sdm_variables & instrumental_variables**
@@ -14,7 +14,7 @@
 #'   1. response variable (interactions)
 #'   2. attributes of origins
 #'   3. attributes of destination
-#'   4. attributes of intra-observationl units
+#'   4. attributes of intra-observational units
 #'   5. attributes or origin-destination pars (such as distance)
 #'
 #' The three possible roles refer to the use of a variable as:
@@ -22,8 +22,7 @@
 #'   2. sdm variable (as spatial lag)
 #'   3. instrumental variable (to use during s2sls estimation)
 #'
-#' @inheritParams spflow
-#' @param flow_forumula A formulas corresponding to the structural interaction model
+#' @param flow_formula A formulas corresponding to the structural interaction model
 #' @param flow_control A [spflow_control()] list to fine tune the estimation
 #'
 #' @keywords internal
@@ -111,8 +110,8 @@ expand_main_formula <- function(f) {
 #' Decomposes the formula provided to [spflow()] into four parts.
 #'
 #' The sub-formulas provided by this decomposition can be carried to the
-#' diffrent data sources for exogenous data (origin data, destination data, pair data),
-#' which permits to use a formular interface similar to the one provided by [lm()].
+#' different data sources for exogenous data (origin data, destination data, pair data),
+#' which permits to use a formula interface similar to the one provided by [lm()].
 #'
 #' @param formula A formula which specifies the structural model
 #'

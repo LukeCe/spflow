@@ -1,4 +1,4 @@
-#' Genrate design matrices for the spatial interaction model
+#' Generate design matrices for the spatial interaction model
 #'
 #' Creates model matrices from a [sp_multi_network()] network.
 #' For efficiency the relational representation of origin and destination data

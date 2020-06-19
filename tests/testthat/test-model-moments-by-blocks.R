@@ -1,5 +1,6 @@
 # ---- setup ------------------------------------------------------------------
-load(here::here("tests/testthat/test_case_1_symmetric.rda"))
+load(file.path(rprojroot::find_testthat_root_file(),
+               "test_case_1_symmetric.rda"))
 
 # pull out test data for the symmetric case
 test_X_sym <-

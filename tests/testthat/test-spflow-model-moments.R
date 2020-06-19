@@ -1,4 +1,5 @@
-load(here::here("tests/testthat/test_case_1_symmetric.rda"))
+load(file.path(rprojroot::find_testthat_root_file(),
+               "test_case_1_symmetric.rda"))
 
 test_that("spflow_model_moments_mat: s2sls => correct output", {
 

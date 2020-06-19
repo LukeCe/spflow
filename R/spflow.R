@@ -1,12 +1,11 @@
 #' Spatial interaction model
 #'
-#' @inheritParams sp_network_pair
 #' @param flow_formula A formulas corresponding to the structural interaction model
 #' @param sp_multi_network A [sp_multi_network()] object.
 #' @param network_pair_id A character indicating the id of a [sp_network_pair()]
 #' @param flow_control A [spflow_control()] list to fine tune the estimation
 #' @param use_sdm A logical which adds spatial lags of origin and destination attributes as explanatory variables to the model.
-#' @param use_intra A logical which adds sperate set of coefficients for intra-observational flows (origin == destination) to the model.
+#' @param use_intra A logical which adds separate set of coefficients for intra-observational flows (origin == destination) to the model.
 #'
 #' @return A spflow_model object
 #' @export

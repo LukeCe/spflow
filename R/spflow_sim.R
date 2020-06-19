@@ -1,4 +1,4 @@
-#' Create an invertet spatial filter that can be used for simulations
+#' Create an inverted spatial filter that can be used for simulations
 #'
 #' @param weight_matrices A list of neighborhood matrices
 #' @param autoreg_parameters A vector of parameters
@@ -23,7 +23,7 @@ invert_spatial_filter <- function(
 
 #' Simulate spatial interactions
 #'
-#' @param exogenous_variables A matrix of exogenouse variables
+#' @param exogenous_variables A matrix of exogenous variables
 #' @param model_coeffiecients A numeric vector of coefficients
 #' @param inverted_filter A matrix that represents an inverted spatial filter matrix (see [invert_spatial_filter()])
 #' @param noise_sd A numeric which indicates the desired standard deviation of the simulated noise
