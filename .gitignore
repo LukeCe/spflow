@@ -4,3 +4,4 @@
 docs/
 data
 man
+test/testthat/*.rda
