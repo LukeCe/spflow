@@ -235,7 +235,8 @@ relational_model_matrices <-
     list("const" = 1),
     list("const_intra" = const_intra),
     X_lagged2,
-    list("G" = G_lagged))
+    list("G" = G_lagged),
+    list("OW" = W))
 
 # ---- 2b. long form model matrix ---------------------------------------------
 # Define the long form model matrix which is used during estimation based on a
@@ -262,6 +263,14 @@ instrumental_variables <- list(
   "G" = c(FALSE,TRUE,TRUE)
 )
 
+# declare which input corresponds to instrumental variables
+# which are only relevant for s2sls estimation
+model_moments$H_index <- list(
+  "const" = 1,
+  "const_intra" = 2:10,
+  "X" = 11:22,
+  "G" = 23:25
+)
 
 
 # ---- 3. model moments -------------------------------------------------------
@@ -271,6 +280,7 @@ requied_moments <- c(
   # general
   "HH","ZZ","N",
   "H_index",
+  "W_traces",
   # model specific
   "TSS1","TSS2","TSS9",
   "HY1","HY2","HY9",
@@ -282,6 +292,7 @@ model_moments <- named_list(c(requied_moments))
 model_moments$HH <- crossprod(compact_model_matrix$H)
 model_moments$ZZ <- crossprod(simulation_input$Z)
 model_moments$N <- N
+
 model_moments$TSS1 <- crossprod(compact_model_matrix$Y1)
 model_moments$TSS2 <- crossprod(compact_model_matrix$Y2)
 model_moments$TSS9 <- crossprod(compact_model_matrix$Y9)
@@ -289,20 +300,16 @@ model_moments$TSS9 <- crossprod(compact_model_matrix$Y9)
 model_moments$HY1 <- crossprod(compact_model_matrix$H,compact_model_matrix$Y1)
 model_moments$HY2 <- crossprod(compact_model_matrix$H,compact_model_matrix$Y2)
 model_moments$HY9 <- crossprod(compact_model_matrix$H,compact_model_matrix$Y9)
+
 model_moments$ZY1 <- crossprod(simulation_input$Z,compact_model_matrix$Y1)
 model_moments$ZY2 <- crossprod(simulation_input$Z,compact_model_matrix$Y2)
 model_moments$ZY9 <- crossprod(simulation_input$Z,compact_model_matrix$Y9)
 
+model_moments$W_traces <- trace_sequence(W)
+
 stopifnot(all(names(model_moments) == requied_moments),
           !any(rapply(model_moments, is.null)))
 
-# declare which input corresponds to which part of the moments
-model_moments$H_index <- list(
-  "const" = 1,
-  "const_intra" = 2:10,
-  "X" = 11:22,
-  "G" = 23:25
-)
 
 # ---- 4. estimation results --------------------------------------------------
 # Define the desired estimation results for each estimation method.

@@ -14,7 +14,8 @@ spflow_model_moments <- function(formulation,...) {
 
 spflow_model_moments_mat <- function(
   model_matrices,
-  estimator
+  estimator,
+  flow_type
 ) {
 
   # number of observations
@@ -56,8 +57,16 @@ spflow_model_moments_mat <- function(
   model_moments$HH <- NULL
   model_moments$HY <- NULL
 
-  # traces <- ftrace1(W)
-  LL_moments <- list("traces" = stop("implement when we need it"))
+
+  # The trace seqence is used to approximate the log-determinant term in
+  # in the likelihood function
+  LL_moments <- named_list(c("OW_traces", "OW_traces"))
+
+  LL_moments$OW_traces <- trace_sequence(model_matrices$OW)
+  orign_net_equals_destination_net <- (flow_type == "within")
+
+  if (!orign_net_equals_destination_net)
+    LL_moments$DW_traces <- trace_sequence(model_matrices$DW)
 
   return(c(model_moments,LL_moments))
 }
