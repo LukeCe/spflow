@@ -4,4 +4,4 @@
 docs/
 data
 man
-test/testthat/*.rda
+tests/testthat/*.rda

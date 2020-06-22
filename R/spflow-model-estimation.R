@@ -61,12 +61,10 @@ spflow_s2sls <- function(HH,HY,ZZ,ZY,TSS,N) {
     sd_error = sqrt(sigma2),
     N = N,
     method = "s2sls",
-    formulation = "matrix"
-  )
+    formulation = "matrix")
 
   return(estimation_results)
 }
-
 
 spflow_model <- function(
   results_df,
@@ -74,20 +72,21 @@ spflow_model <- function(
   sd_error,
   N,
   method,
-  formulation) {
+  formulation,
+  ...) {
 
-  structure(
-    list(
-      "results" = results_df,
-      "varcov" = varcov,
-      "sd" = sd_error,
-      "N" = N,
-      "method" = "Spatial 2SLS",
-      "residuals" = NULL,
-      "fitted" = NULL,
-      "data" = NULL,
-      "formulation" = "matrix"
-    ),
-    class = "spflow_model")
+
+    c(list("results" = results_df,
+           "varcov" = varcov,
+           "sd" = sd_error,
+           "N" = N,
+           "method" = method,
+           "residuals" = NULL,
+           "fitted" = NULL,
+           "data" = NULL,
+           "formulation" = formulation),
+      list(...)
+      ) %>%
+    structure(class = "spflow_model")
 }
 

@@ -263,16 +263,6 @@ instrumental_variables <- list(
   "G" = c(FALSE,TRUE,TRUE)
 )
 
-# declare which input corresponds to instrumental variables
-# which are only relevant for s2sls estimation
-model_moments$H_index <- list(
-  "const" = 1,
-  "const_intra" = 2:10,
-  "X" = 11:22,
-  "G" = 23:25
-)
-
-
 # ---- 3. model moments -------------------------------------------------------
 # Define the required model moments which are used for the estimation
 # procedures.
@@ -283,15 +273,15 @@ requied_moments <- c(
   "W_traces",
   # model specific
   "TSS1","TSS2","TSS9",
-  "HY1","HY2","HY9",
-  "ZY1","ZY2","ZY9")
+  "HY1", "HY2", "HY9",
+  "ZY1", "ZY2", "ZY9")
 
 # preassign, fill and verify
 model_moments <- named_list(c(requied_moments))
 
+model_moments$N <- N
 model_moments$HH <- crossprod(compact_model_matrix$H)
 model_moments$ZZ <- crossprod(simulation_input$Z)
-model_moments$N <- N
 
 model_moments$TSS1 <- crossprod(compact_model_matrix$Y1)
 model_moments$TSS2 <- crossprod(compact_model_matrix$Y2)
@@ -307,8 +297,17 @@ model_moments$ZY9 <- crossprod(simulation_input$Z,compact_model_matrix$Y9)
 
 model_moments$W_traces <- trace_sequence(W)
 
+
 stopifnot(all(names(model_moments) == requied_moments),
           !any(rapply(model_moments, is.null)))
+
+# declare which input corresponds belongs to which type of data source
+model_moments$H_index <- list(
+  "const" = 1,
+  "const_intra" = 2:10, # derived from neighborhood
+  "X" = 11:22,          # nodes
+  "G" = 23:25           # pairs
+)
 
 
 # ---- 4. estimation results --------------------------------------------------
