@@ -1,9 +1,32 @@
 spflow_model_estimation <- function(
   model_moments,
-  estimator) {
+  flow_control) {
 
-  estimator <- "spflow_" %p% estimator
-  estimation_results <- do.call(estimator,args = model_moments)
+  estimator <- flow_control$estimation_method
+
+  estimation_results <- switch(estimator,
+    "s2sls" = {
+      spflow_s2sls(
+        HH  = model_moments$HH,
+        HY  = model_moments$HZ,
+        ZZ  = model_moments$ZZ,
+        ZY  = model_moments$ZY,
+        TSS = model_moments$TSS,
+        N   = model_moments$N
+      )},
+    "mle" = {
+      spflow_mle(
+        ZZ    = model_moments$ZZ,
+        ZY    = model_moments$ZY,
+        TSS   = model_moments$TSS,
+        N     = model_moments$N,
+        n_d   = model_moments$n_d,
+        n_o   = model_moments$n_o,
+        OW_traces = model_moments$OW_traces,
+        DW_traces = model_moments$DW_traces,
+        model = flow_control$model,
+        hessian_method = flow_control$hessian_method)}
+  )
 
   return(estimation_results)
 

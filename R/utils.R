@@ -68,7 +68,10 @@ combine_formulas <- function(..., intercept = FALSE) {
     unlist() %>%
     unique()
 
-  return(reformulate(labels, intercept = intercept))
+  if (length(labels) > 0)
+    return(reformulate(labels, intercept = intercept))
+
+  return(~ -1)
 }
 
 extract_terms_labels <- function(formula, fake_data = data.frame("." = ".")) {

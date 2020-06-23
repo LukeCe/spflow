@@ -9,7 +9,7 @@ trace_sequence <- function(W, max_power = 10 ) {
     W_traces[[pow + 1]] <-  sum(diag(W_pow))
   }
 
-  return(W_traces)
+  return(unlist(W_traces))
 }
 
 #' Log determinant ???

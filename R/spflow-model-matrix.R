@@ -85,6 +85,7 @@ model_matrix_expand_net <- function(
 
   # derive the global model matrix by combining
   # all formulas for the same datasource
+
   key_clomuns <- data.table::key(case_data)
 
   model_matrix_global <-
@@ -100,12 +101,13 @@ model_matrix_expand_net <- function(
   # define which variable require which lags
   lag_which_vars <- function(.form) {
     extract_terms_labels(
-      formula = formulas_by_lag$normal_variables,
+      formula = .form,
       fake_data = case_data[0,!key_clomuns, with = FALSE])
   }
 
   varnames_by_role <- formulas_by_lag %>%
-    lapply(lag_which_vars)
+    lapply(lag_which_vars) %>%
+    compact()
 
   lag_requirements <- define_spatial_lag_requirements(varnames_by_role)
 
@@ -122,7 +124,10 @@ model_matrix_expand_net <- function(
 
   # split the matrix by variable type
   add_lag_suffixes <- function(lag_req) {
-    map2(lag_req, c("",".lag1",".lag2",".lag3"),paste0) %>%
+    lag_to_suffix <-  c(lag0 = ""     , lag1 = ".lag1",
+                        lag2 = ".lag2", lag3 = ".lag3")
+
+    map2(lag_req, lag_to_suffix[names(lag_req)],paste0) %>%
       flatten()
   }
 
@@ -163,7 +168,7 @@ model_matrix_expand_net <- function(
   nb_inst <- 2
   instruments_by_model_segment <-
     lag_types_model_segments %>%
-    lapply(function(.l) length(.l["instrumental_variables"]) * nb_inst) %>%
+    lapply(function(.l) length(.l$"instrumental_variables") * nb_inst) %>%
     mapply(is_instrument_attribute,
            dat = segment_model_matrices,
            num_inst = .,
@@ -343,14 +348,17 @@ compute_lagged_interactions <- function(
 define_spatial_lag_requirements <- function(
   formulas_by_lag_type) {
 
-  required_lags <-  with(
-    formulas_by_lag_type,{
+  norm <- formulas_by_lag_type$normal_variables
+  sdm <- formulas_by_lag_type$sdm_variables
+  inst <- formulas_by_lag_type$instrumental_variables
+
+  required_lags <-
       list(
-        "lag0" = normal_variables,
-        "lag1" = unique(c(sdm_variables, instrumental_variables)),
-        "lag2" = instrumental_variables,
-        "lag3" = intersect(sdm_variables,instrumental_variables)
-      )})
+        "lag0" = norm,
+        "lag1" = unique(c(sdm, inst)),
+        "lag2" = inst,
+        "lag3" = intersect(sdm,inst)
+      ) %>% compact()
 
   return(required_lags)
 

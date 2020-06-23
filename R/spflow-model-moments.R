@@ -1,10 +1,7 @@
 spflow_model_moments <- function(formulation,...) {
 
-  # TODO implement vector formulation
-  formulation <- "matrix"
-
   model_moments <- switch(formulation,
-    "vector" = NULL,
+    "vector" = NULL, # TODO implement vector formulation
     "matrix" = spflow_model_moments_mat(...)
   )
 
@@ -60,12 +57,13 @@ spflow_model_moments_mat <- function(
 
   # The trace seqence is used to approximate the log-determinant term in
   # in the likelihood function
-  LL_moments <- named_list(c("OW_traces", "OW_traces"))
+  LL_moments <- named_list(c("DW_traces", "OW_traces","n_d","n_o"))
+  LL_moments[c("n_d","n_o")] <- dim(model_matrices$Y[[1]])
 
   LL_moments$OW_traces <- trace_sequence(model_matrices$OW)
-  orign_net_equals_destination_net <- (flow_type == "within")
+  orign_equals_destination_network <- (flow_type == "within")
 
-  if (!orign_net_equals_destination_net)
+  if (!orign_equals_destination_network)
     LL_moments$DW_traces <- trace_sequence(model_matrices$DW)
 
   return(c(model_moments,LL_moments))

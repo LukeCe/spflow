@@ -10,7 +10,8 @@
 # - - - - - - - - - - - - - - - - - - -
 # Date: June 2020
 
-load("../test_case_1_symmetric.rda")
+load(file.path(rprojroot::find_testthat_root_file(),
+               "test_case_1_symmetric.rda"))
 load_all()
 
 # setup the network object
@@ -39,99 +40,163 @@ pairs_ge_ge_default <- sp_network_pair(origin_network_id = "ge",
 # combine them into a multi-network
 multi_net_ge_default  <- sp_multi_network(network_ge, pairs_ge_ge_default)
 
+describe("Moments can be generated from formula and multinet",{
 
-describe("Moment generation", {
+  it("Is correct for the default s2sls estimation",{
 
-  describe("Moments can be generated from formula and multinet",{
+    model_formulation <- "matrix"
+    default_control <- spflow_control()
+    defulat_formula <- Y9 ~ .
 
-    it("Is correct for the default estimation",{
+    actual_matrices <- spflow_model_matrix(
+      sp_multi_network = multi_net_ge_default,
+      network_pair_id = "ge_ge",
+      flow_formula = defulat_formula,
+      flow_control = default_control)
 
-      model_formulation <- "matrix"
-      default_control <- spflow_control()
-      defulat_formula <- Y9 ~ .
+    expected_matrices <- test_case_1_symmetric$relational_model_matrices
 
-      actual_matrices <- spflow_model_matrix(
-        sp_multi_network = multi_net_ge_default,
-        network_pair_id = "ge_ge",
-        flow_formula = defulat_formula,
-        flow_control = default_control)
+    expect_equal(actual_matrices$const,expected_matrices$const,
+                 check.attributes = FALSE)
 
-      expected_matrices <- test_case_1_symmetric$relational_model_matrices
-
-      expect_equal(actual_matrices$const,expected_matrices$const,
-                   check.attributes = FALSE)
-
-      expect_equal(actual_matrices$const_intra,expected_matrices$const_intra,
-                   check.attributes = FALSE)
+    expect_equal(actual_matrices$const_intra,expected_matrices$const_intra,
+                 check.attributes = FALSE)
 
 
-      expect_equal(actual_matrices$DX,expected_matrices$DX,
-                   check.attributes = FALSE)
-      expect_equal(actual_matrices$OX,expected_matrices$OX,
-                   check.attributes = FALSE)
-      expect_equal(actual_matrices$IX,expected_matrices$IX,
-                   check.attributes = FALSE)
+    expect_equal(actual_matrices$DX,expected_matrices$DX,
+                 check.attributes = FALSE)
+    expect_equal(actual_matrices$OX,expected_matrices$OX,
+                 check.attributes = FALSE)
+    expect_equal(actual_matrices$IX,expected_matrices$IX,
+                 check.attributes = FALSE)
 
-      expect_equal(actual_matrices$G %>% lapply(as.matrix),expected_matrices$G,
-                   check.attributes = FALSE)
-
-
-      actual_moments <- spflow_model_moments(
-        formulation = model_formulation,
-        actual_matrices,
-        estimator = default_control$estimation_method)
-
-      expected_moments <- test_case_1_symmetric$model_moments
-
-      moment_corrspondence <- data.frame(
-        act = c("N","HH","ZZ","HY", "ZY", "TSS"),
-        exp = c("N","HH","ZZ","HY9","ZY9","TSS9")
-      )
+    expect_equal(actual_matrices$G %>% lapply(as.matrix),expected_matrices$G,
+                 check.attributes = FALSE)
 
 
-      expect_equal(actual_moments$N, expected_moments$N)
-      expect_equal(actual_moments$HH, expected_moments$HH,
-                   check.attributes = FALSE)
-      expect_equal(actual_moments$ZZ, expected_moments$ZZ,
-                   check.attributes = FALSE)
-      expect_equal(actual_moments$HY, expected_moments$HY9,
-                   check.attributes = FALSE)
-      expect_equal(actual_moments$ZY, expected_moments$ZY9,
-                   check.attributes = FALSE)
-      expect_equal(actual_moments$TSS, expected_moments$TSS9[[1]],
-                   check.attributes = FALSE)
+    actual_moments <- spflow_model_moments(
+      formulation = model_formulation,
+      actual_matrices,
+      estimator = default_control$estimation_method)
 
-    })
+    expected_moments <- test_case_1_symmetric$model_moments
+
+    expect_equal(actual_moments$N, expected_moments$N)
+
+    expect_equal(actual_moments$HH, expected_moments$HH,
+                 check.attributes = FALSE)
+    expect_equal(actual_moments$ZZ, expected_moments$ZZ,
+                 check.attributes = FALSE)
+    expect_equal(actual_moments$HY, expected_moments$HY9,
+                 check.attributes = FALSE)
+    expect_equal(actual_moments$ZY, expected_moments$ZY9,
+                 check.attributes = FALSE)
+    expect_equal(actual_moments$TSS, expected_moments$TSS9[[1]],
+                 check.attributes = FALSE)
 
   })
 
+  it("Is correct for the default mle estimation",{
+
+    model_formulation <- "matrix"
+    default_control <- spflow_control(estimation_method = "mle")
+    defulat_formula <- Y9 ~ .
+
+    actual_matrices <- spflow_model_matrix(
+      sp_multi_network = multi_net_ge_default,
+      network_pair_id = "ge_ge",
+      flow_formula = defulat_formula,
+      flow_control = default_control)
+
+    expected_matrices <- test_case_1_symmetric$relational_model_matrices
+
+    expect_equal(actual_matrices$const,expected_matrices$const,
+                 check.attributes = FALSE)
+    expect_equal(actual_matrices$const_intra,expected_matrices$const_intra[1],
+                 check.attributes = FALSE)
+
+    drop_inst <- -(3:4)
+    expect_equal(actual_matrices$DX,expected_matrices$DX[,drop_inst],
+                 check.attributes = FALSE)
+    expect_equal(actual_matrices$OX,expected_matrices$OX[,drop_inst],
+                 check.attributes = FALSE)
+    expect_equal(actual_matrices$IX,expected_matrices$IX[,drop_inst],
+                 check.attributes = FALSE)
+
+    expect_equal(actual_matrices$G %>% lapply(as.matrix),
+                 expected_matrices$G[1],
+                 check.attributes = FALSE)
+
+
+    actual_moments <- spflow_model_moments(
+      formulation = model_formulation,
+      actual_matrices,
+      estimator = default_control$estimation_method,
+      flow_type = "within")
+
+    expected_moments <- test_case_1_symmetric$model_moments
+
+    expect_equal(actual_moments$N, expected_moments$N)
+
+    expect_equal(actual_moments$ZZ, expected_moments$ZZ,
+                 check.attributes = FALSE)
+    expect_equal(actual_moments$ZY, expected_moments$ZY9,
+                 check.attributes = FALSE)
+    expect_equal(actual_moments$TSS, expected_moments$TSS9,
+                 check.attributes = FALSE)
+    expect_equal(actual_moments$OW_traces, expected_moments$W_traces,
+                 check.attributes = FALSE)
+    expect_equal(actual_moments$n_o, expected_moments$n_o,
+                 check.attributes = FALSE)
+    expect_equal(actual_moments$n_d, expected_moments$n_d,
+                 check.attributes = FALSE)
+    })
 })
 
+describe("Allows sensefull default estimation for minimal user input.",{
 
-describe("Quick start estimation", {
+  it("Works for the default s2sls estimation",{
+    default_results <- spflow(
+      flow_formula = Y9 ~ . ,
+      multi_net_ge_default)
 
-  describe("Allows sensefull default estimation for minimal user input.",{
+    expect_is(default_results,"spflow_model")
 
-    it("Works for the default s2sls estimation",{
-      default_results <- spflow(
-        flow_formula = Y9 ~ . ,
-        multi_net_ge_default)
+    actual_estimates <- default_results$results$est
+    expected_estimates <- test_case_1_symmetric$results$Y9$s2sls$params
+    expect_equal(actual_estimates,expected_estimates,
+                 check.attributes = FALSE)
 
-      expect_is(default_results,"spflow_model")
-
-      actual_estimates <- default_results$results$est
-      expected_estimates <- test_case_1_symmetric$results$Y9$s2sls$params
-      expect_equal(actual_estimates,expected_estimates,
-                   check.attributes = FALSE)
-
-      actual_uncertainty <- default_results$results$sd
-      expected_uncertainty <- test_case_1_symmetric$results$Y9$s2sls$sd_params
-      expect_equal(actual_uncertainty,expected_uncertainty,
-                   check.attributes = FALSE)
-
-    })
+    actual_uncertainty <- default_results$results$sd
+    expected_uncertainty <- test_case_1_symmetric$results$Y9$s2sls$sd_params
+    expect_equal(actual_uncertainty,expected_uncertainty,
+                 check.attributes = FALSE)
 
   })
+
+  it("Works for the default mle estimation",{
+
+    default_results <- spflow(
+      flow_formula = Y9 ~ . ,
+      multi_net_ge_default,
+      flow_control = spflow_control(estimation_method = "mle"))
+
+    expect_is(default_results,"spflow_model")
+
+    # test length as exact reference values are not available
+    actual_estimates <- default_results$results$est
+    expected_estimates_len <-
+      test_case_1_symmetric$results$Y9$s2sls$params %>% length()
+
+    expect_length(actual_estimates,expected_estimates_len)
+
+    expected_uncertainty_len <-
+      test_case_1_symmetric$results$Y9$s2sls$sd_params %>% length()
+    actual_uncertainty <- default_results$results$sd
+    expect_length(actual_uncertainty,expected_uncertainty_len)
+
+  })
+
 })
 
 

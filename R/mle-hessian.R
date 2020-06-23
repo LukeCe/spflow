@@ -1,12 +1,19 @@
 spflow_hessian <- function(hessian_method, ...) {
 
+  args <- list(...)
 
-  assert(hessian_method %in% c("mixed","f2","exact"),
-         "The hessian_method must be one of " %p%
-         paste0(c("mixed","f2","exact"), collapse = ", or ") %p%
-         "! Entered value: " %p% hessian_method)
+  hessian_result <- switch(hessian_method,
+    "mixed" = {
+      spflow_mixed_hessian(numerical_hess = args$numerical_hess,
+                           ZZ = args$ZZ,
+                           ZY = args$ZY,
+                           TSS = args$TSS,
+                           N = args$N,
+                           mu = args$mu,
+                           sigma2 = args$sigma2)
+      })
 
-  do.call(what = "spflow_" %p% hessian_method %p% "_hessian",...)
+  return(hessian_result)
 }
 
 spflow_mixed_hessian <- function(
@@ -31,10 +38,10 @@ spflow_mixed_hessian <- function(
 
   # block 2,1 = interaction of rho and theta
   tau <- c(1, -rho)
-  ZJ <- ZY[ ,-1]
+  ZJ <- ZY[ ,-1, drop = FALSE]
 
   hess_21 <-
-    rbind(-ZJ/sigma2, crossprod(delta,ZJ) - TSS[-1, ] %*% tau) %>%
+    rbind(-ZJ/sigma2, crossprod(delta,ZJ) - tau %*% TSS[, -1]) %>%
     matrix(ncol = size_rho)
   hess_12 <- t(hess_21)
 
@@ -48,6 +55,7 @@ spflow_mixed_hessian <- function(
   return(full_hessian)
 }
 
+# TODO finish the hessian methods
 spflow_f2_hessian <- function(variables) {
 
 }

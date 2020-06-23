@@ -23,7 +23,7 @@ spflow_control <- function(
 ) {
 
   # check estimator
-  available_estimators <- c("s2sls") # mle, mcmc
+  available_estimators <- c("s2sls", "mle") # , mcmc
   assert(estimation_method %in% available_estimators,
          "The estimation method must be one of [%s]!" %>%
            sprintf(., paste(available_estimators, collapse = " or ")))
@@ -66,7 +66,7 @@ spflow_control <- function(
     "sdm_variables" = sdm_variables,
     "instrumental_variables" = instrumental_variables,
     "use_intra" = use_intra,
-    "use_sdm" = use_intra,
+    "use_sdm" = use_sdm,
     "model" = model
   ))
 }

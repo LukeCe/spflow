@@ -44,16 +44,18 @@ spflow <- function(
     flow_control)
 
   # derive the model moments
+  # TODO model_formulation those and flow_type to spflow_control
   model_formulation <- "matrix"
+  flow_type <- "within"
   model_moments <- spflow_model_moments(
     model_formulation,
     model_matrices,
-    estimator = flow_control$estimation_method)
+    estimator = flow_control$estimation_method,
+    flow_type = flow_type)
 
   # moment based estimation
   estimation_results <-
-    spflow_model_estimation(model_moments,
-                            estimator = flow_control$estimation_method)
+    spflow_model_estimation(model_moments,flow_control)
 
   # add the data
   estimation_results$data <- drop_instruments(model_matrices)

@@ -268,7 +268,7 @@ instrumental_variables <- list(
 # procedures.
 requied_moments <- c(
   # general
-  "HH","ZZ","N",
+  "HH","ZZ","N","n_d","n_o",
   "H_index",
   "W_traces",
   # model specific
@@ -280,6 +280,7 @@ requied_moments <- c(
 model_moments <- named_list(c(requied_moments))
 
 model_moments$N <- N
+model_moments[c("n_d","n_o")]  <- n
 model_moments$HH <- crossprod(compact_model_matrix$H)
 model_moments$ZZ <- crossprod(simulation_input$Z)
 
@@ -384,6 +385,22 @@ cbind(mu,true_param)
 results$Y2$s2sls <- design_results
 results$Y2$s2sls$params <- mu
 results$Y2$s2sls$sd_params <- sqrt(diag(varcov))
+
+# ..4.2 Model 2 mle reg ----
+calc_log_det_model2 <- function(rho){
+
+  max_power <- 10
+  order <- 1:max_power
+  wt_sequence <- (rho_d^order/order)
+
+  log_det <- -n * sum(wt_sequence * W_traces)
+
+  return(log_det)
+}
+
+calc_loglik_model2 <- function(rho){}
+
+
 
 # ..4.9 Model 9 s2sls reg ----
 # pull out the used quantities
