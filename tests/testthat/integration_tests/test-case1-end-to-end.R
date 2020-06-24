@@ -197,6 +197,29 @@ describe("Allows sensefull default estimation for minimal user input.",{
 
   })
 
+  it("Works for the default mcmc estimation",{
+
+    default_results <- spflow(
+      flow_formula = Y9 ~ . ,
+      multi_net_ge_default,
+      flow_control = spflow_control(estimation_method = "mcmc"))
+
+    expect_is(default_results,"spflow_model")
+
+    # test length as exact reference values are not available
+    actual_estimates <- default_results$results$est
+    expected_estimates_len <-
+      test_case_1_symmetric$results$Y9$s2sls$params %>% length()
+
+    expect_length(actual_estimates,expected_estimates_len)
+
+    expected_uncertainty_len <-
+      test_case_1_symmetric$results$Y9$s2sls$sd_params %>% length()
+    actual_uncertainty <- default_results$results$sd
+    expect_length(actual_uncertainty,expected_uncertainty_len)
+
+  })
+
 })
 
 

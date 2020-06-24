@@ -334,6 +334,7 @@ cbind(mu,simulation_input$delta)
 c(sqrt(sigma2),sd(simulation_input$noise1))
 
 # ..4.2 Model 2 s2sls reg ----
+# TODO make this an example of non-intra test
 H <- compact_model_matrix$H
 Z <- compact_model_matrix$Z
 

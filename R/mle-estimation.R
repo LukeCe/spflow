@@ -14,11 +14,12 @@ spflow_mle <- function(ZZ,ZY,TSS,N,n_d,n_o,DW_traces,OW_traces,
 
   # TODO generalize optim -> all model + asymmetric case
   optim_part_LL <- function(rho) {
-    partial_spflow_loglik(rho,
-                          RSS = RSS ,
-                          W_traces = OW_traces,
-                          n = n_o,
-                          model = model)
+    -partial_spflow_loglik(rho,
+                           RSS = RSS ,
+                           W_traces = OW_traces,
+                           n_o = n_o,
+                           n_d = n_d,
+                           model = model)
     }
 
   optim_count <- 1
@@ -98,9 +99,12 @@ draw_inital_guess <- function(n_param) {
   return(init)
 }
 
-partial_spflow_loglik <- function(rho,RSS,W_traces,n,model) {
+partial_spflow_loglik <- function(rho,RSS,W_traces,n_o,n_d,model) {
 
   nb_rho <- length(rho)
+  N <- n_o * n_d
+  n <- n_o
+
   if (nb_rho == 1) {
     tau <- c(1, -rho[1])
     det_part <- lndetmc(rho[1], W_traces, n, model)
@@ -120,6 +124,6 @@ partial_spflow_loglik <- function(rho,RSS,W_traces,n,model) {
   }
 
   rss_part <- -N * log(tau %*% RSS %*% tau) / 2
-  return(-(det_part + rss_part))
+  return(det_part + rss_part)
 }
 

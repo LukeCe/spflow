@@ -16,7 +16,7 @@ spflow <- function(
   flow_control = spflow_control()
 ) {
 
-  ## check for abusive inputs ...
+  ## ... check for abusive inputs
   assert(is(flow_formula,"formula"),
          "A valid formula is required!")
 
@@ -27,45 +27,49 @@ spflow <- function(
   assert(is_single_character(network_pair_id),
          "The network_pair_id musst be a character of length 1!")
 
-  pair_exists <-
-    any(network_pair_id == names(id(sp_multi_network)[["network_pairs"]]))
-  assert(pair_exists,
+  network_ids <- id(sp_multi_network)[["network_pairs"]][[network_pair_id]]
+  assert(!is.null(network_ids),
          "The the network pair id [%s] is not available!" %>%
            sprintf(., network_pair_id))
+
+  ## ... identify the flow type
+  flow_control$flow_type <- ifelse(
+    network_ids["origin_network_id"] ==
+      network_ids["destination_network_id"],
+    yes = "within", no = "between"
+  )
 
   ## ... test the arguments provided to control by calling it again
   flow_control <- do.call(spflow_control, flow_control)
 
-  ## transform ...
+  ## ... create the design matrix/matrices
   model_matrices <- spflow_model_matrix(
     sp_multi_network,
     network_pair_id,
     flow_formula,
     flow_control)
 
-  # derive the model moments
-  # TODO model_formulation those and flow_type to spflow_control
-  model_formulation <- "matrix"
-  flow_type <- "within"
+  ## ... derive the model moments
   model_moments <- spflow_model_moments(
-    model_formulation,
+    formulation =  flow_control$formulation,
     model_matrices,
     estimator = flow_control$estimation_method,
-    flow_type = flow_type)
+    flow_type = flow_control$flow_type)
 
-  # moment based estimation
-  estimation_results <-
-    spflow_model_estimation(model_moments,flow_control)
+  # ... fit the model and add complementary information to the results
+  estimation_results <- spflow_model_estimation(model_moments,flow_control)
 
-  # add the data
-  estimation_results$data <- drop_instruments(model_matrices)
+  estimation_results$"data" <- drop_instruments(model_matrices)
+  estimation_results$"formulation" <- flow_control$formulation
+  estimation_results$"model" <- flow_control$model
+  estimation_results$"auto-corr" <- ifelse(flow_control$use_sdm,"SDM","LAG")
 
-  # solve the coefficient nameing
   rownames(estimation_results$results) <-
     parameter_names(model_matrices = estimation_results$data,
-                    model_formulation = model_formulation,
-                    model = flow_control$model)
+                    model_formulation = estimation_results$formulation,
+                    model = estimation_results$model)
 
+  # TODO solve the residual and fitted value issue
   calculate_residuals <- FALSE
   if (calculate_residuals) {
     stop("Not yet available")
