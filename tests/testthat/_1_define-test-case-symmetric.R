@@ -29,16 +29,23 @@
 load_all()
 library("data.table")
 data("germany_grid")
-case_description <- c(
-  "Test data for the symmetric OD flows using simulated data of ",
-  "16 german states. The simulated flows use the intra coefficients",
-  "and also SDM variables. The test data contains three diffrent auto-",
-  "correlation structures with 3 versions of simulated flows.",
-  "All exogenous variables are held constant for the three models.")
+
+case_2_description <-
+  "Test data for the symmetric OD flows using simulated data of the " %p%
+  "16 german states." %p%
+  "The simulated flows make use of SDM variables but do not use the " %p%
+  "intra coefficients. " %p%
+  "They follow the the auto-correlation pattern of model 2"
+
+case_9_description <-
+  "Test data for the symmetric OD flows using simulated data of the " %p%
+  "16 german states. The simulated flows use the intra-coefficients, " %p%
+  "the SDM variables and follow the auto-correlation pattern of model 9."
 
 # ---- 1. input data ----------------------------------------------------------
 # in this section we define the input data which is used to feed the
 # sp_network and sp_network_pair objects.
+# it is identical for all models
 input_data <- named_list(c("node_data",
                            "node_neigborhood",
                            "od_pair_data"))
@@ -89,10 +96,14 @@ rm(pair_distance,od_ids)
 # for the simulation we require the matrix exogenous variables [Z]
 # the flow neighborhoods and a vector of random deviations
 # the enumerated simulation input is model specific
-simulation_input <- named_list(c("Wd","Wo","Ww","Z","error","delta",
-                                 "A1","A1_inv", "signal1", "noise1","rho1",
-                                 "A2","A2_inv", "signal2", "noise2","rho2",
-                                 "A9","A9_inv", "signal9", "noise9","rho9"))
+fix_input <- c("Wd","Wo","Ww","error")
+models <- c("M1","M2", "M9")
+model_specific_input <- c("A","A_inv","Z","signal","noise","rho","delta")
+
+simulation_input <-
+  c(named_list(fix_input),
+    named_list(models,init = named_list(model_specific_input)))
+
 
 data("simulation_parameters")
 set.seed(123)
@@ -119,64 +130,65 @@ X_vector <- X_lagged %>%
   expand_O_D_I() %>%
   vec_reference_O_D_I()
 
-simulation_input$Z <- cbind(Z_const,X_vector,log(pair_data$pair_distance + 1))
+simulation_input$M1$Z <- cbind(Z_const,X_vector,log(pair_data$pair_distance + 1)) %>% as.matrix()
+simulation_input$M2$Z <- cbind(Z_const[,1],X_vector[,1:4],log(pair_data$pair_distance + 1)) %>% as.matrix()
+simulation_input$M9$Z <- cbind(Z_const,X_vector,log(pair_data$pair_distance + 1)) %>% as.matrix()
+
 rm(Z_const,X_vector)
 
 # declare flow neighborhood
+# BUG there is a problem when loading sp/spdep and matrix
 In <- Matrix::Diagonal(n)
+# W <- as.matrix(W)
 simulation_input$Wd <- In %x% W
 simulation_input$Wo <- W  %x% In
 simulation_input$Ww <- W  %x% W
 
-# regressuion coefficients are equal for all models
-simulation_input$delta <- delta
+# regressuion coefficients for all models
+drop_intra_parameters <- grep(pattern = "intra",names(delta),ignore.case = T)
+
+simulation_input$M1$delta <- delta
+simulation_input$M2$delta <- delta[-drop_intra_parameters]
+simulation_input$M9$delta <- delta
 
 ## simulate according to:
 # model 1 (non-spatial)
 # model 2 (destination depedence)
 # model 9 (orig & dest & o-d -dependence)
-simulation_input$rho1 <- NULL
-simulation_input$rho2 <- rho[c("rho_d")]
-simulation_input$rho9 <- rho[c("rho_d", "rho_o", "rho_w")]
+simulation_input$M1$rho <- NULL
+simulation_input$M2$rho <- rho[c("rho_d")]
+simulation_input$M9$rho <- rho[c("rho_d", "rho_o", "rho_w")]
 
 # define and invert the filter matrix
 IN <- Matrix::Diagonal(N)
-simulation_input$A1 <- NULL
-simulation_input$A1_inv <- NULL
+simulation_input$M1$A <- NULL
+simulation_input$M1$A_inv <- NULL
 
-simulation_input$A2 <- IN - (simulation_input$rho2 * simulation_input$Wd)
-simulation_input$A2_inv <- solve(simulation_input$A2)
+simulation_input$M2$A <- IN - (simulation_input$M2$rho * simulation_input$Wd)
+simulation_input$M2$A_inv <- solve(simulation_input$M2$A)
 
-simulation_input$A9 <- IN - (
-  mapply("*", simulation_input$rho9,
+simulation_input$M9$A <- IN - (
+  mapply("*", simulation_input$M9$rho,
          simulation_input[c("Wd","Wo","Ww")],
          SIMPLIFY = FALSE) %>% Reduce("+",.)
   )
-simulation_input$A9_inv <- solve(simulation_input$A9)
+simulation_input$M9$A_inv <- solve(simulation_input$M9$A)
 
 # simulate the flows = signal + noise
-simulation_input$noise9 <-
-  simulation_input$A9_inv %*% simulation_input$error
-simulation_input$signal9 <-
-  simulation_input$A9_inv %*% (simulation_input$Z %*% delta)
-input_data$od_pair_data$Y9 <-
-  as.vector(simulation_input$signal9 + simulation_input$noise9)
+simulation_input$M1$noise  <- simulation_input$error
+simulation_input$M1$signal <- simulation_input$M1$Z %*% simulation_input$M1$delta
 
-simulation_input$noise2 <-
-  simulation_input$A2_inv %*% simulation_input$error
-simulation_input$signal2 <-
-  simulation_input$A2_inv %*% (simulation_input$Z %*% delta)
-input_data$od_pair_data$Y2 <-
-  as.vector(simulation_input$signal2 + simulation_input$noise2)
+simulation_input$M2$noise  <- simulation_input$M2$A_inv %*% simulation_input$error
+simulation_input$M2$signal <- simulation_input$M2$A_inv %*% (simulation_input$M2$Z %*% simulation_input$M2$delta)
 
-simulation_input$noise1 <-
-  simulation_input$error
-simulation_input$signal1 <-
-  simulation_input$Z %*% delta
-input_data$od_pair_data$Y1 <-
-  simulation_input$signal1 + simulation_input$noise1
+simulation_input$M9$noise  <- simulation_input$M9$A_inv %*% simulation_input$error
+simulation_input$M9$signal <- simulation_input$M9$A_inv %*% (simulation_input$M9$Z %*% simulation_input$M9$delta)
 
+input_data$od_pair_data$Y9 <- as.vector(simulation_input$M9$signal + simulation_input$M9$noise)
+input_data$od_pair_data$Y2 <- as.vector(simulation_input$M2$signal + simulation_input$M2$noise)
+input_data$od_pair_data$Y1 <- as.vector(simulation_input$M1$signal + simulation_input$M1$noise)
 
+# TODO finsh restructuring of the test case
 # ---- 2a. relational model matrices ------------------------------------------
 # Here we define the desired output for the relational design matrices,
 # which are used to estimate the model with the more efficient
@@ -331,7 +343,7 @@ results$Y1$ols$params <- mu
 results$Y1$ols$sd_params <- sqrt(diag(varcov) * sigma2)
 
 cbind(mu,simulation_input$delta)
-c(sqrt(sigma2),sd(simulation_input$noise1))
+c(sqrt(sigma2),sd(simulation_input$M1$noise))
 
 # ..4.2 Model 2 s2sls reg ----
 # TODO make this an example of non-intra test
