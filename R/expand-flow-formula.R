@@ -51,6 +51,11 @@ model_formula_decompose <- function(
       }
     )
 
+  # FIXME hack to solve intra formula problem
+  if (!flow_control$use_intra) {
+    role_and_case_formulas$normal_variables$intra_ <- ~ -1
+  }
+
   return(role_and_case_formulas)
 }
 

@@ -31,14 +31,24 @@ ge_pair_df_default$Y2 <- NULL
 ge_pair_df_default$Y1 <- NULL
 ge_pair_df_default$pair_distance <- log(ge_pair_df_default$pair_distance + 1)
 
-pairs_ge_ge_default <- sp_network_pair(origin_network_id = "ge",
-                                       destination_network_id = "ge",
-                                       node_pair_data = ge_pair_df_default,
-                                       origin_key_column = "orig_id",
-                                       destination_key_column = "dest_id")
+pairs_ge_ge_default <- sp_network_pair(
+  origin_network_id = "ge",
+  destination_network_id = "ge",
+  node_pair_data = ge_pair_df_default,
+  origin_key_column = "orig_id",
+  destination_key_column = "dest_id")
+
+pairs_ge_ge_flexible <- sp_network_pair(
+  origin_network_id = "ge",
+  destination_network_id = "ge",
+  node_pair_data = ge_pair_df,
+  origin_key_column = "orig_id",
+  destination_key_column = "dest_id")
 
 # combine them into a multi-network
 multi_net_ge_default  <- sp_multi_network(network_ge, pairs_ge_ge_default)
+multi_net_ge_flex  <- sp_multi_network(network_ge, pairs_ge_ge_default)
+
 
 describe("Moments can be generated from formula and multinet",{
 
@@ -155,9 +165,10 @@ describe("Moments can be generated from formula and multinet",{
     })
 })
 
-describe("Allows sensefull default estimation for minimal user input.",{
 
-  it("Works for the default s2sls estimation",{
+describe("Quick start estimstion for minimals user input.",{
+
+  it("Works for the default s2sls estimation (M9 - sym)",{
     default_results <- spflow(
       flow_formula = Y9 ~ . ,
       multi_net_ge_default)
@@ -176,7 +187,7 @@ describe("Allows sensefull default estimation for minimal user input.",{
 
   })
 
-  it("Works for the default mle estimation",{
+  it("Works for the mle estimation (M9 - sym)",{
 
     default_results <- spflow(
       flow_formula = Y9 ~ . ,
@@ -199,7 +210,7 @@ describe("Allows sensefull default estimation for minimal user input.",{
 
   })
 
-  it("Works for the default mcmc estimation",{
+  it("Works for the mcmc estimation (M9 - sym)",{
 
     default_results <- spflow(
       flow_formula = Y9 ~ . ,
@@ -219,6 +230,34 @@ describe("Allows sensefull default estimation for minimal user input.",{
       test_case_1_symmetric$results$M9$s2sls$sd_params %>% length()
     actual_uncertainty <- default_results$results$sd
     expect_length(actual_uncertainty,expected_uncertainty_len)
+
+  })
+
+})
+
+
+describe("Estimation via the formula interface without intra model", {
+
+  it("Works for s2sls estimation (M2 - sym)",{
+
+    test_control <- spflow_control(estimation_method = "s2sls",
+                                   use_intra = FALSE)
+    test_results <- spflow(
+      flow_formula = Y2 ~ . + G_(log(pair_distance+1)) ,
+      multi_net_ge_flex,
+      flow_control = test_control)
+
+    expect_is(test_results,"spflow_model")
+
+    actual_estimates <- test_results$results$est
+    expected_estimates <- test_case_1_symmetric$results$M9$s2sls$params
+    expect_equal(actual_estimates,expected_estimates,
+                 check.attributes = FALSE)
+
+    actual_uncertainty <- test_results$results$sd
+    expected_uncertainty <- test_case_1_symmetric$results$M9$s2sls$sd_params
+    expect_equal(actual_uncertainty,expected_uncertainty,
+                 check.attributes = FALSE)
 
   })
 

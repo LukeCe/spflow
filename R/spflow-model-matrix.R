@@ -149,6 +149,7 @@ model_matrix_expand_net <- function(
 
   segment_model_matrices <-
     lag_requirements_by_model_segments %>%
+    compact() %>%
     lapply(function(.ind) model_matrix_global[,.ind]) %>%
     mapply(prefix_columns,
            obj = .,
