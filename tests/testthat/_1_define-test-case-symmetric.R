@@ -5,8 +5,8 @@
 # Description:
 #
 # The script creates a consistent set of input values, intermediate results and
-# final which is used for unit and integration testing.
-# For the whole estimation procedure it uses a simulated test data.
+# final results which is used for unit and integration testing.
+# For the whole estimation procedure it creates simulated test data.
 # It includes the following sets:
 # 0. Case definition
 # 1. Model inputs   : cleaned input data
@@ -17,12 +17,13 @@
 # 3. Moments        : The empricial moments
 #                     (based on inner products of the design matrices)
 # 4. Results
-# The same test case is used for diffrent estimatiors and all formulations;
-# Estimators: [s2sls, mle, mcmc]
+# The same input data diffrent models and both formulations;
+# To reduce complexity we do not give design results for
+# the MCMC and the MLE estimator.
 # Formulations: [matrix, vector]
+# Models: [model_1, model_2, model_9]
 # - - - - - - - - - - - - - - - - - - -
 # Date: june 2020
-
 
 
 # ---- 0. case description ----------------------------------------------------
@@ -30,7 +31,17 @@ load_all()
 library("data.table")
 data("germany_grid")
 
-case_2_description <-
+models <- c("M1","M2", "M9")
+case_description <- named_list(models)
+
+case_description$M1 <-
+  "Test data for the symmetric OD flows using simulated data of the " %p%
+  "16 german states." %p%
+  "The simulated flows make use of SDM variables but do not use the " %p%
+  "intra coefficients. " %p%
+  "They do not exhibit any spatial auto-correlation (model 1)."
+
+case_description$M2 <-
   "Test data for the symmetric OD flows using simulated data of the " %p%
   "16 german states." %p%
   "The simulated flows make use of SDM variables but do not use the " %p%
@@ -97,7 +108,6 @@ rm(pair_distance,od_ids)
 # the flow neighborhoods and a vector of random deviations
 # the enumerated simulation input is model specific
 fix_input <- c("Wd","Wo","Ww","error")
-models <- c("M1","M2", "M9")
 model_specific_input <- c("A","A_inv","Z","signal","noise","rho","delta")
 
 simulation_input <-
@@ -230,25 +240,45 @@ rm(G_transformed,test_G_lag,test_G_lag2,pair_data)
 
 # ...Y lagged flows
 Y1 <- matrix(input_data$od_pair_data$Y1,n,n)
-Y1 <- list("Y1" = list(Y1))
+Y1 <- list("Y" = list(Y1))
 
 Y2 <- matrix(input_data$od_pair_data$Y2,n,n)
-Y2 <- list("Y2" = list(Y2,
+Y2 <- list("Y" = list(Y2,
                        W %*% Y2))
 
 Y9 <- matrix(input_data$od_pair_data$Y9,n,n)
-Y9 <- list("Y9" = list(Y9,
+Y9 <- list("Y" = list(Y9,
                        W %*% Y9,
                        tcrossprod(Y9,W),
                        W %*% tcrossprod(Y9,W)))
 
-relational_model_matrices <-
-  c(Y1, Y2, Y9,
+relational_model_matrices <- named_list(models)
+
+# no instruments for model 1
+X_index_instruments <- 3:4
+relational_model_matrices$M1 <-
+  c(Y1,
+    list("const" = 1),
+    list("const_intra" = const_intra[1]),
+    lapply(X_lagged2, drop_matrix_columns, X_index_instruments),
+    list("G" = G_lagged[1]))
+
+# no intra for model 2
+relational_model_matrices$M2 <-
+  c(Y2,
+    list("const" = 1),
+    X_lagged2[c("DX","OX")],
+    list("G" = G_lagged),
+    list("DW" = W))
+
+# all informations for model 9
+relational_model_matrices$M9 <-
+  c(Y9,
     list("const" = 1),
     list("const_intra" = const_intra),
     X_lagged2,
     list("G" = G_lagged),
-    list("OW" = W))
+    list("DW" = W, "OW" = W))
 
 # ---- 2b. long form model matrix ---------------------------------------------
 # Define the long form model matrix which is used during estimation based on a
@@ -256,16 +286,34 @@ relational_model_matrices <-
 # Again the exogenous variables are the same for all models and the flows
 # differ between them
 
+compact_model_matrix <- named_list(models)
 
-compact_model_matrix <-
-  list(
-    "H" = cbind("const" = 1,
-                vec_reference_matrix(relational_model_matrices$const_intra),
-                X_lagged2 %>% vec_reference_O_D_I(),
-                vec_reference_matrix(G_lagged)),
-    "Y1" = vec_reference_matrix(relational_model_matrices$Y1),
-    "Y2" = vec_reference_matrix(relational_model_matrices$Y2),
-    "Y9" = vec_reference_matrix(relational_model_matrices$Y9))
+x_matrices <- c("DX", "OX", "IX")
+M1_rel <- relational_model_matrices$M1
+compact_model_matrix$M1 <-
+  list("H" = cbind(M1_rel$const,
+                   M1_rel$const_intra %>% vec_reference_matrix(),
+                   M1_rel[x_matrices] %>% vec_reference_O_D_I(),
+                   M1_rel$G %>% vec_reference_matrix()),
+       "Y" = M1_rel$Y %>% vec_reference_matrix())
+
+
+M2_rel <- relational_model_matrices$M2
+compact_model_matrix$M2 <-
+  list("H" = cbind(M2_rel$const,
+                   M2_rel[x_matrices[1:2]] %>% vec_reference_O_D_I(),
+                   M2_rel$G %>% vec_reference_matrix()),
+       "Y" = M2_rel$Y %>% vec_reference_matrix())
+
+M9_rel <- relational_model_matrices$M9
+compact_model_matrix$M9 <-
+  list("H" = cbind(M9_rel$const,
+                   M9_rel$const_intra %>% vec_reference_matrix(),
+                   M9_rel[x_matrices] %>% vec_reference_O_D_I(),
+                   M9_rel$G %>% vec_reference_matrix()),
+       "Y" = M9_rel$Y %>% vec_reference_matrix())
+
+rm(M1_rel,M2_rel,M9_rel)
 
 # decalre which variables in H are instruments
 instrumental_variables <- list(
@@ -278,100 +326,105 @@ instrumental_variables <- list(
 # ---- 3. model moments -------------------------------------------------------
 # Define the required model moments which are used for the estimation
 # procedures.
+
+# TODO the traces should be on the flow neighborhood level to have the same structure for the vector (incomplete) and matric (complete) case
 requied_moments <- c(
-  # general
-  "HH","ZZ","N","n_d","n_o",
-  "H_index",
-  "W_traces",
-  # model specific
-  "TSS1","TSS2","TSS9",
-  "HY1", "HY2", "HY9",
-  "ZY1", "ZY2", "ZY9")
+  "HH", "HY","ZZ", "ZY", "TSS",
+  "N","n_d","n_o",
+  "DW_traces",
+  "OW_traces",
+  "H_index")
+# H_index declares which input corresponds belongs to which type of data source
+# it is helpful to test the moment blocks which are grouped by the data sources
 
 # preassign, fill and verify
-model_moments <- named_list(c(requied_moments))
+model_moments <- named_list(models,named_list(requied_moments))
 
-model_moments$N <- N
-model_moments[c("n_d","n_o")]  <- n
-model_moments$HH <- crossprod(compact_model_matrix$H)
-model_moments$ZZ <- crossprod(simulation_input$Z)
+# Some moments are the same for the models:
+# N & n_o & n_d
+model_moments$M1$N <- model_moments$M2$N <- model_moments$M9$N <-
+  N
+nn <- c("n_d","n_o")
+model_moments$M1[nn] <- model_moments$M2[nn] <- model_moments$M9[nn] <-
+  n
 
-model_moments$TSS1 <- crossprod(compact_model_matrix$Y1)
-model_moments$TSS2 <- crossprod(compact_model_matrix$Y2)
-model_moments$TSS9 <- crossprod(compact_model_matrix$Y9)
+# Some are not ...
+M1_comp <- compact_model_matrix$M1
+model_moments$M1$ZZ  <- crossprod(simulation_input$M1$Z)
+model_moments$M1$ZY  <- crossprod(simulation_input$M1$Z, M1_comp$Y)
+model_moments$M1$TSS <- crossprod(M1_comp$Y)
 
-model_moments$HY1 <- crossprod(compact_model_matrix$H,compact_model_matrix$Y1)
-model_moments$HY2 <- crossprod(compact_model_matrix$H,compact_model_matrix$Y2)
-model_moments$HY9 <- crossprod(compact_model_matrix$H,compact_model_matrix$Y9)
+M2_comp <- compact_model_matrix$M2
+model_moments$M2$HH <- crossprod(M2_comp$H)
+model_moments$M2$HY <- crossprod(M2_comp$H,M2_comp$Y)
+model_moments$M2$ZZ <- crossprod(simulation_input$M2$Z)
+model_moments$M2$ZY <- crossprod(simulation_input$M2$Z, M2_comp$Y)
+model_moments$M2$TSS <- crossprod(M2_comp$Y)
+model_moments$M2$DW_traces <- trace_sequence(W)
+model_moments$M2$H_index <- list("const" = 1,"X" = 2:9, "G" = 10:12)
 
-model_moments$ZY1 <- crossprod(simulation_input$Z,compact_model_matrix$Y1)
-model_moments$ZY2 <- crossprod(simulation_input$Z,compact_model_matrix$Y2)
-model_moments$ZY9 <- crossprod(simulation_input$Z,compact_model_matrix$Y9)
+M9_comp <- compact_model_matrix$M9
+model_moments$M9$HH <- crossprod(M9_comp$H)
+model_moments$M9$HY <- crossprod(M9_comp$H,M9_comp$Y)
+model_moments$M9$ZZ <- crossprod(simulation_input$M9$Z)
+model_moments$M9$ZY <- crossprod(simulation_input$M9$Z, M9_comp$Y)
+model_moments$M9$TSS <- crossprod(M9_comp$Y)
+model_moments$M9$DW_traces <- trace_sequence(W)
+model_moments$M9$OW_traces <- trace_sequence(W)
+model_moments$M9$H_index <- list("const" = 1,"const_intra" = 2:10, "X" = 11:22,"G" = 23:25)
 
-model_moments$W_traces <- trace_sequence(W)
-
-
-stopifnot(all(names(model_moments) == requied_moments),
-          !any(rapply(model_moments, is.null)))
-
-# declare which input corresponds belongs to which type of data source
-model_moments$H_index <- list(
-  "const" = 1,
-  "const_intra" = 2:10, # derived from neighborhood
-  "X" = 11:22,          # nodes
-  "G" = 23:25           # pairs
-)
-
-
+rm(M1_comp,M2_comp,M9_comp)
 # ---- 4. estimation results --------------------------------------------------
 # Define the desired estimation results for each estimation method.
 design_results <- named_list(c("params","sd_params"))
-
-results <- named_list(c("Y1","Y2","Y9"))
-
+results <- named_list(models)
 
 # ..4.1 Model 1 ols reg ----
-results$Y1$ols <- design_results
+results$M1$ols <- design_results
 
-mu <- solve(model_moments$ZZ,model_moments$ZY1)
-ESS <- crossprod(model_moments$ZY1,mu)
-RSS <- model_moments$TSS1 - ESS
+MM_1 <- model_moments$M1
+mu <- solve(MM_1$ZZ,MM_1$ZY)
+ESS <- crossprod(MM_1$ZY,mu)
+RSS <- MM_1$TSS - ESS
 sigma2 <- as.vector(RSS/N)
-varcov <- solve(model_moments$ZZ)
+varcov <- solve(MM_1$ZZ)
 
-results$Y1$ols$params <- mu
-results$Y1$ols$sd_params <- sqrt(diag(varcov) * sigma2)
+results$M1$ols$params <- mu
+results$M1$ols$sd_params <- sqrt(diag(varcov) * sigma2)
 
-cbind(mu,simulation_input$delta)
+cbind("est" = mu, "true" = simulation_input$M1$delta)
 c(sqrt(sigma2),sd(simulation_input$M1$noise))
 
+rm(MM_1,ESS,RSS,mu,sigma2,varcov)
 # ..4.2 Model 2 s2sls reg ----
-# TODO make this an example of non-intra test
-H <- compact_model_matrix$H
-Z <- compact_model_matrix$Z
+# pull out the data and split the moments (J = lagged flows, Y = flows)
+M2_comp <- compact_model_matrix$M2
+MM_2 <- model_moments$M2
 
-J <- compact_model_matrix$Y2[, -1]
-Y <- compact_model_matrix$Y2[,1]
+H <- M2_comp$H
+Z <- simulation_input$M2$Z
 
-HJ <- model_moments$HY2[, -1]
-HY <- model_moments$HY2[, 1]
+J <- M2_comp$Y[, -1]
+HJ <- MM_2$HY[, -1]
+ZJ <- MM_2$ZY[, -1]
 
-ZJ <- model_moments$ZY2[, -1]
-ZY <- model_moments$ZY2[, 1]
+Y <- M2_comp$Y[,1]
+HY <- MM_2$HY[, 1]
+ZY <- MM_2$ZY[, 1]
 
 # verify that moments can be constructed without
 # fitted values of the first stage (J_hat)
-J_hat <- H %*% solve(model_moments$HH,crossprod(H,J))
+J_hat <- H %*% solve(MM_2$HH,crossprod(H,J))
 JJ_hat <- crossprod(J_hat)
-JJ_hat2 <- crossprod(HJ,solve(model_moments$HH,HJ))
-JJ_hat - JJ_hat2
+JJ_hat2 <- crossprod(HJ,solve(MM_2$HH,HJ))
+JJ_hat - JJ_hat2 # no significant diffrence
 
-Jy_hat <- crossprod(HJ,solve(model_moments$HH,HY))
+Jy_hat <- crossprod(HJ,solve(MM_2$HH,HY))
 Jy_hat2 <- crossprod(J_hat,Y)
-Jy_hat - Jy_hat2
+Jy_hat - Jy_hat2 # no significant diffrence
 
 ZZ_hat <- rbind(cbind(JJ_hat2,t(ZJ)),
-                cbind(ZJ,model_moments$ZZ))
+                cbind(ZJ,MM_2$ZZ))
 
 ZY_hat <- c(Jy_hat2,ZY)
 
@@ -392,65 +445,63 @@ c(sigma2,sigma2_v2,var(simulation_input$error))
 
 varcov <- solve(ZZ_hat) * sigma2_v2
 
-true_param <- c(simulation_input$rho2,simulation_input$delta)
+true_param <- c(simulation_input$M2$rho,simulation_input$M2$delta)
 cbind(mu,true_param)
 
-results$Y2$s2sls <- design_results
-results$Y2$s2sls$params <- mu
-results$Y2$s2sls$sd_params <- sqrt(diag(varcov))
+results$M2$s2sls <- design_results
+results$M2$s2sls$params <- mu
+results$M2$s2sls$sd_params <- sqrt(diag(varcov))
 
+rm(MM_2,ESS,RSS,mu,sigma2,varcov)
 # ..4.2 Model 2 mle reg ----
-calc_log_det_model2 <- function(rho){
-
-  max_power <- 10
-  order <- 1:max_power
-  wt_sequence <- (rho_d^order/order)
-
-  log_det <- -n * sum(wt_sequence * W_traces)
-
-  return(log_det)
-}
-
-calc_loglik_model2 <- function(rho){}
-
+# MLE regression is much more complex and might not be tested...
+# The s2sls can however serve as a template to test the correct format of
+# the MLE and MCMC results.
 
 
 # ..4.9 Model 9 s2sls reg ----
-# pull out the used quantities
-J <- compact_model_matrix$Y9[, -1]
-HJ <- model_moments$HY9[, -1]
-H <- compact_model_matrix$H
-HY <- model_moments$HY9[, 1]
-ZJ <- model_moments$ZY9[, -1]
-ZY <- model_moments$ZY9[, 1]
+# pull out the data and split the moments (J = lagged flows, Y = flows)
+M9_comp <- compact_model_matrix$M9
+MM_9 <- model_moments$M9
+
+H <- M9_comp$H
+Z <- simulation_input$M9$Z
+
+J <- M9_comp$Y[, -1]
+HJ <- MM_9$HY[, -1]
+ZJ <- MM_9$ZY[, -1]
+
+Y <- M9_comp$Y[,1]
+HY <- MM_9$HY[, 1]
+ZY <- MM_9$ZY[, 1]
 
 
 # verify that moments can be constructed without
 # fitted values of the first stage (J_hat)
-J_hat <- H %*% solve(model_moments$HH,crossprod(H,J))
+J_hat <- H %*% solve(MM_9$HH,crossprod(H,J))
 JJ_hat <- crossprod(J_hat)
-JJ_hat2 <- crossprod(HJ,solve(model_moments$HH,HJ))
-JJ_hat - JJ_hat2
+JJ_hat2 <- crossprod(HJ,solve(MM_9$HH,HJ))
+JJ_hat - JJ_hat2 # no significant diffrence
 
-Jy_hat <- crossprod(HJ,solve(model_moments$HH,HY))
-Jy_hat2 <- crossprod(J_hat,compact_model_matrix$Y9[,1])
-Jy_hat - Jy_hat2
+Jy_hat <- crossprod(HJ,solve(MM_9$HH,HY))
+Jy_hat2 <- crossprod(J_hat,Y)
+Jy_hat - Jy_hat2 # no significant diffrence
 
 ZZ_hat <- rbind(cbind(JJ_hat2,t(ZJ)),
-                cbind(ZJ,model_moments$ZZ))
+                cbind(ZJ,MM_9$ZZ))
 
-ZY_hat <- c(Jy_hat2,model_moments$ZY9[,1])
+ZY_hat <- c(Jy_hat2,ZY)
 
 mu <- solve(ZZ_hat,ZY_hat)
 
 # check if ESS can be constructed without fitted values
-fitted <- cbind(compact_model_matrix$Y9[,-1],simulation_input$Z) %*% mu
-resid <- fitted - compact_model_matrix$Y9[,1]
+fitted <- cbind(J,Z) %*% mu
+resid <- fitted - Y
 ESS <- sum(fitted^2)
 RSS <- sum(resid^2)
 sigma2 <- RSS/N
 
-TSS <- sum(compact_model_matrix$Y9[,1]^2)
+TSS <- sum(Y^2)
 ESS2 <- crossprod(ZY_hat,mu)
 RSS2 <- TSS - ESS2
 sigma2_v2 <- as.vector(RSS2/N)
@@ -458,12 +509,12 @@ c(sigma2,sigma2_v2,var(simulation_input$error))
 
 varcov <- solve(ZZ_hat) * sigma2_v2
 
-true_param <- c(simulation_input$rho9,simulation_input$delta)
+true_param <- c(simulation_input$M9$rho,simulation_input$M9$delta)
 cbind(mu,true_param)
 
-results$Y9$s2sls <- design_results
-results$Y9$s2sls$params <- mu
-results$Y9$s2sls$sd_params <- sqrt(diag(varcov))
+results$M9$s2sls <- design_results
+results$M9$s2sls$params <- mu
+results$M9$s2sls$sd_params <- sqrt(diag(varcov))
 
 # ---- 5. Export --------------------------------------------------------------
 test_case_1_symmetric <- list(

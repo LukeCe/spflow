@@ -271,9 +271,10 @@ matrix_prod_O_D_I <- function(mat,X) {
     return(NULL)
 
   result <- list(
-    X$DX %|!|% rowSums(mat) %*% X$DX,
-    X$OX %|!|% colSums(mat) %*% X$OX,
-    X$IX %|!|% diag(mat) %*% X$IX) %>%
+    X$DX %|!|% (rowSums(mat) %*% X$DX),
+    X$OX %|!|% (colSums(mat) %*% X$OX),
+    X$IX %|!|% (diag(mat) %*% X$IX)
+    ) %>%
     reduce(cbind)
 
   return(result)

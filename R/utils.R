@@ -317,7 +317,13 @@ rbind_fill0 <- function(mat_a, mat_b) {
 }
 
 drop_matrix_columns <- function(matrix, drop_index) {
-    matrix[,!drop_index, drop = FALSE]
+
+  if (is.logical(drop_index))
+    return(matrix[,!drop_index, drop = FALSE])
+
+  if (is.numeric(drop_index))
+    return(matrix[,-drop_index, drop = FALSE])
+
 }
 
 # ---- primitives -------------------------------------------------------------

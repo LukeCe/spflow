@@ -42,7 +42,7 @@ multi_net_ge_default  <- sp_multi_network(network_ge, pairs_ge_ge_default)
 
 describe("Moments can be generated from formula and multinet",{
 
-  it("Is correct for the default s2sls estimation",{
+  it("Is correct for the default s2sls estimation (M9)",{
 
     model_formulation <- "matrix"
     default_control <- spflow_control()
@@ -54,7 +54,7 @@ describe("Moments can be generated from formula and multinet",{
       flow_formula = defulat_formula,
       flow_control = default_control)
 
-    expected_matrices <- test_case_1_symmetric$relational_model_matrices
+    expected_matrices <- test_case_1_symmetric$relational_model_matrices$M9
 
     expect_equal(actual_matrices$const,expected_matrices$const,
                  check.attributes = FALSE)
@@ -79,7 +79,7 @@ describe("Moments can be generated from formula and multinet",{
       actual_matrices,
       estimator = default_control$estimation_method)
 
-    expected_moments <- test_case_1_symmetric$model_moments
+    expected_moments <- test_case_1_symmetric$model_moments$M9
 
     expect_equal(actual_moments$N, expected_moments$N)
 
@@ -87,16 +87,16 @@ describe("Moments can be generated from formula and multinet",{
                  check.attributes = FALSE)
     expect_equal(actual_moments$ZZ, expected_moments$ZZ,
                  check.attributes = FALSE)
-    expect_equal(actual_moments$HY, expected_moments$HY9,
+    expect_equal(actual_moments$HY, expected_moments$HY,
                  check.attributes = FALSE)
-    expect_equal(actual_moments$ZY, expected_moments$ZY9,
+    expect_equal(actual_moments$ZY, expected_moments$ZY,
                  check.attributes = FALSE)
-    expect_equal(actual_moments$TSS, expected_moments$TSS9[[1]],
+    expect_equal(actual_moments$TSS, expected_moments$TSS[[1]],
                  check.attributes = FALSE)
 
   })
 
-  it("Is correct for the default mle estimation",{
+  it("Is correct for the default mle estimation (M9)",{
 
     model_formulation <- "matrix"
     default_control <- spflow_control(estimation_method = "mle")
@@ -108,7 +108,7 @@ describe("Moments can be generated from formula and multinet",{
       flow_formula = defulat_formula,
       flow_control = default_control)
 
-    expected_matrices <- test_case_1_symmetric$relational_model_matrices
+    expected_matrices <- test_case_1_symmetric$relational_model_matrices$M9
 
     expect_equal(actual_matrices$const,expected_matrices$const,
                  check.attributes = FALSE)
@@ -134,17 +134,19 @@ describe("Moments can be generated from formula and multinet",{
       estimator = default_control$estimation_method,
       flow_type = "within")
 
-    expected_moments <- test_case_1_symmetric$model_moments
+    expected_moments <- test_case_1_symmetric$model_moments$M9
 
     expect_equal(actual_moments$N, expected_moments$N)
 
     expect_equal(actual_moments$ZZ, expected_moments$ZZ,
                  check.attributes = FALSE)
-    expect_equal(actual_moments$ZY, expected_moments$ZY9,
+    expect_equal(actual_moments$ZY, expected_moments$ZY,
                  check.attributes = FALSE)
-    expect_equal(actual_moments$TSS, expected_moments$TSS9,
+    expect_equal(actual_moments$TSS, expected_moments$TSS,
                  check.attributes = FALSE)
-    expect_equal(actual_moments$OW_traces, expected_moments$W_traces,
+    expect_equal(actual_moments$OW_traces, expected_moments$OW_traces,
+                 check.attributes = FALSE)
+    expect_equal(actual_moments$DW_traces, expected_moments$DW_traces,
                  check.attributes = FALSE)
     expect_equal(actual_moments$n_o, expected_moments$n_o,
                  check.attributes = FALSE)
@@ -163,12 +165,12 @@ describe("Allows sensefull default estimation for minimal user input.",{
     expect_is(default_results,"spflow_model")
 
     actual_estimates <- default_results$results$est
-    expected_estimates <- test_case_1_symmetric$results$Y9$s2sls$params
+    expected_estimates <- test_case_1_symmetric$results$M9$s2sls$params
     expect_equal(actual_estimates,expected_estimates,
                  check.attributes = FALSE)
 
     actual_uncertainty <- default_results$results$sd
-    expected_uncertainty <- test_case_1_symmetric$results$Y9$s2sls$sd_params
+    expected_uncertainty <- test_case_1_symmetric$results$M9$s2sls$sd_params
     expect_equal(actual_uncertainty,expected_uncertainty,
                  check.attributes = FALSE)
 
@@ -186,12 +188,12 @@ describe("Allows sensefull default estimation for minimal user input.",{
     # test length as exact reference values are not available
     actual_estimates <- default_results$results$est
     expected_estimates_len <-
-      test_case_1_symmetric$results$Y9$s2sls$params %>% length()
+      test_case_1_symmetric$results$M9$s2sls$params %>% length()
 
     expect_length(actual_estimates,expected_estimates_len)
 
     expected_uncertainty_len <-
-      test_case_1_symmetric$results$Y9$s2sls$sd_params %>% length()
+      test_case_1_symmetric$results$M9$s2sls$sd_params %>% length()
     actual_uncertainty <- default_results$results$sd
     expect_length(actual_uncertainty,expected_uncertainty_len)
 
@@ -209,12 +211,12 @@ describe("Allows sensefull default estimation for minimal user input.",{
     # test length as exact reference values are not available
     actual_estimates <- default_results$results$est
     expected_estimates_len <-
-      test_case_1_symmetric$results$Y9$s2sls$params %>% length()
+      test_case_1_symmetric$results$M9$s2sls$params %>% length()
 
     expect_length(actual_estimates,expected_estimates_len)
 
     expected_uncertainty_len <-
-      test_case_1_symmetric$results$Y9$s2sls$sd_params %>% length()
+      test_case_1_symmetric$results$M9$s2sls$sd_params %>% length()
     actual_uncertainty <- default_results$results$sd
     expect_length(actual_uncertainty,expected_uncertainty_len)
 

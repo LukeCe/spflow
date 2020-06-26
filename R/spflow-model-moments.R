@@ -60,12 +60,25 @@ spflow_model_moments_mat <- function(
   LL_moments <- named_list(c("DW_traces", "OW_traces","n_d","n_o"))
   LL_moments[c("n_d","n_o")] <- dim(model_matrices$Y[[1]])
 
-  LL_moments$OW_traces <- trace_sequence(model_matrices$OW)
-  orign_equals_destination_network <- (flow_type == "within")
+  # TODO develop a soltion to traces based on Wo, Wd, Ww
+  # calculate only once if O=D
+  if (flow_type == "within") {
+    W <- model_matrices$OW %||% model_matrices$DW %||% NULL
+    W_traces <- W %|!|% trace_sequence(W)
 
-  if (!orign_equals_destination_network)
-    LL_moments$DW_traces <- trace_sequence(model_matrices$DW)
+    LL_moments$OW_traces <- model_matrices$OW %|!|% W_traces
+    LL_moments$DW_traces <- model_matrices$DW %|!|% W_traces
+  }
 
+  if (flow_type == "between") {
+    W <- model_matrices$OW %||% model_matrices$OD %||% NULL
+    W_traces <- W %|!|% trace_sequence(model_matrices$OW)
+
+    LL_moments$DW_traces <-
+      model_matrices$DW %|!|% trace_sequence(model_matrices$DW)
+    LL_moments$OW_traces <-
+      model_matrices$OW %|!|% trace_sequence(model_matrices$OW)
+  }
   return(c(model_moments,LL_moments))
 }
 
