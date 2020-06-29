@@ -102,7 +102,7 @@ pull_rhs <- function(formula) {
   if (is_two_sided_formula(formula))
     return(formula[c(1,3)])
 
-  if (is(formula,"forumula"))
+  if (is(formula,"formula"))
     return(formula)
 
   stop("Object is not a formula!")
