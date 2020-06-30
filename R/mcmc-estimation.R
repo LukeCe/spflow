@@ -114,12 +114,6 @@ spflow_mcmc <- function(
     previous_rho <- collect_rho[i_mcmc ,]
     accept <- vector("logical", nb_rho)
 
-    # # FIXME remve debug soltion
-    # debug_rho_solutio <- c(0.45, 0.32, -0.21)
-    # updated_rho <- debug_rho_solutio
-    # collect_rho[i_mcmc + 1, ] <- updated_rho
-    # accept <- !accept
-
     for (j in seq_along(candidate_rho)) {
       updated_rho[j] <- candidate_rho[j]
 

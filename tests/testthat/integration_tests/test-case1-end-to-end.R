@@ -26,7 +26,7 @@ ge_pair_df <- test_case_1_symmetric$input_data$od_pair_data
 
 # for the default estimation we do all transformation
 # upfront and keep only a single version of the flows
-ge_pair_df_default <- ge_pair_df
+ge_pair_df_default <- data.table::copy(ge_pair_df)
 ge_pair_df_default$Y2 <- NULL
 ge_pair_df_default$Y1 <- NULL
 ge_pair_df_default$pair_distance <- log(ge_pair_df_default$pair_distance + 1)
@@ -47,7 +47,7 @@ pairs_ge_ge_flexible <- sp_network_pair(
 
 # combine them into a multi-network
 multi_net_ge_default  <- sp_multi_network(network_ge, pairs_ge_ge_default)
-multi_net_ge_flex  <- sp_multi_network(network_ge, pairs_ge_ge_default)
+multi_net_ge_flex  <- sp_multi_network(network_ge, pairs_ge_ge_flexible)
 
 
 describe("Moments can be generated from formula and multinet",{
@@ -68,19 +68,15 @@ describe("Moments can be generated from formula and multinet",{
 
     expect_equal(actual_matrices$const,expected_matrices$const,
                  check.attributes = FALSE)
-
     expect_equal(actual_matrices$const_intra,expected_matrices$const_intra,
                  check.attributes = FALSE)
-
-
     expect_equal(actual_matrices$DX,expected_matrices$DX,
                  check.attributes = FALSE)
     expect_equal(actual_matrices$OX,expected_matrices$OX,
                  check.attributes = FALSE)
     expect_equal(actual_matrices$IX,expected_matrices$IX,
                  check.attributes = FALSE)
-
-    expect_equal(actual_matrices$G %>% lapply(as.matrix),expected_matrices$G,
+    expect_equal(actual_matrices$G %>% lapply(as.matrix) ,expected_matrices$G,
                  check.attributes = FALSE)
 
 
@@ -103,6 +99,7 @@ describe("Moments can be generated from formula and multinet",{
                  check.attributes = FALSE)
     expect_equal(actual_moments$TSS, expected_moments$TSS[[1]],
                  check.attributes = FALSE)
+
 
   })
 
@@ -185,6 +182,13 @@ describe("Quick start estimstion for minimals user input.",{
     expect_equal(actual_uncertainty,expected_uncertainty,
                  check.attributes = FALSE)
 
+    actual_names <- colnames(default_results$results)
+    expected_names <- c(
+      "rho_d", "rho_o", "rho_w", "Constant","Constant_intra",
+      "Dest_X", "Dest_X.lag1", "Orig_X", "Orig_X.lag1",
+      "Intra_X", "Intra_X.lag1", "pair_distance")
+    expect_equal(actual_names,expected_names)
+
   })
 
   it("Works for the mle estimation (M9 - sym)",{
@@ -238,26 +242,72 @@ describe("Quick start estimstion for minimals user input.",{
 
 describe("Estimation via the formula interface without intra model", {
 
+  # diffrent expressions of the same formula are tested for each method
   it("Works for s2sls estimation (M2 - sym)",{
 
     test_control <- spflow_control(estimation_method = "s2sls",
-                                   use_intra = FALSE)
+                                   use_intra = FALSE,
+                                   model = "model_2")
     test_results <- spflow(
-      flow_formula = Y2 ~ . + G_(log(pair_distance+1)) ,
+      flow_formula = Y2 ~ . + G_(log(pair_distance + 1)) ,
       multi_net_ge_flex,
       flow_control = test_control)
 
     expect_is(test_results,"spflow_model")
 
     actual_estimates <- test_results$results$est
-    expected_estimates <- test_case_1_symmetric$results$M9$s2sls$params
+    expected_estimates <- test_case_1_symmetric$results$M2$s2sls$params
     expect_equal(actual_estimates,expected_estimates,
                  check.attributes = FALSE)
 
     actual_uncertainty <- test_results$results$sd
-    expected_uncertainty <- test_case_1_symmetric$results$M9$s2sls$sd_params
+    expected_uncertainty <- test_case_1_symmetric$results$M2$s2sls$sd_params
     expect_equal(actual_uncertainty,expected_uncertainty,
                  check.attributes = FALSE)
+
+  })
+
+  it("Works for mle estimation (M2 - sym)",{
+
+    test_control <- spflow_control(estimation_method = "mle",
+                                   use_intra = FALSE,
+                                   model = "model_2")
+    test_results <- spflow(
+      flow_formula = Y2 ~ D_(X) + O_(X) + log(pair_distance + 1),
+      multi_net_ge_flex,
+      flow_control = test_control)
+
+    expect_is(test_results,"spflow_model")
+
+    actual_estimates <- test_results$results$est
+    expected_estimates <- test_case_1_symmetric$results$M2$s2sls$params
+    expect_length(actual_estimates,length(expected_estimates))
+
+    actual_uncertainty <- test_results$results$sd
+    expected_uncertainty <- test_case_1_symmetric$results$M2$s2sls$sd_params
+    expect_length(actual_uncertainty,length(expected_uncertainty))
+
+  })
+
+  it("Works for mle estimation (M2 - sym)",{
+
+    test_control <- spflow_control(estimation_method = "mcmc",
+                                   use_intra = FALSE,
+                                   model = "model_2")
+    test_results <- spflow(
+      flow_formula = Y2 ~ D_(X) + X + G_(log(pair_distance + 1)),
+      multi_net_ge_flex,
+      flow_control = test_control)
+
+    expect_is(test_results,"spflow_model")
+
+    actual_estimates <- test_results$results$est
+    expected_estimates <- test_case_1_symmetric$results$M2$s2sls$params
+    expect_length(actual_estimates,length(expected_estimates))
+
+    actual_uncertainty <- test_results$results$sd
+    expected_uncertainty <- test_case_1_symmetric$results$M2$s2sls$sd_params
+    expect_length(actual_uncertainty,length(expected_uncertainty))
 
   })
 

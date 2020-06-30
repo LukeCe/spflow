@@ -67,7 +67,7 @@ split_flow_formula <- function(main_formula) {
 }
 
 
-extract_specials <- function(formula,specials) {
+extract_specials <- function(formula, specials) {
 
 
   terms_formula <- terms.formula(
@@ -82,6 +82,14 @@ extract_specials <- function(formula,specials) {
     attr(terms_formula,"specials") %>%
     compact()
 
+  # assign the specials to a function
+  fun_env <- environment()
+  specials %>%
+    lapply(assign,
+           value = function(.s) to_rhs_formula(deparse(substitute(.s))),
+           envir = fun_env)
+
+  # apply the function which just parses its arguments as a fromula
   specific_formulas <-
     specific_vars_indexes %>%
     lapply(function(.i) eval(parse(text = all_varibales[.i]))) %>%

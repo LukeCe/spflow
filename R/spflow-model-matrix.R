@@ -22,19 +22,21 @@ spflow_model_matrix <- function(
   dest_id <- data_source_ids["destination_network_id"]
 
   # define which formulas will be carried to which data source
-  pair_data_cases <- c("pair_", "interactions")
-  origin_data_cases <- c("orig_")
-  destination_data_cases <- c("dest_")
+  pair_data_cases <- c("Y", "G")
+  origin_data_cases <- c("OX")
+  destination_data_cases <- c("DX")
 
   if (orig_id == dest_id) {
-    origin_data_cases <- c(destination_data_cases, origin_data_cases, "intra_")
+    IX <- NULL
+    if (flow_control$use_intra) IX <- "IX"
+    origin_data_cases <- c(destination_data_cases, origin_data_cases, IX)
     destination_data_cases <- NULL
   }
 
   neighbourhoods <- neighborhoods(sp_multi_network, c(orig_id, dest_id))
   names(neighbourhoods) <- c("OW","DW")
 
-  flow_formulas_by_cases <- model_formula_decompose(
+  flow_formulas_by_cases <- interpret_flow_formula(
     flow_formula = flow_formula,
     flow_control = flow_control) %>%
     translist()
@@ -85,7 +87,6 @@ model_matrix_expand_net <- function(
 
   # derive the global model matrix by combining
   # all formulas for the same datasource
-
   key_clomuns <- data.table::key(case_data)
 
   model_matrix_global <-
@@ -143,9 +144,9 @@ model_matrix_expand_net <- function(
     lapply(add_lag_suffixes)
 
   role_prefixes <-
-    c("intra_" = "Intra_",
-      "orig_"  = "Orig_",
-      "dest_" = "Dest_")
+    c("IX" = "Intra_",
+      "OX"  = "Orig_",
+      "DX" = "Dest_")
 
   segment_model_matrices <-
     lag_requirements_by_model_segments %>%
@@ -166,10 +167,11 @@ model_matrix_expand_net <- function(
   }
 
   # information on the number of instruments
+  instrument_key <- "inst"
   nb_inst <- 2
   instruments_by_model_segment <-
     lag_types_model_segments %>%
-    lapply(function(.l) length(.l$"instrumental_variables") * nb_inst) %>%
+    lapply(function(.l) length(.l[[instrument_key]]) * nb_inst) %>%
     mapply(is_instrument_attribute,
            dat = segment_model_matrices,
            num_inst = .,
@@ -182,9 +184,6 @@ model_matrix_expand_net <- function(
          .inst = instruments_by_model_segment,
          SIMPLIFY = FALSE) %>%
     invisible()
-
-  math_names <- c("dest_" = "DX",  "orig_" = "OX",  "intra_" = "IX")
-  names(segment_model_matrices) <- math_names[names(segment_model_matrices)]
 
   return(segment_model_matrices)
 }
@@ -205,87 +204,107 @@ model_matrix_expand_pairs <- function(
       formula = flatlist(pair_formulas) %>% combine_formulas(),
       data    = dat(network_pair)[,!key_clomuns, with = FALSE])
 
-  # split into response and exogenouse variables
-  # convert to matrices for efficiency
-  data_template <- dat(network_pair)[0,!key_clomuns, with = FALSE]
-
-  case_formulas <- lapply(pair_formulas, combine_formulas)
-  case_formulas$pair_ <-
-    remove_vars(.formula = case_formulas$pair_,
-                .vars = all.vars(case_formulas$interactions))
-
-  case_variables <- case_formulas %>%
-    lapply(extract_terms_labels, fake_data = data_template) %>%
-    lapply(list_lookup)
-
   n_orig <- count(network_pair, "origins")
   n_dest <- count(network_pair, "destinations")
-
   column_to_matrix <- function(col) {
-    Matrix::Matrix(model_matrix_global[,col],
-                   nrow = n_orig,
-                   ncol = n_dest)
-    # TODO think about the use of symmetric Matrix classes
+    matrix(model_matrix_global[,col],
+           nrow = n_orig,
+           ncol = n_dest)
   }
 
+  ## create the lagged interactions Y: response variable
+  response_formula <- pair_formulas[[1]][[1]]
+  response_variables <- extract_terms_labels(response_formula)
   response_matrices <-
-    lapply(case_variables$interactions, column_to_matrix)
+    response_variables %>%
+    lapply(column_to_matrix) %>%
+    lapply(lag_flow_matrix,
+           model = flow_control$model,
+           OW = pair_neighborhoods$OW,
+           DW = pair_neighborhoods$DW)
 
-  explanatory_matrices <-
-    lapply(case_variables$pair_, column_to_matrix)
+  ## create the matrix form of pair attributes G: explanatory variables
+  # we have to ensure that the response variable does not enter these matrices
+  explain_formulas <- pair_formulas[[2]]
+  explain_vars <- colnames(model_matrix_global) %>% setdiff(response_variables)
+  explain_matrices <- lapply(explain_vars, column_to_matrix)
 
-  ## determine the number of lags ...
-  # ... for the response variables
-  # ... the number of lags is driven by the spatial auto-regressive parameters
-  names_rho <- identify_auto_regressive_parameters(flow_control$model)
+  # lag those explanatory variables that are used as instruments
+  explain_data_template <-
+    dat(network_pair)[0,!c(key_clomuns,response_variables), with = FALSE]
+  explain_instruments <- explain_formulas$inst %|!|%
+    extract_terms_labels(explain_formulas$inst,explain_data_template)
 
-  response_matrices <- response_matrices %>%
-    lapply("compute_lagged_interactions",
-           names_rho,
-           flow_control$model,
-           OW = pair_neighborhoods[[1]],
-           DW = pair_neighborhoods[[2]])
-
-  # ... for exogenous variables
-  # ... the number of lags depends on the instrument status
-  pair_instruments <- extract_matrix_vars(
-    pair_formulas$pair_$instrumental_variables,
-    data_template)
-
-  lag_number <- 2
-  pair_lags <- case_variables$pair_ %>%
-    lapply(function(.var) (.var %in% pair_instruments)*lag_number)
-
-  lag_instruments <- function(.G,.num_lags) {
+  nb_lags <- 2
+  lag_explain_vars <- integer(length(explain_vars))
+  lag_explain_vars[explain_vars %in% explain_instruments] <- nb_lags
+  lag_pair_instruments <- function(.G,.num_lags,.name) {
     apply_matrix_od_lags(G = .G,
                          OW = pair_neighborhoods[[1]],
                          DW = pair_neighborhoods[[2]],
-                         nb_lags = .num_lags)
+                         nb_lags = .num_lags,
+                         name = .name)
   }
 
-  explanatory_matrices <- mapply(
-    "lag_instruments",
-    .G = explanatory_matrices,
-    .num_lags = pair_lags,
+  explain_matrices <- mapply(
+    lag_pair_instruments,
+    .G = explain_matrices,
+    .num_lags = lag_explain_vars,
+    .name = explain_vars,
     SIMPLIFY = FALSE
-    )
+  )
 
   # add information on instrument status
-  # all are instruments
-  explanatory_matrices %>%
-    lapply(function(.l)
-      lapply(.l,data.table::setattr,"is_instrument_var",TRUE)) %>%
+  # ... all are instruments except the first elements
+  set_inst <- function(x, is_inst) {
+    data.table::setattr(x, "is_instrument_var", is_inst)
+  }
+
+  explain_matrices %>%
+    lapply(function(.l) lapply(.l, set_inst, TRUE)) %>%
+    lapply(function(.l) set_inst(.l[[1]], FALSE)) %>%
     invisible()
 
-  # except the first elements
-  explanatory_matrices %>%
-    lapply(function(.l)
-      data.table::setattr(.l[[1]], "is_instrument_var",FALSE))
-
-  return(list("Y" = response_matrices %>% flatten(),
-              "G" = explanatory_matrices %>% flatten()))
+  return(list("Y" = response_matrices %>% flatlist(),
+              "G" = explain_matrices %>% flatlist()))
 }
 
+lag_flow_matrix <- function(
+  Y,
+  model,
+  OW,
+  DW) {
+
+  names_rho <- identify_auto_regressive_parameters(model)
+
+  # destination case
+  if (any(c("rho_d","rho_od","rho_odw") %in% names_rho)) {
+    WY <- DW %*% Y
+  }
+
+  # origin case
+  if (any(c("rho_o","rho_od","rho_odw") %in% names_rho)) {
+    YW <- tcrossprod(Y,OW)
+  }
+
+  # orig-&-dest case
+  if (any(c("rho_w","rho_odw") %in% names_rho)) {
+    WYW <- OW %*% tcrossprod(Y,DW)
+  }
+
+  Y_lags <- switch(substr(model, 7, 7),   # (8.15) in LeSage book
+                   "9" = list(Y, "d" = WY, "o" = YW, "w" = WYW),
+                   "8" = list(Y, "d" = WY, "o" = YW, "w" = WYW),
+                   "7" = list(Y, "d" = WY, "o" = YW, "w" = WYW),
+                   "6" = list(Y, "odw" = (WY + YW + WYW)/3),
+                   "5" = list(Y, "od"  = (WY + YW)/2),
+                   "4" = list(Y, "w"   = WYW),
+                   "3" = list(Y, "o"   = YW),
+                   "2" = list(Y, "d"   = WY),
+                   "1" = list(Y))
+
+  return(Y_lags)
+}
 
 
 apply_matrix_od_lags <- function(
@@ -310,55 +329,20 @@ apply_matrix_od_lags <- function(
   return(G_lags)
 }
 
-compute_lagged_interactions <- function(
-  Y,
-  names_rho,
-  model,
-  OW,
-  DW) {
-
-  # destination case
-  if (any(c("rho_o","rho_od","rho_odw") %in% names_rho)) {
-    WY <- DW %*% Y
-  }
-
-  # origin case
-  if (any(c("rho_d","rho_od","rho_odw") %in% names_rho)) {
-    YW <- tcrossprod(Y,OW)
-  }
-
-  # orig-&-dest case
-  if (any(c("rho_w","rho_odw") %in% names_rho)) {
-    WYW <- OW %*% tcrossprod(Y,DW)
-  }
-
-  Y_lags <- switch(substr(model, 7, 7),   # (8.15) in LeSage book
-                   "9" = list(Y, "d" = WY, "o" = YW, "w" = WYW),
-                   "8" = list(Y, "d" = WY, "o" = YW, "w" = WYW),
-                   "7" = list(Y, "d" = WY, "o" = YW, "w" = WYW),
-                   "6" = list(Y, "odw" = (WY + YW + WYW)/3),
-                   "5" = list(Y, "od"  = (WY + YW)/2),
-                   "4" = list(Y, "w"   = WYW),
-                   "3" = list(Y, "o"   = YW),
-                   "2" = list(Y, "d"   = WY),
-                   "1" = list(Y))
-
-  return(Y_lags)
-}
 
 define_spatial_lag_requirements <- function(
   formulas_by_lag_type) {
 
-  norm <- formulas_by_lag_type$normal_variables
-  sdm <- formulas_by_lag_type$sdm_variables
-  inst <- formulas_by_lag_type$instrumental_variables
+  normal_vars <- formulas_by_lag_type$norm
+  sdm_vars <- formulas_by_lag_type$sdm
+  instrument_vars <- formulas_by_lag_type$inst
 
   required_lags <-
       list(
-        "lag0" = norm,
-        "lag1" = unique(c(sdm, inst)),
-        "lag2" = inst,
-        "lag3" = intersect(sdm,inst)
+        "lag0" = normal_vars,
+        "lag1" = unique(c(sdm_vars, instrument_vars)),
+        "lag2" = instrument_vars,
+        "lag3" = intersect(sdm_vars,instrument_vars)
       ) %>% compact()
 
   return(required_lags)
@@ -391,7 +375,6 @@ identify_auto_regressive_parameters <- function(model) {
 
   return(names_rho)
 }
-
 
 intra_regional_constant <- function(W, use_instruments = FALSE) {
 

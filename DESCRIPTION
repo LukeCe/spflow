@@ -29,7 +29,7 @@ Collate:
     'class_sp-multi-network.R'
     'class_sp_net_generalization.R'
     'example_data.R'
-    'expand-flow-formula.R'
+    'interpret-flow-formula.R'
     'mcmc-estimation.R'
     'mle-estimation.R'
     'mle-hessian.R'
