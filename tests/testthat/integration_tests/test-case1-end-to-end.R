@@ -182,7 +182,7 @@ describe("Quick start estimstion for minimals user input.",{
     expect_equal(actual_uncertainty,expected_uncertainty,
                  check.attributes = FALSE)
 
-    actual_names <- colnames(default_results$results)
+    actual_names <- rownames(default_results$results)
     expected_names <- c(
       "rho_d", "rho_o", "rho_w", "Constant","Constant_intra",
       "Dest_X", "Dest_X.lag1", "Orig_X", "Orig_X.lag1",
