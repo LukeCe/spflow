@@ -11,7 +11,7 @@ interpret_flow_formula <- function(
 
   # template the shortcut solution solutions
   formula_shortcuts <-
-    list("all"  = (~ . - 1) %>% named_list(relevant_data_sources, .),
+    list("all"  = (~ . - 1) %>% named_list(names = relevant_data_sources),
          "same" = split_flow_formula(flow_formula)[relevant_data_sources])
 
   ## "Normal variables" (which appear in any case)

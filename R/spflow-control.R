@@ -4,9 +4,14 @@
 #' interaction model with [spflow()].
 #'
 #' @param estimation_method A character which indicates the estimation method
+#' @param model A character indicating the model; one of paste0("model_", 1:9).
+#' @param formulation A character indicating the formulation; "matrix" or "vector"
 #' @param hessian_method A character which indicates the method for hessian calculation
 #' @param sdm_variables A formula which can be used explicitly declare the variables that should be used as sdm variables.
 #' @param instrumental_variables A formula which can be used explicitly declare the variables that should be used as instruments during s2sls estimation.
+#' @param use_sdm A logical which adds spatial lags of origin and destination attributes as explanatory variables to the model.
+#' @param use_intra A logical which adds separate set of coefficients for intra-observational flows (origin == destination) to the model.
+#' @param flow_type A character indicating the type of flows; "within" or "between"
 #'
 #' @seealso spflow
 #'

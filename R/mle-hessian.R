@@ -56,9 +56,45 @@ spflow_mixed_hessian <- function(
 }
 
 # TODO finish the hessian methods
-spflow_f2_hessian <- function(variables) {
+spflow_f2_hessian <- function(parms, lnL_fun, ...) {
 
+  # from Lesage Matlab hessian function
+  eps <- .Machine$double.eps
+  p <- length(parms)
+  fx <- lnL_fun(parms, ...)
+
+  # Compute the stepsize (h)
+  h <- eps^(1 / 3) * pmax(abs(parms), 0)
+  xh <- parms + h
+  h <- xh - parms
+  ee <- diag(h)
+
+  # Compute forward step
+  g <- numeric(p)
+  for (i in 1:p) {
+    g[i] <- lnL_fun(parms + ee[ , i], ...)
+  }
+
+  H <- h %*% t(h)
+
+  # Compute "double" forward step
+  for (i in 1:p) {
+    # diagonal elements
+    H[i, i] <-
+      (lnL_fun(parms + ee[, i] + ee[, i], ...) - g[i] - g[i] + fx)/H[i, i]
+
+    for (j in seq_len(p - i)) {
+      # exploit symmetry for off-diagonal elements
+      c <- j + i
+      H[i, c] <-
+        (lnL_fun(parms + ee[, i] + ee[, c], ...) - g[i] - g[c] + fx)/H[i, c]
+      H[c, i] <- H[i, c]
+    }
+  }
+
+  return(H)
 }
+
 
 spflow_exact_hessian <- function(variables) {
 

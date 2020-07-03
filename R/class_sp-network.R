@@ -150,6 +150,7 @@ setReplaceMethod(
 #' @param network_id A character that serves as identifier for the network
 #' @param node_data A data.frame that contains all information describing the nodes
 #' @param node_neighborhood A matrix that describes the neighborhood of the nodes
+#' @param node_id_column A character indicating the column containing identifiers for the nodes
 #'
 #' @family sp_network
 #' @importFrom data.table :=

@@ -10,22 +10,20 @@ assert <- function(expr, error_msg, warn = FALSE) {
 assert_valid_case <- function(argument,cases) {
   assert(all(argument %in% cases),
          "The what argument can only be a subset of the character vector [%s]!" %>%
-           sprintf(.,deparse(cases)))
+           sprintf(deparse(cases)))
 }
 
 # classes ---------------------------------------------------------------------
 class_union_null <- function(class) {
   new <- "maybe_" %p% class
-  setClassUnion(new, members = c(class,"NULL"))
+  methods::setClassUnion(new, members = c(class,"NULL"))
 }
 
 coerce_to <- function(obj, class, ...) {
 
-  assert(canCoerce(obj, class),
+  assert(methods::canCoerce(obj, class),
          "Object [%s] must be coercible to a [%s]!" %>%
-           sprintf(.,
-                   deparse(substitute(obj,parent.frame())),
-                   class))
+           sprintf(deparse(substitute(obj,parent.frame())), class))
 
   return(as(obj,class,...))
 
@@ -94,7 +92,7 @@ remove_vars <- function(.formula,.vars) {
   c(.formula %>% as.character(),
     "-" %p% .vars
     ) %>% paste0(collapse = "") %>%
-    as.formula(.)
+    as.formula()
 }
 
 pull_rhs <- function(formula) {
@@ -227,10 +225,6 @@ lookup <- function(values, names = as.character(values)) {
 
 list_lookup <- function(values, names = as.character(values)) {
   as.list(lookup(names = names,names))
-}
-
-get_all_var_names <- function(f) {
-  labels(terms(tt$interactions))
 }
 
 prefix_columns <- function(obj,prefix){

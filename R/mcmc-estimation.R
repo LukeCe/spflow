@@ -157,7 +157,7 @@ spflow_mcmc <- function(
   N <- n_o * n_d
   results_df$"t.stat" <- results_df$est / results_df$sd
   results_df$"p.value" <- 1 - pt(q = abs(results_df$est / results_df$sd),
-                                 df =  N - length(delta))
+                                 df =  N - size_delta)
 
   id_sd <- nrow(results_df)
   estimation_results <- spflow_model(

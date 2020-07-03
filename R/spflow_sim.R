@@ -3,8 +3,7 @@
 #' @param weight_matrices A list of neighborhood matrices
 #' @param autoreg_parameters A vector of parameters
 #'
-#' @return
-#' @export
+#' @return A matrix representing the inverted spatial filter
 invert_spatial_filter <- function(
   weight_matrices,
   autoreg_parameters
@@ -13,8 +12,9 @@ invert_spatial_filter <- function(
   combined_weight_matrices <-
     weight_matrices %>%
     savely_to_list() %>%
-    mapply("*", ., autoreg_parameters) %>%
-    Reduce("+",.)
+    mapply("*", autoreg_parameters) %>%
+    Reduce("+") %>%
+    as.matrix()
 
   N <- nrow(combined_weight_matrices)
 

@@ -381,7 +381,7 @@ intra_regional_constant <- function(W, use_instruments = FALSE) {
   In <- list(
     "In" =
       Matrix::Diagonal(nrow(W)) %>%
-      data.table::setattr(x = ., name = "is_instrument_var", value = FALSE)
+      data.table::setattr(name = "is_instrument_var", value = FALSE)
   )
   if (!use_instruments) {
     return(In)

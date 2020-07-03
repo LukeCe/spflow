@@ -20,7 +20,8 @@ RoxygenNote: 7.1.0
 Imports: 
     magrittr,
     data.table,
-    Matrix
+    Matrix,
+    methods
 Collate: 
     'utils.R'
     'class_virtual.R'

@@ -4,8 +4,6 @@
 #' @param sp_multi_network A [sp_multi_network()] object.
 #' @param network_pair_id A character indicating the id of a [sp_network_pair()]
 #' @param flow_control A [spflow_control()] list to fine tune the estimation
-#' @param use_sdm A logical which adds spatial lags of origin and destination attributes as explanatory variables to the model.
-#' @param use_intra A logical which adds separate set of coefficients for intra-observational flows (origin == destination) to the model.
 #'
 #' @return A spflow_model object
 #' @export
@@ -77,7 +75,7 @@ spflow <- function(
     estimation_results$fitted_values <-
       predict(estimation_results)
     estimation_results$residuals <-
-      model_data$Y - estimation_results$fitted_values
+      estimation_results$data$Y - estimation_results$fitted_values
   }
 
 
@@ -139,7 +137,7 @@ drop_instruments <- function(model_matrices) {
   matrix_list_treatment <- c("const_intra","G")
   instrument_positions <-
     model_matrices[matrix_list_treatment] %>% compact() %>%
-    lapply(. , function(.l) lapply(.l, attr, "is_instrument_var") %>% unlist())
+    lapply(function(.l) lapply(.l, attr, "is_instrument_var") %>% unlist())
   matrices_3 <- mapply(
     "drop_elements",
     object = model_matrices[matrix_list_treatment],

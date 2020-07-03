@@ -139,7 +139,11 @@ setReplaceMethod(
 #'
 #' @param origin_network_id A character that serves as identifier for the origin network
 #' @param destination_network_id A character that serves as identifier for the destination network
-#' @param node_pair_data
+#' @param node_pair_data A data.frame containing information to describe the origin-destination pairs
+#' @param origin_key_column A character indicating the column containing identifiers for the origins
+#' @param origin_node_count A numeric declaring the number of origins
+#' @param destination_key_column A character indicating the column containing identifiers for the destinations
+#' @param destination_node_count A numeric declaring the number of destinations
 #'
 #' @family sp_network_pair sp_multi_network
 #'

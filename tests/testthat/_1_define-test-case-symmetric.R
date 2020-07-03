@@ -28,7 +28,6 @@
 
 # ---- 0. case description ----------------------------------------------------
 load_all()
-library("data.table")
 data("germany_grid")
 
 models <- c("M1","M2", "M9")
@@ -64,9 +63,9 @@ input_data <- named_list(c("node_data",
 # Data describing origins and destinations
 ge_factor_id <- factor(germany_grid$NOM,levels = germany_grid$NOM)
 input_data$node_data <-
-  data.table(X = germany_grid$X,
-             id = ge_factor_id,
-             key = "id")
+  data.table::data.table(X = germany_grid$X,
+                         id = ge_factor_id,
+                         key = "id")
 
 # A neighbourhood matrix for these locations
 input_data$node_neighborhood <-
@@ -88,7 +87,7 @@ pair_distance <-
 # create place holders for the flows (Y)
 # that are simulated in the next step
 input_data$od_pair_data <-
-  data.table(
+  data.table::data.table(
     od_ids,
     pair_distance,
     "Y1" = 0,
