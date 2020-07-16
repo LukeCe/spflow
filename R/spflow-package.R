@@ -1,8 +1,7 @@
 #' spflow: A package for spatial econometric interaction models.
 #'
-#' The foo package provides function to estimate origin destination flows with
-#' that exhibit spatial autocorrelation.
-#'
+#' The spflow package provides function to estimate origin-destination flows
+#' with spatial autocorrelation.
 #'
 #' @section Network data:
 #' The package provides a new class for representing network data.
@@ -10,6 +9,7 @@
 #' @section Model estimation:
 #' The package provides functions to estimate spatial interaction models.
 #'
+#' @aliases spflow-package
 #' @docType package
 #' @import Matrix
 #' @importFrom methods as canCoerce is isGeneric new setClassUnion setGeneric slot validObject

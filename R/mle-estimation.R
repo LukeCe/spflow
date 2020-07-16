@@ -13,10 +13,11 @@ spflow_mle <- function(ZZ,ZY,TSS,N,n_d,n_o,DW_traces,OW_traces,
   optim_results <- structure(rho_tmp,class = "try-error")
 
   # TODO generalize optim -> all model + asymmetric case
+  W_traces <- OW_traces
   optim_part_LL <- function(rho) {
     -partial_spflow_loglik(rho,
                            RSS = RSS ,
-                           W_traces = OW_traces,
+                           W_traces = W_traces,
                            n_o = n_o,
                            n_d = n_d,
                            model = model)
@@ -44,21 +45,26 @@ spflow_mle <- function(ZZ,ZY,TSS,N,n_d,n_o,DW_traces,OW_traces,
   rho <- optim_results$par
   tau <- c(1, -rho)
   delta <- delta_t %*% tau
-  mu <- c(rho, delta)
 
   # inference
   sigma2 <-  as.numeric(1 / N * (tau %*% RSS %*% tau))
 
-  hessian <- spflow_hessian(
-    hessian_method = hessian_method,
-    numerical_hess = -optim_results$hessian,
-    ZZ = ZZ,
-    ZY = ZY,
-    TSS = TSS,
-    N = N,
-    mu = mu,
-    sigma2 = sigma2
-  )
+  hessian_inputs <- collect(c("ZZ","ZY","TSS","rho","delta","sigma2"))
+
+  if ( hessian_method == "mixed" ) {
+    mixed_specific <- list("numerical_hess" = -optim_results$hessian,
+                           "N" = N)
+    hessian_inputs <- c(hessian_inputs,mixed_specific)
+  }
+
+  if ( hessian_method == "f2" ) {
+    f2_specific <- collect(c("n_o","n_d","delta_t","W_traces","model"))
+    hessian_inputs <- c(hessian_inputs,f2_specific)
+  }
+
+  hessian <- spflow_hessian(hessian_method, hessian_inputs)
+
+  mu <- c(rho, delta)
   varcov <- -solve(hessian)
   sd_mu <- sqrt(diag(varcov))
 
@@ -88,14 +94,3 @@ spflow_mle <- function(ZZ,ZY,TSS,N,n_d,n_o,DW_traces,OW_traces,
 
   return(estimation_results)
 }
-
-draw_inital_guess <- function(n_param) {
-  init <- runif(n_param)
-
-  if (n_param > 1) {
-    norm <- (0.7 / 3) * n_param
-    init <- norm * init / sum(init)
-  }
-  return(init)
-}
-

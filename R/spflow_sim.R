@@ -12,8 +12,8 @@ invert_spatial_filter <- function(
   combined_weight_matrices <-
     weight_matrices %>%
     savely_to_list() %>%
-    mapply("*", autoreg_parameters) %>%
-    Reduce("+") %>%
+    mapply(FUN = "*", ., autoreg_parameters, SIMPLIFY = FALSE) %>%
+    Reduce(f = "+", x = .) %>%
     as.matrix()
 
   N <- nrow(combined_weight_matrices)

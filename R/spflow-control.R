@@ -71,10 +71,10 @@ spflow_control <- function(
   if (estimation_method != "mle")
     hessian_method <- "mixed"
 
-  available_hessians <- c("mixed") # finite_diff, exact
+  available_hessians <- c("mixed","f2") # ,... exact
   assert(hessian_method %in% available_hessians,
-         "The estimation method must be one of [%s]!" %>%
-           sprintf(., paste(available_estimators, collapse = " or ")))
+         "The hessian method must be one of [%s]!" %>%
+           sprintf(., paste(available_hessians, collapse = " or ")))
 
   # check flow types
   between_flows <- !is.null(flow_type) && (flow_type == "between")

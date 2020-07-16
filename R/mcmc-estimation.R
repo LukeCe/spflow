@@ -1,3 +1,6 @@
+#' Moment based estimation procedure for the MCMC estimator
+#'
+#' @keywords internal
 spflow_mcmc <- function(
   ZZ,
   ZY,
@@ -69,17 +72,13 @@ spflow_mcmc <- function(
     ## 2. inverse gamma for sigma2 ##
     # split the deviate equally on the decomposed delta keeping
     # the variance of the sum constant
-    delta_t <- delta_decomposed + deviate_delta / sum(tau^2)
+    delta_t <- decompose_shift(delta_decomposed,
+                               rho = collect_rho[i_mcmc,],
+                               shift = deviate_delta)
 
+    # to update scale parameter besed on the new RSS
     # construct resudial based on previous values of rho and delta
-    # update scale parameter besed on the new RSS
-
-    # update scale parameter besed on the new RSS
-    ESS_tz <- crossprod(delta_t,ZZ) %*% delta_t
-    ESS_tzy <- crossprod(delta_t, ZY)
-    RSS <- TSS - 2 * ESS_tzy + ESS_tz
-
-    # collapse the decoposed RSS into the single one
+    RSS <- re_eval_RSS(delta_t,TSS,ZZ,ZY)
     mcmc_step2_RSS <- tau %*% RSS %*% tau
 
     collect_sigma2[i_mcmc  + 1] <-

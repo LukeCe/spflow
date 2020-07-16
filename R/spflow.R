@@ -1,4 +1,49 @@
-#' Spatial interaction model
+#' Estimate spatial interaction models that incorporate spatial dependence
+#'
+#' @description
+#' We implement three diffrent estimators of spatial interaction models that
+#' allow to estimate origin-destination flows with spatial auto-correlation.
+#'
+#' The function allows to include spatial lags of the explanatory, which will
+#' corresponds to a so called Spatial Durbin model (SDM)
+#' \insertCite{Anselin1988;textual}{spflow}.
+#' Morever, we give the option to include an additional set of coefficients
+#' for intra-regional flows (origin = destination), as proposed by
+#' \insertCite{LeSage2009;textual}{spflow}.
+#' Both options are activated by default and can be adjusted through the
+#' [spflow_control()] object.
+#'
+#' @details
+#' Our estimation procedures make use of the matrix formulation introduced by
+#' \insertCite{LeSage2008;textual}{spflow} and further developed by
+#' (#Dargel2020Improve) to reduce the computational effort and memory
+#' requirements considerbly.
+#' See (#Dargel2020Sim) for an exhaustive simulation study.
+#' The estimation procedure can be adjusted through the estimation_method
+#' in [spflow_control()].
+#'
+#' @section Maximum likelihood estimation (MLE):
+#' Maximum likelihood estimation is the default estimation procedure.
+#' The estimatoion was first developed by
+#' \insertCite{LeSage2008;textual}{spflow} and then improved by
+#' (#Dargel2020Improve).
+#'
+#' @section Spatial two-stage least squares (S2SLS):
+#' The S2SLS estimator if an adaption of the one proposed by
+#' \insertCite{Kelejian1998;textual}{spflow}, to the case origin-destination
+#' flows, with a double spatial index and up to three neighborhood matrices
+#' (#Dargel2020Improve).
+#' A similar estimation is done by \insertCite{tamesueDealingIntraregionalFlows2016;textual}{flowR}.
+#'
+#' @section Bayesian Markov Chain Monte Carlo (MCMC):
+#' The MCMC estimator is based on the ideas of
+#' \insertCite{LeSage2009;textual}{spflow} and incorporates the improvements
+#' proposed in (#Dargel2020Improve).
+#' Estimation is based on a tuned Metropolis-Hastings sampler for the
+#' auto-regressive parameters, and for the remaining parameters it uses Gibbs
+#' sampling.
+#' The routine uses 5500 iterations of the sampling procedure and considers the
+#' first 2500 as burn-in period.
 #'
 #' @param flow_formula A formulas corresponding to the structural interaction model
 #' @param sp_multi_network A [sp_multi_network()] object.

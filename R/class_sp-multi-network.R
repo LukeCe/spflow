@@ -170,8 +170,8 @@ setMethod(
 
     pair_data <- dat(object,network_pair_id = od_ids["network_pair_id"])
 
-    expanded_data <- pair_data[orig_data, on = "orig_id"
-                               ][dest_data, on = "dest_id"]
+    expanded_data <- pair_data[dest_data, on = "dest_id"
+                               ][orig_data, on = "orig_id"]
 
     return(expanded_data)
 })

@@ -179,6 +179,16 @@ translist <- function(.l) {
   return(lapply(result, compact))
 }
 
+# ---- lists ------------------------------------------------------------------
+collect <- function(names){
+  collection <- lapply(names, get, envir = parent.frame(1))
+  names(collection) <- names
+
+  return(collection)
+}
+
+
+
 # ---- math operations --------------------------------------------------------
 hadamarad_sum <- function(x,y = x) {
   sum( x * y )
@@ -287,6 +297,11 @@ sequentialize_index <- function(index_list) {
 
 
 # ---- matrices ---------------------------------------------------------------
+block_diag <- function(...){
+  as.matrix(Matrix::bdiag(...))
+}
+
+
 stack_cols <- function(mat ,rows = "row", cols = "col", value = "value") {
   cbind(expand.grid(row = factor_in_order(rownames(mat)),
                     col = factor_in_order(colnames(mat))),

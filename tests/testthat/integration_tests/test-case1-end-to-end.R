@@ -14,7 +14,6 @@ load(file.path(rprojroot::find_testthat_root_file(),
                "test_case_1_symmetric.rda"))
 load_all()
 
-# setup the network object
 ge_df <- test_case_1_symmetric$input_data$node_data
 ge_neigh <- test_case_1_symmetric$input_data$node_neighborhood
 network_ge <- sp_network(network_id = "ge",
@@ -48,6 +47,8 @@ pairs_ge_ge_flexible <- sp_network_pair(
 # combine them into a multi-network
 multi_net_ge_default  <- sp_multi_network(network_ge, pairs_ge_ge_default)
 multi_net_ge_flex  <- sp_multi_network(network_ge, pairs_ge_ge_flexible)
+
+# finish setup ----
 
 
 describe("Moments can be generated from formula and multinet",{
@@ -162,7 +163,6 @@ describe("Moments can be generated from formula and multinet",{
     })
 })
 
-
 describe("Quick start estimstion for minimals user input.",{
 
   it("Works for the default s2sls estimation (M9 - sym)",{
@@ -239,7 +239,6 @@ describe("Quick start estimstion for minimals user input.",{
 
 })
 
-
 describe("Estimation via the formula interface without intra model", {
 
   # diffrent expressions of the same formula are tested for each method
@@ -267,11 +266,37 @@ describe("Estimation via the formula interface without intra model", {
 
   })
 
-  it("Works for mle estimation (M2 - sym)",{
+  it("Works for mle estimation (M2 - sym - mixed hessian)",{
 
     test_control <- spflow_control(estimation_method = "mle",
                                    use_intra = FALSE,
                                    model = "model_2")
+
+    # should ignore the I(... part) and carry distance to G(... part)
+    test_results <- spflow(
+      flow_formula = Y2 ~ D_(X) + O_(X) + I_(X)+ log(pair_distance + 1),
+      multi_net_ge_flex,
+      flow_control = test_control)
+
+    expect_is(test_results,"spflow_model")
+
+    actual_estimates <- test_results$results$est
+    expected_estimates <- test_case_1_symmetric$results$M2$s2sls$params
+    expect_length(actual_estimates,length(expected_estimates))
+
+    actual_uncertainty <- test_results$results$sd
+    expected_uncertainty <- test_case_1_symmetric$results$M2$s2sls$sd_params
+    expect_length(actual_uncertainty,length(expected_uncertainty))
+
+  })
+
+  it("Works for mle estimation (M2 - sym - f2 hessian)",{
+
+    test_control <- spflow_control(estimation_method = "mle",
+                                   hessian_method = "f2",
+                                   use_intra = FALSE,
+                                   model = "model_2")
+
     test_results <- spflow(
       flow_formula = Y2 ~ D_(X) + O_(X) + log(pair_distance + 1),
       multi_net_ge_flex,
