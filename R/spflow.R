@@ -45,12 +45,15 @@
 #' The routine uses 5500 iterations of the sampling procedure and considers the
 #' first 2500 as burn-in period.
 #'
+#' @references \insertAllCited{}
+#'
 #' @param flow_formula A formulas corresponding to the structural interaction model
 #' @param sp_multi_network A [sp_multi_network()] object.
 #' @param network_pair_id A character indicating the id of a [sp_network_pair()]
 #' @param flow_control A [spflow_control()] list to fine tune the estimation
 #'
 #' @return A spflow_model object
+#'
 #' @export
 spflow <- function(
   flow_formula,
