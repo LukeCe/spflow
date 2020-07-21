@@ -80,7 +80,7 @@ var_moment_block_alpha_I <- function(const_intra) {
   block_alpha_I[rows,cols] <- block_alpha_I[cols, rows] <-
     rapply(const_intra[index], function(.w) sum(diag(.w)))
 
-  # Remaining rows and columns correspond to the "hadaramad sum"
+  # Remaining rows and columns correspond to the "hadamard sum"
   rows <- cols <- 2:block_size
   block_alpha_I[rows,cols] <- hadamarad_sum_matrix(const_intra[index])
 

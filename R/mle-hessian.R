@@ -57,8 +57,6 @@ spflow_f2_hessian <- function(
   model) {
 
   N <- n_o * n_d
-
-  # from Lesage Matlab hessian function
   params <- c(rho,delta,sigma2)
   p <- length(params)
 

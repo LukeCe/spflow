@@ -97,9 +97,9 @@ multi_network <- sp_multi_network(nodes1,nodes2,pairs_11,pairs_22,pairs_12)
 
 describe("Combine nodes and pairs into multinet", {
 
-  it("Recognizes inconsitencies",{
+  it("Recognizes inconsistencies",{
     expect_error({sp_multi_network(nodes1,nodes2,pairs_11_dbl)},
-                 "^[The number of nodes in network ].*\\[*\\] is not consitent\\!$")
+                 "^[The number of nodes in network ].*\\[*\\] is not consistent\\!$")
 
     expect_error({sp_multi_network(nodes1_fail)})
     expect_error({sp_multi_network(pairs_11_fail)})

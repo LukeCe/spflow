@@ -67,7 +67,7 @@ re_eval_RSS <- function(delta_t,TSS,ZZ,ZY){
 
 }
 
-draw_inital_guess <- function(n_param) {
+draw_initial_guess <- function(n_param) {
   init <- runif(n_param)
 
   if (n_param > 1) {

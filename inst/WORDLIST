@@ -9,3 +9,16 @@ s2sls
 sdm
 sls
 sp
+#----functions----
+rdname
+
+setClass
+setkey
+setMethod
+setnames
+setReplaceMethod
+setValidity
+
+setClassUnion
+setGenericVerif
+standardGeneric

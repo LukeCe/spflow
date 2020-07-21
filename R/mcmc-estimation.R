@@ -16,9 +16,9 @@ spflow_mcmc <- function(
 ) {
 
 
-  ## intialize rho for M-H sampling
+  ## initialize rho for M-H sampling
   nb_rho <- ncol(TSS) - 1
-  pre_rho <- draw_inital_guess(nb_rho)
+  pre_rho <- draw_initial_guess(nb_rho)
   updated_rho <- pre_rho
   bound_rho <- c("low" = -1, "up" = 1)
 
@@ -35,12 +35,12 @@ spflow_mcmc <- function(
   collect_rho[1,] <- pre_rho
   shape_sigma2 <- N/2
 
-  ## for adaptative M-H sampling we need to monitor the acceptance rate
-  # the sample uses a tuned random walk procedure intialized at 0.2
+  ## for adaptive M-H sampling we need to monitor the acceptance rate
+  # the sample uses a tuned random walk procedure initialized at 0.2
   acceptance_rate <- rep(0,nb_rho)
   tune_rw <- rep(0.2,nb_rho)
 
-  # precompute quantities that are used repeatedly
+  # pre-compute quantities that are used repeatedly
   varcov_delta <- chol2inv(chol(ZZ))
   varcov_delta_chol <- chol(varcov_delta)
   fast_multi_rnorm <- function(n, sd = NULL) {
@@ -76,8 +76,8 @@ spflow_mcmc <- function(
                                rho = collect_rho[i_mcmc,],
                                shift = deviate_delta)
 
-    # to update scale parameter besed on the new RSS
-    # construct resudial based on previous values of rho and delta
+    # to update scale parameter based on the new RSS
+    # construct residuals based on previous values of rho and delta
     RSS <- re_eval_RSS(delta_t,TSS,ZZ,ZY)
     mcmc_step2_RSS <- tau %*% RSS %*% tau
 
@@ -89,14 +89,14 @@ spflow_mcmc <- function(
     # ... sample jointly candidates for new values of rho that respect:
     # ... the interval [-1 , 1] for each rho
     # ... the stability restriction |sum(rho)| < 1
-    instable_rho <- TRUE
+    unstable_rho <- TRUE
     count_draws <- 1
     maximal_draw <- 100
-    while (instable_rho & count_draws < maximal_draw) {
+    while (unstable_rho & count_draws < maximal_draw) {
 
       candidate_rho <- collect_rho[i_mcmc ,] + rnorm(nb_rho) * tune_rw
 
-      instable_rho <- (
+      unstable_rho <- (
         min(candidate_rho) < bound_rho["low"]
         || max(candidate_rho) > bound_rho["up"]
         || abs(sum(candidate_rho)) > 1

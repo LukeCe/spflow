@@ -1,6 +1,13 @@
 #' @include class_virtual.R utils.R
 
-#' An S4 class to represent information on the nodes of a network.
+#' @title
+#' An S4 class that holds on a single network
+#'
+#' @description
+#' In this representation a network is composed of nodes which are must be
+#' identified uniquely and can be described by variables stored in a data.frame.
+#' The node neighborhood matrix describes strength of links between the nodes of
+#' the network.
 #'
 #' @slot network_id A character that serves as identifier for the network
 #' @slot node_count A numeric that indicates the number of nodes in the network
@@ -16,6 +23,8 @@ setClass("sp_network",
            node_count        = "maybe_numeric",
            node_neighborhood = "maybe_Matrix",
            node_data         = "maybe_data.table"))
+
+#
 
 # validity --------------------------------------------------------------------
 setValidity(
@@ -38,7 +47,7 @@ setValidity(
       return(error_msg)
     }
 
-    # node count musst be equal to rownumber of node_data and neighborhood
+    # node count must be equal to row number of node_data and neighborhood
     node_count <- c(node_count,object@node_count)
     if (!has_equal_elements(node_count)) {
       error_msg <- "The node count is wrong!"
@@ -48,7 +57,9 @@ setValidity(
   })
 
 # ---- get and set ------------------------------------------------------------
+
 #' @export
+#' @rdname count
 setMethod(
   f = "count",
   signature = "sp_network",
@@ -57,6 +68,7 @@ setMethod(
   })
 
 #' @export
+#' @rdname dat
 setMethod(
   f = "dat",
   signature = "sp_network",
@@ -64,6 +76,8 @@ setMethod(
     return(object@node_data)
     })
 
+#' @export
+#' @rdname dat
 setReplaceMethod(
   f = "dat",
   signature = "sp_network",
@@ -82,7 +96,9 @@ setReplaceMethod(
     }
     })
 
+
 #' @export
+#' @rdname id
 setMethod(
   f = "id",
   signature = "sp_network",
@@ -90,6 +106,8 @@ setMethod(
     return(object@network_id)
   })
 
+#' @export
+#' @rdname id
 setReplaceMethod(
   f = "id",
   signature = "sp_network",
@@ -100,6 +118,7 @@ setReplaceMethod(
   })
 
 #' @export
+#' @rdname neighborhood
 setMethod(
   f = "neighborhood",
   signature = "sp_network",
@@ -107,6 +126,8 @@ setMethod(
     return(object@node_neighborhood)
   })
 
+#' @export
+#' @rdname neighborhood
 setReplaceMethod(
   f = "neighborhood",
   signature = "sp_network",
@@ -127,6 +148,7 @@ setReplaceMethod(
 # ---- methods ----------------------------------------------------------------
 
 #' @export
+#' @rdname variable_names
 setMethod(
   f = "variable_names",
   signature = "sp_network",
@@ -134,6 +156,8 @@ setMethod(
     return(names(object@node_data))
   })
 
+#' @export
+#' @rdname variable_names
 setReplaceMethod(
   f = "variable_names",
   signature = "sp_network",
@@ -152,7 +176,7 @@ setReplaceMethod(
 #' @param node_neighborhood A matrix that describes the neighborhood of the nodes
 #' @param node_id_column A character indicating the column containing identifiers for the nodes
 #'
-#' @family sp_network
+#' @family network_info
 #' @importFrom data.table :=
 #'
 #' @return The S4 class sp_network

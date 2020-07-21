@@ -1,7 +1,9 @@
 #' @include utils.R class_virtual.R
 
-#' An S4 class to represent information origin-destination pairs (od-pairs) composed of two nodes.
+#' @title
+#' An S4 class which holds information on origin-destination pairs.
 #'
+#' @description
 #' Each origin destination pair is composed of two nodes (see [sp_network()]).
 #' All origins belong to the same (origin-) network and all destination belong to
 #' the same (destination-) network.
@@ -16,7 +18,7 @@
 #' @slot node_pair_count A numeric indicating the number of origin-destination pairs
 #' @slot destination_node_count A numeric that represents the number of nodes in the destination network
 #'
-#' @family sp_network_pair sp_multi_network
+#' @family network_info
 #' @importClassesFrom Matrix Matrix
 #' @export
 setClass("sp_network_pair",
@@ -31,13 +33,13 @@ setClass("sp_network_pair",
 # validity --------------------------------------------------------------------
 setValidity("sp_network_pair", function(object) {
 
-  consitent_od_dim <-
+  consistent_od_dim <-
     c(nrow(object@node_pair_data),
       object@origin_node_count * object@destination_node_count,
       object@node_pair_count) %>%
     has_equal_elements(.)
 
-  if (!consitent_od_dim) {
+  if (!consistent_od_dim) {
     error_msg <- "The dimensions of node pairs are inconsistent!"
     return(error_msg)
   }
@@ -46,6 +48,7 @@ setValidity("sp_network_pair", function(object) {
 })
 
 # ---- get and set ------------------------------------------------------------
+#' @rdname count
 #' @export
 setMethod(
   f = "count",
@@ -64,6 +67,7 @@ setMethod(
   })
 
 #' @export
+#' @rdname dat
 setMethod(
   f = "dat",
   signature = "sp_network_pair",
@@ -71,6 +75,8 @@ setMethod(
     return(object@node_pair_data)
   })
 
+#' @rdname dat
+#' @export
 setReplaceMethod(
   f = "dat",
   signature = "sp_network_pair",
@@ -85,6 +91,7 @@ setReplaceMethod(
                     ...)
   })
 
+#' @rdname id
 #' @export
 setMethod(
   f = "id",
@@ -102,6 +109,8 @@ setMethod(
     return(ids[what])
   })
 
+#' @rdname id
+#' @export
 setReplaceMethod(
   f = "id",
   signature = "sp_network_pair",
@@ -115,7 +124,9 @@ setReplaceMethod(
   })
 
 # ---- methods ----------------------------------------------------------------
+# TODO move variable_names method to sp_net_meta_class
 
+#' @rdname variable_names
 #' @export
 setMethod(
   f = "variable_names",
@@ -124,6 +135,8 @@ setMethod(
     return(names(object@node_pair_data))
   })
 
+#' @rdname variable_names
+#' @export
 setReplaceMethod(
   f = "variable_names",
   signature = "sp_network_pair",
@@ -145,7 +158,7 @@ setReplaceMethod(
 #' @param destination_key_column A character indicating the column containing identifiers for the destinations
 #' @param destination_node_count A numeric declaring the number of destinations
 #'
-#' @family sp_network_pair sp_multi_network
+#' @family network_info
 #'
 #' @return An S4 class of type
 #' @export

@@ -9,7 +9,7 @@ spflow_mle <- function(ZZ,ZY,TSS,N,n_d,n_o,DW_traces,OW_traces,
 
   # initialization
   nb_rho <- ncol(ZY) - 1
-  rho_tmp <- draw_inital_guess(nb_rho)
+  rho_tmp <- draw_initial_guess(nb_rho)
   optim_results <- structure(rho_tmp,class = "try-error")
 
   # TODO generalize optim -> all model + asymmetric case
@@ -34,14 +34,14 @@ spflow_mle <- function(ZZ,ZY,TSS,N,n_d,n_o,DW_traces,OW_traces,
     optim_count <- optim_count + 1
 
     # new guess for next iteration
-    rho_tmp <- draw_inital_guess(nb_rho)
+    rho_tmp <- draw_initial_guess(nb_rho)
   }
   if (optim_count == optim_limit) {
     stop("algorithm to find rho did not converge towards a minimum")
   }
 
 
-  # coeffiecients
+  # coeffcients
   rho <- optim_results$par
   tau <- c(1, -rho)
   delta <- delta_t %*% tau

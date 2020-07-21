@@ -1,5 +1,6 @@
-#' Create a control object for the estimation with [spflow()]
+#' Define details of the estimation procedure with the [spflow()] function.
 #'
+#' @description
 #' This function creates a list to fine tune the estimation of a spatial
 #' interaction model with [spflow()].
 #'

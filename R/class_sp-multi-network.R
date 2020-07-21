@@ -1,11 +1,14 @@
 #' @include class_sp-network.R class_sp-network-pair.R class_virtual.R utils.R
 
 
-#' An S4 class that contains [sp_network] and [sp_network_pair] for one or multiple networks
+#' @title
+#' An S4 class that gathers information on one or multiple networks
+#' [sp_network()] and origin-destination pairs [sp_network_pair()].
 #'
 #' @slot networks A list of [sp_network] objects
 #' @slot network_pairs A list of [sp_network_pair] objects
 #'
+#' @family network_info
 #' @export
 setClass("sp_multi_network",
          slots = c(networks = "list",
@@ -31,7 +34,7 @@ setValidity("sp_multi_network", function(object) {
 
   if (!all(valid_nodes)) {
     error_msg <-
-      "All objects in the netwoks accessor must be of class sp_network."
+      "All objects in the networks accessor must be of class sp_network."
     return(error_msg)
   }
 
@@ -59,16 +62,16 @@ setValidity("sp_multi_network", function(object) {
     reduce(c) %>%
     setNames(.,od_names)
 
-  consitent_node_numbers <-
+  consistent_node_numbers <-
     lapply(network_names,
            function(.name,.net,.od) c(.net[[.name]],.od[[.name]]),
            .net = network_sizes, .od = od_sizes) %>%
     rapply(., has_equal_elements)
 
-  if (!all(consitent_node_numbers)) {
+  if (!all(consistent_node_numbers)) {
     error_msg <-
-      "The number of nodes in network [%s] is not consitent!" %>%
-      sprintf(.,paste(od_names[!consitent_node_numbers],sep = " and "))
+      "The number of nodes in network [%s] is not consistent!" %>%
+      sprintf(.,paste(od_names[!consistent_node_numbers],sep = " and "))
     return(error_msg)
   }
 
@@ -76,6 +79,7 @@ setValidity("sp_multi_network", function(object) {
 })
 
 # get and set -----------------------------------------------------------------
+
 #' @export
 setMethod(
   f = "id",
@@ -146,7 +150,7 @@ setMethod(
     if (is.character(network_pair_ids))
       return(object@network_pairs[network_pair_ids])
 
-    stop("The id musst be a character!")
+    stop("The id must be a character!")
 
   })
 
@@ -190,9 +194,8 @@ sp_multi_network <- function(...) {
 
   input_nets <- list(...) %>% flatten() %||% list()
 
-  assert(
-    all(rapply(input_nets, is_one_of,
-               .classes = c("sp_network", "sp_network_pair"))),
+  assert(all(rapply(input_nets, is_one_of,
+                    .classes = c("sp_network", "sp_network_pair"))),
     "All information that is not of type sp_network or sp_network_pair is discarded!",
     warn = TRUE
   )

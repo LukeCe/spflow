@@ -45,6 +45,35 @@
 #' The routine uses 5500 iterations of the sampling procedure and considers the
 #' first 2500 as burn-in period.
 #'
+#' @section Formula interface:
+#' The function offers a formula interface adapted to spatial interaction
+#' models, which has the follwing structure:
+#' `Y ~ O_(X1) + D_(X2) + I_(X3) + G_(X4)`
+#' This structre refelcts the diffrent datasources involved in such a model.
+#' On the left hand side is the independent variable `Y` which corresponds to
+#' the vector of flows.
+#' On the right hand side we have all the explanatory variables.
+#' The functions `O_(...)` and `D_(...)` indicate which variables are used as
+#' characteristics of the origins and destinations respectively.
+#' Similarly, `I_(...)` indicates variables that should be used for the
+#' intra-regional coefficients.
+#' Finllay `G_(...)` declares which variables describe origin-destination
+#' pairs, which most frequently will be a measure of distance.
+#'
+#' All the declared variables must be available in the provided
+#' [sp_multi_network()], which gathers information on the origins and
+#' destinations [sp_network()] as well as the origin-destination pairs
+#' [sp_network_pair()].
+#'
+#' Using the shortcut notation `Y ~ .` is possible and will be interpreted as
+#' usually, in the sense that we use all variables that are available for each
+#' data source.
+#' Also formulas such as `Y ~ . + G_(log(X4) + 1)` are possible. When the dot
+#' shortcut is combined with explicit declaration it will only be used for the
+#' non declared data sources.
+#' The previous example will hence extend to
+#' `Y ~ O_(.) + D_(.) + I_(.) + G_(log(X4) + 1)`.W
+#'
 #' @references \insertAllCited{}
 #'
 #' @param flow_formula A formulas corresponding to the structural interaction model
@@ -52,8 +81,10 @@
 #' @param network_pair_id A character indicating the id of a [sp_network_pair()]
 #' @param flow_control A [spflow_control()] list to fine tune the estimation
 #'
-#' @return A spflow_model object
+#' @family network_info
+#' @seealso flow_control
 #'
+#' @return A spflow_model object
 #' @export
 spflow <- function(
   flow_formula,

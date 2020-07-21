@@ -76,7 +76,7 @@ extract_specials <- function(formula, specials) {
     data = data.frame("." = "."))
 
   # determine the variables for specific cases
-  all_varibales <- rownames(attr(terms_formula, "factors"))
+  all_variables <- rownames(attr(terms_formula, "factors"))
 
   specific_vars_indexes <-
     attr(terms_formula,"specials") %>%
@@ -89,17 +89,17 @@ extract_specials <- function(formula, specials) {
            value = function(.s) to_rhs_formula(deparse(substitute(.s))),
            envir = fun_env)
 
-  # apply the function which just parses its arguments as a fromula
+  # apply the function which just parses its arguments as a formula
   specific_formulas <-
     specific_vars_indexes %>%
-    lapply(function(.i) eval(parse(text = all_varibales[.i]))) %>%
+    lapply(function(.i) eval(parse(text = all_variables[.i]))) %>%
     lapply(remove_intercept)
 
 
   # determine the generic variables used for all remaining cases
   drop_specials <- c(unlist(specific_vars_indexes),
-                     length(all_varibales) + 1)
-  generic_vars <- all_varibales[-drop_specials]
+                     length(all_variables) + 1)
+  generic_vars <- all_variables[-drop_specials]
 
   generic_formula <- NULL
   if (length(generic_vars) > 0) {
