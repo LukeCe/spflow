@@ -241,7 +241,7 @@ describe("Quick start estimstion for minimals user input.",{
 
 describe("Estimation via the formula interface without intra model", {
 
-  # diffrent expressions of the same formula are tested for each method
+  # different expressions of the same formula are tested for each method
   it("Works for s2sls estimation (M2 - sym)",{
 
     test_control <- spflow_control(estimation_method = "s2sls",

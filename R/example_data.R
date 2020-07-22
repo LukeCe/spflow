@@ -8,6 +8,11 @@
 #' Finally there is a multi_network object which contains the two networks and
 #' four network pairs based on the same examples.
 #'
+#' The simulation parameters are given as `rho` for the auto-regressive
+#' parameter, `delta` for the impact of the exogenous variables and `sd_error`
+#' for standard deviation of the simulated gaussian noise.
+#'
+#'
 #' @source inspired by <https://ialab.it.monash.edu/~dwyer/papers/maptrix.pdf.>
 "multi_net_usa_ge"
 
@@ -22,3 +27,12 @@
 
 #' @rdname multi_net_usa_ge
 "germany_net"
+
+#' @rdname multi_net_usa_ge
+"rho"
+
+#' @rdname multi_net_usa_ge
+"delta"
+
+#' @rdname multi_net_usa_ge
+"sd_error"

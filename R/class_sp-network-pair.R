@@ -48,6 +48,8 @@ setValidity("sp_network_pair", function(object) {
 })
 
 # ---- get and set ------------------------------------------------------------
+#' @param what A character to indicate what to count;
+#'   should be in c("origins","destinations","pairs").
 #' @rdname count
 #' @export
 setMethod(
@@ -76,14 +78,11 @@ setMethod(
   })
 
 #' @rdname dat
+#' @param ... more arguments passed to the constructor [sp_network_pair()]
 #' @export
 setReplaceMethod(
   f = "dat",
-  signature = "sp_network_pair",
-  function(
-    object,
-    value,
-    ...) {
+  signature = "sp_network_pair", function(object, ..., value) {
 
     sp_network_pair(origin_network_id = object@origin_network_id,
                     destination_network_id = object@destination_network_id,
@@ -91,6 +90,7 @@ setReplaceMethod(
                     ...)
   })
 
+#' @inheritParams count
 #' @rdname id
 #' @export
 setMethod(
@@ -109,43 +109,30 @@ setMethod(
     return(ids[what])
   })
 
+
 #' @rdname id
 #' @export
 setReplaceMethod(
   f = "id",
   signature = "sp_network_pair",
-  function(object,origin_network_id,destination_network_id) {
-    object@origin_network_id      <- origin_network_id
-    object@destination_network_id <- destination_network_id
-    object@pair           <- origin_network_id %p% "_" %p% destination_network_id
+  function(object,value) {
+
+    new_id_orig <- strsplit("_",value) %>% unlist() %>% head(1)
+    new_id_dest <- strsplit("_",value) %>% unlist() %>% tail(1)
+    new_id_pair <- new_id_orig %p% "_" %p% new_id_dest
+    assert(new_id_pair == value,
+           "The provided pair id is not valid.")
+
+    object@origin_network_id      <- new_id_orig
+    object@destination_network_id <- new_id_dest
+    object@pair                   <- new_id_orig %p% "_" %p% new_id_dest
 
     if (validObject(object))
       return(object)
   })
 
 # ---- methods ----------------------------------------------------------------
-# TODO move variable_names method to sp_net_meta_class
-
-#' @rdname variable_names
-#' @export
-setMethod(
-  f = "variable_names",
-  signature = "sp_network_pair",
-  function(object) { # ---- variable_names ------------------------------------
-    return(names(object@node_pair_data))
-  })
-
-#' @rdname variable_names
-#' @export
-setReplaceMethod(
-  f = "variable_names",
-  signature = "sp_network_pair",
-  function(object,value) {
-    names(object@node_pair_data) <- value
-    if (validObject(object))
-      return(object)
-  })
-
+# none
 
 # ---- constructors -----------------------------------------------------------
 #' Create an S4 object that contains information on origin-destination pairs
@@ -160,7 +147,7 @@ setReplaceMethod(
 #'
 #' @family network_info
 #'
-#' @return An S4 class of type
+#' @return An S4 class of type [sp_network_pair()]
 #' @export
 sp_network_pair <- function(
   origin_network_id,

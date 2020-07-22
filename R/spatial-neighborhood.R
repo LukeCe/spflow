@@ -1,3 +1,12 @@
+#' Derive the flow neighborhood matrices
+#'
+#' @description
+#' Use the neighborhood matrices of origins and destinations to derive the
+#' three neighborhood matrices of the origin-destination flows.
+#'
+#' @param OW Origin neighborhood matrix
+#' @param DW Destination neighborhood matrix
+#'
 #' @export
 expand_flow_neighborhood <- function(
   OW,

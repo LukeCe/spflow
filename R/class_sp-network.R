@@ -57,7 +57,6 @@ setValidity(
   })
 
 # ---- get and set ------------------------------------------------------------
-
 #' @export
 #' @rdname count
 setMethod(
@@ -81,7 +80,7 @@ setMethod(
 setReplaceMethod(
   f = "dat",
   signature = "sp_network",
-  function(object,value) {
+  function(object, value) {
     object@node_data <- value
 
     # remove neighborhood if there is a mismatch in dimensions
@@ -95,7 +94,6 @@ setReplaceMethod(
       return(object)
     }
     })
-
 
 #' @export
 #' @rdname id
@@ -111,7 +109,7 @@ setMethod(
 setReplaceMethod(
   f = "id",
   signature = "sp_network",
-  function(object,value) {
+  function(object, value) {
     object@network_id <- value
     if (validObject(object))
       return(object)

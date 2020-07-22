@@ -9,6 +9,12 @@ s2sls
 sdm
 sls
 sp
+#----Names----
+Anselin
+Durbin
+Kelejian
+LeSage
+Tamesue
 #----functions----
 rdname
 

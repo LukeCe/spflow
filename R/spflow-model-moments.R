@@ -32,13 +32,13 @@ spflow_model_moments_mat <- function(
   ZZ <- HH[keep_for_stage2, keep_for_stage2]
   ZY <- HY[keep_for_stage2,]
 
-  # total sum of squares is diffrent for GMM and liklihood based estimators
+  # total sum of squares is different for GMM and likelihood based estimators
   # because the lagged flows are considered as endogenous regressors and not
   # as additional dependent variable
   is_GMM_estimator <- estimator == "s2sls"
   nb_lhs_vars <- ifelse(is_GMM_estimator,1,ncol(ZY))
 
-  TSS <- hadamarad_sum_matrix(model_matrices$Y[seq_len(nb_lhs_vars)])
+  TSS <- hadamard_sum_matrix(model_matrices$Y[seq_len(nb_lhs_vars)])
 
   model_moments <- list(
     "N" = N,
@@ -55,12 +55,12 @@ spflow_model_moments_mat <- function(
   model_moments$HY <- NULL
 
 
-  # The trace seqence is used to approximate the log-determinant term in
+  # The trace sequence is used to approximate the log-determinant term in
   # in the likelihood function
   LL_moments <- named_list(c("DW_traces", "OW_traces","n_d","n_o"))
   LL_moments[c("n_d","n_o")] <- dim(model_matrices$Y[[1]])
 
-  # TODO develop a soltion to traces based on Wo, Wd, Ww
+  # TODO develop a solution to traces based on Wo, Wd, Ww
   # calculate only once if O=D
   if (flow_type == "within") {
     W <- model_matrices$OW %||% model_matrices$DW %||% NULL

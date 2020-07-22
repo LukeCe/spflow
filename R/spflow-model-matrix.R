@@ -33,34 +33,34 @@ spflow_model_matrix <- function(
     destination_data_cases <- NULL
   }
 
-  neighbourhoods <- neighborhoods(sp_multi_network, c(orig_id, dest_id))
-  names(neighbourhoods) <- c("OW","DW")
+  neighborhoods <- neighborhoods(sp_multi_network, c(orig_id, dest_id))
+  names(neighborhoods) <- c("OW","DW")
 
   flow_formulas_by_cases <- interpret_flow_formula(
     flow_formula = flow_formula,
     flow_control = flow_control) %>%
     translist()
 
-  # derive all matrices from the three possible datasources
+  # derive all matrices from the three possible data sources
   ## TODO assert that all variables are given
   destination_model_matrix <-
     destination_data_cases %|!|%
     model_matrix_expand_net(
       case_formulas = flow_formulas_by_cases[destination_data_cases],
       case_data = dat(sp_multi_network, dest_id),
-      case_neighborhood = neighbourhoods$DW)
+      case_neighborhood = neighborhoods$DW)
 
   origin_model_matrices <-
     model_matrix_expand_net(
       case_formulas = flow_formulas_by_cases[origin_data_cases],
       case_data = dat(sp_multi_network,orig_id),
-      case_neighborhood = neighbourhoods$OW)
+      case_neighborhood = neighborhoods$OW)
 
   pair_model_matrices <-
     model_matrix_expand_pairs(
       pair_formulas = flow_formulas_by_cases[pair_data_cases],
       network_pair = network_pairs(sp_multi_network,pair_id),
-      pair_neighborhoods = neighbourhoods,
+      pair_neighborhoods = neighborhoods,
       flow_control = flow_control)
 
   # add information on constant terms
@@ -69,14 +69,14 @@ spflow_model_matrix <- function(
     "const" = 1 %>% data.table::setattr("is_instrument_var",FALSE),
     "const_intra" = n_intra %|!|%
       intra_regional_constant(
-        W = neighbourhoods$OW,
+        W = neighborhoods$OW,
         use_instruments = flow_control$estimation_method == "s2sls"))
 
   return(c(constants,
            destination_model_matrix,
            origin_model_matrices,
            pair_model_matrices,
-           neighbourhoods))
+           neighborhoods))
 }
 
 model_matrix_expand_net <- function(
@@ -86,13 +86,13 @@ model_matrix_expand_net <- function(
   ) {
 
   # derive the global model matrix by combining
-  # all formulas for the same datasource
-  key_clomuns <- data.table::key(case_data)
+  # all formulas for the same data source
+  key_columns <- data.table::key(case_data)
 
   model_matrix_global <-
     fix_contrast_model_matrix(
       formula = flatlist(case_formulas) %>% combine_formulas(),
-      data    = case_data[,!key_clomuns, with = FALSE])
+      data    = case_data[,!key_columns, with = FALSE])
 
   ### add spatial lags according to the use of the variables
   formulas_by_lag <- case_formulas %>%
@@ -103,7 +103,7 @@ model_matrix_expand_net <- function(
   lag_which_vars <- function(.form) {
     extract_terms_labels(
       formula = .form,
-      fake_data = case_data[0,!key_clomuns, with = FALSE])
+      fake_data = case_data[0,!key_columns, with = FALSE])
   }
 
   varnames_by_role <- formulas_by_lag %>%
@@ -197,12 +197,12 @@ model_matrix_expand_pairs <- function(
 
   # derive the global model matrix by combining
   # all formulas for the same data source
-  key_clomuns <- data.table::key(dat(network_pair))
+  key_columns <- data.table::key(dat(network_pair))
 
   model_matrix_global <-
     fix_contrast_model_matrix(
       formula = flatlist(pair_formulas) %>% combine_formulas(),
-      data    = dat(network_pair)[,!key_clomuns, with = FALSE])
+      data    = dat(network_pair)[,!key_columns, with = FALSE])
 
   n_orig <- count(network_pair, "origins")
   n_dest <- count(network_pair, "destinations")
@@ -231,7 +231,7 @@ model_matrix_expand_pairs <- function(
 
   # lag those explanatory variables that are used as instruments
   explain_data_template <-
-    dat(network_pair)[0,!c(key_clomuns,response_variables), with = FALSE]
+    dat(network_pair)[0,!c(key_columns,response_variables), with = FALSE]
   explain_instruments <- explain_formulas$inst %|!|%
     extract_terms_labels(explain_formulas$inst,explain_data_template)
 
@@ -350,7 +350,7 @@ define_spatial_lag_requirements <- function(
 }
 
 define_matrix_keys <- function() {
-  c("origin_neghborhood"       = "OW",
+  c("origin_neighborhood"       = "OW",
     "destination_neighborhood" = "DW",
     "constant"                 = "const",
     "intra_constant"           = "const_intra",

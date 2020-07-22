@@ -82,7 +82,7 @@ var_moment_block_alpha_I <- function(const_intra) {
 
   # Remaining rows and columns correspond to the "hadamard sum"
   rows <- cols <- 2:block_size
-  block_alpha_I[rows,cols] <- hadamarad_sum_matrix(const_intra[index])
+  block_alpha_I[rows,cols] <- hadamard_sum_matrix(const_intra[index])
 
   return(block_alpha_I)
 }
@@ -128,7 +128,7 @@ var_moment_block_beta <- function(X) {
 }
 
 var_moment_block_gamma <- function(G) {
-  G %|!|% hadamarad_sum_matrix(G)
+  G %|!|% hadamard_sum_matrix(G)
 }
 
 # ---- Off-diagonal Blocks ----
@@ -182,7 +182,7 @@ var_moment_block_alpha_I_gamma <- function(const_intra,G) {
     return(block_alpha_I_gamma)
 
   # sum of all element for each combination of two matrices
-  had_sum_G <- function(.w) lapply(G, hadamarad_sum, .w) %>% unlist()
+  had_sum_G <- function(.w) lapply(G, hadamard_sum, .w) %>% unlist()
 
   block_alpha_I_gamma[-1,] <-
     const_intra[-1] %>%
@@ -235,7 +235,7 @@ cov_moment_block_alpha_I <- function(Y,const_intra) {
 
   block_Y_alpha_I <- c(
     block_Y_alpha_I,
-    unlist(lapply(const_intra[-1], "hadamarad_sum", Y))
+    unlist(lapply(const_intra[-1], "hadamard_sum", Y))
   )
 
   return(block_Y_alpha_I)
@@ -247,7 +247,7 @@ cov_moment_block_beta <- function(Y, X) {
 }
 
 cov_moment_block_gamma <- function(Y, G) {
-  G %|!|% unlist(lapply(G,hadamarad_sum,Y))
+  G %|!|% unlist(lapply(G,hadamard_sum,Y))
 }
 
 

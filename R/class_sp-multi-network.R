@@ -81,6 +81,7 @@ setValidity("sp_multi_network", function(object) {
 # get and set -----------------------------------------------------------------
 
 #' @export
+#' @rdname id
 setMethod(
   f = "id",
   signature = "sp_multi_network",
@@ -94,6 +95,10 @@ setMethod(
   })
 
 
+#' @param network_id A single character for an id of [sp_network()]
+#' @param network_pair_id A single character for an id of [sp_network_pair()]
+#'
+#' @rdname dat
 #' @export
 setMethod(
   f = "dat",
@@ -115,6 +120,8 @@ setMethod(
     }
 })
 
+#' @param network_ids A character vector of ids for contained [sp_network()] objects
+#' @rdname neighborhoods
 #' @export
 setMethod(
   f = "neighborhoods",
@@ -124,6 +131,8 @@ setMethod(
     return(networks(object, network_ids) %>% lapply(neighborhood))
     })
 
+#' @inheritParams neighborhoods
+#' @rdname networks
 #' @export
 setMethod(
   f = "networks",
@@ -135,7 +144,8 @@ setMethod(
     return(object@networks[network_ids])
   })
 
-
+#' @param network_pair_ids A character vector of ids for contained [sp_network_pair()] objects
+#' @rdname network_pairs
 #' @export
 setMethod(
   f = "network_pairs",
@@ -151,12 +161,13 @@ setMethod(
       return(object@network_pairs[network_pair_ids])
 
     stop("The id must be a character!")
-
   })
 
 
 # ---- methods ----------------------------------------------------------------
 
+#' @inheritParams dat
+#' @rdname pair_merge
 #' @export
 setMethod(
   f = "pair_merge",

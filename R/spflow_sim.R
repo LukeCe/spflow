@@ -11,7 +11,7 @@ invert_spatial_filter <- function(
 
   combined_weight_matrices <-
     weight_matrices %>%
-    savely_to_list() %>%
+    safely_to_list() %>%
     mapply(FUN = "*", ., autoreg_parameters, SIMPLIFY = FALSE) %>%
     Reduce(f = "+", x = .) %>%
     as.matrix()
@@ -24,7 +24,7 @@ invert_spatial_filter <- function(
 #' Simulate spatial interactions
 #'
 #' @param exogenous_variables A matrix of exogenous variables
-#' @param model_coeffiecients A numeric vector of coefficients
+#' @param model_coefficients A numeric vector of coefficients
 #' @param inverted_filter A matrix that represents an inverted spatial filter matrix (see [invert_spatial_filter()])
 #' @param noise_sd A numeric which indicates the desired standard deviation of the simulated noise
 #' @param verbose A logical whether signal to noise ration should be printed
@@ -33,14 +33,14 @@ invert_spatial_filter <- function(
 #' @export
 spflow_sim <- function(
   exogenous_variables,
-  model_coeffiecients,
+  model_coefficients,
   inverted_filter,
   noise_sd,
   verbose = FALSE
 ) {
 
   # generate the flows
-  signal <- inverted_filter %*% (exogenous_variables %*% model_coeffiecients)
+  signal <- inverted_filter %*% (exogenous_variables %*% model_coefficients)
   error <- rnorm(nrow(exogenous_variables),
                  sd = noise_sd)
   noise <- inverted_filter %*% error

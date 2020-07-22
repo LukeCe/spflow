@@ -83,7 +83,7 @@ spflow_control <- function(
 
   assert(!impossible_intra, warn = TRUE,
          "Intra model option is only available for within network flows." %p%
-         "The option was disactivated.")
+         "The option was deactivated.")
 
   return(list(
     "estimation_method" = estimation_method,

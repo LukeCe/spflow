@@ -1,13 +1,13 @@
 #' Estimate spatial interaction models that incorporate spatial dependence
 #'
 #' @description
-#' We implement three diffrent estimators of spatial interaction models that
+#' We implement three different estimators of spatial interaction models that
 #' allow to estimate origin-destination flows with spatial auto-correlation.
 #'
 #' The function allows to include spatial lags of the explanatory, which will
 #' corresponds to a so called Spatial Durbin model (SDM)
 #' \insertCite{Anselin1988;textual}{spflow}.
-#' Morever, we give the option to include an additional set of coefficients
+#' Moreover, we give the option to include an additional set of coefficients
 #' for intra-regional flows (origin = destination), as proposed by
 #' \insertCite{LeSage2009;textual}{spflow}.
 #' Both options are activated by default and can be adjusted through the
@@ -17,14 +17,14 @@
 #' Our estimation procedures make use of the matrix formulation introduced by
 #' \insertCite{LeSage2008;textual}{spflow} and further developed by
 #' (#Dargel2020Improve) to reduce the computational effort and memory
-#' requirements considerbly.
+#' requirements considerably.
 #' See (#Dargel2020Sim) for an exhaustive simulation study.
 #' The estimation procedure can be adjusted through the estimation_method
 #' in [spflow_control()].
 #'
 #' @section Maximum likelihood estimation (MLE):
 #' Maximum likelihood estimation is the default estimation procedure.
-#' The estimatoion was first developed by
+#' The estimation was first developed by
 #' \insertCite{LeSage2008;textual}{spflow} and then improved by
 #' (#Dargel2020Improve).
 #'
@@ -33,7 +33,7 @@
 #' \insertCite{Kelejian1998;textual}{spflow}, to the case origin-destination
 #' flows, with a double spatial index and up to three neighborhood matrices
 #' (#Dargel2020Improve).
-#' A similar estimation is done by \insertCite{tamesueDealingIntraregionalFlows2016;textual}{flowR}.
+#' A similar estimation is done by \insertCite{Tamesue2016;textual}{spflow}.
 #'
 #' @section Bayesian Markov Chain Monte Carlo (MCMC):
 #' The MCMC estimator is based on the ideas of
@@ -47,9 +47,9 @@
 #'
 #' @section Formula interface:
 #' The function offers a formula interface adapted to spatial interaction
-#' models, which has the follwing structure:
+#' models, which has the following structure:
 #' `Y ~ O_(X1) + D_(X2) + I_(X3) + G_(X4)`
-#' This structre refelcts the diffrent datasources involved in such a model.
+#' This structure reflects the different data sources involved in such a model.
 #' On the left hand side is the independent variable `Y` which corresponds to
 #' the vector of flows.
 #' On the right hand side we have all the explanatory variables.
@@ -57,7 +57,7 @@
 #' characteristics of the origins and destinations respectively.
 #' Similarly, `I_(...)` indicates variables that should be used for the
 #' intra-regional coefficients.
-#' Finllay `G_(...)` declares which variables describe origin-destination
+#' Finally, `G_(...)` declares which variables describe origin-destination
 #' pairs, which most frequently will be a measure of distance.
 #'
 #' All the declared variables must be available in the provided
@@ -98,11 +98,11 @@ spflow <- function(
          "A valid formula is required!")
 
   assert(is(sp_multi_network,"sp_multi_network"),
-         "The data musst be a network data object!")
+         "The data must be a network data object!")
 
   ## ... check correct types of ids
   assert(is_single_character(network_pair_id),
-         "The network_pair_id musst be a character of length 1!")
+         "The network_pair_id must be a character of length 1!")
 
   network_ids <- id(sp_multi_network)[["network_pairs"]][[network_pair_id]]
   assert(!is.null(network_ids),

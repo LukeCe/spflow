@@ -17,7 +17,7 @@
 # 3. Moments        : The empricial moments
 #                     (based on inner products of the design matrices)
 # 4. Results
-# The same input data diffrent models and both formulations;
+# The same input data different models and both formulations;
 # To reduce complexity we do not give design results for
 # the MCMC and the MLE estimator.
 # Formulations: [matrix, vector]
@@ -101,7 +101,7 @@ rm(pair_distance,od_ids)
 # estimation accuracy.
 
 # we simulate three types of flows according to an SDM model
-# each flow has a diffrent autocorrelation structure
+# each flow has a different autocorrelation structure
 
 # for the simulation we require the matrix exogenous variables [Z]
 # the flow neighborhoods and a vector of random deviations

@@ -56,7 +56,9 @@ Suggests:
     spdep,
     mockery,
     rprojroot,
-    Rdpack
+    Rdpack,
+    usethis,
+    testthat
 Language: en-US
 Depends: 
     R (>= 3.5.0)

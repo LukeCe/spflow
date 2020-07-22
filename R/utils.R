@@ -36,7 +36,7 @@ savely_as <- function(obj, class, ...) {
   return(as(obj,class, ...))
 }
 
-savely_to_list <- function(obj) {
+safely_to_list <- function(obj) {
   if (is.list(obj)) return(obj)
   else return(list(obj))
 }
@@ -190,11 +190,11 @@ collect <- function(names){
 
 
 # ---- math operations --------------------------------------------------------
-hadamarad_sum <- function(x,y = x) {
+hadamard_sum <- function(x,y = x) {
   sum( x * y )
 }
 
-hadamarad_sum_matrix <- function(matrix_list) {
+hadamard_sum_matrix <- function(matrix_list) {
 
   n_matrixes <- length(matrix_list)
   result <- matrix(0, nrow = n_matrixes , ncol = n_matrixes)

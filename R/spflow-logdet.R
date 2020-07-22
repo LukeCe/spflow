@@ -88,7 +88,7 @@ fodet1 <- function(parms, traces, n, dev = T) {
   # precision machine
   eps <- .Machine$double.eps
 
-  # initialisation
+  # initialization
   miter <- length(traces)
   tw <- c(traces, n)
   op <- rep(1, 3)
