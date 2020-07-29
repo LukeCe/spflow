@@ -10,8 +10,16 @@ Authors@R: c(
     person(given = "Thibault",
            family =  "Laurent",
            email = "thibault.laurent@tse-fr.eu",
-           role = c("aut")))
-Description: The package provides functions to estimate spatial econometric interaction models (= spatial flow models).
+           role = c("aut")),
+    person(given = "Christine",
+           family =  "Thomas-Agnan",
+           role = c("ctb")),
+    person(given = "Paula",
+           family =  "Margaretic",
+           role = c("ctb")))
+Description: 
+    Efficient estimation of models for origin-destiantion flows which account
+    for spatial-autocorrelation in the dependent variable.
 License: GPL-3
 Encoding: UTF-8
 LazyData: true

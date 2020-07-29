@@ -101,7 +101,7 @@ setGenericVerif("network_pairs",function(object, ...){
 setGenericVerif("pair_merge", function(object, ...){
   standardGeneric("pair_merge")})
 
-# ---- .set columns method ----
+# ---- .set/drop columns method ----
 
 #' @title Add columns to the data in a [sp_network()] or [sp_network_pair()]
 #' @details  This function assigns by reference.
@@ -110,6 +110,14 @@ setGenericVerif("pair_merge", function(object, ...){
 #' @export
 setGenericVerif("set_columns", function(object, ...){
   standardGeneric("set_columns")})
+
+#' @title Drops columns from the data in a [sp_network()] or [sp_network_pair()]
+#' @details  This function assigns by reference.
+#' @param object One of; [sp_network()], [sp_network_pair()]
+#' @name drop_columns
+#' @export
+setGenericVerif("drop_columns", function(object, ...){
+  standardGeneric("drop_columns")})
 
 
 # ---- .variable names accessors ----

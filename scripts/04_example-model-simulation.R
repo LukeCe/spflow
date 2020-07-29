@@ -65,9 +65,9 @@ pair_neighborhoods <- mapply(
 
 invers_model_filters <- list(
   "y9" = pair_neighborhoods %>%
-    lapply(invert_spatial_filter, rho[paste0("rho_",c("d","o","w"))]),
+    lapply(spflow:::invert_spatial_filter, rho[paste0("rho_",c("d","o","w"))]),
   "y2" = pair_neighborhoods %>%
-    lapply(function(.w) invert_spatial_filter(.w[["Wd"]], rho["rho_d"])))
+    lapply(function(.w) spflow:::invert_spatial_filter(.w[["Wd"]], rho["rho_d"])))
 
 
 # simulate for all models
@@ -75,7 +75,7 @@ spflow_sim_multi <- function(filters) {
   mapply(
     function(filters,variables) { spflow_sim(
       exogenous_variables = variables,
-      model_coeffiecients = delta[colnames(variables)],
+      model_coefficients = delta[colnames(variables)],
       inverted_filter = filters,
       noise_sd = sd_error)},
     filters = filters,
@@ -85,13 +85,20 @@ spflow_sim_multi <- function(filters) {
 
 flows <- invers_model_filters %>%
   lapply(spflow_sim_multi) %>%
-  spflow:::translist() %>%
+  spflow:::translist(.) %>%
   lapply(data.frame)
 
 # add the simulated flows to the initial data
 mapply(set_columns,
        multi_net_usa_ge %>% network_pairs(),
        flows,
+       SIMPLIFY = FALSE) %>%
+  invisible()
+
+# drop the lagged attributes from the data -> only needed for simulation
+mapply(drop_columns,
+       multi_net_usa_ge %>% networks(),
+       "X_lag",
        SIMPLIFY = FALSE) %>%
   invisible()
 

@@ -1,7 +1,10 @@
 #' Simulated data for stylized versions of Germany and the USA
 #'
+#' The package uses the same stylized country examples as those presented by
+#' by \insertCite{Yang2017;textual}{spflow}.
 #' The first example is a stylized version of Germany with 16 states.
 #' The second example is a stylized version of the USA with 51 states.
+#'
 #'
 #' We provide the spatial objects which contains the geography of our example
 #' as well as the prepared [sp_network()] objects.
@@ -13,26 +16,27 @@
 #' for standard deviation of the simulated gaussian noise.
 #'
 #'
-#' @source inspired by <https://ialab.it.monash.edu/~dwyer/papers/maptrix.pdf.>
+#' @rdname example_data
+#' @name example_data
 "multi_net_usa_ge"
 
-#' @rdname multi_net_usa_ge
+#' @rdname example_data
 "germany_grid"
 
-#' @rdname multi_net_usa_ge
+#' @rdname example_data
 "usa_net"
 
-#' @rdname multi_net_usa_ge
+#' @rdname example_data
 "usa_grid"
 
-#' @rdname multi_net_usa_ge
+#' @rdname example_data
 "germany_net"
 
-#' @rdname multi_net_usa_ge
+#' @rdname example_data
 "rho"
 
-#' @rdname multi_net_usa_ge
+#' @rdname example_data
 "delta"
 
-#' @rdname multi_net_usa_ge
+#' @rdname example_data
 "sd_error"

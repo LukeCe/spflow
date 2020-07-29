@@ -79,7 +79,7 @@ spflow_mle <- function(ZZ,ZY,TSS,N,n_d,n_o,DW_traces,OW_traces,
 
   results_df$"t.stat" <- results_df$est / results_df$sd
   results_df$"p.value" <- 1 - pt(q = abs(results_df$est / results_df$sd),
-                                 df =  N - length(delta))
+                                 df =  1)
 
   estimation_results <- spflow_model(
     results_df = results_df,

@@ -21,14 +21,16 @@ spflow_mixed_hessian <- function(
 
   # block 2,2 = theta,theta     = standard linear model block
   # ... theta = c(delta,sigma2) = parameters of gaussian model
-  hess_22 <- -block_diag(ZZ/sigma2, N/(2*sigma2^2))
+  sigma4 <- sigma2^2
+  hess_22 <- -block_diag(ZZ/sigma2, N/(2*sigma4))
 
   # block 2,1 = interaction of rho and theta
   tau <- c(1, -rho)
   ZJ <- ZY[ ,-1, drop = FALSE]
 
   hess_21 <-
-    rbind(-ZJ/sigma2, crossprod(delta,ZJ) - tau %*% TSS[, -1]) %>%
+    rbind(-ZJ/sigma2,
+          (crossprod(delta,ZJ) - tau %*% TSS[, -1])/sigma4) %>%
     matrix(ncol = size_rho)
   hess_12 <- t(hess_21)
 
@@ -42,7 +44,6 @@ spflow_mixed_hessian <- function(
   return(full_hessian)
 }
 
-# TODO finish the hessian methods
 spflow_f2_hessian <- function(
   ZZ,
   ZY,
@@ -67,7 +68,7 @@ spflow_f2_hessian <- function(
 
   # Compute the stepsize (h)
   eps <- .Machine$double.eps
-  shift <- eps^(1 / 3) * abs(params)
+  shift <- eps^(2 / 3) * abs(params)
 
   # new loglik value as a function of a shift in the parameter vector
   # IDEA use memiose for re_evaluate_logdet -> speed up calculation

@@ -1,4 +1,4 @@
-#' spflow: A package for spatial econometric interaction models.
+#' Spatial econometric interaction models in R.
 #'
 #' The spflow package provides function to estimate origin-destination flows
 #' with spatial autocorrelation.

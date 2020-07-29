@@ -1,6 +1,6 @@
 #' @include class_sp-network.R class_sp-network-pair.R class_virtual.R utils.R
 
-setClassUnion("sp_net_generalization"    , c("sp_network", "sp_network_pair"))
+setClassUnion("sp_net_generalization" ,c("sp_network", "sp_network_pair"))
 
 # ---- methods ----------------------------------------------------------------
 
@@ -20,6 +20,18 @@ setMethod(
 
     return(invisible(dat(object)))
   })
+
+#' @param drop_columns A vector indicating columns of the data;
+#'     either character or integer.
+#' @rdname drop_columns
+setMethod(
+  f = "drop_columns",
+  signature = c("sp_net_generalization"),
+  function(object, drop_columns) { # ---- drop_columns ------------------------
+    dat(object)[ , c(drop_columns) := NULL]
+    return(invisible(dat(object)))
+  })
+
 
 #' @rdname variable_names
 #' @export
