@@ -54,3 +54,6 @@ spflow_s2sls <- function(HH,HY,ZZ,ZY,TSS,N) {
 
   return(estimation_results)
 }
+
+
+

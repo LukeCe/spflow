@@ -57,7 +57,7 @@ test_that("Combining neworks works", {
                                  network_pair_id = "ge_ge")
 
   nrow_ge <- 16
-  ncol_ge <- 2
+  ncol_ge <- 1
   ncol_pairs <- 3
   id_cols <- 2
 

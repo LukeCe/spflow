@@ -91,3 +91,19 @@ test_that("translist: => correct output", {
 })
 
 
+# ---- linear algebra ---------------------------------------------------------
+test_that("linear_dim_reduction: => correct output", {
+
+  rows <- 450
+  cols <- 5
+  test_matrix <- matrix(rnorm(rows * cols),ncol = cols)
+  # all but one clumns of the additional columns are uniformative ...
+  test_matrix <- cbind(test_matrix, test_matrix + rnorm(rows))
+
+  actual <- linear_dim_reduction(test_matrix)
+  expected_dim <- c(rows,cols + 1)
+  expect_equal(dim(actual), expected_dim)
+})
+
+
+

@@ -57,6 +57,30 @@ try_coercion <- function(obj,class) {
   return(obj_as_class)
 }
 
+# ---- combinatorics ----------------------------------------------------------
+multinom_coef <- function(...) {
+
+  k_args <- list(...) %>% flatlist()
+  t <- Reduce("+",k_args)
+
+  # calculate the denominator
+  chose_k_factorial <- k_args %>%
+    lapply(factorial) %>%
+    Reduce(f = "*", .)
+
+  return(factorial(t)/chose_k_factorial)
+}
+
+count_trinom_coefs <- function(n) {
+  (n + 1) * (n + 2) / 2
+}
+
+sum_trinom_coefs <- function(n) {
+  lapply(seq_len(n), count_trinom_coefs) %>%
+    Reduce("+",.) %>%
+    as.integer()
+}
+
 # formulas --------------------------------------------------------------------
 combine_formulas <- function(..., intercept = FALSE) {
 
@@ -177,6 +201,43 @@ translist <- function(.l) {
   names(result) <-  all_inner_names
 
   return(lapply(result, compact))
+}
+
+# ---- linear algebra ---------------------------------------------------------
+impose_orthogonality <- function(mat,column_sets){
+
+  # first block does not require orthogonal projection
+  Mx_mat <- mat[,column_sets[[1]]]
+  for (i in seq_along(column_sets)[-1]) {
+
+    # Bind residual of orthogonal projection
+    Px_mat <- projec_onto(mat[,column_sets[[i]]],Mx_mat)
+    Mx_mat <- cbind(Mx_mat, mat[,column_sets[[i]]] - Px_mat)
+  }
+
+  return(Mx_mat)
+
+}
+
+decorellate_matrix <- function(y, with_x) {
+  y - projec_onto(y,with_x)
+}
+
+projec_onto <- function(y, onto_x){
+  beta <- solve(crossprod(onto_x),crossprod(onto_x,y))
+  Px_y <- onto_x %*% beta
+  return(Px_y)
+}
+
+linear_dim_reduction <- function(mat, var_threshold = 1, n_comp = NULL) {
+
+  svd_mat <- La.svd(mat)
+  n_comp <- n_comp %||% sum(svd_mat$d >= 1)
+
+  S_trunc <- diag(svd_mat$d[seq_len(n_comp)])
+  U_trunc <- svd_mat$u[,seq_len(n_comp)]
+
+  return(U_trunc %*% S_trunc)
 }
 
 # ---- lists ------------------------------------------------------------------

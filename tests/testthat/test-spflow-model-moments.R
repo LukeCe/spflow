@@ -60,8 +60,26 @@ test_that("spflow_model_moments_mat: mle => correct output", {
   expected <- test_case_1_symmetric$model_moments$M2
   compare_mle_moments <- c("N","n_o","n_d","TSS","ZZ","ZY","DW_traces")
 
-  lapply(compare_mle_moments,
-         function(.m) expect_equal(actual[[.m]], expected[[.m]],
-                                   check.attributes = FALSE))
+  test_moment <- "N"
+  expect_equal(actual[[test_moment]], expected[[test_moment]],
+               check.attributes = FALSE)
+  test_moment <- "n_o"
+  expect_equal(actual[[test_moment]], expected[[test_moment]],
+               check.attributes = FALSE)
+  test_moment <- "n_d"
+  expect_equal(actual[[test_moment]], expected[[test_moment]],
+               check.attributes = FALSE)
+  test_moment <- "TSS"
+  expect_equal(actual[[test_moment]], expected[[test_moment]],
+               check.attributes = FALSE)
+  test_moment <- "ZZ"
+  expect_equal(actual[[test_moment]], expected[[test_moment]],
+               check.attributes = FALSE)
+  test_moment <- "ZY"
+  expect_equal(actual[[test_moment]], expected[[test_moment]],
+               check.attributes = FALSE)
+  test_moment <- "DW_traces"
+  expect_equal(actual[[test_moment]], expected[[test_moment]],
+               check.attributes = FALSE)
 
 })

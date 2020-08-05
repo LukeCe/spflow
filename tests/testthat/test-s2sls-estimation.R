@@ -23,3 +23,18 @@ test_that("spflow_s2sls: model 9 => correct output", {
 
 })
 
+test_that("impose_orthogonality: => correct output", {
+
+  set.seed(123)
+  aa <- rnorm(50)
+  b  <- rnorm(50)
+  correl <- 100
+
+  test_mat <- cbind(aa,aa*correl + b)
+  # check that dimensions are correct and correlation is eliminated
+  actual <- impose_orthogonality(test_mat,column_sets = list(1,2))
+  expect_equal(dim(actual),c(50,2))
+  expect_lt(abs(cor(actual[,2],actual[,1])),0.1)
+  expect_lt(abs(sd(b) - sd(actual[,2])),0.1)
+})
+

@@ -1,4 +1,4 @@
-trace_sequence <- function(W, max_power = 10 ) {
+trace_sequence <- function(W, max_power = 15 ) {
 
   W_traces <- vector(mode = "list", length = max_power + 1)
   W_pow <- W
@@ -285,4 +285,74 @@ fodet1 <- function(parms, traces, n, dev = T) {
   }
 
   return(-sum(rez))
+}
+
+#' Create a lookup table for the calculation of traces
+#'
+#' @param aprox_order An integer defining the order of the taylor series
+#'
+#' @return A data.table that can serve as a lookup
+#' @keywords internal
+trace_lookup_template <- function(aprox_order) {
+
+  possible_powers <- 0:aprox_order
+
+  # generate all options for a trinominal expansion
+  trace_orders <-
+    combn(rep(possible_powers,3),3) %>% t() %>%
+    data.table::as.data.table()
+  data.table::setnames(trace_orders,"rho_" %p% c("d","o","w") )
+
+  trace_orders[,t := rowSums(trace_orders)]
+  trace_orders <-
+    trace_orders[data.table::between(t,1,aprox_order),] %>%
+    unique()
+
+  # add the trinominal coefficient
+  trace_orders[, c_trinom := multinom_coef(list(rho_d,rho_o,rho_w))]
+
+  # create indicators for the powers of traces and n_o/n_d
+  trace_orders[,c("DW_power","OW_power") :=
+                 list(rho_d + rho_w,
+                      rho_o + rho_w)]
+
+  trace_orders[,c("n_d_power","n_o_power") :=
+                 list(as.integer(rho_o == t),
+                      as.integer(rho_d == t))]
+
+  data.table::setorder(trace_orders, t, -rho_d, -rho_o, -rho_w)
+
+  return(trace_orders)
+}
+
+pair_traces_lookup <- function(
+  OW_traces = NULL,
+  DW_traces = NULL,
+  n_o,
+  n_d
+) {
+
+  DW_traces <- OW_traces <- (0:9) *2
+  # use a templated lookup for the trace calculations
+  approx_order <- max(length(OW_traces),length(DW_traces))
+  DW_traces <- c(1,DW_traces)
+  OW_traces <- c(1,OW_traces)
+  names(DW_traces) <- names(OW_traces) <- 0:approx_order
+
+  trace_lookup <- trace_lookup_template(approx_order)
+
+  # factor out fixed quantities fixed quantities
+  trace_lookup[,trace_val :=
+                 DW_traces[as.character(DW_power)]
+               * OW_traces[as.character(OW_power)]
+               * (n_d^n_d_power) * (n_o^n_o_power)
+               * c_trinom]
+
+  select_cols <- c("t","rho_" %p% c("d","o","w"),"trace_val")
+  trace_lookup[,select_cols, with = FALSE]
+
+
+
+
+
 }
