@@ -56,10 +56,16 @@ spflow_model_matrix <- function(
       case_data = dat(sp_multi_network,orig_id),
       case_neighborhood = neighborhoods$OW)
 
+  design_matrices_nodes <- c(origin_model_matrices,destination_model_matrix)
+
   # impose orthogonality of instruments from X
-  design_matrices_nodes <-
-    c(origin_model_matrices,destination_model_matrix) %>%
-    lapply(orthoginolize_instruments)
+  is_relevant <- (flow_control$estimation_method == "s2sls" &&
+                    flow_control$decorrelate_instruments)
+  if (is_relevant) {
+    design_matrices_nodes <- design_matrices_nodes %>%
+      lapply(orthoginolize_instruments)
+
+  }
 
 
   pair_model_matrices <-
@@ -415,10 +421,14 @@ intra_regional_constant <- function(W, use_instruments = FALSE) {
 orthoginolize_instruments <- function(mat) {
 
   inst_index <- attr(mat,"is_instrument_var")
+  no_instruments <- all(!inst_index)
+  if (no_instruments)
+    return(mat)
+
   vars <- mat[,!inst_index]
   inst_orth <- mat[,inst_index] %>%
     decorellate_matrix(cbind(1,vars)) %>%
-    linear_dim_reduction(inst_orth,var_threshold = 0.7)
+    linear_dim_reduction(var_threshold = 0.7)
 
   new_matr <- cbind(vars,inst_orth)
   data.table::setattr(new_matr,name = "is_instrument_var",

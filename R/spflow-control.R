@@ -26,6 +26,7 @@ spflow_control <- function(
   use_sdm = TRUE,
   sdm_variables = "same",
   instrumental_variables = "same",
+  decorrelate_instruments = FALSE,
   hessian_method = "mixed",
   flow_type = NULL) {
 
@@ -90,6 +91,7 @@ spflow_control <- function(
     "hessian_method" = hessian_method,
     "sdm_variables" = sdm_variables,
     "instrumental_variables" = instrumental_variables,
+    "decorrelate_instruments" = decorrelate_instruments,
     "use_intra" = use_intra,
     "use_sdm" = use_sdm,
     "model" = model,

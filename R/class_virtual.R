@@ -1,6 +1,8 @@
-# maybe classes to allow empty slots
+# maybe classes allow empty slots
 setClassUnion("maybe_data.table", c("NULL", "data.frame")) # data.table is no exported -> resort to data.frame
+setClassUnion("maybe_data.frame", c("NULL", "data.frame"))
 setClassUnion("maybe_Matrix"    , c("NULL", "Matrix"))
+setClassUnion("maybe_matrix"    , c("NULL", "matrix"))
 setClassUnion("maybe_list"      , c("NULL", "list"))
 setClassUnion("maybe_numeric"   , c("NULL", "numeric"))
 

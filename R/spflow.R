@@ -134,17 +134,19 @@ spflow <- function(
     flow_type = flow_control$flow_type)
 
   # ... fit the model and add complementary information to the results
-  estimation_results <- spflow_model_estimation(model_moments,flow_control)
+  estimation_results <-
+    spflow_model_estimation(model_moments,flow_control)
 
-  estimation_results$"data" <- drop_instruments(model_matrices)
-  estimation_results$"formulation" <- flow_control$formulation
-  estimation_results$"model" <- flow_control$model
-  estimation_results$"auto-corr" <- ifelse(flow_control$use_sdm,"SDM","LAG")
+  slot(object = estimation_results,"design_matrix") <-
+    drop_instruments(model_matrices)
 
-  rownames(estimation_results$results) <-
-    parameter_names(model_matrices = estimation_results$data,
-                    model_formulation = estimation_results$formulation,
-                    model = estimation_results$model)
+  coef_names <- parameter_names(
+    model_matrices = estimation_results@design_matrix,
+    model_formulation = flow_control$formulation,
+    model = flow_control$model)
+
+  rownames(results(estimation_results)) <- coef_names
+
 
   # TODO solve the residual and fitted value issue
   calculate_residuals <- FALSE

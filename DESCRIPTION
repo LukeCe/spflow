@@ -38,6 +38,8 @@ Collate:
     'class_sp-network.R'
     'class_sp-multi-network.R'
     'class_sp_net_generalization.R'
+    'class_spflow-model-meta.R'
+    'class_spflow-model-children.R'
     'example_data.R'
     'interpret-flow-formula.R'
     'mcmc-estimation.R'

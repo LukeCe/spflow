@@ -170,19 +170,19 @@ describe("Quick start estimstion for minimals user input.",{
       flow_formula = Y9 ~ . ,
       multi_net_ge_default)
 
-    expect_is(default_results,"spflow_model")
+    expect_is(default_results,"spflow_model_s2sls")
 
-    actual_estimates <- default_results$results$est
+    actual_estimates <- results(default_results)$est
     expected_estimates <- test_case_1_symmetric$results$M9$s2sls$params
     expect_equal(actual_estimates,expected_estimates,
                  check.attributes = FALSE)
 
-    actual_uncertainty <- default_results$results$sd
+    actual_uncertainty <- results(default_results)$sd
     expected_uncertainty <- test_case_1_symmetric$results$M9$s2sls$sd_params
     expect_equal(actual_uncertainty,expected_uncertainty,
                  check.attributes = FALSE)
 
-    actual_names <- rownames(default_results$results)
+    actual_names <- rownames(results(default_results))
     expected_names <- c(
       "rho_d", "rho_o", "rho_w", "Constant","Constant_intra",
       "Dest_X", "Dest_X.lag1", "Orig_X", "Orig_X.lag1",
@@ -198,10 +198,10 @@ describe("Quick start estimstion for minimals user input.",{
       multi_net_ge_default,
       flow_control = spflow_control(estimation_method = "mle"))
 
-    expect_is(default_results,"spflow_model")
+    expect_is(default_results,"spflow_model_mle")
 
     # test length as exact reference values are not available
-    actual_estimates <- default_results$results$est
+    actual_estimates <- results(default_results)$est
     expected_estimates_len <-
       test_case_1_symmetric$results$M9$s2sls$params %>% length()
 
@@ -209,7 +209,7 @@ describe("Quick start estimstion for minimals user input.",{
 
     expected_uncertainty_len <-
       test_case_1_symmetric$results$M9$s2sls$sd_params %>% length()
-    actual_uncertainty <- default_results$results$sd
+    actual_uncertainty <- results(default_results)$sd
     expect_length(actual_uncertainty,expected_uncertainty_len)
 
   })
@@ -221,10 +221,10 @@ describe("Quick start estimstion for minimals user input.",{
       multi_net_ge_default,
       flow_control = spflow_control(estimation_method = "mcmc"))
 
-    expect_is(default_results,"spflow_model")
+    expect_is(default_results,"spflow_model_mcmc")
 
     # test length as exact reference values are not available
-    actual_estimates <- default_results$results$est
+    actual_estimates <- results(default_results)$est
     expected_estimates_len <-
       test_case_1_symmetric$results$M9$s2sls$params %>% length()
 
@@ -232,7 +232,7 @@ describe("Quick start estimstion for minimals user input.",{
 
     expected_uncertainty_len <-
       test_case_1_symmetric$results$M9$s2sls$sd_params %>% length()
-    actual_uncertainty <- default_results$results$sd
+    actual_uncertainty <- results(default_results)$sd
     expect_length(actual_uncertainty,expected_uncertainty_len)
 
   })
@@ -252,14 +252,14 @@ describe("Estimation via the formula interface without intra model", {
       multi_net_ge_flex,
       flow_control = test_control)
 
-    expect_is(test_results,"spflow_model")
+    expect_is(test_results,"spflow_model_s2sls")
 
-    actual_estimates <- test_results$results$est
+    actual_estimates <- results(test_results)$est
     expected_estimates <- test_case_1_symmetric$results$M2$s2sls$params
     expect_equal(actual_estimates,expected_estimates,
                  check.attributes = FALSE)
 
-    actual_uncertainty <- test_results$results$sd
+    actual_uncertainty <- results(test_results)$sd
     expected_uncertainty <- test_case_1_symmetric$results$M2$s2sls$sd_params
     expect_equal(actual_uncertainty,expected_uncertainty,
                  check.attributes = FALSE)
@@ -278,13 +278,13 @@ describe("Estimation via the formula interface without intra model", {
       multi_net_ge_flex,
       flow_control = test_control)
 
-    expect_is(test_results,"spflow_model")
+    expect_is(test_results,"spflow_model_mle")
 
-    actual_estimates <- test_results$results$est
+    actual_estimates <- results(test_results)$est
     expected_estimates <- test_case_1_symmetric$results$M2$s2sls$params
     expect_length(actual_estimates,length(expected_estimates))
 
-    actual_uncertainty <- test_results$results$sd
+    actual_uncertainty <- results(test_results)$sd
     expected_uncertainty <- test_case_1_symmetric$results$M2$s2sls$sd_params
     expect_length(actual_uncertainty,length(expected_uncertainty))
 
@@ -302,19 +302,19 @@ describe("Estimation via the formula interface without intra model", {
       multi_net_ge_flex,
       flow_control = test_control)
 
-    expect_is(test_results,"spflow_model")
+    expect_is(test_results,"spflow_model_mle")
 
-    actual_estimates <- test_results$results$est
+    actual_estimates <- results(test_results)$est
     expected_estimates <- test_case_1_symmetric$results$M2$s2sls$params
     expect_length(actual_estimates,length(expected_estimates))
 
-    actual_uncertainty <- test_results$results$sd
+    actual_uncertainty <- results(test_results)$sd
     expected_uncertainty <- test_case_1_symmetric$results$M2$s2sls$sd_params
     expect_length(actual_uncertainty,length(expected_uncertainty))
 
   })
 
-  it("Works for mle estimation (M2 - sym)",{
+  it("Works for mcmc estimation (M2 - sym)",{
 
     test_control <- spflow_control(estimation_method = "mcmc",
                                    use_intra = FALSE,
@@ -324,13 +324,13 @@ describe("Estimation via the formula interface without intra model", {
       multi_net_ge_flex,
       flow_control = test_control)
 
-    expect_is(test_results,"spflow_model")
+    expect_is(test_results,"spflow_model_mcmc")
 
-    actual_estimates <- test_results$results$est
+    actual_estimates <- results(test_results)$est
     expected_estimates <- test_case_1_symmetric$results$M2$s2sls$params
     expect_length(actual_estimates,length(expected_estimates))
 
-    actual_uncertainty <- test_results$results$sd
+    actual_uncertainty <- results(test_results)$sd
     expected_uncertainty <- test_case_1_symmetric$results$M2$s2sls$sd_params
     expect_length(actual_uncertainty,length(expected_uncertainty))
 

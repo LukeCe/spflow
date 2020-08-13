@@ -1,5 +1,8 @@
 spflow_mle <- function(ZZ,ZY,TSS,N,n_d,n_o,DW_traces,OW_traces,
-                       model,hessian_method) {
+                       flow_control) {
+
+  model <- flow_control$model
+  hessian_method <- flow_control$hessian_method
 
   # compute the decomposed coefficients to obtain the decomposed RSS
   delta_t <- solve(ZZ,ZY)
@@ -81,16 +84,13 @@ spflow_mle <- function(ZZ,ZY,TSS,N,n_d,n_o,DW_traces,OW_traces,
   results_df$"p.value" <- 1 - pt(q = abs(results_df$est / results_df$sd),
                                  df =  1)
 
-  estimation_results <- spflow_model(
-    results_df = results_df,
+  estimation_results <- spflow_model_s4(
     varcov = varcov,
-    sd_error = sqrt(sigma2),
-    N = N,
-    method = "mle",
-    formulation = "matrix",
     ll = loglik_value,
-    hessian_method = hessian_method
-    )
+    estimation_results = results_df,
+    estimation_control = flow_control,
+    sd_error = sqrt(sigma2),
+    N = N)
 
   return(estimation_results)
 }

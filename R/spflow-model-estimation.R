@@ -12,7 +12,8 @@ spflow_model_estimation <- function(
         ZZ  = model_moments$ZZ,
         ZY  = model_moments$ZY,
         TSS = model_moments$TSS,
-        N   = model_moments$N
+        N   = model_moments$N,
+        flow_control = flow_control
       )},
     "mle" = {
       spflow_mle(
@@ -24,8 +25,7 @@ spflow_model_estimation <- function(
         n_o   = model_moments$n_o,
         OW_traces = model_moments$OW_traces,
         DW_traces = model_moments$DW_traces,
-        model = flow_control$model,
-        hessian_method = flow_control$hessian_method
+        flow_control = flow_control
       )},
     "mcmc" = {spflow_mcmc(
       ZZ = model_moments$ZZ,
@@ -36,7 +36,7 @@ spflow_model_estimation <- function(
       n_o = model_moments$n_o,
       OW_traces = model_moments$OW_traces,
       DW_traces = model_moments$DW_traces,
-      model = flow_control$model
+      flow_control = flow_control
     )}
   )
 

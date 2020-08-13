@@ -14,11 +14,6 @@ assert_valid_case <- function(argument,cases) {
 }
 
 # classes ---------------------------------------------------------------------
-class_union_null <- function(class) {
-  new <- "maybe_" %p% class
-  methods::setClassUnion(new, members = c(class,"NULL"))
-}
-
 coerce_to <- function(obj, class, ...) {
 
   assert(methods::canCoerce(obj, class),
@@ -396,34 +391,6 @@ drop_matrix_columns <- function(matrix, drop_index) {
 
 }
 
-# ---- primitives -------------------------------------------------------------
-has_equal_elements <- function(obj) {
-  length(unique(obj)) <= 1
-}
-
-has_distinct_elements <- function(obj) {
-  length(unique(obj)) == length(obj)
-}
-
-is_one_of <- function(.obj, .classes) {
-  return(any(class(.obj) %in% .classes))
-}
-
-is_one_sided_formula <- function(formula) {
-  is(formula,"formula") && (length(formula) == 2)
-}
-
-is_single_character <- function(x) {
-  is.character(x) && (length(x) == 1L)
-}
-
-is_single_logical <- function(x) {
-  is.logical(x) && (length(x) == 1L)
-}
-
-is_two_sided_formula <- function(formula) {
-  is(formula,"formula") && (length(formula)==3)
-}
 
 # pipe ------------------------------------------------------------------------
 #' Pipe operator
@@ -457,6 +424,43 @@ NULL
 
 "%|!|%" <- function(x, y) {
   if (is.null(x)) x else y
+}
+
+# ---- primitives -------------------------------------------------------------
+has_equal_elements <- function(obj) {
+  length(unique(obj)) <= 1
+}
+
+has_distinct_elements <- function(obj) {
+  length(unique(obj)) == length(obj)
+}
+
+is_one_of <- function(.obj, .classes) {
+  return(any(class(.obj) %in% .classes))
+}
+
+is_one_sided_formula <- function(formula) {
+  is(formula,"formula") && (length(formula) == 2)
+}
+
+is_single_character <- function(x) {
+  is.character(x) && (length(x) == 1L)
+}
+
+is_single_logical <- function(x) {
+  is.logical(x) && (length(x) == 1L)
+}
+
+is_two_sided_formula <- function(formula) {
+  is(formula,"formula") && (length(formula)==3)
+}
+
+# ---- print ------------------------------------------------------------------
+print_line <- function(n_lines = 60, line_symbol = "-") {
+
+  line <- paste(rep(line_symbol,n_lines),collapse = "")
+  return(line)
+
 }
 
 # ---- vectors ----------------------------------------------------------------

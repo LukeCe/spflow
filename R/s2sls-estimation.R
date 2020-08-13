@@ -1,4 +1,4 @@
-spflow_s2sls <- function(HH,HY,ZZ,ZY,TSS,N) {
+spflow_s2sls <- function(HH,HY,ZZ,ZY,TSS,N,flow_control) {
 
   # number of auto-regressive parameters and model coefficients and total
   nb_rho <- ncol(HY) - 1
@@ -42,15 +42,15 @@ spflow_s2sls <- function(HH,HY,ZZ,ZY,TSS,N) {
     "sd" = sd_mu)
 
   results_df$"t.stat" <- results_df$est / results_df$sd
-  results_df$"p.value" <- 1 - pt(abs(results_df$est / results_df$sd), N - nb_delta)
+  results_df$"p.value" <- 1 - pt(q = abs(results_df$est / results_df$sd),
+                                 df =  1)
 
-  estimation_results <- spflow_model(
-    results_df = results_df,
+  estimation_results <- spflow_model_s4(
     varcov = varcov,
+    estimation_results = results_df,
+    estimation_control = flow_control,
     sd_error = sqrt(sigma2),
-    N = N,
-    method = "s2sls",
-    formulation = "matrix")
+    N = N)
 
   return(estimation_results)
 }

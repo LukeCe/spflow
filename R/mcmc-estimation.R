@@ -10,12 +10,12 @@ spflow_mcmc <- function(
   n_o,
   OW_traces,
   DW_traces,
-  model,
+  flow_control = flow_control,
   nb_draw = 5500,
   nb_burn_in = 2500
 ) {
 
-
+  model <- flow_control$model
   ## initialize rho for M-H sampling
   nb_rho <- ncol(TSS) - 1
   pre_rho <- draw_initial_guess(nb_rho)
@@ -156,16 +156,15 @@ spflow_mcmc <- function(
   N <- n_o * n_d
   results_df$"t.stat" <- results_df$est / results_df$sd
   results_df$"p.value" <- 1 - pt(q = abs(results_df$est / results_df$sd),
-                                 df =  N - size_delta)
+                                 df =  1)
 
   id_sd <- nrow(results_df)
-  estimation_results <- spflow_model(
-    results_df = results_df[-id_sd, ],
-    varcov = NULL,
+  estimation_results <- spflow_model_s4(
+    mcmc_results = mcmc_results,
+    estimation_results = results_df[-id_sd, ],
+    estimation_control = flow_control,
     sd_error = sqrt(results_df$est[id_sd]),
-    N = N,
-    method = "mcmc",
-    mcmc_results = mcmc_results
+    N = N
   )
 
   return(estimation_results)
