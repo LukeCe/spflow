@@ -1,5 +1,3 @@
-#' @include class_virtual.R utils.R
-
 #' @title
 #' An S4 class that holds on a single network
 #'
@@ -14,22 +12,129 @@
 #' @slot node_data A data.frame that contains all information describing the nodes
 #' @slot node_neighborhood A matrix that describes the neighborhood of the nodes
 #'
-#' @family sp_network sp_multi_network
+#' @family sp_network
 #'
 #' @export
-setClass("sp_network",
+setClass("sp_network_nodes",
          slots = c(
            network_id        = "character",
            node_count        = "maybe_numeric",
            node_neighborhood = "maybe_Matrix",
            node_data         = "maybe_data.table"))
 
-#
+# ---- Methods ----------------------------------------------------------------
 
-# validity --------------------------------------------------------------------
+#' @export
+#' @rdname count
+setMethod(
+  f = "count",
+  signature = "sp_network_nodes",
+  function(object) { # ---- count ---------------------------------------------
+    return(object@node_count)
+  })
+
+#' @export
+#' @rdname dat
+setMethod(
+  f = "dat",
+  signature = "sp_network_nodes",
+  function(object) { # ---- dat -----------------------------------------------
+    return(object@node_data)
+    })
+
+#' @export
+#' @rdname dat
+setReplaceMethod(
+  f = "dat",
+  signature = "sp_network_nodes",
+  function(object, value) {
+    object@node_data <- value
+
+    # remove neighborhood if there is a mismatch in dimensions
+    dim_net <- c(nrow(object@node_data),dim(object@node_neighborhood))
+    if (!has_equal_elements(dim_net)) {
+      object@node_neighborhood <- NULL
+      object@node_count <- dim_net[1]
+    }
+
+    if (validObject(object)) {
+      return(object)
+    }
+    })
+
+#' @export
+#' @rdname id
+setMethod(
+  f = "id",
+  signature = "sp_network_nodes",
+  function(object) { # ---- id ------------------------------------------------
+    return(object@network_id)
+  })
+
+#' @export
+#' @rdname id
+setReplaceMethod(
+  f = "id",
+  signature = "sp_network_nodes",
+  function(object, value) { # ---- id <- --------------------------------------
+    object@network_id <- value
+    if (validObject(object))
+      return(object)
+  })
+
+#' @export
+#' @rdname neighborhood
+setMethod(
+  f = "neighborhood",
+  signature = "sp_network_nodes",
+  function(object) { # ---- neighborhood --------------------------------------
+    return(object@node_neighborhood)
+  })
+
+#' @export
+#' @rdname neighborhood
+setReplaceMethod(
+  f = "neighborhood",
+  signature = "sp_network_nodes",
+  function(object,value) { # ---- neighborhood <- -----------------------------
+    object@node_neighborhood <- value
+
+    # remove node_data if there is a mismatch in dimensions
+    dim_net <- c(dim(object@node_neighborhood),nrow(object@node_data))
+    if (!has_equal_elements(dim_net)) {
+      object@node_data <- NULL
+      object@node_count <- dim_net[1]
+    }
+
+    if (validObject(object))
+      return(object)
+  })
+
+
+#' @export
+#' @rdname variable_names
+setMethod(
+  f = "variable_names",
+  signature = "sp_network_nodes",
+  function(object) { # ---- variable_names ------------------------------------
+    return(names(object@node_data))
+  })
+
+#' @export
+#' @rdname variable_names
+setReplaceMethod(
+  f = "variable_names",
+  signature = "sp_network_nodes",
+  function(object,value) { # ---- variable_names < ----------------------------
+    names(object@node_data) <- value
+    if (validObject(object))
+      return(object)
+  })
+
 setValidity(
-  Class = "sp_network",
-  method =  function(object) {
+  Class = "sp_network_nodes",
+  function(object) { # ---- validity ------------------------------------------
+
 
     dim_neighborhood <- dim(object@node_neighborhood)
 
@@ -56,116 +161,7 @@ setValidity(
     TRUE
   })
 
-# ---- get and set ------------------------------------------------------------
-#' @export
-#' @rdname count
-setMethod(
-  f = "count",
-  signature = "sp_network",
-  function(object) { # ---- count ---------------------------------------------
-    return(object@node_count)
-  })
-
-#' @export
-#' @rdname dat
-setMethod(
-  f = "dat",
-  signature = "sp_network",
-  function(object) { # ---- dat -----------------------------------------------
-    return(object@node_data)
-    })
-
-#' @export
-#' @rdname dat
-setReplaceMethod(
-  f = "dat",
-  signature = "sp_network",
-  function(object, value) {
-    object@node_data <- value
-
-    # remove neighborhood if there is a mismatch in dimensions
-    dim_net <- c(nrow(object@node_data),dim(object@node_neighborhood))
-    if (!has_equal_elements(dim_net)) {
-      object@node_neighborhood <- NULL
-      object@node_count <- dim_net[1]
-    }
-
-    if (validObject(object)) {
-      return(object)
-    }
-    })
-
-#' @export
-#' @rdname id
-setMethod(
-  f = "id",
-  signature = "sp_network",
-  function(object) { # ---- id ------------------------------------------------
-    return(object@network_id)
-  })
-
-#' @export
-#' @rdname id
-setReplaceMethod(
-  f = "id",
-  signature = "sp_network",
-  function(object, value) {
-    object@network_id <- value
-    if (validObject(object))
-      return(object)
-  })
-
-#' @export
-#' @rdname neighborhood
-setMethod(
-  f = "neighborhood",
-  signature = "sp_network",
-  function(object) { # ---- neighborhood --------------------------------------
-    return(object@node_neighborhood)
-  })
-
-#' @export
-#' @rdname neighborhood
-setReplaceMethod(
-  f = "neighborhood",
-  signature = "sp_network",
-  function(object,value) {
-    object@node_neighborhood <- value
-
-    # remove node_data if there is a mismatch in dimensions
-    dim_net <- c(dim(object@node_neighborhood),nrow(object@node_data))
-    if (!has_equal_elements(dim_net)) {
-      object@node_data <- NULL
-      object@node_count <- dim_net[1]
-    }
-
-    if (validObject(object))
-      return(object)
-  })
-
-# ---- methods ----------------------------------------------------------------
-
-#' @export
-#' @rdname variable_names
-setMethod(
-  f = "variable_names",
-  signature = "sp_network",
-  function(object) { # ---- variable_names ------------------------------------
-    return(names(object@node_data))
-  })
-
-#' @export
-#' @rdname variable_names
-setReplaceMethod(
-  f = "variable_names",
-  signature = "sp_network",
-  function(object,value) {
-    names(object@node_data) <- value
-    if (validObject(object))
-      return(object)
-  })
-
-# ---- constructors -----------------------------------------------------------
+# ---- Constructors -----------------------------------------------------------
 
 #' Create an S4 object that contains information in the nodes of a network
 #'
@@ -174,12 +170,12 @@ setReplaceMethod(
 #' @param node_neighborhood A matrix that describes the neighborhood of the nodes
 #' @param node_id_column A character indicating the column containing identifiers for the nodes
 #'
-#' @family network_info
+#' @family sp_network
 #' @importFrom data.table :=
 #'
-#' @return The S4 class sp_network
+#' @return The S4 class sp_network_nodes
 #' @export
-sp_network <- function(
+sp_network_nodes <- function(
   network_id,
   node_neighborhood = NULL,
   node_data = NULL,
@@ -191,7 +187,7 @@ sp_network <- function(
   node_count <- c(dim_node_data[1],dim_neighborhood) %>% unique()
 
   nodes <- new(
-    "sp_network",
+    "sp_network_nodes",
     network_id        = network_id,
     node_neighborhood = try_coercion(node_neighborhood,"Matrix"),
     node_count        = node_count,

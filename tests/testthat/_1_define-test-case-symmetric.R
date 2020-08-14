@@ -451,6 +451,13 @@ results$M2$s2sls <- design_results
 results$M2$s2sls$params <- mu
 results$M2$s2sls$sd_params <- sqrt(diag(varcov))
 
+# TODO what is wrong with the fitted values?
+# from @Goulard2017
+fitted_A <- simulation_input$M2$A_inv %*% (Z %*% mu[-1])
+resid_A <- Y - fitted_A
+RSS3 <- sum(resid_A^2)
+sigma2_v3 <- as.vector(RSS3)/N
+
 rm(MM_2,ESS,RSS,mu,sigma2,varcov)
 # ..4.2 Model 2 mle reg ----
 # MLE regression is much more complex and might not be tested...

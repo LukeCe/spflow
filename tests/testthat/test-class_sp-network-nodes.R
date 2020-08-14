@@ -1,7 +1,7 @@
 test_that("Abusive input ==> ERROR", {
 
     expect_error({
-        test_object <- sp_network(
+        test_object <- sp_network_nodes(
           network_id = "cars",
           node_neighborhood = "cars",
           node_data = "cars")
@@ -12,7 +12,7 @@ test_that("Abusive input ==> ERROR", {
 test_that("Inconsisten input ==> ERROR", {
 
     expect_error({
-        test_object <- sp_network(
+        test_object <- sp_network_nodes(
           network_id = "cars",
           node_neighborhood = diag(1, nrow(cars) + 1),
           node_data = cars)
@@ -23,17 +23,17 @@ test_that("Inconsisten input ==> ERROR", {
 
 test_that("Correct S4 construction ", {
 
-    test_object <- sp_network(
+    test_object <- sp_network_nodes(
       network_id = "cars",
       node_neighborhood = diag(1, nrow = nrow(cars), ncol = nrow(cars)),
       node_data = cars)
 
-    expect_s4_class(test_object, "sp_network")
+    expect_s4_class(test_object, "sp_network_nodes")
 })
 
 test_that("Correct S4 accessors", {
 
-    test_object <- sp_network(
+    test_object <- sp_network_nodes(
       network_id = "cars",
       node_neighborhood = diag(1, nrow = nrow(cars), ncol = nrow(cars)),
       node_data = cars)
@@ -48,7 +48,7 @@ test_that("Correct S4 accessors", {
 
 test_that("Correct data replacements", {
 
-    test_object <- sp_network(
+    test_object <- sp_network_nodes(
       network_id = "cars",
       node_neighborhood = diag(1, nrow = nrow(cars), ncol = nrow(cars)),
       node_data = cars)

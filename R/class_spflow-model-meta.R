@@ -1,5 +1,3 @@
-#' @include class_virtual.R
-
 #' @title
 #' A S4 class that represent the results of a spatial interaction model
 #'
@@ -63,19 +61,6 @@ setMethod(
   function(object) { # ---- resid ---------------------------------------------
     return(object@resid)
   })
-
-#' @title Access results of an estimation
-#' @param object spflow_model_meta
-#' @name results
-#' @export
-setGenericVerif("results",  function(object, ...){ # ---- results -------------
-  standardGeneric("results")})
-
-#' @param object spflow_model_meta
-#' @name results
-#' @export
-setGenericVerif("results<-",  function(object, ...){ # ---- results <- --------
-  standardGeneric("results<-")})
 
 #' @export
 #' @rdname results

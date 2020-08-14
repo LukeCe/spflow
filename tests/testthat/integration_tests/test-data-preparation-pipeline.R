@@ -26,8 +26,8 @@ nb_nodes_2 <- nrow(attributes_2)
 context("Format node data")
 
 # valid objects
-nodes1 <- sp_network(key1,node_neighborhood = diag(2,nb_nodes_1,nb_nodes_1))
-nodes2 <- sp_network(key2,node_neighborhood = diag(2,nb_nodes_2,nb_nodes_2))
+nodes1 <- sp_network_nodes(key1,node_neighborhood = diag(2,nb_nodes_1,nb_nodes_1))
+nodes2 <- sp_network_nodes(key2,node_neighborhood = diag(2,nb_nodes_2,nb_nodes_2))
 
 # invalid objects
 nodes1_fail <- nodes1

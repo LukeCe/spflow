@@ -12,6 +12,7 @@
 #' @aliases spflow-package
 #' @docType package
 #' @import Matrix
+#' @importClassesFrom Matrix Matrix
 #' @importFrom methods as canCoerce is isGeneric new setClassUnion setGeneric slot validObject
 #' @importFrom stats as.formula contrasts formula model.matrix optim predict pt quantile reformulate rgamma rnorm runif sd terms terms.formula
 #' @keywords internal

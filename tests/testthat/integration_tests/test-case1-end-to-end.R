@@ -16,7 +16,7 @@ load_all()
 
 ge_df <- test_case_1_symmetric$input_data$node_data
 ge_neigh <- test_case_1_symmetric$input_data$node_neighborhood
-network_ge <- sp_network(network_id = "ge",
+network_ge <- sp_network_nodes(network_id = "ge",
                          node_neighborhood = ge_neigh,
                          node_data = ge_df,node_id_column = "id" )
 

@@ -45,7 +45,7 @@ germany_contingency <- germany_grid %>%
 germany_data <- cbind(germany_data,
                       X_lag = germany_contingency %*% germany_data$X)
 
-germany_net <- sp_network(
+germany_net <- sp_network_nodes(
   network_id = "ge",
   node_neighborhood = germany_contingency,
   node_data = germany_data,

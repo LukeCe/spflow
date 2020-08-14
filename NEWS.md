@@ -20,5 +20,5 @@ Estimation methods available at this point are s2sls; mle based on the mixed hes
 
 The only tested example corresponds to within network flows under sdm specification which includes the intra-regional parameters. 
 
-+ data structures: `sp_network()` , `sp_network_pair()`, `sp_multi_network()`
++ data structures: `sp_network_nodes()` , `sp_network_pair()`, `sp_multi_network()`
 + estimation: `spflow()`

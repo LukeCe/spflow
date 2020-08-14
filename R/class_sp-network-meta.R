@@ -1,6 +1,6 @@
-#' @include class_sp-network.R class_sp-network-pair.R class_virtual.R utils.R
+#' @include class_sp-network-nodes.R class_sp-network-pair.R
 
-setClassUnion("sp_net_generalization" ,c("sp_network", "sp_network_pair"))
+setClassUnion("sp_network_meta" ,c("sp_network_nodes", "sp_network_pair"))
 
 # ---- methods ----------------------------------------------------------------
 
@@ -10,7 +10,7 @@ setClassUnion("sp_net_generalization" ,c("sp_network", "sp_network_pair"))
 #' @rdname set_columns
 setMethod(
   f = "set_columns",
-  signature = c("sp_net_generalization"),
+  signature = c("sp_network_meta"),
   function(object, new_cols) { # ---- set_columns --------------------------------
 
     new_cols <- data.frame(new_cols,check.names = TRUE)
@@ -26,7 +26,7 @@ setMethod(
 #' @rdname drop_columns
 setMethod(
   f = "drop_columns",
-  signature = c("sp_net_generalization"),
+  signature = c("sp_network_meta"),
   function(object, drop_columns) { # ---- drop_columns ------------------------
     dat(object)[ , c(drop_columns) := NULL]
     return(invisible(dat(object)))
@@ -37,7 +37,7 @@ setMethod(
 #' @export
 setMethod(
   f = "variable_names",
-  signature = c("sp_net_generalization"),
+  signature = c("sp_network_meta"),
   function(object) { # ---- variable_names ------------------------------------
     return(names(dat(object)))
   })

@@ -57,13 +57,6 @@ setMethod(
     return(object@ll)
   })
 
-#' @title Access variance covriance matrix of the estimators
-#' @param object spflow_model_mle or spflow_model_s2sls
-#' @name varcov
-#' @export
-setGenericVerif("varcov",  function(object){ # ---- varcov ---------------
-  standardGeneric("varcov")})
-
 #' @export
 #' @rdname varcov
 setMethod(

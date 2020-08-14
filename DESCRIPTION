@@ -32,12 +32,13 @@ Imports:
     Matrix,
     methods
 Collate: 
+    'spflow-package.R'
     'utils.R'
-    'class_virtual.R'
+    'class_0_generics-and-maybe.R'
     'class_sp-network-pair.R'
-    'class_sp-network.R'
+    'class_sp-network-nodes.R'
     'class_sp-multi-network.R'
-    'class_sp_net_generalization.R'
+    'class_sp-network-meta.R'
     'class_spflow-model-meta.R'
     'class_spflow-model-children.R'
     'example_data.R'
@@ -54,7 +55,6 @@ Collate:
     'spflow-model-estimation.R'
     'spflow-model-matrix.R'
     'spflow-model-moments.R'
-    'spflow-package.R'
     'spflow.R'
     'spflow_sim.R'
 URL: https://github.com/LukeCe/spflow

@@ -7,7 +7,7 @@
 #'
 #'
 #' We provide the spatial objects which contains the geography of our example
-#' as well as the prepared [sp_network()] objects.
+#' as well as the prepared [sp_network_nodes()] objects.
 #' Finally there is a multi_network object which contains the two networks and
 #' four network pairs based on the same examples.
 #'

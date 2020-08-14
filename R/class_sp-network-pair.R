@@ -1,10 +1,8 @@
-#' @include utils.R class_virtual.R
-
 #' @title
 #' An S4 class which holds information on origin-destination pairs.
 #'
 #' @description
-#' Each origin destination pair is composed of two nodes (see [sp_network()]).
+#' Each origin destination pair is composed of two nodes (see [sp_network_nodes()]).
 #' All origins belong to the same (origin-) network and all destination belong to
 #' the same (destination-) network.
 #' It is possible to chose the same network for origins and destinations, which
@@ -18,7 +16,7 @@
 #' @slot node_pair_count A numeric indicating the number of origin-destination pairs
 #' @slot destination_node_count A numeric that represents the number of nodes in the destination network
 #'
-#' @family network_info
+#' @family sp_network
 #' @importClassesFrom Matrix Matrix
 #' @export
 setClass("sp_network_pair",
@@ -30,24 +28,8 @@ setClass("sp_network_pair",
                    node_pair_data         = "maybe_data.table",
                    node_pair_count        = "maybe_numeric"))
 
-# validity --------------------------------------------------------------------
-setValidity("sp_network_pair", function(object) {
+# ---- Methods ----------------------------------------------------------------
 
-  consistent_od_dim <-
-    c(nrow(object@node_pair_data),
-      object@origin_node_count * object@destination_node_count,
-      object@node_pair_count) %>%
-    has_equal_elements(.)
-
-  if (!consistent_od_dim) {
-    error_msg <- "The dimensions of node pairs are inconsistent!"
-    return(error_msg)
-  }
-
-  TRUE
-})
-
-# ---- get and set ------------------------------------------------------------
 #' @param what A character to indicate what to count;
 #'   should be in c("origins","destinations","pairs").
 #' @rdname count
@@ -82,7 +64,8 @@ setMethod(
 #' @export
 setReplaceMethod(
   f = "dat",
-  signature = "sp_network_pair", function(object, ..., value) {
+  signature = "sp_network_pair",
+  function(object, ..., value) {  # ---- dat <- -------------------------------
 
     sp_network_pair(origin_network_id = object@origin_network_id,
                     destination_network_id = object@destination_network_id,
@@ -115,7 +98,7 @@ setMethod(
 setReplaceMethod(
   f = "id",
   signature = "sp_network_pair",
-  function(object,value) {
+  function(object,value) {  # ---- id <- --------------------------------------
 
     new_id_orig <- strsplit("_",value) %>% unlist() %>% head(1)
     new_id_dest <- strsplit("_",value) %>% unlist() %>% tail(1)
@@ -131,10 +114,25 @@ setReplaceMethod(
       return(object)
   })
 
-# ---- methods ----------------------------------------------------------------
-# none
+setValidity("sp_network_pair",
+            function(object) { # ---- validity --------------------------------
 
-# ---- constructors -----------------------------------------------------------
+
+              consistent_od_dim <-
+                c(nrow(object@node_pair_data),
+                  object@origin_node_count * object@destination_node_count,
+                  object@node_pair_count) %>%
+                has_equal_elements(.)
+
+              if (!consistent_od_dim) {
+                error_msg <- "The dimensions of node pairs are inconsistent!"
+                return(error_msg)
+              }
+
+              TRUE
+            })
+# ---- Constructors -----------------------------------------------------------
+
 #' Create an S4 object that contains information on origin-destination pairs
 #'
 #' @param origin_network_id A character that serves as identifier for the origin network
@@ -145,7 +143,7 @@ setReplaceMethod(
 #' @param destination_key_column A character indicating the column containing identifiers for the destinations
 #' @param destination_node_count A numeric declaring the number of destinations
 #'
-#' @family network_info
+#' @family sp_network
 #'
 #' @return An S4 class of type [sp_network_pair()]
 #' @export

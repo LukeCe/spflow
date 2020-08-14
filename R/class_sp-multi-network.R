@@ -1,9 +1,9 @@
-#' @include class_sp-network.R class_sp-network-pair.R class_virtual.R utils.R
+#' @include class_sp-network-nodes.R class_sp-network-pair.R
 
 
 #' @title
 #' An S4 class that gathers information on one or multiple networks
-#' [sp_network()] and origin-destination pairs [sp_network_pair()].
+#' [sp_network_nodes()] and origin-destination pairs [sp_network_pair()].
 #'
 #' @slot networks A list of [sp_network] objects
 #' @slot network_pairs A list of [sp_network_pair] objects
@@ -29,7 +29,7 @@ setValidity("sp_multi_network", function(object) {
   }
 
   valid_nodes <-
-    c(rapply(object@networks, is_one_of, .classes = c("sp_network","NULL")),
+    c(rapply(object@networks, is_one_of, .classes = c("sp_network_nodes","NULL")),
       rapply(object@networks, validObject))
 
   if (!all(valid_nodes)) {
@@ -95,7 +95,7 @@ setMethod(
   })
 
 
-#' @param network_id A single character for an id of [sp_network()]
+#' @param network_id A single character for an id of [sp_network_nodes()]
 #' @param network_pair_id A single character for an id of [sp_network_pair()]
 #'
 #' @rdname dat
@@ -120,7 +120,7 @@ setMethod(
     }
 })
 
-#' @param network_ids A character vector of ids for contained [sp_network()] objects
+#' @param network_ids A character vector of ids for contained [sp_network_nodes()] objects
 #' @rdname neighborhoods
 #' @export
 setMethod(
@@ -206,12 +206,12 @@ sp_multi_network <- function(...) {
   input_nets <- list(...) %>% flatten() %||% list()
 
   assert(all(rapply(input_nets, is_one_of,
-                    .classes = c("sp_network", "sp_network_pair"))),
+                    .classes = c("sp_network_nodes", "sp_network_pair"))),
     "All information that is not of type sp_network or sp_network_pair is discarded!",
     warn = TRUE
   )
 
-  is_net <- rapply(input_nets, is, class2 = "sp_network")
+  is_net <- rapply(input_nets, is, class2 = "sp_network_nodes")
   is_pair <- rapply(input_nets, is, class2 = "sp_network_pair")
 
   sp_networks <- input_nets[is_net]

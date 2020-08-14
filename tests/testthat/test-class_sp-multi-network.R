@@ -3,7 +3,7 @@ context("sp_multi_network - constructor")
 
 test_network_ids <- c("net1","net2")
 test_multi_net <- sp_multi_network(
-  c(lapply(test_network_ids, sp_network),
+  c(lapply(test_network_ids, sp_network_nodes),
     lapply(test_network_ids, function(.id) sp_network_pair(.id, .id)))
   )
 
@@ -29,7 +29,7 @@ context("sp_multi_network - Method: dat")
 test_that("Data retrieval works correctly", {
 
   net_id <- "iris"
-  test_net <- sp_network(net_id,node_data = iris)
+  test_net <- sp_network_nodes(net_id,node_data = iris)
 
   orig_id <- "carsO"
   dest_id <- "carsD"

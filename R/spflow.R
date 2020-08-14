@@ -62,7 +62,7 @@
 #'
 #' All the declared variables must be available in the provided
 #' [sp_multi_network()], which gathers information on the origins and
-#' destinations [sp_network()] as well as the origin-destination pairs
+#' destinations [sp_network_nodes()] as well as the origin-destination pairs
 #' [sp_network_pair()].
 #'
 #' Using the shortcut notation `Y ~ .` is possible and will be interpreted as
