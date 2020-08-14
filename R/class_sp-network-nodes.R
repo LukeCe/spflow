@@ -111,24 +111,32 @@ setReplaceMethod(
   })
 
 
-#' @export
-#' @rdname variable_names
 setMethod(
-  f = "variable_names",
+  f = "show",
   signature = "sp_network_nodes",
-  function(object) { # ---- variable_names ------------------------------------
-    return(names(object@node_data))
-  })
+  function(object){ # ---- show -----------------------------------------------
 
-#' @export
-#' @rdname variable_names
-setReplaceMethod(
-  f = "variable_names",
-  signature = "sp_network_nodes",
-  function(object,value) { # ---- variable_names < ----------------------------
-    names(object@node_data) <- value
-    if (validObject(object))
-      return(object)
+    cat("Spatial network nodes with id:",id(object))
+    cat("\n")
+    cat(print_line(50))
+
+    cat("\nNumber of nodes:", count(object))
+
+    has_neighborhood <- !is.null(neighborhood(object))
+    if (has_neighborhood) {
+      cat("\nDesnsity of the neighborhood matrix:",
+          format_percent(neighborhood(object) %>% nnzero()/
+                           neighborhood(object) %>% length()),
+          "(non-zero connections)")
+    }
+
+    has_data <- !is.null(dat(object))
+    if (has_data) {
+      cat("\n\nData on individual nodes:\n")
+      print(dat(object))
+    }
+    cat("\n")
+    invisible(object)
   })
 
 setValidity(

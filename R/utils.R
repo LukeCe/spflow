@@ -452,7 +452,7 @@ is_single_logical <- function(x) {
 }
 
 is_two_sided_formula <- function(formula) {
-  is(formula,"formula") && (length(formula)==3)
+  is(formula,"formula") && (length(formula) == 3)
 }
 
 # ---- print ------------------------------------------------------------------
@@ -460,8 +460,12 @@ print_line <- function(n_lines = 60, line_symbol = "-") {
 
   line <- paste(rep(line_symbol,n_lines),collapse = "")
   return(line)
-
 }
+
+format_percent <- function(x) {
+  sprintf(x * 100,fmt = "%1.2f%%")
+}
+
 
 # ---- vectors ----------------------------------------------------------------
 insert_after <- function(vec,what,where,replace = TRUE) {

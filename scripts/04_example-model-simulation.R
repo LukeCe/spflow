@@ -46,11 +46,11 @@ pair_variables_mat <- pair_variables %>%
 # compute spatial filter matrices for the simulations
 origin_ids <- spflow:::lookup(pair_ids) %>%
   lapply(function(.id)
-    id(multi_net_usa_ge)$network_pairs[[.id]][["origin_network_id"]])
+    id(multi_net_usa_ge)$network_pairs[[.id]][["origin"]])
 
 destination_ids <- spflow:::lookup(pair_ids) %>%
   lapply(function(.id)
-    id(multi_net_usa_ge)$network_pairs[[.id]][["destination_network_id"]])
+    id(multi_net_usa_ge)$network_pairs[[.id]][["destination"]])
 
 
 all_regions <- unlist(c(origin_ids,destination_ids)) %>% unique()

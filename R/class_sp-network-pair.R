@@ -82,9 +82,9 @@ setMethod(
   function(object,what = cases) { # ---- id -----------------------------------
 
     ids <- c(
-      "network_pair_id" = object@network_pair_id,
-      "origin_network_id" = object@origin_network_id,
-      "destination_network_id" = object@destination_network_id
+      "pair" = object@network_pair_id,
+      "origin" = object@origin_network_id,
+      "destination" = object@destination_network_id
     )
     cases <- names(ids)
     assert_valid_case(what,cases)
@@ -112,6 +112,40 @@ setReplaceMethod(
 
     if (validObject(object))
       return(object)
+  })
+
+setMethod(
+  f = "show",
+  signature = "sp_network_pair",
+  function(object){ # ---- show -----------------------------------------------
+
+    cat("Spatial network pair with id:",id(object,"pair"))
+    cat("\n")
+    cat(print_line(50))
+
+    od_explain <- "\n%s network id: %s (with %s nodes)"
+
+    cat(od_explain %>% sprintf(
+      "Origin", id(object,"origin"), count(object, "origins")))
+    cat(od_explain %>% sprintf(
+      "Destination", id(object,"destination"), count(object, "destinations")))
+
+    cat("\nNumber of pairs:", count(object,"pairs"))
+    pair_explain <- "\nCompleteness of pairs: %s (%i/%i)"
+    cat(pair_explain %>% sprintf(
+      format_percent(count(object,"pairs") /
+                       prod(count(object,c("origins","destinations")))),
+      count(object,"pairs"),
+      prod(count(object,c("origins","destinations")))
+    ))
+
+    has_data <- !is.null(dat(object))
+    if (has_data) {
+      cat("\n\nData on individual node-pairs:\n")
+      print(dat(object))
+    }
+    cat("\n")
+    invisible(object)
   })
 
 setValidity("sp_network_pair",

@@ -111,8 +111,8 @@ spflow <- function(
 
   ## ... identify the flow type
   flow_control$flow_type <- ifelse(
-    network_ids["origin_network_id"] ==
-      network_ids["destination_network_id"],
+    network_ids["origin"] ==
+      network_ids["destination"],
     yes = "within", no = "between"
   )
 

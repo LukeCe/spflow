@@ -17,9 +17,9 @@ spflow_model_matrix <- function(
 
   # identification of the data sources
   data_source_ids <- id(sp_multi_network)$network_pairs[[network_pair_id]]
-  pair_id <- data_source_ids["network_pair_id"]
-  orig_id <- data_source_ids["origin_network_id"]
-  dest_id <- data_source_ids["destination_network_id"]
+  pair_id <- data_source_ids["pair"]
+  orig_id <- data_source_ids["origin"]
+  dest_id <- data_source_ids["destination"]
 
   # define which formulas will be carried to which data source
   pair_data_cases <- c("Y", "G")
