@@ -26,7 +26,30 @@ setClass("spflow_model_meta",
            spatial_filter_matrix = "maybe_matrix",
            design_matrix = "ANY"))
 
-# ---- generics & methods -----------------------------------------------------
+# ---- Methods ----------------------------------------------------------------
+#' @rdname
+setMethod(
+  f = "add_details",
+  signature = "spflow_model_meta",
+  function(object, model_matrices, flow_control) { # ---- add_details ---------------------------------------
+
+    # add design matrix
+    object@design_matrix <- drop_instruments(model_matrices)
+
+    # add coef names
+    coef_names <- parameter_names(
+      model_matrices = object@design_matrix,
+      model_formulation = flow_control$formulation,
+      model = flow_control$model)
+    object@results <- data.frame(object@results,".names" = coef_names,
+                                 row.names = ".names")
+
+
+
+    results_df <- object@estimation_results
+    return(lookup(results_df$est,rownames(results_df)))
+  })
+
 
 #' @export
 setMethod(
@@ -53,6 +76,53 @@ setMethod(
   function(object) { # ---- nobs ----------------------------------------------
     return(object@N)
   })
+
+
+#' @export
+setMethod(
+  f = "predict",
+  signature = "spflow_model_meta",
+  function(object, ..., type = "BP") { # ---- predict -------------------------------------------
+
+    ## 3 cases for predictions
+    # fitted values -> existing data
+    # prediction -> change of data for existing spatial units
+    # extrapolation -> additional spatial units
+    args <- list(...)
+
+    fitted_values_case <-
+      is.null(args$new_OX) & is.null(args$new_DX) & is.null(args$new_G)
+    if (fitted_values_case) {
+
+      signal <- compute_signal(object@design_matrix, coef(object))
+      A <- expand_spatial_filter(DW, OW, rho, model)
+      fit_signal <- solve(A,signal)
+
+      # TODO generelize flow extraction to handle vector and matrix
+      observed_flows <- as.vector(object@design_matrix$Y[[1]])
+      noise <- observed_flows - fit_signal
+      precision_mat <- crossprod(A) / sigma2
+      Q_diag <- diag(diag(precision_mat))
+      Q_ndiag <- precision_mat - Q_diag
+      fit_noise <- (1/Q_diag) %*% (Q_ndiag %*% noise)
+
+      return(fit_signal + fit_noise)
+      }
+
+    predition_case <-
+      is.null(args$new_OW) & is.null(args$new_DW)
+
+    if (predition_case) {
+      stop("Preditction are not yet implemented")
+    }
+
+    # extrapolation case...
+    stop("Extrapolations are not yet implemented")
+
+
+  })
+
+
 
 #' @export
 setMethod(
@@ -107,7 +177,7 @@ setMethod(
     invisible(object)
   })
 
-# ---- constructors -----------------------------------------------------------
+# ---- Constructors -----------------------------------------------------------
 
 #' @title
 #' Construct an S4 spflow_model class.
@@ -165,4 +235,21 @@ spflow_model_s4 <- function(
 
 }
 
+# ---- Helper functions -------------------------------------------------------
+compute_signal <- function(model_matrices, coefs) {
 
+  matrix_formulation_case <- !is.matrix(model_matrices)
+  if (matrix_formulation_case) {
+
+    stop("not yet implemented")
+
+  }
+
+  # vector formulation...
+  stop("not yet implemented")
+
+}
+
+expand_spatial_filter <- function(DW,OW,rho,model) {
+  stop("not yet implemented")
+}

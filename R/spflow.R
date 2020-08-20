@@ -126,17 +126,11 @@ spflow <- function(
     flow_formula,
     flow_control)
 
-  ## ... derive the model moments
-  model_moments <- spflow_model_moments(
-    formulation =  flow_control$formulation,
-    model_matrices,
-    estimator = flow_control$estimation_method,
-    flow_type = flow_control$flow_type)
-
   # ... fit the model and add complementary information to the results
   estimation_results <-
-    spflow_model_estimation(model_moments,flow_control)
+    spflow_model_estimation(model_matrices,flow_control)
 
+  # TODO add details inside the estimation function ...
   slot(object = estimation_results,"design_matrix") <-
     drop_instruments(model_matrices)
 
@@ -146,19 +140,6 @@ spflow <- function(
     model = flow_control$model)
 
   rownames(results(estimation_results)) <- coef_names
-
-
-  # TODO solve the residual and fitted value issue
-  calculate_residuals <- FALSE
-  if (calculate_residuals) {
-    stop("Not yet available")
-
-    estimation_results$fitted_values <-
-      predict(estimation_results)
-    estimation_results$residuals <-
-      estimation_results$data$Y - estimation_results$fitted_values
-  }
-
 
   # return
   return(estimation_results)

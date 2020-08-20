@@ -7,3 +7,4 @@
 ^LICENSE\.md$
 ^R\_*.R$
 ^scripts$
+^data-raw$

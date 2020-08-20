@@ -18,6 +18,20 @@ setClassUnion("maybe_numeric"   , c("NULL", "numeric"))
 
 
 # ---- New Generics -----------------------------------------------------------
+#' @title Add details to a [spflow_model_meta()] object
+#'
+#' @details
+#' The method adds the design matrix and the coefficient names to an
+#' [spflow_model_meta()] object.
+#' It also claculates the fitted values and the residuals as well as a
+#' goodness-of-fit measure.
+#'
+#' @param object A [spflow_model_meta()] object
+#' @name add_details
+#' @export
+setGenericVerif("add_details",function(object, ...){ # ---- add_details -------
+  standardGeneric("add_details")})
+
 
 #' @title Access the node_count of a network object
 #' @param object One of; [sp_network_nodes()], [sp_network_pair()]

@@ -1,8 +1,16 @@
 spflow_model_estimation <- function(
-  model_moments,
+  model_matrices,
   flow_control) {
 
   estimator <- flow_control$estimation_method
+
+  ## ... derive the model moments
+  model_moments <- spflow_model_moments(
+    formulation =  flow_control$formulation,
+    model_matrices = model_matrices,
+    estimator = estimator,
+    flow_type = flow_control$flow_type)
+
 
   estimation_results <- switch(estimator,
     "s2sls" = {
@@ -39,6 +47,10 @@ spflow_model_estimation <- function(
       flow_control = flow_control
     )}
   )
+
+  # TODO Add details to the estimation results
+  # data - coef names - residuals - fitted values - R2_corr
+
 
   return(estimation_results)
 

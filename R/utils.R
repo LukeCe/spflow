@@ -1,4 +1,4 @@
-# assertions ------------------------------------------------------------------
+# ---- assertions -------------------------------------------------------------
 assert <- function(expr, error_msg, warn = FALSE) {
   if (expr) {
     return(invisible(TRUE))
@@ -13,7 +13,7 @@ assert_valid_case <- function(argument,cases) {
            sprintf(deparse(cases)))
 }
 
-# classes ---------------------------------------------------------------------
+# ---- classes ----------------------------------------------------------------
 coerce_to <- function(obj, class, ...) {
 
   assert(methods::canCoerce(obj, class),
@@ -76,7 +76,7 @@ sum_trinom_coefs <- function(n) {
     as.integer()
 }
 
-# formulas --------------------------------------------------------------------
+# ---- formulas ---------------------------------------------------------------
 combine_formulas <- function(..., intercept = FALSE) {
 
   labels <- list(...) %>%
@@ -152,7 +152,13 @@ fix_contrast_model_matrix <- function(
   model.matrix(formula, data,contrasts.arg = factor_contrasts)
 }
 
-# FP sytle --------------------------------------------------------------------
+
+# ---- factors ----------------------------------------------------------------
+factor_in_order <- function(x) {
+  factor(x,levels = as.character(unique(x)))
+}
+
+# ---- FP sytle ---------------------------------------------------------------
 # collection of functions that help to program in a functional style
 # most of these come from or are inspiried by compact purrr files found
 # in rlang and feasts packages.
@@ -197,6 +203,26 @@ translist <- function(.l) {
 
   return(lapply(result, compact))
 }
+
+# ---- indexation ------------------------------------------------------------------
+drop_elements <- function(object, drop_index) {
+  object[!drop_index]
+}
+
+pull_slot <- function(.slot,.obj) {
+  slot(.obj,.slot)
+}
+
+pull_slots <- function(.obj, .slots) {
+  lapply(.slots, pull_slot, .obj)
+}
+
+sequentialize_index <- function(index_list) {
+  len <- unlist(lapply(index_list, length))
+  shift <- cumsum(c(0,len))[1:length(index_list)]
+  mapply("+", index_list, as.list(shift),SIMPLIFY = FALSE)
+}
+
 
 # ---- linear algebra ---------------------------------------------------------
 impose_orthogonality <- function(mat,column_sets){
@@ -298,7 +324,7 @@ prefix_columns <- function(obj,prefix){
   obj
 }
 
-# strings ---------------------------------------------------------------------
+# ---- strings ----------------------------------------------------------------
 '%p%' <- function(x, y) {
   paste0(x,y)
 }
@@ -326,31 +352,6 @@ replace_empty <- function(.x , .replace) {
 replace_NA_chr <- function(.x , .replace) {
   sub("NA.", .replace, .x )
 }
-
-# factors ---------------------------------------------------------------------
-factor_in_order <- function(x) {
-  factor(x,levels = as.character(unique(x)))
-}
-
-# indexation ------------------------------------------------------------------
-drop_elements <- function(object, drop_index) {
-  object[!drop_index]
-}
-
-pull_slot <- function(.slot,.obj) {
-  slot(.obj,.slot)
-}
-
-pull_slots <- function(.obj, .slots) {
-  lapply(.slots, pull_slot, .obj)
-}
-
-sequentialize_index <- function(index_list) {
-  len <- unlist(lapply(index_list, length))
-  shift <- cumsum(c(0,len))[1:length(index_list)]
-  mapply("+", index_list, as.list(shift),SIMPLIFY = FALSE)
-}
-
 
 # ---- matrices ---------------------------------------------------------------
 block_diag <- function(...){
