@@ -56,28 +56,3 @@ spflow_model_estimation <- function(
 
 }
 
-spflow_model <- function(
-  results_df,
-  varcov,
-  sd_error,
-  N,
-  method,
-  ...) {
-
-
-    c(list("results" = results_df,
-           "varcov" = varcov,
-           "sd" = sd_error,
-           "N" = N,
-           "method" = method,
-           "residuals" = NULL,
-           "fitted" = NULL,
-           "data" = NULL,
-           "model" = NULL,
-           "auto-corr" = NULL,
-           "formulation" = NULL),
-      list(...)
-      ) %>%
-    structure(class = "spflow_model")
-}
-
