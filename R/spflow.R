@@ -130,17 +130,6 @@ spflow <- function(
   estimation_results <-
     spflow_model_estimation(model_matrices,flow_control)
 
-  # TODO add details inside the estimation function ...
-  slot(object = estimation_results,"design_matrix") <-
-    drop_instruments(model_matrices)
-
-  coef_names <- parameter_names(
-    model_matrices = estimation_results@design_matrix,
-    model_formulation = flow_control$formulation,
-    model = flow_control$model)
-
-  rownames(results(estimation_results)) <- coef_names
-
   # return
   return(estimation_results)
 }
@@ -206,6 +195,9 @@ drop_instruments <- function(model_matrices) {
     drop_index = instrument_positions,
     SIMPLIFY = FALSE)
 
-  nice_order <- c("Y","const","const_intra","DX","OX","IX","G")
-  return(c(matrices_1,matrices_2,matrices_3)[nice_order])
+  matrices_and_spatial_weights <-
+    c(matrices_1,matrices_2,matrices_3,model_matrices[c("DW","OW")])
+
+  nice_order <- c("Y","const","const_intra","DX","OX","IX","G","DW","OW")
+  return(matrices_and_spatial_weights[nice_order])
 }

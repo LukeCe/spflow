@@ -27,7 +27,7 @@ setClass("spflow_model_meta",
            design_matrix = "ANY"))
 
 # ---- Methods ----------------------------------------------------------------
-#' @rdname
+#' @rdname add_details
 setMethod(
   f = "add_details",
   signature = "spflow_model_meta",
@@ -41,13 +41,16 @@ setMethod(
       model_matrices = object@design_matrix,
       model_formulation = flow_control$formulation,
       model = flow_control$model)
-    object@results <- data.frame(object@results,".names" = coef_names,
-                                 row.names = ".names")
+    results(object) <- data.frame(results(object),
+                                  ".names" = coef_names,
+                                  row.names = ".names")
 
+    # add fitted values , residuals, and goodness-of-fit
+    object@fitted <- predict(object)
+    object@resid <- as.vector(object@design_matrix$Y) - fitted(object)
+    object@R2_corr <- cor(fitted(object), as.vector(object@design_matrix$Y))^2
 
-
-    results_df <- object@estimation_results
-    return(lookup(results_df$est,rownames(results_df)))
+    return(object)
   })
 
 
@@ -84,6 +87,7 @@ setMethod(
   signature = "spflow_model_meta",
   function(object, ..., type = "BP") { # ---- predict -------------------------------------------
 
+
     # information on the model case
     model <- object@estimation_control$model
     nb_rho <- spatial_model_order(model)
@@ -105,27 +109,29 @@ setMethod(
 
       # define the spatial filter of the model
       OW <- object@design_matrix$OW
-      DW <- object@design_matrix$OW
+      DW <- object@design_matrix$DW
       n_d <- nrow(DW) %||% (nobs(object) / nrow(OW))
       n_o <- nrow(OW) %||% (nobs(object) / nrow(DW))
-      A <- expand_flow_neighborhood(
-        DW = DW, OW = OW, n_o = n_o, n_d = n_d, model = model) %>%
-        spatial_filter(., coef(object)[seq_len(nb_rho)])
+      rho <- coef(object)[seq_len(nb_rho)]
+      A <- expand_flow_neighborhood(DW = DW, OW = OW,
+                                    n_o = n_o, n_d = n_d, model = model) %>%
+        spatial_filter(., rho)
 
       # create the signal part of the fitted values
-      signal <- compute_signal(object@design_matrix, coef(object))
+      delta <- coef(object)[-seq_len(nb_rho)]
+      signal <- compute_signal(object@design_matrix, delta)
       fit_signal <- solve(A,signal)
 
       # TODO generelize flow extraction to handle vector and matrix
       # create the noise part of the fitted values
-      observed_flows <- as.vector(object@design_matrix$Y[[1]])
+      observed_flows <- as.vector(object@design_matrix$Y)
       noise <- observed_flows - fit_signal
-      precision_mat <- crossprod(A) / sigma2
-      Q_diag <- diag(diag(precision_mat))
-      Q_ndiag <- precision_mat - Q_diag
-      fit_noise <- (1/Q_diag) %*% (Q_ndiag %*% noise)
+      precision_mat <- crossprod(A) / (object@sd_error^2)
+      diag_Q <- diag(precision_mat)
+      Q_ndiag <- precision_mat - diag(diag_Q)
+      fit_noise <- diag((1/diag_Q)) %*% (Q_ndiag %*% noise)
 
-      return(fit_signal + fit_noise)
+      return(as.vector(fit_signal - fit_noise))
       }
 
     predition_case <-
@@ -255,53 +261,52 @@ spflow_model_s4 <- function(
 }
 
 # ---- Helper functions -------------------------------------------------------
-compute_signal <- function(model_matrices, coefs) {
+compute_signal <- function(model_matrices, delta) {
 
   matrix_formulation_case <- !is.matrix(model_matrices)
 
   if (matrix_formulation_case) {
 
     # index the coefficient vecots according to the model segments
-    nb_rho <- length(model_matrices$Y) - 1
-    delta <- coefs[-seq_len(nb_rho)]
     sub_index <- list(
       "const" = 1,
-      "const_intra" = length(model_matrices$const_intra),
+      "const_intra" = 1 - is.null(model_matrices$const_intra),
       "DX" = seq_len(ncol(model_matrices$DX)),
       "OX" = seq_len(ncol(model_matrices$OX)),
-      "IX" = seq_len(ncol(model_matrices$IX)),
+      "IX" = (model_matrices$IX %|!|% seq_len(ncol(model_matrices$IX))) %||% 0,
       "G" = seq_along(model_matrices$G)) %>%
       sequentialize_index()
 
     # Calculate the components of the signal
     # missing components are set to zero and do not affect the final sum
-    vetcor_or_null <- function(part_id) {
+    # number of destinations is required
+    vector_or_null <- function(part_id) {
       model_matrices[[part_id]] %|!|%
         as.vector(model_matrices[[part_id]] %*%
                     delta[sub_index[[part_id]]])
     }
+    n_d <- nrow(model_matrices$Y)
 
     # constant
     const <- delta[sub_index$const]
 
     # intra constant
-    n_intra <- nrow(model_matrices$const_intra)
-    const_intra <- n_intra %|!|%
-      Matrix::Diagonal(delta[sub_index$const_intra], n = n_intra)
+    const_intra <- model_matrices$const_intra %|!|%
+      Matrix::Diagonal(delta[sub_index$const_intra], n = n_d)
     const_intra <- const_intra %||% 0
 
     # destination part - (vector is recycled)
-    dest <- vetcor_or_null("DX")
+    dest <- vector_or_null("DX")
     dest <- dest %||% 0
 
     # origin part - vector is not recycled correctly ...
-    orig <- vetcor_or_null("OX")
-    orig <- orig %|!|% matrix(rep(orig,n),n,byrow = TRUE)
+    orig <- vector_or_null("OX")
+    orig <- orig %|!|% matrix(rep(orig,n_d),nrow = n_d,byrow = TRUE)
     orig <- orig %||% 0
 
     # intra part - only for diagonal elements
     intra <- vector_or_null("IX")
-    intra <- intra %|!|% matrix(rep(intra,n),n,byrow = TRUE)
+    intra <- intra %|!|% matrix(rep(intra,n_d),nrow = n_d,byrow = TRUE)
     intra <- intra %||% 0
 
     # G part - (origin-destination pair attributes)

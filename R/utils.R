@@ -76,6 +76,17 @@ sum_trinom_coefs <- function(n) {
     as.integer()
 }
 
+# ---- dependencies -----------------------------------------------------------
+require_version <- function(pkg_name,version) {
+  has_pkg <- require(spflowDataTool)
+
+  if (!has_pkg)
+    return(FALSE)
+
+  has_pkg_v <- installed.packages()[pkg_name,"Version"] == version
+  return(has_pkg_v)
+}
+
 # ---- formulas ---------------------------------------------------------------
 combine_formulas <- function(..., intercept = FALSE) {
 
@@ -222,7 +233,6 @@ sequentialize_index <- function(index_list) {
   shift <- cumsum(c(0,len))[1:length(index_list)]
   mapply("+", index_list, as.list(shift),SIMPLIFY = FALSE)
 }
-
 
 # ---- linear algebra ---------------------------------------------------------
 impose_orthogonality <- function(mat,column_sets){

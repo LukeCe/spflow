@@ -48,8 +48,9 @@ spflow_model_estimation <- function(
     )}
   )
 
-  # TODO Add details to the estimation results
-  # data - coef names - residuals - fitted values - R2_corr
+  estimation_results <- add_details(estimation_results,
+                                    model_matrices = model_matrices,
+                                    flow_control = flow_control)
 
 
   return(estimation_results)

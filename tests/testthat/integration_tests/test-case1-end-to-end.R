@@ -48,8 +48,8 @@ pairs_ge_ge_flexible <- sp_network_pair(
 multi_net_ge_default  <- sp_multi_network(network_ge, pairs_ge_ge_default)
 multi_net_ge_flex  <- sp_multi_network(network_ge, pairs_ge_ge_flexible)
 
-# finish setup ----
 
+# finish setup ---
 
 describe("Moments can be generated from formula and multinet",{
 
@@ -338,5 +338,25 @@ describe("Estimation via the formula interface without intra model", {
 
 })
 
+describe("Methods work for the spflow_model class", {
 
+  default_results <- spflow(
+    flow_formula = Y9 ~ . ,
+    multi_net_ge_default)
+
+  it("Predict works to generate fitted values", {
+
+    # sensfull predictions
+    actual <- predict(default_results)
+    expect_length(actual,nobs(default_results))
+    expect_true(all(is.finite(actual)))
+
+
+    # snesefull R2_corr
+    actual <- default_results@R2_corr
+    expect_true(0 < actual && actual < 1)
+
+  })
+
+})
 

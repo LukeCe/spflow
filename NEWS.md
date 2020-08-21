@@ -1,5 +1,13 @@
 # spflow (development version)
 
+**This is a prerelease of the package only intended for beta testing.**
+
+Added predict method which can handle in sample prediction (fitted values).
+Model results have their own class [spflow_model_meta()]:
++ `predict()` -method can handle in sample prediction (fitted values)
++ includes a goodness-of-fit measure
++ corrected t-test degrees of freedom
+
 # spflow 0.0.0.9003
 
 **This is a prerelease of the package only intended for beta testing.**
