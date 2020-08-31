@@ -10,6 +10,7 @@
 #' @param hessian_method A character which indicates the method for hessian calculation
 #' @param sdm_variables A formula which can be used explicitly declare the variables that should be used as sdm variables.
 #' @param instrumental_variables A formula which can be used explicitly declare the variables that should be used as instruments during s2sls estimation.
+#' @param decorrelate_instruments A logical whether to perform a procedure that removes (linear) correlation from the instruments.
 #' @param use_sdm A logical which adds spatial lags of origin and destination attributes as explanatory variables to the model.
 #' @param use_intra A logical which adds separate set of coefficients for intra-observational flows (origin == destination) to the model.
 #' @param flow_type A character indicating the type of flows; "within" or "between"

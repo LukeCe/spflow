@@ -40,3 +40,21 @@
 
 #' @rdname example_data
 "sd_error"
+
+
+#' Example data for commuting flows of paris
+#'
+#' The packge includes an example data set that contains home-to-work commuting
+#' flows for 71 municipalities arround the center of paris.
+#'
+#'
+#' @rdname paris_data
+#' @name paris_data
+"paris10km_nodes"
+
+#' @rdname example_data
+"paris10km_node_pairs"
+
+#' @rdname example_data
+"paris10km_mat_nb"
+

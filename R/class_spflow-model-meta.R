@@ -11,9 +11,8 @@
 #' @slot spatial_filter_matrix maybe_matrix.
 #' @slot design_matrix
 #'
-#' @return
 #' @name spflow_model_meta
-#' @export
+#' @keywords internal
 setClass("spflow_model_meta",
          slots = c(
            estimation_results = "data.frame",
@@ -27,7 +26,11 @@ setClass("spflow_model_meta",
            design_matrix = "ANY"))
 
 # ---- Methods ----------------------------------------------------------------
+#' @param model_matrices A list as returbed by [spflow_model_matrix()]
+#' @param flow_control A list as returned by [spflow_control()]
+#'
 #' @rdname add_details
+#' @keywords  internal
 setMethod(
   f = "add_details",
   signature = "spflow_model_meta",
@@ -48,12 +51,15 @@ setMethod(
     # add fitted values , residuals, and goodness-of-fit
     object@fitted <- predict(object)
     object@resid <- as.vector(object@design_matrix$Y) - fitted(object)
-    object@R2_corr <- cor(fitted(object), as.vector(object@design_matrix$Y))^2
+    object@R2_corr <- stats::cor(fitted(object),
+                                 as.vector(object@design_matrix$Y))^2
 
     return(object)
   })
 
 
+#' @title Extract the coefficient vector from a spatial interaction model
+#' @param object A [spflow_model()]
 #' @export
 setMethod(
   f = "coef",
@@ -64,6 +70,8 @@ setMethod(
   })
 
 
+#' @title Extract a vector of fitted values from a spatial interaction model
+#' @param object A [spflow_model()]
 #' @export
 setMethod(
   f = "fitted",
@@ -72,6 +80,8 @@ setMethod(
     return(object@fitted)
   })
 
+#' @title Access the number if observations of a spatial interaction model
+#' @param object A [spflow_model()]
 #' @export
 setMethod(
   f = "nobs",
@@ -81,12 +91,21 @@ setMethod(
   })
 
 
+#' @title Prediction methods for spatial interaction models
+#'
+#' @param object A [spflow_model()]
+#' @param type A character declaring the type of prediction (for now only "BP")
+#' @param ... Further arguments passed to the prediction function
+#'
+#' @rdname predict
 #' @export
 setMethod(
   f = "predict",
   signature = "spflow_model_meta",
   function(object, ..., type = "BP") { # ---- predict -------------------------------------------
 
+
+    # TODO describe the prediction better
 
     # information on the model case
     model <- object@estimation_control$model
@@ -148,7 +167,9 @@ setMethod(
   })
 
 
-
+#' @title Extract the vector of residuals values from a spatial interaction model
+#'
+#' @param object A [spflow_model()]
 #' @export
 setMethod(
   f = "resid",
@@ -157,7 +178,7 @@ setMethod(
     return(object@resid)
   })
 
-#' @export
+#' @title Acess the model results of spatial interaction model
 #' @rdname results
 setMethod(
   f = "results",
@@ -166,8 +187,8 @@ setMethod(
     return(object@estimation_results)
   })
 
-#' @export
-#' @rdname id
+#' @keywords internal
+#' @rdname results
 setReplaceMethod(
   f = "results",
   signature = "spflow_model_meta",
@@ -176,6 +197,7 @@ setReplaceMethod(
     if (validObject(object))
       return(object)
   })
+
 
 setMethod(
   f = "show",
@@ -218,7 +240,7 @@ setMethod(
 #' @param design_matrix The design matrix/matrices of the model
 #' @param ... Further arguments passed to more specific classes in accordance to the estimation method
 #'
-#' @return
+#' @importFrom methods slot<- slot
 #' @export
 spflow_model_s4 <- function(
   ...,

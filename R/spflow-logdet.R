@@ -295,11 +295,15 @@ fodet1 <- function(parms, traces, n, dev = T) {
 #' @keywords internal
 trace_lookup_template <- function(aprox_order) {
 
+  # !IGNORE null bindings for non-standard evaluated names
+  trace_val <- DW_power <- OW_power <- n_d_power <- n_o_power <- n_o_power <-
+    rho_d <- rho_o <- rho_w <- NULL
+
   possible_powers <- 0:aprox_order
 
   # generate all options for a trinominal expansion
   trace_orders <-
-    combn(rep(possible_powers,3),3) %>% t() %>%
+    utils::combn(rep(possible_powers,3),3) %>% t() %>%
     data.table::as.data.table()
   data.table::setnames(trace_orders,"rho_" %p% c("d","o","w") )
 
@@ -332,7 +336,7 @@ pair_traces_lookup <- function(
   n_d
 ) {
 
-  DW_traces <- OW_traces <- (0:9) *2
+  DW_traces <- OW_traces <- (0:9) * 2
   # use a templated lookup for the trace calculations
   approx_order <- max(length(OW_traces),length(DW_traces))
   DW_traces <- c(1,DW_traces)
@@ -350,9 +354,5 @@ pair_traces_lookup <- function(
 
   select_cols <- c("t","rho_" %p% c("d","o","w"),"trace_val")
   trace_lookup[,select_cols, with = FALSE]
-
-
-
-
 
 }

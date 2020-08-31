@@ -83,7 +83,7 @@ require_version <- function(pkg_name,version) {
   if (!has_pkg)
     return(FALSE)
 
-  has_pkg_v <- installed.packages()[pkg_name,"Version"] == version
+  has_pkg_v <- utils::installed.packages()[pkg_name,"Version"] == version
   return(has_pkg_v)
 }
 

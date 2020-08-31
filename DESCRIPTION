@@ -68,7 +68,9 @@ Suggests:
     rprojroot,
     Rdpack,
     usethis,
-    testthat
+    testthat,
+    spflowDataTool,
+    remotes
 Language: en-US
 Depends: 
     R (>= 3.5.0)

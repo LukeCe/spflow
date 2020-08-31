@@ -7,7 +7,7 @@
 #' @slot BIC numeric.
 #' @slot varcov matrix.
 #'
-#' @return
+#' @return A [spflow_model()] object
 #' @rdname spflow_model_meta
 #' @export
 setClass("spflow_model_mle",
