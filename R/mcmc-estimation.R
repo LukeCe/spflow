@@ -159,7 +159,7 @@ spflow_mcmc <- function(
                                  df =  1)
 
   id_sd <- nrow(results_df)
-  estimation_results <- spflow_model_s4(
+  estimation_results <- spflow_model(
     mcmc_results = mcmc_results,
     estimation_results = results_df[-id_sd, ],
     estimation_control = flow_control,

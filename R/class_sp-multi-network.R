@@ -121,8 +121,10 @@ setMethod(
         "\n    With ids:",pair_ids)
 
     od_pair_info <- multi_net_ids$network_pairs %>%
-      reduce(rbind) %>%
-      as.data.frame(row.names = seq_along(pair_ids))
+      lapply(as.list) %>%
+      lapply(data.frame, stringsAsFactors = FALSE) %>%
+      reduce(rbind)
+
 
     od_pair_info["(o info)"] <-
       lapply(od_pair_info["origin"],"%in%", nodes_ids)

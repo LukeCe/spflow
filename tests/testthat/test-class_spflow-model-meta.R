@@ -8,7 +8,7 @@ dummy_control <- list(estimation_method = "mle",
                       use_sdm = "TRUE",
                       model = "model 9")
 
-class_dummy <- spflow_model_s4(
+class_dummy <- spflow_model(
   ll = dummy_ll,
   estimation_results = dummy_results,
   estimation_control = dummy_control,

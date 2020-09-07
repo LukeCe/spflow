@@ -25,13 +25,24 @@ library("stringr")
 library("units")
 library("spdep")
 library("data.table")
+library("tidyr")
+require_version <- function(pkg_name,version) {
+  has_pkg <- require(pkg_name, attach.required = FALSE)
+
+  if (!has_pkg)
+    return(FALSE)
+
+  has_pkg_v <- utils::installed.packages()[pkg_name,"Version"] == version
+  return(has_pkg_v)
+}
+
 import_pkg <- "spflowDataTool"
 pkg_version <- "0.0.0.9002"
 has_correct_version <- require_version(import_pkg,pkg_version)
 if (!has_correct_version) {
   repo <-  "LukeCe/"
   repo_full <- repo %p% import_pkg %p% "@" %p% pkg_version
-  remotes::install_github(repo, auth_token = Sys.getenv("GITHUB_PAT"))
+  remotes::install_github(repo_full, auth_token = Sys.getenv("GITHUB_PAT"))
 }
 
 # ---- load raw data -----
@@ -74,7 +85,7 @@ suppressWarnings({
   ## define diffrent neighborhood matrices
   mun_poly_nb <- spflowDataTool:::com_poly_nb(mun_data)
   mun_dist_nb <- spflowDataTool:::com_dist_nb(mun_data, distance = 5)
-  mun_knn_nb <- spflowDataTool:::com_closest_nb(mun_data, k = 10)
+  mun_knn_nb <- spflowDataTool:::com_closest_nb(mun_data, k = 2)
 
   ## generate the distance matrix
   mun_distances <- spflowDataTool:::com_distances(data_info = mun_data)
@@ -105,30 +116,34 @@ print(pc_of_na) # pc_of_na = 3%
 
 # node data
 paris10km_nodes <- mun_data %>%
-  select("id" = "COM_ID",
-         "pop" = "population",
-         "median_income" = "salaire_median",
-         "area" = "superficie",
-         "companies" = "nbr_entreprises") %>%
-  mutate("id" = as.factor(id)) %>%
-  st_set_geometry(NULL) %>%
-  setDT(key = "id")
+  select("ID" = "COM_ID",
+         "POPULATION" = "population",
+         "MED_INCOME" = "salaire_median",
+         "AREA" = "superficie",
+         "NB_COMPANY" = "nbr_entreprises") %>%
+  mutate("ID" = as.factor(ID)) %>%
+  setDT(key = "ID") %>%
+  sf::st_as_sf()
 
 # node nieghborhoods
 paris10km_mat_nb <- list(
   "by_dist" = mun_dist_nb$mat,
   "by_knn" = mun_knn_nb$mat,
-  "by_border" = mun_poly_nb$mat)
+  "by_border" = mun_poly_nb$mat) %>%
+  lapply(function(x) {
+    dimnames(x)[[2]] <- levels(paris10km_nodes$ID)
+    x})
 
 # node pair data
 paris10km_node_pairs <- mun_pair_data %>%
-  select("orig_id" = "CODGEO",
-         "dest_id" = "DCLT",
-         "commute_flow" = "flux",
-         "distance" = "distance") %>%
-  mutate_at(.vars = c("orig_id","dest_id"),
-            .funs = ~factor(.x, levels = levels(paris10km_nodes$id))) %>%
-  setDT(key = c("orig_id","dest_id"))
+  select("ORIG_ID" = "CODGEO",
+         "DEST_ID" = "DCLT",
+         "COMMUTE_FLOW" = "flux",
+         "DISTANCE" = "distance") %>%
+  mutate_at(.vars = c("ORIG_ID","DEST_ID"),
+            .funs = ~factor(.x, levels = levels(paris10km_nodes$ID))) %>%
+  mutate(COMMUTE_FLOW = replace_na(COMMUTE_FLOW,0)) %>%
+  setDT(key = c("ORIG_ID","DEST_ID"))
 
 usethis::use_data(paris10km_nodes,
                   paris10km_mat_nb,

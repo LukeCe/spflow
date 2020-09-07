@@ -297,7 +297,7 @@ trace_lookup_template <- function(aprox_order) {
 
   # !IGNORE null bindings for non-standard evaluated names
   trace_val <- DW_power <- OW_power <- n_d_power <- n_o_power <- n_o_power <-
-    rho_d <- rho_o <- rho_w <- NULL
+    c_trinom <- rho_d <- rho_o <- rho_w <- NULL
 
   possible_powers <- 0:aprox_order
 
@@ -335,6 +335,10 @@ pair_traces_lookup <- function(
   n_o,
   n_d
 ) {
+
+  # !IGNORE null bindings for non-standard evaluated names
+  DW_power <- OW_power <- c_trinom <- n_d_power <- n_o_power <- trace_val <-
+    NULL
 
   DW_traces <- OW_traces <- (0:9) * 2
   # use a templated lookup for the trace calculations

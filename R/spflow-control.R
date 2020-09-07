@@ -20,7 +20,7 @@
 #' @return A list of control parameters
 #' @export
 spflow_control <- function(
-  estimation_method = "s2sls",
+  estimation_method = "mle",
   model = "model_9",
   formulation = "matrix",
   use_intra = TRUE,

@@ -130,14 +130,15 @@ setGenericVerif("pair_merge", function(object, ...){ # ---- pair_merge --------
 #' @title Access results of an estimation
 #' @param object spflow_model_meta
 #' @name results
+#' @rdname results
 #' @export
-setGenericVerif("results",  function(object, ...){ # ---- results -------------
+setGenericVerif("results",  function(object){ # ---- results -------------
   standardGeneric("results")})
 
-#' @param object spflow_model_meta
+#' @param value replacement results
 #' @name results
-#' @export
-setGenericVerif("results<-",  function(object, ...){ # ---- results <- --------
+#' @rdname results
+setGenericVerif("results<-",  function(object, value){ # ---- results <- --------
   standardGeneric("results<-")})
 
 #' @title Add columns to the data in a [sp_network_nodes()] or [sp_network_pair()]

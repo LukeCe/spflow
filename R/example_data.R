@@ -52,9 +52,9 @@
 #' @name paris_data
 "paris10km_nodes"
 
-#' @rdname example_data
+#' @rdname paris_data
 "paris10km_node_pairs"
 
-#' @rdname example_data
+#' @rdname paris_data
 "paris10km_mat_nb"
 

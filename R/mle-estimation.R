@@ -84,7 +84,7 @@ spflow_mle <- function(ZZ,ZY,TSS,N,n_d,n_o,DW_traces,OW_traces,
   results_df$"p.value" <- 1 - pt(q = abs(results_df$est / results_df$sd),
                                  df =  1)
 
-  estimation_results <- spflow_model_s4(
+  estimation_results <- spflow_model(
     varcov = varcov,
     ll = loglik_value,
     estimation_results = results_df,

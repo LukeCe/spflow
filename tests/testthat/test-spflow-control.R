@@ -4,7 +4,7 @@ test_that("Abusive Inputs ==> ERROR", {
   #expect_error(control(estimation_method = "mle",hessian_method = 1))
   expect_error(spflow_control(sdm_variables = 1),
                "*must either be declared as a formula or as a string*")
-  expect_error(spflow_control(instrumental_variables = 1),
+  expect_error(spflow_control(instrumental_variables = 1, estimation_method = "s2sls"),
                "*must either be declared as a formula or as a string*")
 })
 

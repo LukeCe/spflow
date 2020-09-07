@@ -53,10 +53,10 @@ multi_net_ge_flex  <- sp_multi_network(network_ge, pairs_ge_ge_flexible)
 
 describe("Moments can be generated from formula and multinet",{
 
-  it("Is correct for the default s2sls estimation (M9)",{
+  it("Is correct for the s2sls estimation (M9)",{
 
     model_formulation <- "matrix"
-    default_control <- spflow_control()
+    default_control <- spflow_control(estimation_method = "s2sls")
     defulat_formula <- Y9 ~ .
 
     actual_matrices <- spflow_model_matrix(
@@ -165,10 +165,11 @@ describe("Moments can be generated from formula and multinet",{
 
 describe("Quick start estimstion for minimals user input.",{
 
-  it("Works for the default s2sls estimation (M9 - sym)",{
+  it("Works for the s2sls estimation (M9 - sym)",{
     default_results <- spflow(
       flow_formula = Y9 ~ . ,
-      multi_net_ge_default)
+      multi_net_ge_default,
+      flow_control = spflow_control(estimation_method = "s2sls"))
 
     expect_is(default_results,"spflow_model_s2sls")
 
@@ -342,7 +343,8 @@ describe("Methods work for the spflow_model class", {
 
   default_results <- spflow(
     flow_formula = Y9 ~ . ,
-    multi_net_ge_default)
+    multi_net_ge_default,
+    flow_control = spflow_control(estimation_method = "s2sls"))
 
   it("Predict works to generate fitted values", {
 

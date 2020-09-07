@@ -49,6 +49,13 @@ setClassUnion("spflow_model_mle_s2sls",
               c("spflow_model_mle","spflow_model_s2sls"))
 
 # ---- generics & methods -----------------------------------------------------
+
+#' @title
+#' Access the value of the log likelihood function of a [spflow_model()]
+#' that is estimated by MLE
+#'
+#' @param object A [spflow_model()] object
+#'
 #' @export
 setMethod(
   f = "logLik",

@@ -12,7 +12,6 @@
 #' @slot design_matrix
 #'
 #' @name spflow_model_meta
-#' @keywords internal
 setClass("spflow_model_meta",
          slots = c(
            estimation_results = "data.frame",
@@ -178,7 +177,6 @@ setMethod(
     return(object@resid)
   })
 
-#' @title Acess the model results of spatial interaction model
 #' @rdname results
 setMethod(
   f = "results",
@@ -187,8 +185,8 @@ setMethod(
     return(object@estimation_results)
   })
 
-#' @keywords internal
 #' @rdname results
+#' @keywords internal
 setReplaceMethod(
   f = "results",
   signature = "spflow_model_meta",
@@ -242,7 +240,7 @@ setMethod(
 #'
 #' @importFrom methods slot<- slot
 #' @export
-spflow_model_s4 <- function(
+spflow_model <- function(
   ...,
   estimation_results,
   estimation_control,

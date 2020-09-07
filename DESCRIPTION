@@ -41,6 +41,7 @@ Collate:
     'class_sp-network-meta.R'
     'class_spflow-model-meta.R'
     'class_spflow-model-children.R'
+    'demo.R'
     'example_data.R'
     'interpret-flow-formula.R'
     'mcmc-estimation.R'
@@ -69,8 +70,10 @@ Suggests:
     Rdpack,
     usethis,
     testthat,
-    spflowDataTool,
-    remotes
+    remotes,
+    knitr,
+    rmarkdown
 Language: en-US
 Depends: 
     R (>= 3.5.0)
+VignetteBuilder: knitr
