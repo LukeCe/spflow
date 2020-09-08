@@ -1,6 +1,6 @@
 Package: spflow
 Title: Spatial Econometric Interaction Models in R
-Version: 0.0.0.9004
+Version: 0.0.0.9005
 Authors@R: c(
     person(given = "Lukas",
            family = "Dargel",
@@ -24,7 +24,7 @@ License: GPL-3
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.1.0
+RoxygenNote: 7.1.1
 RdMacros: Rdpack
 Imports: 
     magrittr,
@@ -41,7 +41,6 @@ Collate:
     'class_sp-network-meta.R'
     'class_spflow-model-meta.R'
     'class_spflow-model-children.R'
-    'demo.R'
     'example_data.R'
     'interpret-flow-formula.R'
     'mcmc-estimation.R'
@@ -72,7 +71,9 @@ Suggests:
     testthat,
     remotes,
     knitr,
-    rmarkdown
+    rmarkdown,
+    dplyr,
+    sf
 Language: en-US
 Depends: 
     R (>= 3.5.0)
