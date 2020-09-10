@@ -21,7 +21,7 @@ setClass("spflow_model_mle",
 
 # ---- S2SLS class ------------------------------------------------------------
 
-#' @slot varcov The variance covariance matrix of the estimated paramerters
+#' @slot varcov The variance covariance matrix of the estimated parameters
 #' @return
 #'
 #' @rdname spflow_model_meta
@@ -34,7 +34,7 @@ setClass("spflow_model_s2sls",
 # ---- MCMC class -------------------------------------------------------------
 
 
-#' @slot mcmc_results A data.frame containg the estimated parameters for each iteration of the sampler
+#' @slot mcmc_results A data.frame containing the estimated parameters for each iteration of the sampler
 #' @return
 #'
 #' @rdname spflow_model_meta

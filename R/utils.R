@@ -250,10 +250,10 @@ projec_onto <- function(y, onto_x){
   return(Px_y)
 }
 
-linear_dim_reduction <- function(mat, var_threshold = 1, n_comp = NULL) {
+linear_dim_reduction <- function(mat, var_threshold = 0, n_comp = NULL) {
 
   svd_mat <- La.svd(mat)
-  n_comp <- n_comp %||% sum(svd_mat$d >= 1)
+  n_comp <- n_comp %||% sum(svd_mat$d >= var_threshold)
 
   S_trunc <- diag(svd_mat$d[seq_len(n_comp)])
   U_trunc <- svd_mat$u[,seq_len(n_comp)]
@@ -425,6 +425,10 @@ NULL
 
 "%|!|%" <- function(x, y) {
   if (is.null(x)) x else y
+}
+
+"%|0|%" <- function(x, y) {
+  if (length(x) == 0) y else x
 }
 
 # ---- primitives -------------------------------------------------------------

@@ -23,7 +23,7 @@ setClassUnion("maybe_numeric"   , c("NULL", "numeric"))
 #' @details
 #' The method adds the design matrix and the coefficient names to an
 #' [spflow_model_meta()] object.
-#' It also claculates the fitted values and the residuals as well as a
+#' It also calculates the fitted values and the residuals as well as a
 #' goodness-of-fit measure.
 #'
 #' @param object A [spflow_model_meta()] object
@@ -150,7 +150,7 @@ setGenericVerif("set_columns", function(object, ...){ # ---- set_columns ------
   standardGeneric("set_columns")})
 
 
-#' @title Access variance covriance matrix of the estimators
+#' @title Access variance-covariance matrix of the estimators
 #' @param object spflow_model_mle or spflow_model_s2sls
 #' @name varcov
 #' @export

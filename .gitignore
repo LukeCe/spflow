@@ -6,3 +6,5 @@ data
 man
 tests/testthat/*.rda
 inst/doc
+doc
+Meta

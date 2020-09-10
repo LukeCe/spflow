@@ -81,17 +81,6 @@ mun_data <- spflowDataTool:::com_information(
   ID = mun_of_intrest, data_info = municipality_infos)
 
 
-suppressWarnings({
-  ## define diffrent neighborhood matrices
-  mun_poly_nb <- spflowDataTool:::com_poly_nb(mun_data)
-  mun_dist_nb <- spflowDataTool:::com_dist_nb(mun_data, distance = 5)
-  mun_knn_nb <- spflowDataTool:::com_closest_nb(mun_data, k = 2)
-
-  ## generate the distance matrix
-  mun_distances <- spflowDataTool:::com_distances(data_info = mun_data)
-})
-
-
 # extract the wanted flows and add distance as well as other variables
 suppressWarnings({
   mun_pair_data <- spflowDataTool:::extract_flows(
@@ -126,13 +115,21 @@ paris10km_nodes <- mun_data %>%
   sf::st_as_sf()
 
 # node nieghborhoods
+suppressWarnings({
+  mid_points <- mun_data %>%
+    st_geometry() %>%
+    st_point_on_surface()
+
 paris10km_mat_nb <- list(
-  "by_dist" = mun_dist_nb$mat,
-  "by_knn" = mun_knn_nb$mat,
-  "by_border" = mun_poly_nb$mat) %>%
-  lapply(function(x) {
-    dimnames(x)[[2]] <- levels(paris10km_nodes$ID)
-    x})
+  "by_border" = spdep::poly2nb(mun_data),
+  "by_distance" = spdep::dnearneigh(mid_points,d1 = 0, d2 = 5),
+  "by_knn" = spdep::knn2nb(knearneigh(mid_points,3))
+  ) %>%
+  lapply(spdep::nb2mat) %>%
+  lapply(Matrix)
+})
+
+
 
 # node pair data
 paris10km_node_pairs <- mun_pair_data %>%

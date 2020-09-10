@@ -218,7 +218,7 @@ model_matrix_expand_pairs <- function(
   n_orig <- count(network_pair, "origins")
   n_dest <- count(network_pair, "destinations")
   column_to_matrix <- function(col) {
-    matrix(model_matrix_global[,col],
+    matrix(model_matrix_global[,col, drop = FALSE],
            nrow = n_orig,
            ncol = n_dest)
   }
@@ -241,10 +241,14 @@ model_matrix_expand_pairs <- function(
   explain_matrices <- lapply(explain_vars, column_to_matrix)
 
   # lag those explanatory variables that are used as instruments
+  explain_variables <-
+    setdiff(colnames(model_matrix_global),response_variables)
   explain_data_template <-
-    dat(network_pair)[0,!c(key_columns,response_variables), with = FALSE]
+    model_matrix_global[0,explain_variables,drop = FALSE]
   explain_instruments <- explain_formulas$inst %|!|%
     extract_terms_labels(explain_formulas$inst,explain_data_template)
+  explain_non_instruments <- explain_formulas$norm %|!|%
+    extract_terms_labels(explain_formulas$norm,explain_data_template)
 
   nb_lags <- 2
   lag_explain_vars <- integer(length(explain_vars))
@@ -271,9 +275,13 @@ model_matrix_expand_pairs <- function(
     data.table::setattr(x, "is_instrument_var", is_inst)
   }
 
+  # set all instrument...
+  # then unset those that are normal variables
   explain_matrices %>%
     lapply(function(.l) lapply(.l, set_inst, TRUE)) %>%
-    lapply(function(.l) set_inst(.l[[1]], FALSE)) %>%
+    lapply(function(.l) {
+      set_inst(.l[[1]], !(names(.l)[1] %in% explain_non_instruments))
+      }) %>%
     invisible()
 
   return(list("Y" = response_matrices %>% flatlist(),
@@ -306,7 +314,7 @@ lag_flow_matrix <- function(
   Y_lags <- switch(substr(model, 7, 7),   # (8.15) in LeSage book
                    "9" = list(Y, "d" = WY, "o" = YW, "w" = WYW),
                    "8" = list(Y, "d" = WY, "o" = YW, "w" = WYW),
-                   "7" = list(Y, "d" = WY, "o" = YW, "w" = WYW),
+                   "7" = list(Y, "d" = WY, "o" = YW),
                    "6" = list(Y, "odw" = (WY + YW + WYW)/3),
                    "5" = list(Y, "od"  = (WY + YW)/2),
                    "4" = list(Y, "w"   = WYW),
@@ -428,12 +436,12 @@ orthoginolize_instruments <- function(mat) {
   vars <- mat[,!inst_index]
   inst_orth <- mat[,inst_index] %>%
     decorellate_matrix(cbind(1,vars)) %>%
-    linear_dim_reduction(var_threshold = 0.7)
+    linear_dim_reduction(var_threshold = 0)
 
   new_matr <- cbind(vars,inst_orth)
   data.table::setattr(new_matr,name = "is_instrument_var",
                       value = inst_index[seq_len(ncol(new_matr))])
 
-  return(cbind(vars,inst_orth))
+  return(new_matr)
 }
 

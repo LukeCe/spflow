@@ -6,7 +6,7 @@ setClassUnion("sp_network_meta" ,c("sp_network_nodes", "sp_network_pair"))
 
 #' @export
 #' @param new_cols New columns to be added to existing data can be one of;
-#'   scalar, vecotor, data.frame
+#'   scalar, vector, data.frame
 #' @rdname set_columns
 setMethod(
   f = "set_columns",

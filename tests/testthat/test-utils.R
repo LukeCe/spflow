@@ -100,7 +100,7 @@ test_that("linear_dim_reduction: => correct output", {
   # all but one clumns of the additional columns are uniformative ...
   test_matrix <- cbind(test_matrix, test_matrix + rnorm(rows))
 
-  actual <- linear_dim_reduction(test_matrix)
+  actual <- linear_dim_reduction(test_matrix,var_threshold = 1)
   expected_dim <- c(rows,cols + 1)
   expect_equal(dim(actual), expected_dim)
 })

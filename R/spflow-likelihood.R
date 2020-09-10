@@ -52,7 +52,7 @@ reminder_spflow_loglik <- function(N,sigma2,RSS){
 decompose_shift <- function(delta_t,rho,shift){
 
   tau <- c(1, -rho)
-  scaled_shift <- shift/sum(tau)
+  scaled_shift <- shift/as.numeric(crossprod(tau))
 
   delta_t <- delta_t + scaled_shift
   return(delta_t)

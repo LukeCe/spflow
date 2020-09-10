@@ -1,4 +1,12 @@
-# spflow (development version)
+# spflow 0.0.0.9005
+
+**This is a prerelease of the package only intended for beta testing.**
+
+Add Bivands fitted values (TS) as it is fast to compute.
+Add a vignette for the main functionality (which is still work in progress).
+Create tests for all models and estimators in the symmetric case.
+Model 2 to model 9 are run for the selected test case but the non-spatial model needs to be developed for all estimator.
+
 
 # spflow 0.0.0.9004
 
@@ -9,12 +17,12 @@ Model results have their own class [spflow_model_meta()]:
 + `predict()` -method can handle in sample prediction (fitted values)
 + includes a goodness-of-fit measure
 + corrected t-test degrees of freedom 
-+ includes example data for commuting flows of paris
++ includes example data for commuting flows of Paris
 
 # spflow 0.0.0.9003
 
 **This is a prerelease of the package only intended for beta testing.**
-Inlcuded a first version of documentation for all functions classes and methods.
+Included a first version of documentation for all functions classes and methods.
 
 # spflow 0.0.0.9002
 

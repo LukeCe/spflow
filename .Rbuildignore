@@ -8,3 +8,5 @@
 ^R\_*.R$
 ^scripts$
 ^data-raw$
+^doc$
+^Meta$

@@ -68,7 +68,7 @@ spflow_f2_hessian <- function(
 
   # Compute the stepsize (h)
   eps <- .Machine$double.eps
-  shift <- eps^(1 / 4) * abs(params)
+  shift <- eps^(1 / 3) * abs(params)
 
   # new loglik value as a function of a shift in the parameter vector
   # IDEA use memiose for re_evaluate_logdet -> speed up calculation

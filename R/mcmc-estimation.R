@@ -80,6 +80,11 @@ spflow_mcmc <- function(
     # construct residuals based on previous values of rho and delta
     RSS <- re_eval_RSS(delta_t,TSS,ZZ,ZY)
     mcmc_step2_RSS <- tau %*% RSS %*% tau
+    if (mcmc_step2_RSS <= 0)
+      browser()
+
+    if (shape_sigma2 <= 0)
+      browser()
 
     collect_sigma2[i_mcmc  + 1] <-
       1/rgamma(1,shape = shape_sigma2, rate = mcmc_step2_RSS / 2)

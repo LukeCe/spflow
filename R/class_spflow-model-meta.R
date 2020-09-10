@@ -25,7 +25,7 @@ setClass("spflow_model_meta",
            design_matrix = "ANY"))
 
 # ---- Methods ----------------------------------------------------------------
-#' @param model_matrices A list as returbed by [spflow_model_matrix()]
+#' @param model_matrices A list as returned by [spflow_model_matrix()]
 #' @param flow_control A list as returned by [spflow_control()]
 #'
 #' @rdname add_details
@@ -35,7 +35,6 @@ setMethod(
   signature = "spflow_model_meta",
   function(object, model_matrices, flow_control) { # ---- add_details ---------------------------------------
 
-    # add design matrix
     object@design_matrix <- drop_instruments(model_matrices)
 
     # add coef names
@@ -48,7 +47,22 @@ setMethod(
                                   row.names = ".names")
 
     # add fitted values , residuals, and goodness-of-fit
-    object@fitted <- predict(object)
+    nb_rho <- spatial_model_order(flow_control$model)
+    mu <- coef(object)
+    rho <- mu[seq_len(nb_rho)]
+    delta <- mu[!names(mu) %in% names(rho)]
+
+    fit_trend <- nb_rho
+    if (nb_rho > 0) {
+      fit_trend <-
+        mapply(FUN = "*", model_matrices$Y[-1],rho,SIMPLIFY = FALSE) %>%
+        Reduce("+", x = . ) %>%
+        as.vector()
+    }
+    fit_signal <- compute_signal(model_matrices = object@design_matrix,
+                                 delta = delta)
+
+    object@fitted <- fit_trend + fit_signal
     object@resid <- as.vector(object@design_matrix$Y) - fitted(object)
     object@R2_corr <- stats::cor(fitted(object),
                                  as.vector(object@design_matrix$Y))^2
@@ -287,14 +301,14 @@ compute_signal <- function(model_matrices, delta) {
 
   if (matrix_formulation_case) {
 
-    # index the coefficient vecots according to the model segments
+    # index the coefficient vectors according to the model segments
     sub_index <- list(
       "const" = 1,
       "const_intra" = 1 - is.null(model_matrices$const_intra),
-      "DX" = seq_len(ncol(model_matrices$DX)),
-      "OX" = seq_len(ncol(model_matrices$OX)),
-      "IX" = (model_matrices$IX %|!|% seq_len(ncol(model_matrices$IX))) %||% 0,
-      "G" = seq_along(model_matrices$G)) %>%
+      "DX" = seq_len(ncol(model_matrices$DX) %||% 0) %|0|% 0,
+      "OX" = seq_len(ncol(model_matrices$OX) %||% 0) %|0|% 0,
+      "IX" = seq_len(ncol(model_matrices$IX) %||% 0) %|0|% 0,
+      "G" = seq_len(length(model_matrices$G)) %|0|% 0) %>%
       sequentialize_index()
 
     # Calculate the components of the signal
@@ -330,12 +344,14 @@ compute_signal <- function(model_matrices, delta) {
     intra <- intra %||% 0
 
     # G part - (origin-destination pair attributes)
-    g_term <- model_matrices$G %|!|%
-      mapply(FUN = "*",
-             model_matrices$G, delta[sub_index$G], SIMPLIFY = FALSE) %>%
-      Reduce(f = "+", x = .) %>%
-      as.matrix()
-    g_term <- g_term %||% 0
+    g_term <- 0
+    if (length(model_matrices$G) != 0 ) {
+      g_term <-
+        mapply(FUN = "*", model_matrices$G, delta[sub_index$G],
+               SIMPLIFY = FALSE) %>%
+        Reduce(f = "+", x = .) %>%
+        as.matrix()
+    }
 
     signal <- as.vector(const + const_intra + dest + orig + intra + g_term)
     return(signal)

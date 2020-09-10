@@ -5,6 +5,20 @@ spflow_model_moments <- function(formulation,...) {
     "matrix" = spflow_model_moments_mat(...)
   )
 
+  ## ... veirfy the model moments
+  infinities_error_template <-
+    "The estimation is aborted because the %s variables contain " %p%
+    "infinite values!" %p%
+    "\nPlease check that all variables are well defined and that all " %p%
+    "tranformations are valid (e.g avoid logarithms of 0)."
+
+  assert(all(!is.infinite(model_moments$ZZ)),
+         sprintf(infinities_error_template, "explanatory"))
+
+  assert(all(!is.infinite(model_moments$ZY)),
+         sprintf(infinities_error_template, "response"))
+
+
   return(model_moments)
 
 }

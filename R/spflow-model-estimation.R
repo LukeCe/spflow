@@ -11,6 +11,17 @@ spflow_model_estimation <- function(
     estimator = estimator,
     flow_type = flow_control$flow_type)
 
+  na_error_template <-
+    "The estimation is aborted because the %s variables contain " %p%
+    "NA values!" %p%
+    "\nPlease check that all variables are well defined."
+
+  assert(all(!is.na(model_moments$ZZ)),
+         sprintf(na_error_template, "explanatory"))
+
+  assert(all(!is.na(model_moments$ZY)),
+         sprintf(na_error_template, "response"))
+
 
   estimation_results <- switch(estimator,
     "s2sls" = {
