@@ -288,6 +288,41 @@ model_matrix_expand_pairs <- function(
               "G" = explain_matrices %>% flatlist()))
 }
 
+
+flow_model_frame <- function(object,case_formula){
+
+  key_columns <- data.table::key(dat(object))
+  combined_formula <- case_formula %>% flatlist() %>% combine_formulas()
+
+  # validate that all information is available
+  {
+    available_vars <-
+      variable_names(object) %>%
+      c(".") %>%
+      setdiff(key_columns)
+
+    required_vars <- all.vars(combined_formula)
+    unmatched_vars <- required_vars[!required_vars %in% available_vars]
+    error_msg <-
+      "The variables [%s] were not found in the data set associated to " %p%
+      "the data describing the %s object with id [%s]!"
+
+    assert(length(unmatched_vars) == 0,
+           error_msg %>%
+             sprintf(paste(unmatched_vars,collapse = " and "),
+                     class(object),
+                     id(object)))
+  }
+
+  flow_model_frame <-
+    fix_contrast_model_matrix(
+      formula = combined_formula,
+      data    = dat(object)[,!key_columns, with = FALSE])
+
+  return(flow_model_frame)
+
+}
+
 lag_flow_matrix <- function(
   Y,
   model,

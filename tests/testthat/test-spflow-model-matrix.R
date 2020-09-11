@@ -4,6 +4,30 @@ context("Test spflow_model_matrix")
 
 # TODO rethink the tests for the model matrixes by mocking the multi_net_usa_ge class
 
+test_that("spflow_model_frame: => correct output", {
+
+  # standard case
+  example_net <- sp_network_nodes("cars",node_data = cars)
+  example_formula <- list("O" = ~speed + dist,
+                          "D" = ~log(speed) + log(dist))
+
+  actual <- flow_model_frame(example_net,example_formula)
+  expected <- model.matrix.default(~speed + dist + log(speed) + log(dist) - 1,
+                                   data = cars)
+  expect_equal(actual, expected)
+
+
+  # unknown variables
+  example_formula$O <- ~sppeedd + disttt
+  expect_error(
+    flow_model_frame(example_net,example_formula),
+    "^The variables \\[sppeedd and disttt\\] were not found .*" %p%
+      "with id \\[cars\\]\\!$")
+
+})
+
+
+
 example_matrices <- spflow_model_matrix(
   sp_multi_network = multi_net_usa_ge,
   network_pair_id = "ge_ge",
