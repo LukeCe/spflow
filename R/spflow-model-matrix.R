@@ -69,10 +69,11 @@ spflow_model_matrix <- function(
 
 
   pair_model_matrices <-
-    model_matrix_expand_pairs(
+    model_matrix_pairs(
+      sp_network_pair = network_pairs(sp_multi_network,pair_id),
       pair_formulas = flow_formulas_by_cases[pair_data_cases],
-      network_pair = network_pairs(sp_multi_network,pair_id),
-      pair_neighborhoods = neighborhoods,
+      orig_neighborhood = neighborhoods$OW,
+      dest_neighborhood = neighborhoods$DW,
       flow_control = flow_control)
 
   # add information on constant terms
@@ -88,6 +89,29 @@ spflow_model_matrix <- function(
            design_matrices_nodes,
            pair_model_matrices,
            neighborhoods))
+}
+
+model_matrix_nodes <- function(
+  sp_network_nodes,
+  node_formulas
+) {
+
+  # create the design matrix
+  node_design_matrix <- flow_model_frame(sp_network_nodes,node_formulas)
+
+
+  # ... define then apply the required number of spatial lags
+  # changes when the variable is sdm (+1) and when it is instrument (+2)
+
+  # TODO infish node design matrix
+  stop("Not implemented")
+  lag_node_data <- required_sp_lags(
+    node_formulas = node_formulas,
+    node_data_template = dat(sp_network_nodes)[])
+
+
+
+
 }
 
 model_matrix_expand_net <- function(
@@ -199,95 +223,64 @@ model_matrix_expand_net <- function(
   return(segment_model_matrices)
 }
 
-model_matrix_expand_pairs <- function(
+model_matrix_pairs <- function(
+  sp_network_pair,
   pair_formulas,
-  network_pair,
-  pair_neighborhoods,
+  orig_neighborhood,
+  dest_neighborhood,
   flow_control
 ) {
 
-  # derive the global model matrix by combining
-  # all formulas for the same data source
-  key_columns <- data.table::key(dat(network_pair))
+  # create the design matrix (in vector fromat)
+  pair_design_matrix <- flow_model_frame(sp_network_pair,pair_formulas)
+  n_o <-  count(sp_network_pair, "origins")
+  n_d <-  count(sp_network_pair, "destinations")
 
-  model_matrix_global <-
-    fix_contrast_model_matrix(
-      formula = flatlist(pair_formulas) %>% combine_formulas(),
-      data    = dat(network_pair)[,!key_columns, with = FALSE])
 
-  n_orig <- count(network_pair, "origins")
-  n_dest <- count(network_pair, "destinations")
-  column_to_matrix <- function(col) {
-    matrix(model_matrix_global[,col, drop = FALSE],
-           nrow = n_orig,
-           ncol = n_dest)
-  }
+  ## transform the flows ...
+  # ...into matrix format and apply spatial lags
+  response_variables <- extract_terms_labels(pair_formulas[["Y"]][["norm"]])
+  flow_matrices <- pair_design_matrix %>%
+    matrix_format(response_variables, n_d = n_d, n_o = n_o) %>%
+    lapply(lag_flow_matrix,model = flow_control$model,
+           OW = orig_neighborhood, DW = dest_neighborhood)
 
-  ## create the lagged interactions Y: response variable
-  response_formula <- pair_formulas[[1]][[1]]
-  response_variables <- extract_terms_labels(response_formula)
-  response_matrices <-
-    response_variables %>%
-    lapply(column_to_matrix) %>%
-    lapply(lag_flow_matrix,
-           model = flow_control$model,
-           OW = pair_neighborhoods$OW,
-           DW = pair_neighborhoods$DW)
+  # transform explanatory variables...
+  # ... into matrix format
+  explain_variables <- setdiff(colnames(pair_design_matrix),response_variables)
+  explain_matrices <- pair_design_matrix %>%
+    matrix_format(explain_variables, n_d = n_d, n_o = n_o)
 
-  ## create the matrix form of pair attributes G: explanatory variables
-  # we have to ensure that the response variable does not enter these matrices
-  explain_formulas <- pair_formulas[[2]]
-  explain_vars <- colnames(model_matrix_global) %>% setdiff(response_variables)
-  explain_matrices <- lapply(explain_vars, column_to_matrix)
+  # ... apply two spatial lags to instruments zero to normal vars
+  inst_formula <- pair_formulas[["G"]]$inst
+  instruments <- inst_formula %|!|%
+    extract_terms_labels(inst_formula,
+                         pair_design_matrix[0,explain_variables,drop = FALSE])
 
-  # lag those explanatory variables that are used as instruments
-  explain_variables <-
-    setdiff(colnames(model_matrix_global),response_variables)
-  explain_data_template <-
-    model_matrix_global[0,explain_variables,drop = FALSE]
-  explain_instruments <- explain_formulas$inst %|!|%
-    extract_terms_labels(explain_formulas$inst,explain_data_template)
-  explain_non_instruments <- explain_formulas$norm %|!|%
-    extract_terms_labels(explain_formulas$norm,explain_data_template)
-
-  nb_lags <- 2
-  lag_explain_vars <- integer(length(explain_vars))
-  lag_explain_vars[explain_vars %in% explain_instruments] <- nb_lags
-  lag_pair_instruments <- function(.G,.num_lags,.name) {
-    apply_matrix_od_lags(G = .G,
-                         OW = pair_neighborhoods[[1]],
-                         DW = pair_neighborhoods[[2]],
-                         nb_lags = .num_lags,
-                         name = .name)
-  }
-
+  explain_lags <- 2 * (explain_variables %in% instruments)
   explain_matrices <- mapply(
-    lag_pair_instruments,
-    .G = explain_matrices,
-    .num_lags = lag_explain_vars,
-    .name = explain_vars,
+    FUN = "apply_matrix_od_lags",
+    G = explain_matrices, nb_lags = explain_lags, name = explain_variables,
+    MoreArgs = list("OW" = orig_neighborhood, "DW" = dest_neighborhood),
     SIMPLIFY = FALSE
   )
 
-  # add information on instrument status
-  # ... all are instruments except the first elements
-  set_inst <- function(x, is_inst) {
-    data.table::setattr(x, "is_instrument_var", is_inst)
-  }
+  # ... declare instrument status
+  non_inst_formula <- pair_formulas[["G"]]$norm
+  non_instruments <-   non_inst_formula %|!|%
+    extract_terms_labels(non_inst_formula,
+                         pair_design_matrix[0,explain_variables,drop = FALSE])
 
-  # set all instrument...
-  # then unset those that are normal variables
   explain_matrices %>%
-    lapply(function(.l) lapply(.l, set_inst, TRUE)) %>%
+    lapply(function(.l) lapply(.l, set_instrument_status, TRUE)) %>%
     lapply(function(.l) {
-      set_inst(.l[[1]], !(names(.l)[1] %in% explain_non_instruments))
+      set_instrument_status(.l[[1]], !(names(.l)[1] %in% non_instruments))
       }) %>%
     invisible()
 
-  return(list("Y" = response_matrices %>% flatlist(),
+  return(list("Y" = flow_matrices %>% flatlist(),
               "G" = explain_matrices %>% flatlist()))
 }
-
 
 flow_model_frame <- function(object,case_formula){
 
@@ -323,11 +316,19 @@ flow_model_frame <- function(object,case_formula){
 
 }
 
-lag_flow_matrix <- function(
-  Y,
-  model,
-  OW,
-  DW) {
+matrix_format <- function(mat_vec_fmt, columns, n_o, n_d){
+
+  column_to_matrix <- function(col) {
+    matrix(mat_vec_fmt[,col, drop = FALSE],
+           nrow = n_o,
+           ncol = n_d)
+  }
+
+  matrix_list <- columns %>% lapply(column_to_matrix)
+  return(matrix_list)
+}
+
+lag_flow_matrix <- function(Y, model, OW, DW) {
 
   names_rho <- identify_auto_regressive_parameters(model)
 
@@ -360,13 +361,8 @@ lag_flow_matrix <- function(
   return(Y_lags)
 }
 
-
-apply_matrix_od_lags <- function(
-  G,
-  OW = NULL,
-  DW = NULL,
-  nb_lags = 0,
-  name = "") {
+apply_matrix_od_lags <- function(G, OW = NULL, DW = NULL, nb_lags = 0,
+                                 name = "") {
 
   suffixes <- c("","lag" %p% seq_len(nb_lags))[seq_len(nb_lags + 1)]
   G_lags <- named_list(names = name %p% suffixes)
@@ -383,6 +379,38 @@ apply_matrix_od_lags <- function(
   return(G_lags)
 }
 
+set_instrument_status <- function(x, is_inst) {
+    data.table::setattr(x, "is_instrument_var", is_inst)
+}
+
+required_sp_lags <- function(
+  node_formulas,
+  node_data_template) {
+
+  # add spatial lags according to the use of the variables...
+  # ... information by role (sdm, normal ...)
+  # ... instead of by data source (origin, destination, ...)
+  formulas_by_lag <- node_formulas %>%
+    translist() %>%
+    lapply(combine_formulas)
+
+  # define which variable require which lags
+  varnames_by_role <- formulas_by_lag %>%
+    lapply(function(.f) extract_terms_labels(.f,node_data_template)) %>%
+    compact()
+
+  vbr <- varnames_by_role
+
+  required_lags <-
+    list(
+      "lag0" = vbr$norm,
+      "lag1" = unique(c(vbr$sdm, vbr$inst)),
+      "lag2" = vbr$inst,
+      "lag3" = intersect(vbr$sdm,vbr$inst)
+    ) %>% compact()
+
+  return(required_lags)
+}
 
 define_spatial_lag_requirements <- function(
   formulas_by_lag_type) {
