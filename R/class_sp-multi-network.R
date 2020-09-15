@@ -65,19 +65,23 @@ setMethod(
   signature = "sp_multi_network",
   function(object,
            network_ids = NULL) { # ---- neighborhoods --------------------------
-    return(networks(object, network_ids) %>% lapply(neighborhood))
+    return(network_nodes(object, network_ids) %>% lapply(neighborhood))
     })
 
 #' @inheritParams neighborhoods
-#' @rdname networks
+#' @rdname network_nodes
 #' @export
 setMethod(
-  f = "networks",
+  f = "network_nodes",
   signature = "sp_multi_network",
   function(object,
-           network_ids = NULL) { # ---- networks -------------------------------
+           network_ids = NULL) { # ---- network_nodes -------------------------
 
     network_ids <- network_ids %||% id(object)$networks
+
+    if (length(network_ids) == 1)
+      return(object@networks[[network_ids]])
+
     return(object@networks[network_ids])
   })
 

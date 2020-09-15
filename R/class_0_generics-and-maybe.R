@@ -1,5 +1,4 @@
 #' @include utils.R spflow-package.R
-#' @importClassesFrom Matrix Matrix
 
 # This script adds new generics and virtual classes that are used inside the
 # package it should be run before all other classes which is ensured by the
@@ -57,6 +56,13 @@ setGenericVerif("dat",  function(object, ...){ # ---- dat ---------------------
 setGenericVerif("dat<-",  function(object, ..., value){ # ---- dat <- ---------
   standardGeneric("dat<-")})
 
+#' @title Access the schema of the data inside a netowrk object
+#' @param object One of; [sp_network_nodes()], [sp_network_pair()]
+#' @name dat_template
+#' @keywords internal
+setGenericVerif("dat_template", function(object, ...){ # ---- dat_template ----
+  standardGeneric("dat_template")})
+
 #' @title Drops columns from the data in a [sp_network_nodes()] or [sp_network_pair()]
 #' @details  This function assigns by reference.
 #' @param object One of; [sp_network_nodes()], [sp_network_pair()]
@@ -105,19 +111,22 @@ setGenericVerif("neighborhood<-",
 setGenericVerif("neighborhoods",function(object, ...){
   standardGeneric("neighborhoods")})
 
-#' @title Access the one or multiple [sp_network_nodes()] in a [sp_multi_network()]
+#' @title Access the one or multiple [sp_network_nodes()] in a
+#'   [sp_multi_network()]
 #' @param object A [sp_multi_network()]
-#' @name networks
+#' @name network_nodes
 #' @export
-setGenericVerif("networks", function(object, ...){ # ---- networks ------------
-  standardGeneric("networks")})
+setGenericVerif("network_nodes",
+                function(object, ...){ # ---- network_nodes -------------------
+  standardGeneric("network_nodes")})
 
 #' @title Access the one or multiple [sp_network_pair()] in a
 #'   [sp_multi_network()]
 #' @param object A [sp_multi_network()]
 #' @name network_pairs
 #' @export
-setGenericVerif("network_pairs",function(object, ...){ # ---- networks <- -----
+setGenericVerif("network_pairs",
+                function(object, ...){ # ---- network_pairs -------------------
   standardGeneric("network_pairs")})
 
 #' @title Create a long form data.frame of origin-destination pairs
@@ -145,7 +154,7 @@ setGenericVerif("results<-",  function(object, value){ # ---- results <- -------
 #' @details  This function assigns by reference.
 #' @param object One of; [sp_network_nodes()], [sp_network_pair()]
 #' @name set_columns
-#' @export
+#' @keywords internal
 setGenericVerif("set_columns", function(object, ...){ # ---- set_columns ------
   standardGeneric("set_columns")})
 

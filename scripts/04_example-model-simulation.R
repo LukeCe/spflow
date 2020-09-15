@@ -97,7 +97,7 @@ mapply(set_columns,
 
 # drop the lagged attributes from the data -> only needed for simulation
 mapply(drop_columns,
-       multi_net_usa_ge %>% networks(),
+       multi_net_usa_ge %>% network_nodes(),
        "X_lag",
        SIMPLIFY = FALSE) %>%
   invisible()

@@ -324,6 +324,11 @@ prefix_columns <- function(obj,prefix){
   obj
 }
 
+suffix_columns <- function(obj,suffix){
+  colnames(obj) <- colnames(obj) %p% suffix
+  obj
+}
+
 # ---- strings ----------------------------------------------------------------
 '%p%' <- function(x, y) {
   paste0(x,y)

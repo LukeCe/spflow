@@ -1,9 +1,4 @@
 # spflow_model_matrix ---------------------------------------------------------
-skip(message = "needs to be updated")
-context("Test spflow_model_matrix")
-
-# TODO rethink the tests for the model matrixes by mocking the multi_net_usa_ge class
-
 test_that("spflow_model_frame: => correct output", {
 
   # standard case
@@ -27,69 +22,61 @@ test_that("spflow_model_frame: => correct output", {
 })
 
 
+test_that("split_by_source: => correct output", {
 
-example_matrices <- spflow_model_matrix(
-  sp_multi_network = multi_net_usa_ge,
-  network_pair_id = "ge_ge",
-  flow_formula = y9 ~ G_(log(distance + 1)) + X,
-  flow_control = spflow_control())
+  cases <- c("inst","norm","sdm")
+  example_net <- sp_network_nodes("cars",node_data = cars)
+  example_formula <- list("OX" = ~speed + dist,
+                          "DX" = ~log(speed) + log(dist),
+                          "IX" = ~log(speed + 1) + log(dist + 1)) %>%
+    lapply(function(.f) named_list(cases, .f))
+  example_design_matrix <-
+    model.matrix(data = cars,
+                 ~speed + dist + log(speed) + log(dist) +
+                   log(speed + 1) + log(dist + 1) - 1 )
 
-test_that("Output has the correct structure", {
+  lag_suffixes <- c("",".lag1",".lag2",".lag3")
+  example_design_matrix_lagged <-
+    cbind(suffix_columns(example_design_matrix * 1, lag_suffixes[1]),
+          suffix_columns(example_design_matrix * 2, lag_suffixes[2]),
+          suffix_columns(example_design_matrix * 3, lag_suffixes[3]),
+          suffix_columns(example_design_matrix * 4, lag_suffixes[4]))
 
-  required_matrices <- define_matrix_keys() %>% as.vector()
 
-  expect_true(all(names(example_matrices) %in% required_matrices))
+  actual <- split_by_source(
+    global_design_matrix = example_design_matrix_lagged,
+    node_formulas = example_formula,
+    node_data_template = data.table::as.data.table(cars))
 
+
+  ## Test naming and instrument status of all three cases
+  expected_inst_status <- rep(c(FALSE,TRUE),each = 4)
+  lag_suffixes <- c("",".lag1",".lag2",".lag3")
+
+  # origin case
+  expected_names <- lapply(lag_suffixes, function(.suf) {
+    "Orig_" %p% c("speed","dist") %p% .suf
+  }) %>% flatten()
+
+  expect_equal(colnames(actual$OX), expected_names)
+  expect_equal(get_instrument_status(actual$OX), expected_inst_status)
+
+  # destination case
+  expected_inst_status <- rep(c(FALSE,TRUE),each = 4)
+  expected_names <- lapply(lag_suffixes, function(.suf) {
+    "Dest_" %p% c("log(speed)", "log(dist)") %p% .suf
+  }) %>% flatten()
+
+  expect_equal(colnames(actual$DX), expected_names)
+  expect_equal(get_instrument_status(actual$DX), expected_inst_status)
+
+  # intra case
+  expected_inst_status <- rep(c(FALSE,TRUE),each = 4)
+  expected_names <- lapply(lag_suffixes, function(.suf) {
+    "Intra_" %p% c("log(speed + 1)", "log(dist + 1)") %p% .suf
+  }) %>% flatten()
+
+  expect_equal(colnames(actual$IX), expected_names)
+  expect_equal(get_instrument_status(actual$IX), expected_inst_status)
 })
 
-test_that("Output elements are correct", {
-
-  W_ge <- neighborhoods(multi_net_usa_ge,"ge")$ge
-
-  # check the weight matrices
-  expect_equivalent(object = example_matrices$OW, expected = W_ge)
-  expect_equivalent(object = example_matrices$DW, expected = W_ge)
-
-
-  XX <- dat(multi_net_usa_ge,"ge")[,2:3] %>% as.matrix()
-  XX <- cbind(XX, W_ge %*% W_ge %*% XX) %>% as.matrix()
-  # check the attributes of [origin], [destination], [intra]
-  expect_equivalent(object = example_matrices$DX, expected = XX)
-  expect_equivalent(object = example_matrices$OX, expected = XX)
-  expect_equivalent(object = example_matrices$IX, expected = XX)
-
-  # check the pair attributes
-  n_ge <- 16
-  pair_data <- dat(multi_net_usa_ge, network_pair_id = "ge_ge")
-  dist <- log(pair_data$distance + 1) %>% Matrix(nrow = n_ge)
-  dist.lag1 <- W_ge %*% tcrossprod(dist,W_ge)
-  dist.lag2 <- W_ge %*% tcrossprod(dist.lag1,W_ge)
-
-  expect_equivalent(object = example_matrices$G$`log(distance + 1)`,
-                    expected = dist)
-  expect_equivalent(object = example_matrices$G$`log(distance + 1).lag1`,
-                    expected = dist.lag1)
-  expect_equivalent(object = example_matrices$G$`log(distance + 1).lag2`,
-                    expected = dist.lag2)
-
-  # check the flows
-  flows <- pair_data$y9 %>% Matrix(nrow = n_ge)
-  flows.o <- W_ge %*% flows
-  flows.d <- tcrossprod(flows,W_ge)
-  flows.w <- W_ge %*% flows.d
-
-  expect_equivalent(object = example_matrices$Y$y9,
-                    expected = flows)
-  expect_equivalent(object = example_matrices$Y$y9.o,
-                    expected = flows.o)
-  expect_equivalent(object = example_matrices$Y$y9.d,
-                    expected = flows.d)
-  expect_equivalent(object = example_matrices$Y$y9.w,
-                    expected = flows.w)
-
-  # check the constant
-  expect_true(example_matrices$const == 1)
-  expect_equivalent(object = example_matrices$const_intra,
-                    expected = intra_regional_constant(W_ge, TRUE))
-
-})

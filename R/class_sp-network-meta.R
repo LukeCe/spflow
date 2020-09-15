@@ -4,6 +4,42 @@ setClassUnion("sp_network_meta" ,c("sp_network_nodes", "sp_network_pair"))
 
 # ---- methods ----------------------------------------------------------------
 
+#' @param col_subset A character vector indicating columns that should be kept
+#'   for the template
+#' @rdname dat_template
+setMethod(
+  f = "dat_template",
+  signature = c("sp_network_meta"),
+  function(object, col_subset = NULL) { # ---- dat_template -------------------
+
+    key_cols <- data.table::key(dat(object))
+
+    if (is.null(col_subset)) {
+      template <- dat(object)[0,!key_cols, with = FALSE]
+    }
+
+    if (!is.null(col_subset)) {
+      stopifnot(all(key_cols != col_subset),
+                all(col_subset %in% variable_names(object)))
+
+      template <- dat(object)[0,col_subset, with = FALSE]
+    }
+
+    return(invisible(template))
+  })
+
+#' @param drop_columns A vector indicating columns of the data;
+#'     either character or integer.
+#' @rdname drop_columns
+setMethod(
+  f = "drop_columns",
+  signature = c("sp_network_meta"),
+  function(object, drop_columns) { # ---- drop_columns ------------------------
+    dat(object)[ , c(drop_columns) := NULL]
+    return(invisible(dat(object)))
+  })
+
+
 #' @export
 #' @param new_cols New columns to be added to existing data can be one of;
 #'   scalar, vector, data.frame
@@ -18,17 +54,6 @@ setMethod(
            "The dimensions of the new data does not match with the existing!")
     dat(object)[ , names(new_cols) := new_cols]
 
-    return(invisible(dat(object)))
-  })
-
-#' @param drop_columns A vector indicating columns of the data;
-#'     either character or integer.
-#' @rdname drop_columns
-setMethod(
-  f = "drop_columns",
-  signature = c("sp_network_meta"),
-  function(object, drop_columns) { # ---- drop_columns ------------------------
-    dat(object)[ , c(drop_columns) := NULL]
     return(invisible(dat(object)))
   })
 
