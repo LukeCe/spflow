@@ -24,6 +24,14 @@ spflow_model_estimation <- function(
 
 
   estimation_results <- switch(estimator,
+    "ols" = {
+      spflow_ols(
+        ZZ  = model_moments$ZZ,
+        ZY  = model_moments$ZY,
+        TSS = model_moments$TSS,
+        N   = model_moments$N,
+        flow_control = flow_control
+      )},
     "s2sls" = {
       spflow_s2sls(
         HH  = model_moments$HH,

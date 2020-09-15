@@ -1,5 +1,22 @@
 #' @include class_spflow-model-meta.R
 
+# ---- OLS class --------------------------------------------------------------
+#' @slot ll numeric.
+#' @slot AIC numeric.
+#' @slot BIC numeric.
+#' @slot varcov matrix.
+#'
+#' @return A [spflow_model()] object
+#' @rdname spflow_model_meta
+#' @export
+setClass("spflow_model_ols",
+         slots = c(
+           ll = "maybe_numeric",
+           AIC = "maybe_numeric",
+           BIC = "maybe_numeric",
+           varcov = "maybe_matrix"),
+         contains = "spflow_model_meta")
+
 # ---- MLE class --------------------------------------------------------------
 
 #' @slot ll numeric.
@@ -45,8 +62,10 @@ setClass("spflow_model_mcmc",
          contains = "spflow_model_meta")
 
 # ---- Virtual classes --------------------------------------------------------
-setClassUnion("spflow_model_mle_s2sls",
-              c("spflow_model_mle","spflow_model_s2sls"))
+setClassUnion("spflow_model_mle_s2sls_ols",
+              c("spflow_model_ols",
+                "spflow_model_mle",
+                "spflow_model_s2sls"))
 
 # ---- generics & methods -----------------------------------------------------
 
@@ -68,7 +87,7 @@ setMethod(
 #' @rdname varcov
 setMethod(
   f = "varcov",
-  signature = "spflow_model_mle_s2sls",
+  signature = "spflow_model_mle_s2sls_ols",
   function(object){ # ---- varcov ---------------------------------------------
     return(object@varcov)
   })

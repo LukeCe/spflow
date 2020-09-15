@@ -46,6 +46,7 @@ Collate:
     'mle-estimation.R'
     'mle-hessian.R'
     'model-moments-by-blocks.R'
+    'ols_estimation.R'
     's2sls-estimation.R'
     'spatial-neighborhood.R'
     'spflow-control.R'

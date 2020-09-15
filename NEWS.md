@@ -1,4 +1,8 @@
-# spflow (development version)
+# spflow 0.0.0.9006
+
+**This is a prerelease of the package only intended for beta testing.**
+
+Add ols estimation for model 1 to complete the case of symmetric flows which are a cartesian product of origins and destinations.
 
 # spflow 0.0.0.9005
 

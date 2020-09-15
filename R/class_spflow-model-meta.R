@@ -59,6 +59,7 @@ setMethod(
         Reduce("+", x = . ) %>%
         as.vector()
     }
+
     fit_signal <- compute_signal(model_matrices = object@design_matrix,
                                  delta = delta)
 
@@ -340,7 +341,7 @@ compute_signal <- function(model_matrices, delta) {
 
     # intra part - only for diagonal elements
     intra <- vector_or_null("IX")
-    intra <- intra %|!|% matrix(rep(intra,n_d),nrow = n_d,byrow = TRUE)
+    intra <- intra %|!|% Matrix::Diagonal(intra,n = length(intra))
     intra <- intra %||% 0
 
     # G part - (origin-destination pair attributes)

@@ -36,7 +36,7 @@ spflow_model_moments_mat <- function(
   HH <- moment_empirical_var(model_matrices) %>% as.matrix()
   HY <- model_matrices$Y %>%
     lapply(moment_empirical_covar,model_matrices) %>%
-    reduce(cbind)
+    Reduce(cbind, x = .,init = matrix(nrow = nrow(HH),ncol = 0))
 
   # For the stage two moments is suffices to drop the instrumental variables
   variable_order <- c("const","const_intra","DX","OX","IX","G")
@@ -49,7 +49,7 @@ spflow_model_moments_mat <- function(
   # total sum of squares is different for GMM and likelihood based estimators
   # because the lagged flows are considered as endogenous regressors and not
   # as additional dependent variable
-  is_GMM_estimator <- estimator == "s2sls"
+  is_GMM_estimator <- estimator %in% c("s2sls","ols")
   nb_lhs_vars <- ifelse(is_GMM_estimator,1,ncol(ZY))
 
   TSS <- hadamard_sum_matrix(model_matrices$Y[seq_len(nb_lhs_vars)])

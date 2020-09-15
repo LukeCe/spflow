@@ -337,6 +337,30 @@ describe("Estimation via the formula interface without intra model", {
 
   })
 
+  it("Works for the ols estimation (M1 -sym)", {
+
+    default_results <- spflow(
+      flow_formula = Y1 ~ . + G_(log(pair_distance + 1)),
+      multi_net_ge_flex,
+      flow_control = spflow_control(estimation_method = "ols"))
+
+    expect_is(default_results,"spflow_model_ols")
+
+    # test length as exact reference values are not available
+    actual_estimates <- coef(default_results)
+    expected_estimates <- test_case_1_symmetric$results$M1$ols$params
+    expect_equivalent(actual_estimates,expected_estimates)
+
+    expected_uncertainty <- test_case_1_symmetric$results$M1$ols$sd_params
+    actual_uncertainty <- results(default_results)$sd
+    expect_equivalent(actual_uncertainty,expected_uncertainty)
+
+    expected_names <- c("Constant", "Constant_intra",
+                      "Dest_X", "Dest_X.lag1", "Orig_X", "Orig_X.lag1",
+                      "Intra_X", "Intra_X.lag1", "log(pair_distance + 1)")
+
+    expect_equal(names(coef(default_results)), expected_names)
+  })
 })
 
 describe("Methods work for the spflow_model class", {

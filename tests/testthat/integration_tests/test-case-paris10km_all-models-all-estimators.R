@@ -69,6 +69,43 @@ describe("Returns readable errors for invalid data!",{
 
 })
 
+# test results for ols estimator ----------------------------------------------
+describe("OLS returns sensible results and is used in the correct case",{
+
+  it("Work for all models in the SDM specification",{
+
+    # generic formula for all models
+    ols_formula <- log(1 + COMMUTE_FLOW) ~
+      log(POPULATION) + MED_INCOME + log(NB_COMPANY + 1) +
+      G_(log(1 + DISTANCE))
+
+    # 9 cases
+    # include special instruments that were not used in estimation
+    expect_ols_model <- function(model, est) {
+      result <- spflow(
+        flow_formula = ols_formula,
+        sp_multi_network = paris10km_sp_multi,
+        flow_control = spflow_control(
+          est, model = model,
+          decorrelate_instruments = TRUE,
+          instrumental_variables = ~log(POPULATION) + log(AREA) + G_(log(1 + DISTANCE))))
+
+      expect_is(result,class = "spflow_model_ols")
+      expect_true(resid(result) %>% sum() < 1)
+      return(invisible(result))
+    }
+
+
+    m1_ols <- expect_ols_model("model_1", "ols")
+    m9_ols <- expect_ols_model("model_9", "ols")
+    m1_mle <- expect_ols_model("model_1", "mle")
+    m1_mcmc <- expect_ols_model("model_1", "mcmc")
+    m1_s2sls <- expect_ols_model("model_1", "s2sls")
+
+
+  })
+})
+
 # test results for s2sls estimator --------------------------------------------
 
 describe("S2SLS returns sensible results.",{
@@ -92,11 +129,11 @@ describe("S2SLS returns sensible results.",{
           instrumental_variables = ~log(POPULATION) + log(AREA) + G_(log(1 + DISTANCE))))
 
       expect_is(result,class = "spflow_model_s2sls")
+      expect_true(resid(result) %>% sum() < 1)
       return(invisible(result))
     }
 
 
-    #expect_s2sls_model("model_1")
     m2 <- expect_s2sls_model("model_2")
     m3 <- expect_s2sls_model("model_3")
     m4 <- expect_s2sls_model("model_4")
@@ -173,6 +210,7 @@ describe("MLE returns sensible results.",{
                                       hessian_method = hess))
 
       expect_is(result,class = "spflow_model_mle")
+      expect_true(resid(result) %>% sum() < 1)
       return(invisible(result))
     }
 
@@ -222,6 +260,7 @@ describe("MCMC returns sensible results.",{
         flow_control = spflow_control("mcmc", model = model))
 
       expect_is(result,class = "spflow_model_mcmc")
+      expect_true(resid(result) %>% sum() < 5)
       return(invisible(result))
     }
 

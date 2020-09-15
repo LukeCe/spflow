@@ -31,7 +31,7 @@ spflow_control <- function(
   hessian_method = "mixed",
   flow_type = NULL) {
 
-  available_estimators <- c("s2sls", "mle","mcmc")
+  available_estimators <- c("s2sls", "mle","mcmc","ols")
   assert(estimation_method %in% available_estimators,
          "The estimation method must be one of [%s]!" %>%
            sprintf(., paste(available_estimators, collapse = " or ")))
@@ -40,6 +40,12 @@ spflow_control <- function(
   assert(model %in% possible_models,
          "The model can only be one of:\\n" %p%
            paste0(possible_models,collapse =  "\\n"))
+
+  # model 1 is always ols
+  if (estimation_method == "ols" | model == "model_1") {
+    estimation_method <- "ols"
+    model <- "model_1"
+  }
 
   possible_formulations <- c("matrix", "vector")
   assert(formulation %in% possible_formulations,
