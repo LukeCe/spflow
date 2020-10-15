@@ -103,8 +103,8 @@ spflow_mcmc <- function(
 
       unstable_rho <- (
         min(candidate_rho) < bound_rho["low"]
-        || max(candidate_rho) > bound_rho["up"]
-        || abs(sum(candidate_rho)) > 1
+        | max(candidate_rho) > bound_rho["up"]
+        #| sum(abs(candidate_rho)) < 1
       )
       count_draws <- count_draws + 1
     }
