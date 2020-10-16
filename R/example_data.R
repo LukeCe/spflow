@@ -33,14 +33,7 @@
 "germany_net"
 
 #' @rdname example_data
-"rho"
-
-#' @rdname example_data
-"delta"
-
-#' @rdname example_data
-"sd_error"
-
+"simulation_params"
 
 #' Example data for commuting flows of paris
 #'

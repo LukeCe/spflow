@@ -211,6 +211,14 @@ setReplaceMethod(
       return(object)
   })
 
+#' @rdname sd_error
+#' @export
+setMethod(
+  f = "sd_error",
+  signature = "spflow_model_meta",
+  function(object){ # ---- sd_error -------------------------------------------
+    return(object@sd_error)
+  })
 
 setMethod(
   f = "show",

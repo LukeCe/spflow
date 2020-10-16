@@ -34,4 +34,6 @@ rho <- c(rho_d = 0.45,
 # sd of errors
 sd_error <- c(sigma = 2)
 
-usethis::use_data(delta,rho,sd_error,overwrite = TRUE)
+simulation_params <- list("delta" = delta, "rho" = rho, "sd_error" = sd_error)
+
+usethis::use_data(simulation_params, overwrite = TRUE)

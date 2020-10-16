@@ -150,6 +150,13 @@ setGenericVerif("results",  function(object){ # ---- results -------------
 setGenericVerif("results<-",  function(object, value){ # ---- results <- --------
   standardGeneric("results<-")})
 
+#' @title Extract the standard deviation from a [spflow_model_meta()]
+#' @param object A [spflow_model_meta()]
+#' @name sd_error
+setGenericVerif("sd_error", function(object){ # ---- sd_error ------------
+  standardGeneric("sd_error")})
+
+
 #' @title Add columns to the data in a [sp_network_nodes()] or [sp_network_pair()]
 #' @details  This function assigns by reference.
 #' @param object One of; [sp_network_nodes()], [sp_network_pair()]

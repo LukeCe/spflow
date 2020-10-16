@@ -10,13 +10,7 @@ Authors@R: c(
     person(given = "Thibault",
            family =  "Laurent",
            email = "thibault.laurent@tse-fr.eu",
-           role = c("aut")),
-    person(given = "Christine",
-           family =  "Thomas-Agnan",
-           role = c("ctb")),
-    person(given = "Paula",
-           family =  "Margaretic",
-           role = c("ctb")))
+           role = c("aut")))
 Description: 
     Efficient estimation of models for origin-destiantion flows which account
     for spatial-autocorrelation in the dependent variable.
