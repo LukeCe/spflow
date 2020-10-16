@@ -117,12 +117,12 @@ setMethod(
     nodes_ids <- multi_net_ids$networks
     cat("\nContains",length(nodes_ids),
         "sets of spatial network nodes.",
-        "\n    With ids:",nodes_ids)
+        "\n    With ids:", paste(nodes_ids, collapse = ", "))
 
     pair_ids <- names(multi_net_ids$network_pairs)
     cat("\nContains",length(pair_ids),
         "sets of spatial network pairs",
-        "\n    With ids:",pair_ids)
+        "\n    With ids:", paste(pair_ids, collapse = ", "))
 
     od_pair_info <- multi_net_ids$network_pairs %>%
       lapply(as.list) %>%

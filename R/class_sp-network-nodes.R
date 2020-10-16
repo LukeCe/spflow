@@ -124,10 +124,15 @@ setMethod(
 
     has_neighborhood <- !is.null(neighborhood(object))
     if (has_neighborhood) {
-      cat("\nDesnsity of the neighborhood matrix:",
+      cat("\nAverage number of links per node:",
+          round(neighborhood(object) %>% nnzero()/
+                  (neighborhood(object) %>% nrow()),3)
+      )
+      cat("\nDensity of the neighborhood matrix:",
           format_percent(neighborhood(object) %>% nnzero()/
                            neighborhood(object) %>% length()),
-          "(non-zero connections)")
+          "(non-zero connections)"
+          )
     }
 
     has_data <- !is.null(dat(object))

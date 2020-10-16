@@ -56,10 +56,6 @@ usa_4_nearest_neighbours <- usa_grid %>%
   nb2listw() %>%
   listw2mat()
 
-# add a spatial lag
-usa_data <- cbind(usa_data,
-                  X_lag = usa_4_nearest_neighbours %*% usa_data$X)
-
 usa_net <- sp_network_nodes(
   network_id = "usa",
   node_neighborhood = usa_4_nearest_neighbours,

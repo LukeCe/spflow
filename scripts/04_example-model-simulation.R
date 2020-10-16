@@ -14,6 +14,7 @@ source("scripts/03_example-model-parameters.R")
 data("germany_net")
 data("usa_net")
 
+# default multi-network
 multi_net_usa_ge <- sp_multi_network(
   germany_net,
   usa_net,
@@ -23,12 +24,27 @@ multi_net_usa_ge <- sp_multi_network(
   usa_to_ge_pairs
 )
 
+# copy that includes lags...
+# ... for germany
+ge_data_with_lag <- germany_net %>% dat() %>% data.table::copy()
+W_ge <- germany_net %>% neighborhood() %>% as.matrix()
+ge_data_with_lag[, X_lag := W_ge %*% X ]
+
+# ... for usa
+usa_data_with_lag <- usa_net %>% dat() %>% data.table::copy()
+W_usa <- usa_net %>% neighborhood() %>% as.matrix()
+usa_data_with_lag[, X_lag := W_usa %*% X ]
+
+# ... insert them in the multi-net
+dat(multi_net_usa_ge_copy@networks$ge) <- ge_data_with_lag
+dat(multi_net_usa_ge_copy@networks$usa) <- usa_data_with_lag
+
 # extract the exogenous variables and add intraregional ones
 assign_columns <- c("intra_X","intra_X_lag")
 pair_ids <- id(multi_net_usa_ge)$network_pairs %>% names
 
 pair_variables <- pair_ids %>%
-  lapply(function(.id) pair_merge(multi_net_usa_ge,.id)) %>%
+  lapply(function(.id) pair_merge(multi_net_usa_ge_copy,.id)) %>%
   lapply(function(.dat) .dat[,"(Intercept)" := 1]) %>%
   lapply(function(.dat) .dat[,"distance" := log(distance + 1)])
 
@@ -92,13 +108,6 @@ flows <- invers_model_filters %>%
 mapply(set_columns,
        multi_net_usa_ge %>% network_pairs(),
        flows,
-       SIMPLIFY = FALSE) %>%
-  invisible()
-
-# drop the lagged attributes from the data -> only needed for simulation
-mapply(drop_columns,
-       multi_net_usa_ge %>% network_nodes(),
-       "X_lag",
        SIMPLIFY = FALSE) %>%
   invisible()
 
