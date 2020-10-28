@@ -57,9 +57,14 @@ split_flow_formula <- function(main_formula) {
   possible_data_sources <- c("DX","OX","IX","G")
   special_formulas      <- c("D" ,"O" ,"I" ,"G") %p% "_"
 
-  split_formulas <- extract_specials(
-    formula = main_formula %>% pull_rhs(),
-    specials = special_formulas)
+  split_formulas <- try({
+    extract_specials(formula = main_formula %>% pull_rhs(),
+                     specials = special_formulas)
+      },silent = TRUE)
+
+  assert(!is(split_formulas, "try-error"),
+         error_msg = stop("The specifyed flow_formula can not be interpreted."))
+
 
   names(split_formulas) <- possible_data_sources
 
@@ -75,6 +80,16 @@ extract_specials <- function(formula, specials) {
     specials = specials,
     data = data.frame("." = "."))
 
+  # assign the specials to a function
+  # that returns its content as a one sided formula
+  # >> is evaluated below using parse...
+  fun_env <- environment()
+  specials %>%
+    lapply(assign, value = function(.s) {
+             to_rhs_formula(paste(deparse(substitute(.s)),collapse = ""))
+           },
+           envir = fun_env)
+
   # determine the variables for specific cases
   all_variables <- rownames(attr(terms_formula, "factors"))
 
@@ -82,18 +97,21 @@ extract_specials <- function(formula, specials) {
     attr(terms_formula,"specials") %>%
     compact()
 
-  # assign the specials to a function
-  fun_env <- environment()
-  specials %>%
-    lapply(assign,
-           value = function(.s) to_rhs_formula(deparse(substitute(.s))),
-           envir = fun_env)
+  # preasign_secific formulas: for each index there must be one
+  specific_formulas <- named_list(names(specific_vars_indexes), ~ -1)
 
-  # apply the function which just parses its arguments as a formula
-  specific_formulas <-
-    specific_vars_indexes %>%
+  # filter out empty specials for shortcut notation
+  empty_special <-
+    all_variables[unlist(specific_vars_indexes)] %in% (specials %p% "()")
+
+  # evaluates a string as if it was a function
+  # >> the previously assigned function
+  specific_formulas_temp <-
+    specific_vars_indexes[!empty_special] %>%
     lapply(function(.i) eval(parse(text = all_variables[.i]))) %>%
     lapply(remove_intercept)
+
+  specific_formulas[names(specific_formulas_temp)] <- specific_formulas_temp
 
 
   # determine the generic variables used for all remaining cases

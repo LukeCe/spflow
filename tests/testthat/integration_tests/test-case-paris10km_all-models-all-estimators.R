@@ -4,15 +4,12 @@
 # = = = = = = = = = = = = = = = = = = =
 # Description:
 #
-# Test error free estimation for all possible models.
+# Test error free estimation for all possible models (default estimates).
 # All estimators: mle s2sls mcmc
 # All models: 1 - 9
 # All strucutres: SDM - SAR
 # - - - - - - - - - - - - - - - - - - -
 # Date: June 2020
-
-load(file.path(rprojroot::find_testthat_root_file(),
-               "test_case_1_symmetric.rda"))
 devtools::load_all()
 
 # setup the test example

@@ -63,7 +63,6 @@ spflow_model_matrix <- function(
 
   }
 
-
   pair_model_matrices <-
     model_matrix_pairs(
       sp_network_pair = network_pairs(sp_multi_network,pair_id),
@@ -73,7 +72,15 @@ spflow_model_matrix <- function(
       flow_control = flow_control)
 
   # add information on constant terms
-  n_intra <- nrow(origin_model_matrices$IX)
+  # TODO rename extractor for network_nodes and network_paris to pull_...
+  # TODO rename count to nnodes & npairs
+  n_intra <- NULL
+  if (flow_control$use_intra) {
+    n_origins <- sp_multi_network %>%
+      network_nodes(network_ids = orig_id) %>%
+      count()
+    n_intra <- n_origins
+  }
   constants <- list(
     "const" = 1 %>% data.table::setattr(.,"is_instrument_var",FALSE),
     "const_intra" = n_intra %|!|%
@@ -346,7 +353,8 @@ split_by_source <- function(global_design_matrix,
 
   model_matrices <- lags_by_source %>%
     lapply(flatten) %>%
-    lapply(function(.ind) global_design_matrix[,.ind]) %>%
+    compact() %>%
+    lapply(function(.ind) global_design_matrix[,.ind, drop = FALSE]) %>%
     mapply(prefix_columns, obj = ., prefix = prefixes[names(.)],
            SIMPLIFY = FALSE)
 
@@ -374,7 +382,7 @@ split_by_source <- function(global_design_matrix,
     set_instrument_status(.X,rev(inst_stat))
     return(invisible(NULL))
     },
-    .X = model_matrices, .nb_i = nb_inst_by_source,
+    .X = model_matrices, .nb_i = nb_inst_by_source[names(model_matrices)],
     SIMPLIFY = FALSE)
 
   return(model_matrices)
