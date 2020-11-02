@@ -29,11 +29,12 @@ spflow_mcmc <- function(
   collect_sigma2 <- matrix(nrow = nb_draw + 1, ncol = 1)
   collect_rho    <- matrix(nrow = nb_draw + 1, ncol = nb_rho)
 
-  # the first draws are equal to uninformative priors
+  # the first draws are equal to uninformative prior distributions
   collect_delta[1,] <- 0
   collect_sigma2[1,] <- 0
   collect_rho[1,] <- pre_rho
   shape_sigma2 <- N/2
+
 
   ## for adaptive M-H sampling we need to monitor the acceptance rate
   # the sample uses a tuned random walk procedure initialized at 0.2
@@ -47,6 +48,14 @@ spflow_mcmc <- function(
     rnorm(n,sd = sd) %*% varcov_delta_chol
   }
   delta_decomposed <- solve(ZZ,ZY)
+
+  # we also calculate an initial LL value ...
+  proba_initial <-
+    partial_spflow_loglik(
+      rho = pre_rho, RSS = re_eval_RSS(delta_decomposed,TSS,ZZ,ZY),
+      W_traces = OW_traces,model = model, n_o = n_o, n_d = n_d)
+  #... and pass it to the mcmc variable
+  proba_previous <- proba_initial
 
 
   ## begin MCMC sampling ----
@@ -121,10 +130,6 @@ spflow_mcmc <- function(
     for (j in seq_along(candidate_rho)) {
       updated_rho[j] <- candidate_rho[j]
 
-      proba_previous <- partial_spflow_loglik(
-        rho = previous_rho,
-        RSS = RSS,W_traces = OW_traces,model = model, n_o = n_o, n_d = n_d)
-
       proba_updated <- partial_spflow_loglik(
         rho = updated_rho,
         RSS = RSS,W_traces = OW_traces,model = model, n_o = n_o, n_d = n_d)
@@ -134,6 +139,10 @@ spflow_mcmc <- function(
       if (!accept[j]) {
         updated_rho[j] <- previous_rho[j]
       }
+      if (accept[j]) {
+        proba_previous <- proba_updated
+      }
+
     }
     collect_rho[i_mcmc + 1, ] <- updated_rho
 
