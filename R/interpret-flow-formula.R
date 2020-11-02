@@ -3,6 +3,7 @@ interpret_flow_formula <- function(
   flow_control
 ) {
 
+  # TODO think how to remove the constant terms...
   IX <- "IX"
   if (!flow_control$use_intra) IX <- NULL
 

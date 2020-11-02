@@ -161,7 +161,7 @@ factor_in_order <- function(x) {
 
 # ---- FP sytle ---------------------------------------------------------------
 # collection of functions that help to program in a functional style
-# most of these come from or are inspiried by compact purrr files found
+# most of these come from or are inspired by compact purrr files found
 # in rlang and feasts packages.
 # https://github.com/tidyverts/feasts/blob/master/R/compact-purrr.R
 # https://github.com/r-lib/rlang/blob/master/R/compat-purrr.R
