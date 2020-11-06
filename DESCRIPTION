@@ -27,6 +27,10 @@ Imports:
 Collate: 
     'spflow-package.R'
     'utils.R'
+    'utils-error.R'
+    'utils-formula.R'
+    'utils-list.R'
+    'utils-pipe.R'
     'class_0_generics-and-maybe.R'
     'class_sp-network-pair.R'
     'class_sp-network-nodes.R'

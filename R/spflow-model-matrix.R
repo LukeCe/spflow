@@ -7,6 +7,7 @@
 #' @inheritParams sp_network_pair
 #' @inheritParams spflow
 #'
+#' @keywords internal
 #' @return A list of design matrices for spatial interaction model
 spflow_model_matrix <- function(
   sp_multi_network,
