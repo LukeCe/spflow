@@ -11,6 +11,11 @@ test_that("is_[xxx]_sided_formula: => correct output", {
   expect_false( (~ 2)  %>% is_two_sided_formula())
 })
 
+test_that("formula_expands_factors: => correct output", {
+  expect_true(formula_expands_factors( ~ ., iris))
+  expect_false(formula_expands_factors( ~ ., cars))
+})
+
 test_that("compact_formula: => correct output", {
 
   # only works for formula
@@ -59,6 +64,11 @@ test_that("remove_constant: => correct output", {
   # remove in if already removed
   expected <- ~ b - 1
   actual <- remove_constant(~ b + 0)
+  expect_equal(actual, expected)
+
+  # remove also when there is a dot
+  expected <- ~ . + b - 1
+  actual <- remove_constant(~ . + b + 0)
   expect_equal(actual, expected)
 })
 
@@ -135,41 +145,57 @@ test_that("combine_rhs_formulas: => correct output", {
   actual <- combine_rhs_formulas(y ~ a + b -1, z ~ c + d)
   expected <- ~ a + b + c + d -1
   expect_equal(actual, expected)
+
+  actual <- combine_rhs_formulas(y ~ a + b -1, z ~ c + d, NULL)
+  expected <- ~ a + b + c + d -1
+  expect_equal(actual, expected)
+
+
 })
 
-test_that("extract_transformed_vars: factor variables =>  correct output", {
+test_that("extract_transformed_varnames: factor variables =>  correct output", {
 
-  factor_expansion <- c("Speciessetosa",
-                        "Speciesversicolor",
-                        "Speciesvirginica")
+  factor_expansion <- c("Speciesversicolor", "Speciesvirginica")
+  all_names <- c(colnames(iris)[-5],factor_expansion)
 
-  actual <- extract_transformed_vars(~ Species - 1, iris)
-  expected <- factor_expansion
-  expect_equal(actual, expected)
+  # no intercept
+  actual <- extract_transformed_varnames(~ . - 1, iris)
+  expected_names <- all_names
+  expected_factors <- factor_expansion
+  expect_equal(actual$names, expected_names)
+  expect_equal(actual$factors, expected_factors)
 
   # with intercept
-  actual <- extract_transformed_vars(~ Species, iris)
-  expected <- c("(Intercept)", factor_expansion)
-  expect_equal(actual, expected)
+  actual <- extract_transformed_varnames(~ ., iris)
+  expected_names <- c("(Intercept)", all_names)
+  expected_factors <- factor_expansion
+  expect_equal(actual$names, expected_names)
+  expect_equal(actual$factors, expected_factors)
+
+  # no factors
+  actual <- extract_transformed_varnames(~ . , iris[,-5])
+  expected_names <- c("(Intercept)", all_names[-(5:6)])
+  expect_equal(actual$names, expected_names)
+  expect_null(actual$factors)
 })
 
-test_that("extract_transformed_vars: transformations =>  correct output", {
+test_that("extract_transformed_varnames: transformations =>  correct output", {
 
   transformed_vars <- c("log(speed)",
                         "log(dist)")
 
-  actual <- extract_transformed_vars(~ . + log(speed) + log(dist), cars)
+  actual <- extract_transformed_varnames(~ . + log(speed) + log(dist), cars)
   expected <- c("(Intercept)", colnames(cars), transformed_vars)
-  expect_equal(actual, expected)
+  expect_equal(actual$names, expected)
 })
 
-test_that("extract_transformed_vars: abusive input => error", {
+test_that("extract_transformed_varnames: abusive input => error", {
 
-  expect_error(extract_transformed_vars(
+  expect_error(extract_transformed_varnames(
     formula = NULL, data = iris))
-  expect_error(extract_transformed_vars(
+  expect_error(extract_transformed_varnames(
     formula = ~ a + b, data = letters))
-  expect_error(extract_transformed_vars(
+  expect_error(extract_transformed_varnames(
     formula = ~ not_available + Species, data = iris))
 
 })

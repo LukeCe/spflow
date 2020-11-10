@@ -35,7 +35,7 @@ interpret_flow_formula <- function(
   #### assemble all formulas
   flow_formulas_decomposed <- list(
     "const" = constants,
-    "norm" = c(norm_lhs,norm_rhs_split) %>% lapply("remove_constant"),
+    "norm" = c(norm_lhs,norm_rhs_split),
     "sdm" = sdm_rhs_split,
     "inst" = inst_rhs_split
   ) %>% compact()

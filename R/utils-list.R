@@ -14,10 +14,10 @@ flatlist <- function(lst) {
 }
 
 #' @keywords internal
-lreduce <- function(lst, .f, ..., .init = NULL) {
+lreduce <- function(lst, .f, ...) {
   .f <- match.fun(.f)
   f <- function(x, y) .f(x, y, ...)
-  Reduce(f, lst, init = .init)
+  Reduce(f, lst)
 }
 
 #' @keywords internal
@@ -47,8 +47,8 @@ plapply <- function(..., .f, fix_args = NULL){
 translist <- function(.l) {
 
   all_inner_names <-
-    reduce(lapply(.l, names),c) %>%
-    reduce(c) %>%
+    lreduce(lapply(.l, names),c) %>%
+    lreduce(c) %>%
     unique()
 
   .l_ordered <- lapply(.l, "[", all_inner_names)

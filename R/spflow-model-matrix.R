@@ -16,6 +16,316 @@ spflow_model_matrix <- function(
   flow_control
 ) {
 
+  # treat the formula
+  formula_parts <- interpret_flow_formula(flow_formula, flow_control)
+
+  # transform original variables
+  data_sources <- pull_flow_data(sp_multi_network, network_pair_id)
+  model_matrices <- by_source_model_matrix(
+    formula_parts = formula_parts,
+    data_sources = data_sources)
+
+  # define the spatial lags requirements
+  lag_requirements <- def_spatial_lag_requirements(
+    formula_parts = formula_parts,
+    data_sources = data_sources)
+
+  # generate the spatial lags by source then split by role
+  neighborhoods <- pull_neighborhood_data(sp_multi_network, network_pair_id)
+  model_matrices <- by_role_spatial_lags(
+    source_model_matrices = model_matrices,
+    lag_requirements = lag_requirements,
+    neighborhoods = neighborhoods)
+
+  # Prepare the spatial lags by data sources
+  source_lags <- plapply(formula = source_formula,
+                         data = data_sources,
+                         .f = "predict_tranfomed_vars")
+
+}
+
+#' @keywords internal
+by_source_model_matrix <- function(formula_parts, data_sources) {
+
+  source_formulas <-
+    lapply(formula_parts, function(.f) {
+      combine_formulas_by_source(.f,sources = names(data_sources))
+    }) %>%
+    translist() %>%
+    lapply("combine_rhs_formulas")
+  source_formulas <- source_formulas[names(data_sources)]
+
+  # nice errors when columns are not available
+  plapply(source_formula = source_formulas,
+          data_source = data_sources,
+          source_type = names(data_sources),
+          .f = "validate_source_formulas")
+
+  # Generate model matrices by data source
+  # TODO extract weights from pair matrix
+  source_model_matrices <- plapply(
+    formula = source_formulas,
+    data = data_sources,
+    .f = "flow_conform_model_matrix")
+
+  return(source_model_matrices)
+}
+
+#' @keywords internal
+def_spatial_lag_requirements <- function(formula_parts, data_sources) {
+
+  # variable usage by roles
+  roles <- c("Y_","G_","O_","D_","I_")
+  is_within <- !is.null(data_sources)
+  source_role_lookup <- role_source_lookup(is_within)
+  role_usage <- formula_parts %>% translist() %[% roles %>% compact()
+
+  what_vars_are_lagged_roles <- function(role_key) {
+    source_key <- source_role_lookup[role_key]
+    lapply(role_usage[[role_key]], "predict_tranfomed_vars",
+           data_sources[[source_key]])
+  }
+  role_lags <- lookup(names(role_usage)) %>%
+    lapply(what_vars_are_lagged_roles) %>% compact()
+
+  # remove lags for Y_ where it does not belong...
+  dependent_vars <- role_lags$Y_$norm
+  role_lags$G_$norm <- setdiff(role_lags$G_$norm, dependent_vars)
+  role_lags$G_$inst <- setdiff(role_lags$G_$inst, dependent_vars)
+
+  return(role_lags)
+}
+
+#' @keywords internal
+by_role_spatial_lags <- function(
+  source_model_matrices,
+  lag_requirements,
+  neighborhoods,
+  center_vars = FALSE){
+  # TODO think about the centering option
+
+  # define lag requirements by role and summarize them by source
+  role_var_lags <- lapply(lag_requirements, var_usage_to_lag)
+  inst_status_lags <- lapply(lag_requirements, var_usage_to_lag, TRUE)
+  sources <- names(source_model_matrices)
+
+  is_within_flow <- !"dest" %in% sources
+  role_lookup <- source_role_lookup(is_within_flow)
+  summarize_lags_by_source <- function(source_key){
+    role_key <- role_lookup[[source_key]]
+    role_var_lags[role_key] %>%
+      translist() %>%
+      lapply(unlist) %>%
+      lapply(unique)
+  }
+  source_var_lags <- lookup(sources) %>% lapply("summarize_lags_by_source")
+
+  ### 1) node data lags
+  node_sources <- c("orig","dest") %>% intersect(sources)
+  role_var_lag_names <- role_var_lags %>%
+    lapply(suffix_sp_lags) %>%
+    lapply(unlist)
+
+  apply_lags_to_node_source <- function(source_key) {
+    role_keys <- role_lookup[[source_key]]
+    nb_key <- c("orig" = "OW", "dest" = "DW")[source_key]
+    source_nb <- neighborhoods[[nb_key]]
+    source_mat <- source_model_matrices[[source_key]]
+    lags <- source_var_lags[[source_key]]
+    lags_names <- suffix_sp_lags(lags) %>% flatten()
+
+    # create one matrix for each source
+    lagged_vars_mat <-
+      lapply(rev(lags), function(.vars) cols_keep(source_mat,.vars)) %>%
+      lreduce(function(.x1, .x2) { cbind(.x2, source_nb %*% .x1) }) %>%
+      as.matrix() %>%
+      magrittr::set_colnames(., lags_names)
+
+    # split the matrix by roles and declare instruments
+    mat_by_role <- role_var_lag_names[role_keys] %>%
+      lapply(function(.vars) cols_keep(lagged_vars_mat,.vars))
+    inst_status <- inst_status_lags[role_keys] %>%
+      lapply(unlist) %>% lapply(as.logical)
+
+    plapply(x = mat_by_role, is_inst = inst_status,
+            .f = "set_instrument_status")
+    mat_by_role
+  }
+  node_lags <- lapply(node_sources, "apply_lags_to_node_source") %>%
+    flatlist() %>%
+    lapply("scale", scale = FALSE, center = center_vars)
+
+  ### 2) pair data: generate, then split lags
+  stop("refactor pair part")
+
+
+}
+
+#' @keywords internal
+var_usage_to_lag <- function(.vars, out_inst = FALSE) {
+
+  # pull out variables and declare their instrument status
+  norm <- .vars$norm
+  sdm <- .vars$sdm
+
+  inst <- .vars$inst
+  inst0 <- inst %>% setdiff(norm)  %>% setdiff(sdm)
+  inst1 <- inst %>% setdiff(sdm)
+  inst2 <- inst %>% setdiff(inst0)
+  inst3 <- inst %>% setdiff(inst0) %>% intersect(sdm)
+
+  # combine them into lags
+  inst_lookup <- function(.var,is_inst) {
+    if (length(.var) == 0)
+      return(NULL)
+
+    if (!out_inst)
+      return(.var)
+
+    lookup(is_inst,.var)
+  }
+  required_lags <-
+    list(
+      "lag0" = c(inst_lookup(norm,F), inst_lookup(inst0,T)),
+      "lag1" = c(inst_lookup(sdm,F),inst_lookup(inst1,T)),
+      "lag2" = inst_lookup(inst2,T),
+      "lag3" = inst_lookup(inst3,T)
+    ) %>% compact()
+
+  return(required_lags)
+
+}
+
+#' @keywords internal
+set_instrument_status <- function(x, is_inst) {
+  data.table::setattr(x, "is_instrument_var", is_inst)
+}
+
+#' @keywords internal
+get_instrument_status <- function(x) {
+  attr(x, "is_instrument_var")
+}
+
+#' @keywords  internal
+role_source_lookup <- function(is_within) {
+  D_source <- if (is_within) "orig" else "dest"
+  c("Y_" = "pair","G_" = "pair", "O_" = "orig","D_" = D_source, "I_" = "orig")
+}
+
+#' @keywords  internal
+source_role_lookup <- function(is_within) {
+  D_ <- "D_" %T% is_within
+  list("pair" = c("Y_", "G_"),
+       "orig" = c("O_", D_, "I_"),
+       "dest" = "D_" %T% (!is_within)) %>% compact()
+}
+
+#' @keywords internal
+suffix_sp_lags <- function(lag_req) {
+  suffix <- c(lag0 = "", lag1 = ".lag1", lag2 = ".lag2", lag3 = ".lag3")
+  plapply(lag_req, .f = paste0, suffix[names(lag_req)])
+}
+
+#' @importFrom data.table key copy
+#' @keywords internal
+pull_flow_data <- function(
+  sp_multi_network,
+  network_pair_id) {
+
+  # identification of the data sources
+  data_source_ids <- id(sp_multi_network)$network_pairs[[network_pair_id]]
+  pair_id <- data_source_ids["pair"]
+  orig_id <- data_source_ids["origin"]
+  dest_id <- data_source_ids["destination"]
+
+  orig_data <- network_nodes(sp_multi_network,orig_id)
+  dest_data <- network_nodes(sp_multi_network,dest_id) %T% (orig_id != dest_id)
+  pair_data <- network_pairs(sp_multi_network,pair_id)
+
+  flow_data <- list("orig" = orig_data,
+                    "dest" = dest_data,
+                    "pair" = pair_data) %>% compact() %>%
+    lapply("dat") %>% copy()
+
+  # remove the keys
+  flow_data <- flow_data %>% lapply(function(.d) cols_drop(.d,key(.d)))
+
+  return(flow_data)
+}
+
+#' @keywords internal
+pull_neighborhood_data <-  function(sp_multi_network, network_pair_id) {
+
+  # identification of the data sources
+  data_source_ids <- id(sp_multi_network)$network_pairs[[network_pair_id]]
+  orig_id <- data_source_ids["origin"]
+  dest_id <- data_source_ids["destination"]
+
+  neighborhoods <- neighborhoods(sp_multi_network, c(orig_id, dest_id))
+  names(neighborhoods) <- c("OW","DW")
+  return(neighborhoods)
+
+}
+
+#' @keywords internal
+combine_formulas_by_source <- function(
+  sources, formulas) {
+
+  is_between_flow <- ("dest" %in% sources)
+  sources_to_formula_part <- list(
+    "pair" = c("Y_","G_"),
+    "dest" = c("D_") %T% is_between_flow,
+    "orig" = (c("O_") %T% is_between_flow) %||% c("D_","O_","I_")
+  ) %>% compact()
+
+  formula_by_source <- sources_to_formula_part %>%
+    lapply(function(.part) {
+      fpt <- formulas[.part] %>% compact()
+      fpt %|!0|% combine_rhs_formulas(fpt) }) %>%
+    compact()
+
+  return(formula_by_source)
+}
+
+#' @keywords internal
+validate_source_formulas <- function(
+  source_formula,
+  data_source,
+  source_type) {
+
+  required_vars <- all.vars(source_formula %>% combine_rhs_formulas())
+  available_vars <- c(colnames(data_source),".")
+  unmatched_vars <- required_vars[!required_vars %in% available_vars]
+
+    error_msg <-
+      "The variables [%s] were not found in the data set associated to the %s!"
+
+    assert(length(unmatched_vars) == 0,
+           error_msg %>%
+             sprintf(paste(unmatched_vars,collapse = " and "),
+                     c("orig" = "origins",
+                       "dest" = "distinations",
+                       "pair" = "origin-destination pairs")[source_type]))
+}
+
+#' @keywords internal
+flow_conform_model_matrix <- function(formula,data) {
+  terms_obj <- terms(formula, data = data)
+  attr(terms_obj,"intercept") <- 1 - formula_expands_factors(formula,data)
+  return(model.matrix(terms_obj,data) %>% cols_drop(cols_drop = "(Intercept)"))
+}
+
+### OLD ----
+
+spflow_model_matrix_old <- function(
+  sp_multi_network,
+  network_pair_id,
+  flow_formula,
+  flow_control
+) {
+
+  stop("refactor me!")
+
   # identification of the data sources
   data_source_ids <- id(sp_multi_network)$network_pairs[[network_pair_id]]
   pair_id <- data_source_ids["pair"]
@@ -211,13 +521,7 @@ flow_model_frame <- function(object,case_formula){
 
 }
 
-set_instrument_status <- function(x, is_inst) {
-  data.table::setattr(x, "is_instrument_var", is_inst)
-}
 
-get_instrument_status <- function(x) {
-  attr(x, "is_instrument_var")
-}
 
 # pair helpers ----
 matrix_format <- function(mat_vec_fmt, columns, n_o, n_d){
@@ -333,10 +637,7 @@ sp_nodes_design_matrix <- function(
   return(node_design_matrix)
 }
 
-suffix_sp_lags <- function(lag_req) {
-  suffix <- c(lag0 = "", lag1 = ".lag1", lag2 = ".lag2", lag3 = ".lag3")
-  mapply(paste0, lag_req, suffix[names(lag_req)], SIMPLIFY = FALSE)
-}
+
 
 
 split_by_source <- function(global_design_matrix,

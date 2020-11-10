@@ -1,3 +1,117 @@
+test_that("pull_flow_data: => correct output", {
+
+  example_net <- multi_net_usa_ge
+  dat_usa  <- dat(network_nodes(example_net,"usa"))
+  dat_ge   <- dat(network_nodes(example_net,"ge"))
+  dat_pair_usa_ge <- dat(network_pairs(example_net,"usa_ge"))
+  dat_pair_ge_ge <- dat(network_pairs(example_net,"ge_ge"))
+
+  # test case o != d
+  pair_id <- "usa_ge"
+  actual <- pull_flow_data(example_net,pair_id)
+  expected <- list("orig" = dat_usa, "dest" = dat_ge, "pair" = dat_pair_usa_ge)
+  expect_equal(actual, expected)
+
+  # test case o != d
+  pair_id <- "ge_ge"
+  actual <- pull_flow_data(example_net,pair_id)
+  expected <- list("orig" = dat_ge, "pair" = dat_pair_ge_ge)
+  expect_equal(actual, expected)
+})
+
+test_that("combine_formulas_by_source: => correct output", {
+
+  formula_parts <- list("Y_" = ~ y, "G_" =  ~ dist,
+                        "D_" = ~ a + b, "O_" = ~ b + c, "I_" = ~ d) %>%
+    lapply("remove_constant")
+
+  # test case 1 (orig == dest)
+  actual <- combine_formulas_by_source(c("pair","orig"),formula_parts)
+  expected <- list("pair"= ~ y + dist - 1,
+                   "orig" = ~ a + b + c + d - 1)
+  expect_equal(actual, expected)
+
+  # test case 1 (orig != dest)
+  actual <- combine_formulas_by_source(c("pair","orig","dest"),formula_parts)
+  expected <- list("pair" = ~ y + dist - 1,
+                   "dest" = ~ a + b - 1,
+                   "orig" = ~ b + c - 1)
+  expect_equal(actual, expected)
+})
+
+test_that("moment_conform_model_matrix: => correct output", {
+
+  ### Zero factors
+  # test 1: with intercept
+  expected <- model.matrix(~ . , cars) %>% cols_drop("(Intercept)")
+  actual <- moment_conform_model_matrix(~ . , cars)
+  expect_equal(actual, expected)
+
+  # test 2: no intercept
+  expected <- model.matrix(~ . , cars) %>% cols_drop("(Intercept)")
+  actual <- moment_conform_model_matrix(~ . - 1 , cars)
+  expect_equal(actual, expected)
+
+  ### One factor
+  # test 1: with intercept
+  expected <- model.matrix(~ . , iris) %>% cols_drop("(Intercept)")
+  actual <- moment_conform_model_matrix(~ . , iris)
+  expect_equal(actual, expected)
+
+  # test 2: no intercept
+  expected <- model.matrix(~ . , iris) %>% cols_drop("(Intercept)")
+  actual <- moment_conform_model_matrix(~ . - 1, iris)
+  expect_equal(actual, expected)
+
+  ### Two factors
+  dat_two_fact <- as.data.frame(ChickWeight)
+
+  # test 1: with intercept
+  expected <- model.matrix(~ . , dat_two_fact) %>% cols_drop("(Intercept)")
+  actual <- moment_conform_model_matrix(~ ., dat_two_fact)
+
+  # test 2: no intercept
+  expected <- model.matrix(~ . , dat_two_fact) %>% cols_drop("(Intercept)")
+  actual <- moment_conform_model_matrix(~ . - 1, iris)
+})
+
+test_that("var_usage_to_lag: for varnames and inst status => correct output", {
+
+  advanced_usage <- list("norm" = c("X1","X2",     "X4"         ),
+                         "sdm"  = c("X1",     "X3",     "X5"    ),
+                         "inst" = c("X1","X2","X3",         "X6"))
+
+  # Test varnames
+  actual <- var_usage_to_lag(advanced_usage)
+  actual <- lapply(actual,"sort")
+
+
+  expect_lag3 <- c("X1",     "X3")
+  expect_lag2 <- c("X1","X2","X3")
+  expect_lag1 <- c("X1","X2","X3",     "X5","X6")
+  expect_lag0 <- c("X1","X2",     "X4",     "X6")
+  expect_equal(actual$lag3, expect_lag3)
+  expect_equal(actual$lag2, expect_lag2)
+  expect_equal(actual$lag1, expect_lag1)
+  expect_equal(actual$lag0, expect_lag0)
+
+  # Test inst status
+  true_insts <- advanced_usage$inst
+  expect_lag3 <- c("X1" = T, "X3" = T)
+  expect_lag2 <- c("X1" = T ,"X2" = T, "X3" = T)
+  expect_lag1 <- c("X1" = F, "X3" = F, "X5" = F, "X2" = T, "X6" = T)
+  expect_lag0 <- c("X1" = F ,"X2" = F, "X4" = F, "X6" = T)
+  actual <- var_usage_to_lag(advanced_usage,out_inst = TRUE)
+  actual <- lapply(actual,"sort")
+  expect_equal(actual$lag3, expect_lag3)
+  expect_equal(actual$lag2, expect_lag2)
+  expect_equal(actual$lag1, expect_lag1)
+  expect_equal(actual$lag0, expect_lag0)
+})
+
+
+
+# ============== OLD =================
 # spflow_model_matrix ---------------------------------------------------------
 test_that("spflow_model_frame: => correct output", {
 

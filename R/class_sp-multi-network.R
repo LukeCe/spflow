@@ -127,7 +127,7 @@ setMethod(
     od_pair_info <- multi_net_ids$network_pairs %>%
       lapply(as.list) %>%
       lapply(data.frame, stringsAsFactors = FALSE) %>%
-      reduce(rbind)
+      lreduce(rbind)
 
 
     od_pair_info["(o info)"] <-
@@ -196,7 +196,7 @@ setValidity("sp_multi_network",
               od_names <- lapply(object@network_pairs, pull_slots,
                                  .slots = c("origin_network_id",
                                             "destination_network_id"))
-              od_keys <- lapply(od_names, reduce, paste, sep = "_")
+              od_keys <- lapply(od_names, lreduce, paste, sep = "_")
 
               if (!(has_distinct_elements(network_names)
                     & has_distinct_elements(od_keys))
@@ -209,11 +209,11 @@ setValidity("sp_multi_network",
               network_sizes <- lapply(object@networks, slot, name = "node_count")
               names(network_sizes) <- network_names
 
-              od_names <- reduce(od_names,c)
+              od_names <- lreduce(od_names,c)
               od_sizes <-
                 lapply(object@network_pairs, pull_slots,
                        .slots = c("origin_node_count","destination_node_count")) %>%
-                reduce(c) %>%
+                lreduce(c) %>%
                 setNames(.,od_names)
 
               consistent_node_numbers <-

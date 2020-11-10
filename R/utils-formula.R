@@ -1,31 +1,30 @@
 # ---- formula primitives -----------------------------------------------------
-#' @keywords internal
 assert_formula <- function(formula) {
   assert_is(formula,"formula")
 }
 
-#' @keywords internal
+#' @export
 is_one_sided_formula <- function(formula) {
   is(formula,"formula") & (length(formula) == 2)
 }
 
-#' @keywords internal
+#' @export
 is_two_sided_formula <- function(formula) {
   is(formula,"formula") & (length(formula) == 3)
 }
 
-#' @keywords internal
+#' @export
 has_constant <- function(formula) {
   assert_formula(formula)
   attr(terms(formula,allowDotAsName = TRUE),"intercept") == 1
 }
 
-#' @keywords internal
+#' @export
 has_dot_shortcut <- function(formula) {
   "." %in% extract_formula_terms(formula)
 }
 
-#' @keywords internal
+#' @export
 data_permits_formula <- function(formula,data) {
   assert_formula(formula)
   stopifnot(is.data.frame(data))
@@ -38,9 +37,20 @@ data_permits_formula <- function(formula,data) {
   if (possible) TRUE else FALSE
 }
 
+#' @export
+formula_expands_factors <- function(formula,data) {
+  assert_formula(formula)
+  stopifnot(is.data.frame(data))
+  data <- data[0,]
+
+  no_fct <- model.matrix(formula, data = data) %>%
+    attr("contrasts") %>% is.null()
+  return(!no_fct)
+}
+
 # ---- reshaping the formula --------------------------------------------------
-#' @keywords internal
-compact_formula <- function(formula) {
+#' @export
+compact_formula_internal <- function(formula, keep_const = TRUE) {
   assert_formula(formula)
 
   compact_rhs <- extract_formula_terms(formula)
@@ -50,16 +60,26 @@ compact_formula <- function(formula) {
 
   compact_formula <-
     reformulate(compact_rhs,
-                intercept = has_constant(formula),
+                intercept = keep_const & has_constant(formula),
                 response = compact_lhs)
 
   return(compact_formula)
 }
 
-#' @keywords internal
+#' @export
+compact_formula <- function(formula) {
+  compact_formula_internal(formula,keep_const = TRUE)
+}
+
+#' @export
+remove_constant <- function(formula) {
+  compact_formula_internal(formula,keep_const = FALSE)
+}
+
+#' @export
 combine_rhs_formulas <- function(...) {
 
-  rhs_formulas <- list(...) %>% flatlist() %>% lapply("pull_rhs")
+  rhs_formulas <- list(...) %>% flatlist() %>% compact() %>% lapply("pull_rhs")
   use_constant <- all(rhs_formulas %>% lapply("has_constant") %>% unlist())
 
   combined_formula <- rhs_formulas %>%
@@ -69,16 +89,7 @@ combine_rhs_formulas <- function(...) {
   return(combined_formula)
 }
 
-#' @keywords internal
-remove_constant <- function(formula) {
-  assert_formula(formula)
-  replace_statement <- ~ . -1
-  if (is_two_sided_formula(formula))
-    replace_statement <- . ~ . - 1
-  return(update(formula, replace_statement))
-}
-
-#' @keywords internal
+#' @export
 pull_rhs <- function(formula) {
   assert_formula(formula)
   return_rhs <- formula
@@ -87,7 +98,7 @@ pull_rhs <- function(formula) {
   return(return_rhs)
 }
 
-#' @keywords internal
+#' @export
 pull_lhs <- function(formula) {
   assert(is_two_sided_formula(formula),
          "The input musst be a two sided formula!")
@@ -96,7 +107,7 @@ pull_lhs <- function(formula) {
 
 
 # ---- accessing formula elements ---------------------------------------------
-#' @keywords internal
+#' @export
 extract_formula_terms <- function(formula, data = NULL) {
   assert_formula(formula)
 
@@ -110,30 +121,42 @@ extract_formula_terms <- function(formula, data = NULL) {
 
 # ---- fine tuned expansions of the formula -----------------------------------
 #' @keywords internal
-extract_transformed_vars <- function(formula,data,
-                                     fix_contrasts = TRUE) {
+extract_transformed_varnames <- function(formula,data) {
   data <- data[0,]
   assert(data_permits_formula(formula,data),
          "The formula cannot be applied to the data!")
-  factor_contrasts <- NULL
-  if (fix_contrasts) factor_contrasts <- fixed_factor_contrasts(data,formula)
 
-  tranformed_vars <-
-    model.matrix(formula, data,
-                 drop.unused.levels = FALSE,
-                 contrasts.arg = factor_contrasts) %>%
-    colnames()
+  # add intercept to have predictable factor expansions
+  terms_obj <- terms(formula, data = data)
+  attr(terms_obj,"intercept") <- 1
+  dummy_matrix <- model.matrix(terms_obj,data)
+  trans_vars <- colnames(dummy_matrix)
 
-  return(tranformed_vars)
+  # were there factors?
+  used_factor <- attr(dummy_matrix,"contrasts") %>% names()
+  expanded_factor <- NULL
+  if (!is.null(used_factor)) {
+    fact_index_pre <- which(attr(terms_obj,"term.labels") %in% used_factor)
+    fact_index_trans <- which(attr(dummy_matrix,"assign") %in% fact_index_pre)
+    expanded_factor <- trans_vars[fact_index_trans]
+  }
+
+  result <- list(
+    "names" = setdiff(trans_vars, "(Intercept)" %T% !has_constant(formula)),
+    "factors" = expanded_factor) %>% compact()
+
+  return(result)
 }
 
-#' @keywords internal
-fixed_factor_contrasts <- function(data, formula = ~ .){
-  assert_is(data,"data.frame")
-  factor_cols <- which(sapply(data, is.factor,simplify = TRUE))
-  factor_contrasts <- cols_keep(data,factor_cols) %>%
-    lapply("contrasts", contrasts = FALSE)
-  return(factor_contrasts)
+#' @export
+predict_tranfomed_vars <- function(formula,data) {
+  extract_transformed_varnames(formula,data)$names %>%
+    setdiff(., "(Intercept)")
+}
+
+#' @export
+predict_expanded_factors <- function(formula,data) {
+  extract_transformed_varnames(formula,data)$factors
 }
 
 #' @keywords internal
@@ -151,7 +174,7 @@ extract_formula_specials <- function(formula,specials) {
 }
 
 # ---- split the formula by "special" functions -------------------------------
-#' @keywords internal
+#' @export
 split_forumla_specials <- function(
   formula, specials) {
   assert_formula(formula)
@@ -209,6 +232,3 @@ parse_fun_arguments_as_string <- function(x){
 eval_string_as_function <- function(x,e = environment()){
   eval(parse(text = x),envir = e)
 }
-
-
-

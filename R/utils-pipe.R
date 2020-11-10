@@ -64,6 +64,18 @@ NULL
   if (y) x else NULL
 }
 
+#' @keywords internal
+#' @rdname elvis_operators
+"%[[%" <- function(x,y) {
+  x[[y]]
+}
+
+#' @keywords internal
+#' @rdname elvis_operators
+"%[%" <- function(x,y) {
+  x[y]
+}
+
 # ---- String pipe ------------------------------------------------------------
 #' @keywords internal
 '%p%' <- function(x, y) {

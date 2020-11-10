@@ -106,3 +106,5 @@ spflow_control <- function(
     "flow_type" = flow_type
   ))
 }
+
+# TODO create validate_control function

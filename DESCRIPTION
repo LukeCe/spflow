@@ -27,10 +27,6 @@ Imports:
 Collate: 
     'spflow-package.R'
     'utils.R'
-    'utils-error.R'
-    'utils-formula.R'
-    'utils-list.R'
-    'utils-pipe.R'
     'class_0_generics-and-maybe.R'
     'class_sp-network-pair.R'
     'class_sp-network-nodes.R'
@@ -55,6 +51,11 @@ Collate:
     'spflow-model-moments.R'
     'spflow.R'
     'spflow_sim.R'
+    'utils-columns.R'
+    'utils-error.R'
+    'utils-formula.R'
+    'utils-list.R'
+    'utils-pipe.R'
 URL: https://github.com/LukeCe/spflow
 BugReports: https://github.com/LukeCe/spflow/issues
 Suggests:

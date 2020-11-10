@@ -188,21 +188,12 @@ named_list <- function(names, init = NULL) {
 }
 
 lookup <- function(values, names = as.character(values)) {
-  structure(values, names = names)
+  pair_nv <- data.frame(v = values, n = names)
+  structure(pair_nv$v, names = pair_nv$n)
 }
 
 list_lookup <- function(values, names = as.character(values)) {
   as.list(lookup(names = names,names))
-}
-
-prefix_columns <- function(obj,prefix){
-  colnames(obj) <- prefix %p% colnames(obj)
-  obj
-}
-
-suffix_columns <- function(obj,suffix){
-  colnames(obj) <- colnames(obj) %p% suffix
-  obj
 }
 
 # ---- strings ----------------------------------------------------------------
