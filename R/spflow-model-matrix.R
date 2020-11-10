@@ -156,7 +156,60 @@ by_role_spatial_lags <- function(
     lapply("scale", scale = FALSE, center = center_vars)
 
   ### 2) pair data: generate, then split lags
-  stop("refactor pair part")
+  # TODO count to nnodes and npairs
+  n_o <-  count(sp_network_pair, "origins")
+  n_d <-  count(sp_network_pair, "destinations")
+
+  # ... Y_ lags
+
+
+  # ... G_ lags
+
+
+
+  ## transform the flows ...
+  # ...into matrix format and apply spatial lags
+  response_variables <- extract_terms_labels(pair_formulas[["Y"]][["norm"]])
+  flow_matrices <- pair_design_matrix %>%
+    matrix_format(response_variables, n_d = n_d, n_o = n_o) %>%
+    lapply(lag_flow_matrix,model = flow_control$model,
+           OW = orig_neighborhood, DW = dest_neighborhood)
+
+  # transform explanatory variables...
+  # ... into matrix format
+  explain_variables <- setdiff(colnames(pair_design_matrix),response_variables)
+  explain_matrices <- pair_design_matrix %>%
+    matrix_format(explain_variables, n_d = n_d, n_o = n_o)
+
+  # ... apply two spatial lags to instruments zero to normal vars
+  inst_formula <- pair_formulas[["G"]]$inst
+  instruments <- inst_formula %|!|%
+    extract_terms_labels(inst_formula,
+                         pair_design_matrix[0,explain_variables,drop = FALSE])
+
+  explain_lags <- 2 * (explain_variables %in% instruments)
+  explain_matrices <- mapply(
+    FUN = "apply_matrix_od_lags",
+    G = explain_matrices, nb_lags = explain_lags, name = explain_variables,
+    MoreArgs = list("OW" = orig_neighborhood, "DW" = dest_neighborhood),
+    SIMPLIFY = FALSE
+  )
+
+  # ... declare instrument status
+  non_inst_formula <- pair_formulas[["G"]]$norm
+  non_instruments <-   non_inst_formula %|!|%
+    extract_terms_labels(non_inst_formula,
+                         pair_design_matrix[0,explain_variables,drop = FALSE])
+
+  explain_matrices %>%
+    lapply(function(.l) lapply(.l, set_instrument_status, TRUE)) %>%
+    lapply(function(.l) {
+      set_instrument_status(.l[[1]], !(names(.l)[1] %in% non_instruments))
+    }) %>%
+    invisible()
+
+  return(list("Y" = flow_matrices %>% flatlist(),
+              "G" = explain_matrices %>% flatlist()))
 
 
 }

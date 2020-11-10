@@ -27,6 +27,7 @@ spflow_control <- function(
   use_sdm = TRUE,
   sdm_variables = "same",
   instrumental_variables = "same",
+  weight_variable = NULL,
   decorrelate_instruments = FALSE,
   hessian_method = "mixed",
   flow_type = NULL) {
@@ -75,6 +76,9 @@ spflow_control <- function(
          || instrumental_variables %in% c("none","same","all"),
          "The instrumental_variables must either be declared as a formula " %p%
            "or as a string with one of the keywords [none, or all, or same]!")
+
+  assert(is_single_character(weight_variable) || is.null(weight_variable),
+         "The weight_variable must be a character of length one!")
 
   # check hessian (only relevant for mle estimator)
   if (estimation_method != "mle")

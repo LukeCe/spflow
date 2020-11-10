@@ -57,12 +57,12 @@ describe("Moments can be generated from formula and multinet",{
 
     model_formulation <- "matrix"
     default_control <- spflow_control(estimation_method = "s2sls")
-    defulat_formula <- Y9 ~ .
+    default_formula <- Y9 ~ .
 
     actual_matrices <- spflow_model_matrix(
       sp_multi_network = multi_net_ge_default,
       network_pair_id = "ge_ge",
-      flow_formula = defulat_formula,
+      flow_formula = default_formula,
       flow_control = default_control)
 
     expected_matrices <- test_case_1_symmetric$relational_model_matrices$M9
@@ -108,12 +108,12 @@ describe("Moments can be generated from formula and multinet",{
 
     model_formulation <- "matrix"
     default_control <- spflow_control(estimation_method = "mle")
-    defulat_formula <- Y9 ~ .
+    default_formula <- Y9 ~ .
 
     actual_matrices <- spflow_model_matrix(
       sp_multi_network = multi_net_ge_default,
       network_pair_id = "ge_ge",
-      flow_formula = defulat_formula,
+      flow_formula = default_formula,
       flow_control = default_control)
 
     expected_matrices <- test_case_1_symmetric$relational_model_matrices$M9
