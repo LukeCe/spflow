@@ -8,7 +8,7 @@
 #' @slot networks A list of [sp_network_nodes()] objects
 #' @slot network_pairs A list of [sp_network_pair()] objects
 #'
-#' @family network_info
+#' @family sp_network
 #' @export
 setClass("sp_multi_network",
          slots = c(networks = "list",
@@ -57,25 +57,26 @@ setMethod(
     }
 })
 
-#' @param network_ids A character vector of ids for contained [sp_network_nodes()] objects
-#' @rdname neighborhoods
+#' @param network_ids A character vector of ids for contained
+#'    [sp_network_nodes()] objects
+#' @rdname pull_neighborhood
 #' @export
 setMethod(
-  f = "neighborhoods",
+  f = "pull_neighborhood",
   signature = "sp_multi_network",
   function(object,
-           network_ids = NULL) { # ---- neighborhoods --------------------------
-    return(network_nodes(object, network_ids) %>% lapply(neighborhood))
+           network_ids = NULL) { # ---- pull_neighborhood ---------------------
+    return(pull_nodes(object, network_ids) %>% lapply(neighborhood))
     })
 
-#' @inheritParams neighborhoods
-#' @rdname network_nodes
+#' @inheritParams pull_neighborhood
+#' @rdname pull_nodes
 #' @export
 setMethod(
-  f = "network_nodes",
+  f = "pull_nodes",
   signature = "sp_multi_network",
   function(object,
-           network_ids = NULL) { # ---- network_nodes -------------------------
+           network_ids = NULL) { # ---- pull_nodes -------------------------
 
     network_ids <- network_ids %||% id(object)$networks
 
@@ -86,15 +87,15 @@ setMethod(
   })
 
 #' @param network_pair_ids A character vector of ids for contained [sp_network_pair()] objects
-#' @rdname network_pairs
+#' @rdname pull_pairs
 #' @export
 setMethod(
-  f = "network_pairs",
+  f = "pull_pairs",
   signature = "sp_multi_network",
   function(object,
-           network_pair_ids = NULL) { # ---- network_pairs ---------------------
+           network_pair_ids = NULL) { # ---- pull_pairs ---------------------
 
-    network_pair_ids <- network_pair_ids %||% names(id(object)$network_pairs)
+    network_pair_ids <- network_pair_ids %||% names(id(object)$pull_pairs)
     if (is_single_character(network_pair_ids))
       return(object@network_pairs[[network_pair_ids]])
 
@@ -194,8 +195,7 @@ setValidity("sp_multi_network",
 
               network_names <- lapply(object@networks, slot, name = "network_id")
               od_names <- lapply(object@network_pairs, pull_slots,
-                                 .slots = c("origin_network_id",
-                                            "destination_network_id"))
+                                 .slots = c("orig_net_id", "dest_net_id"))
               od_keys <- lapply(od_names, lreduce, paste, sep = "_")
 
               if (!(has_distinct_elements(network_names)
@@ -206,13 +206,13 @@ setValidity("sp_multi_network",
                 return(error_msg)
               }
 
-              network_sizes <- lapply(object@networks, slot, name = "node_count")
+              network_sizes <- lapply(object@networks, slot, name = "nnodes")
               names(network_sizes) <- network_names
 
               od_names <- lreduce(od_names,c)
               od_sizes <-
                 lapply(object@network_pairs, pull_slots,
-                       .slots = c("origin_node_count","destination_node_count")) %>%
+                       .slots = c("orig_nnodes","dest_nnodes")) %>%
                 lreduce(c) %>%
                 setNames(.,od_names)
 

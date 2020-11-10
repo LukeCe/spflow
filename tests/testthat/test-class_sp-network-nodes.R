@@ -1,60 +1,66 @@
-test_that("Abusive input ==> ERROR", {
+# ---- constructor ------------------------------------------------------------
+test_that("sp_network_nodes: => correct construction", {
 
-    expect_error({
-        test_object <- sp_network_nodes(
-          network_id = "cars",
-          node_neighborhood = "cars",
-          node_data = "cars")
-    }, "^[Object ].*[ must be coercible to a ].*\\!$")
-
-})
-
-test_that("Inconsisten input ==> ERROR", {
-
-    expect_error({
-        test_object <- sp_network_nodes(
-          network_id = "cars",
-          node_neighborhood = diag(1, nrow(cars) + 1),
-          node_data = cars)
-    }, "Row number of node_data does not match the dimensions of the neighborhood matrix!")
-
+  test_object <- sp_network_nodes(
+    network_id = "cars",
+    node_neighborhood = diag(1, nrow = nrow(cars), ncol = nrow(cars)),
+    node_data = cars)
+  expect_s4_class(test_object, "sp_network_nodes")
 
 })
 
-test_that("Correct S4 construction ", {
+test_that("sp_network_nodes: abusive input => error", {
+
+  expect_error({
+    test_object <- sp_network_nodes(
+      network_id = "cars",
+      node_neighborhood = "cars",
+      node_data = "cars")
+  }, "^[Object ].*[ must be coercible to a ].*\\!$")
+})
+
+test_that("sp_network_nodes: inconsistent input => error", {
+
+  expect_error({
+    test_object <- sp_network_nodes(
+      network_id = "cars",
+      node_neighborhood = diag(1, nrow(cars) + 1),
+      node_data = cars)
+  }, "Row number of node_data does not match the dimensions of the neighborhood matrix!")
+
+})
+
+# ---- assessor methods -------------------------------------------------------
+test_that("sp_network_nodes: => correct assessors", {
 
     test_object <- sp_network_nodes(
       network_id = "cars",
       node_neighborhood = diag(1, nrow = nrow(cars), ncol = nrow(cars)),
       node_data = cars)
 
-    expect_s4_class(test_object, "sp_network_nodes")
+    expect_equal(dat(test_object),test_object@node_data)
+    expect_equal(id(test_object),"cars")
+    expect_equal(nnodes(test_object),test_object@nnodes)
+    expect_equal(neighborhood(test_object),test_object@node_neighborhood)
+    expect_equal(variable_names(test_object),test_object@node_data %>% names())
 })
 
-test_that("Correct S4 accessors", {
+# ---- replacement methods ----------------------------------------------------
+test_that("sp_network_nodes: => correct replacements", {
 
     test_object <- sp_network_nodes(
       network_id = "cars",
-      node_neighborhood = diag(1, nrow = nrow(cars), ncol = nrow(cars)),
-      node_data = cars)
-
-    expect_equal(test_object@node_data, dat(test_object))
-    expect_equal(test_object@node_data %>% names(), variable_names(test_object))
-    expect_equal(test_object@node_count, count(test_object))
-    expect_equal(test_object@network_id, id(test_object))
-    expect_equal(test_object@node_neighborhood, neighborhood(test_object))
-
-})
-
-test_that("Correct data replacements", {
-
-    test_object <- sp_network_nodes(
-      network_id = "cars",
-      node_neighborhood = diag(1, nrow = nrow(cars), ncol = nrow(cars)),
       node_data = cars)
 
     dat(test_object) <- rbind(cars, cars)
+    # FIXME This should not be equal
+    expect_equal(dat(test_object),rbind(cars, cars))
+    expect_equal(nnodes(test_object),nrow(cars) * 2)
 
-    expect_equal(rbind(cars, cars), dat(test_object))
-    expect_equal(nrow(cars) * 2, count(test_object))
+    id(test_object) <- "cars_double"
+    expect_equal(id(test_object),"cars_double")
+
+    nb <- Diagonal(nrow(cars) * 2)
+    neighborhood(test_object) <- nb
+    expect_equal(neighborhood(test_object),nb)
 })

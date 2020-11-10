@@ -1,6 +1,4 @@
 # ---- constructor ------------------------------------------------------------
-context("sp_multi_network - constructor")
-
 test_network_ids <- c("net1","net2")
 test_multi_net <- sp_multi_network(
   c(lapply(test_network_ids, sp_network_nodes),
@@ -34,8 +32,8 @@ test_that("Data retrieval works correctly", {
   orig_id <- "carsO"
   dest_id <- "carsD"
   test_pairs <- sp_network_pair("carsO","carsD",
-                                node_pair_data = cars,
-                                origin_node_count = 5)
+                                pair_data = cars,
+                                orig_nnodes = 5)
   test_multi_net <- sp_multi_network(test_net,test_pairs)
 
   expect_equal(object = dat(test_multi_net,network_id = net_id),

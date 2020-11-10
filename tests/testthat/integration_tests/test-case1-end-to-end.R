@@ -31,18 +31,18 @@ ge_pair_df_default$Y1 <- NULL
 ge_pair_df_default$pair_distance <- log(ge_pair_df_default$pair_distance + 1)
 
 pairs_ge_ge_default <- sp_network_pair(
-  origin_network_id = "ge",
-  destination_network_id = "ge",
-  node_pair_data = ge_pair_df_default,
-  origin_key_column = "orig_id",
-  destination_key_column = "dest_id")
+  orig_net_id = "ge",
+  dest_net_id = "ge",
+  pair_data = ge_pair_df_default,
+  orig_key_column = "orig_id",
+  dest_key_column = "dest_id")
 
 pairs_ge_ge_flexible <- sp_network_pair(
-  origin_network_id = "ge",
-  destination_network_id = "ge",
-  node_pair_data = ge_pair_df,
-  origin_key_column = "orig_id",
-  destination_key_column = "dest_id")
+  orig_net_id = "ge",
+  dest_net_id = "ge",
+  pair_data = ge_pair_df,
+  orig_key_column = "orig_id",
+  dest_key_column = "dest_id")
 
 # combine them into a multi-network
 multi_net_ge_default  <- sp_multi_network(network_ge, pairs_ge_ge_default)

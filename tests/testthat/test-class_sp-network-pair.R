@@ -1,67 +1,100 @@
-test_that("Abusive input ==> ERROR", {
+test_df <- cbind(A = rep(LETTERS[1:10],5),
+                 B = rep(LETTERS[1:10],each = 5),
+                 cars)
+
+# ---- constructor ------------------------------------------------------------
+test_that("sp_network_pair: => construction", {
+    test_object <- sp_network_pair(
+        orig_net_id = "cars",
+        dest_net_id = "cars",
+        pair_data = test_df,
+        orig_key_column = "A",
+        dest_key_column = "B")
+    expect_s4_class(test_object, "sp_network_pair")
+})
+
+test_that("sp_network_pair: abusive input => error", {
 
     expect_error({
         test_object <- sp_network_pair(
-            origin_network_id = "cars",
-            destination_network_id = "cars",
-            node_pair_data = "cars")
+            orig_net_id = "cars",
+            dest_net_id = "cars",
+            pair_data = "cars",
+            orig_key_column = "A",
+            dest_key_column = "B")
     }, "^[Object ].*[ must be coercible to a ].*\\!$")
 
     expect_error({
         test_object <- sp_network_pair(
-            origin_network_id = 1,
-            destination_network_id = 2,
-            node_pair_data = cars)
+            orig_net_id = 1,
+            dest_net_id = 2,
+            pair_data = cars,
+            orig_key_column = "A",
+            dest_key_column = "B")
     })
 })
 
+test_that("sp_network_pair: inconsistent input => error", {
 
-test_that("Incomplete input ==> ERROR", {
+    # non existing key column
     expect_error({
         sp_network_pair(
-            origin_network_id = "cars",
-            destination_network_id = "cars",
-            node_pair_data = cars)
-    },
-    "The provided information does not suffice*")
+            orig_net_id = "cars",
+            dest_net_id = "cars",
+            orig_key_column =  "A",
+            dest_key_column = "B",
+            pair_data = cars)
+    },"The origin and destination key columns are not found in the pair data!")
 })
 
 
-test_that("Correct S4 construction", {
-    test_object <- sp_network_pair(
-        origin_network_id = "cars",
-        destination_network_id = "cars",
-        node_pair_data = cars,
-        destination_node_count = 5)
+# ---- assessor methods -------------------------------------------------------
+test_that("sp_network_pair: => correct assessors", {
 
-    expect_s4_class(test_object, "sp_network_pair")
+    test_object <- sp_network_pair(
+        orig_net_id = "cars",
+        dest_net_id = "cars",
+        pair_data = test_df,
+        orig_key_column = "A",
+        dest_key_column = "B")
+
+    # data...
+    keys <- c("ORIG_ID", "DEST_ID")
+    final_cols <- c(keys,"speed","dist")
+    test_dt <- copy(test_df) %>% setDT()
+    test_dt <- test_dt[,c(keys) := list(factor(A),factor(B))
+                       ][, ..final_cols] %>% setkeyv(keys)
+    expect_equal(dat(test_object),test_dt)
+    expect_equal(variable_names(test_object), colnames(test_dt))
+
+    # ids...
+    expect_equal(id(test_object, "orig"), c(orig = "cars"))
+    expect_equal(id(test_object, "dest"), c(dest = "cars"))
+    expect_equal(id(test_object, "pair"), c(pair = "cars_cars"))
+    # counts...
+    expect_equal(nnodes(test_object, "orig"), c(orig = 10))
+    expect_equal(nnodes(test_object, "dest"), c(dest = 10))
+    expect_equal(npairs(test_object), nrow(test_df))
 })
 
-
-test_that("Correct S4 accessors", {
-
-    test_object <- sp_network_pair(
-        origin_network_id = "cars",
-        destination_network_id = "cars",
-        node_pair_data = cars,
-        origin_node_count = 5)
-
-    expect_equal(test_object@node_pair_data, dat(test_object))
-    expect_equal(test_object@node_pair_data %>% names,
-                 variable_names(test_object))
-    expect_equivalent(c("cars_cars", "cars", "cars"), id(test_object))
-    expect_equivalent(c(5, 10, 50), count(test_object))
-})
-
-
-test_that("Correct data replacements", {
+# ---- replacement methods ----------------------------------------------------
+test_that("sp_network_pair: => correct replacements", {
 
     test_object <- sp_network_pair(
-        origin_network_id = "cars",
-        destination_network_id = "cars",
-        node_pair_data = cars,
-        origin_node_count = 5)
+        orig_net_id = "cars",
+        dest_net_id = "cars",
+        pair_data = test_df,
+        orig_key_column = "A",
+        dest_key_column = "B")
 
-    dat(test_object,origin_node_count = 10) <- rbind(cars,cars)
-    expect_equivalent(c(10, 10, 100), count(test_object))
+    test_df2 <- cbind(A = rep(LETTERS[1:10],10),
+                      B = rep(LETTERS[1:10],each = 10),
+                      rbind(cars,cars))
+
+    dat(test_object, orig_key_column = "A", dest_key_column = "B") <- test_df2
+
+
+    expect_equal(c(orig = 10),  nnodes(test_object, "orig"))
+    expect_equal(c(dest = 10), nnodes(test_object, "dest"))
+    expect_equal(c(100), npairs(test_object))
 })

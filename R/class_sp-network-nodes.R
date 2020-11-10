@@ -8,7 +8,7 @@
 #' the network.
 #'
 #' @slot network_id A character that serves as identifier for the network
-#' @slot node_count A numeric that indicates the number of nodes in the network
+#' @slot nnodes A numeric that indicates the number of nodes in the network
 #' @slot node_data A data.frame that contains all information describing the nodes
 #' @slot node_neighborhood A matrix that describes the neighborhood of the nodes
 #'
@@ -18,20 +18,11 @@
 setClass("sp_network_nodes",
          slots = c(
            network_id        = "character",
-           node_count        = "maybe_numeric",
+           nnodes            = "maybe_numeric",
            node_neighborhood = "maybe_Matrix",
            node_data         = "maybe_data.table"))
 
 # ---- Methods ----------------------------------------------------------------
-
-#' @export
-#' @rdname count
-setMethod(
-  f = "count",
-  signature = "sp_network_nodes",
-  function(object) { # ---- count ---------------------------------------------
-    return(object@node_count)
-  })
 
 #' @export
 #' @rdname dat
@@ -42,24 +33,24 @@ setMethod(
     return(object@node_data)
     })
 
-#' @export
+#' @keywords internal
 #' @rdname dat
 setReplaceMethod(
   f = "dat",
   signature = "sp_network_nodes",
-  function(object, value) {
+  function(object, value) { # ---- dat <- -------------------------------------
     object@node_data <- value
 
-    # remove neighborhood if there is a mismatch in dimensions
-    dim_net <- c(nrow(object@node_data),dim(object@node_neighborhood))
-    if (!has_equal_elements(dim_net)) {
-      object@node_neighborhood <- NULL
-      object@node_count <- dim_net[1]
-    }
-
-    if (validObject(object)) {
+    # dimensions match ...
+    no_confilcts <- is.null(value) || nrow(value) == object@nnodes
+    if (no_confilcts && validObject(object))
       return(object)
-    }
+
+    # dimensions don not match ...
+    object@nnodes <- nrow(value)
+    object@node_neighborhood <- NULL
+    if (validObject(object))
+      return(object)
     })
 
 #' @export
@@ -91,26 +82,37 @@ setMethod(
     return(object@node_neighborhood)
   })
 
-#' @export
+#' @keywords internal
 #' @rdname neighborhood
 setReplaceMethod(
   f = "neighborhood",
   signature = "sp_network_nodes",
   function(object,value) { # ---- neighborhood <- -----------------------------
-    object@node_neighborhood <- value
+    object@node_neighborhood <- as(value,"Matrix")
 
-    # remove node_data if there is a mismatch in dimensions
-    dim_net <- c(dim(object@node_neighborhood),nrow(object@node_data))
-    if (!has_equal_elements(dim_net)) {
-      object@node_data <- NULL
-      object@node_count <- dim_net[1]
-    }
+    # dimensions match ...
+    no_confilcts <- is.null(value) || nrow(value) == object@nnodes
+    if (no_confilcts && validObject(object))
+      return(object)
 
+    # dimensions don not match ...
+    object@nnodes <- nrow(value)
+    object@node_data <- NULL
     if (validObject(object))
       return(object)
   })
 
+#' @export
+#' @rdname nnodes
+setMethod(
+  f = "nnodes",
+  signature = "sp_network_nodes",
+  function(object) { # ---- nnodes --------------------------------------------
+    return(object@nnodes)
+  })
 
+
+#' @export
 setMethod(
   f = "show",
   signature = "sp_network_nodes",
@@ -120,7 +122,7 @@ setMethod(
     cat("\n")
     cat(print_line(50))
 
-    cat("\nNumber of nodes:", count(object))
+    cat("\nNumber of nodes:", nnodes(object))
 
     has_neighborhood <- !is.null(neighborhood(object))
     if (has_neighborhood) {
@@ -148,30 +150,59 @@ setValidity(
   Class = "sp_network_nodes",
   function(object) { # ---- validity ------------------------------------------
 
+    # check the id
+    if (!is_single_character(id(object))) {
+      error_msg <- "The network id is invalid!"
+      return(error_msg)
+    }
 
-    dim_neighborhood <- dim(object@node_neighborhood)
-
-    # neighborhood must be square matrix
-    if (!has_equal_elements(dim_neighborhood)) {
+    # check dimensions of nb matrix
+    dim_nb <- dim(neighborhood(object))
+    consitent <- dim_nb %>% has_equal_elements()
+    if (!consitent) {
       error_msg <- "The neighborhood matrix must be a square matrix!"
       return(error_msg)
     }
 
-    # neighborhood must have same row number as node_data
-    dim_node_data <- dim(object@node_data)
-    node_count <- c(dim_node_data[1],dim_neighborhood)
-    if (!has_equal_elements(node_count)) {
-      error_msg <- "Row number of node_data does not match the dimensions of the neighborhood matrix!"
+    # check dimensions of data and matrix
+    nr_dat <- nrow(dat(object))
+    consitent <- c(nr_dat,dim_nb) %>% has_equal_elements()
+    if (!consitent) {
+      error_msg <-
+        "The row number of node_data does not match the dimensions of" %p%
+        "the neighborhood matrix!"
       return(error_msg)
     }
 
-    # node count must be equal to row number of node_data and neighborhood
-    node_count <- c(node_count,object@node_count)
-    if (!has_equal_elements(node_count)) {
-      error_msg <- "The node count is wrong!"
+    # check the node count field
+    nnodes <- nnodes(object)
+    consitent <- c(nr_dat,dim_nb,nnodes) %>% has_equal_elements()
+    if (!consitent) {
+      error_msg <- "The node count is invalid!"
       return(error_msg)
     }
-    TRUE
+
+    # check details of the data
+    if (is.null(dat(object)))
+      return(TRUE)
+
+    data_id_col <- key(dat(object))
+    if (is.null(data_id_col)) {
+      error_msg <- "The data musst have an id column!"
+      return(error_msg)
+    }
+
+    browser()
+    node_ids <- dat(object)[[data_id_col]]
+    duplicated_ids <- length(unique(node_ids)) != nr_dat
+    wrong_id_type <- !is.factor(node_ids)
+    if (duplicated_ids | wrong_id_type ) {
+      error_msg <- "The nodes are not correctly identifyed!"
+      return(error_msg)
+    }
+
+    # object is valid
+    return(TRUE)
   })
 
 # ---- Constructors -----------------------------------------------------------
@@ -197,13 +228,14 @@ sp_network_nodes <- function(
 
   dim_neighborhood <- dim(node_neighborhood)
   dim_node_data <- dim(node_data)
-  node_count <- c(dim_node_data[1],dim_neighborhood) %>% unique()
+  nnodes <- c(dim_node_data[1],dim_neighborhood) %>% unique()
 
+  stop("Validator should not fail here")
   nodes <- new(
     "sp_network_nodes",
     network_id        = network_id,
     node_neighborhood = try_coercion(node_neighborhood,"Matrix"),
-    node_count        = node_count,
+    nnodes            = nnodes,
     node_data         = node_data %|!|% data.table::as.data.table(node_data))
 
   # determine the key used for sorting and merging
@@ -212,14 +244,14 @@ sp_network_nodes <- function(
 
   if (data_needs_key) {
     node_keys <- network_id %p% "_" %p% seq_len(nrow(node_data))
-    nodes@node_data[, id := factor_in_order(node_keys)] %>%
-      data.table::setkey(.,id)
+    nodes@node_data[, ID := factor_in_order(node_keys)] %>%
+      data.table::setkey(.,ID)
   }
 
   if (data_has_key) {
-    data.table::setnames(nodes@node_data, node_id_column, "id")
-    nodes@node_data[, id := factor_in_order(id)] %>%
-      data.table::setkey(.,id)
+    data.table::setnames(nodes@node_data, node_id_column, "ID")
+    nodes@node_data[, ID := factor_in_order(ID)] %>%
+      data.table::setkey(.,ID)
   }
 
   if (validObject(nodes))

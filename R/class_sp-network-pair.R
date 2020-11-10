@@ -8,47 +8,27 @@
 #' It is possible to chose the same network for origins and destinations, which
 #' enables to represent origin-destination pairs within the same network.
 #'
-#' @slot origin_network_id A character that serves as identifier for the origin network
-#' @slot origin_node_count A numeric that represents the number of nodes in the origin network
-#' @slot destination_network_id A character that serves as identifier for the destination network
+#' @slot orig_net_id A character that serves as identifier for the origin network
+#' @slot orig_nnodes A numeric that represents the number of nodes in the origin network
+#' @slot dest_net_id A character that serves as identifier for the destination network
 #' @slot network_pair_id A character identifying the pair of networks
-#' @slot node_pair_data A data.table containing information on origin-destination pairs
-#' @slot node_pair_count A numeric indicating the number of origin-destination pairs
-#' @slot destination_node_count A numeric that represents the number of nodes in the destination network
+#' @slot pair_data A data.table containing information on origin-destination pairs
+#' @slot npairs A numeric indicating the number of origin-destination pairs
+#' @slot dest_nnodes A numeric that represents the number of nodes in the destination network
 #'
 #' @family sp_network
 #' @importClassesFrom Matrix Matrix
 #' @export
 setClass("sp_network_pair",
-         slots = c(origin_network_id      = "character",
-                   origin_node_count      = "maybe_numeric",
-                   destination_network_id = "character",
-                   destination_node_count = "maybe_numeric",
-                   network_pair_id        = "character",
-                   node_pair_data         = "maybe_data.table",
-                   node_pair_count        = "maybe_numeric"))
+         slots = c(orig_net_id     = "character",
+                   orig_nnodes     = "maybe_numeric",
+                   dest_net_id     = "character",
+                   dest_nnodes     = "maybe_numeric",
+                   network_pair_id = "character",
+                   pair_data       = "maybe_data.table",
+                   npairs          = "maybe_numeric"))
 
 # ---- Methods ----------------------------------------------------------------
-
-#' @param what A character to indicate what to count;
-#'   should be in c("origins","destinations","pairs").
-#' @rdname count
-#' @export
-setMethod(
-  f = "count",
-  signature = "sp_network_pair",
-  function(object, what = cases) { # ---- count -------------------------------
-
-    counts <- c(
-      "origins" = object@origin_node_count,
-      "destinations" = object@destination_node_count,
-      "pairs" = object@node_pair_count
-    )
-    cases <- names(counts)
-    assert_valid_case(what,cases)
-
-    return(counts[what])
-  })
 
 #' @export
 #' @rdname dat
@@ -56,24 +36,27 @@ setMethod(
   f = "dat",
   signature = "sp_network_pair",
   function(object) { # ---- dat -----------------------------------------------
-    return(object@node_pair_data)
+    return(object@pair_data)
   })
 
 #' @rdname dat
 #' @param ... more arguments passed to the constructor [sp_network_pair()]
-#' @export
+#' @keywords internal
 setReplaceMethod(
   f = "dat",
   signature = "sp_network_pair",
   function(object, ..., value) {  # ---- dat <- -------------------------------
 
-    sp_network_pair(origin_network_id = object@origin_network_id,
-                    destination_network_id = object@destination_network_id,
-                    node_pair_data = value,
+    # QUESTION where do I need the data replacement?
+    sp_network_pair(orig_net_id = object@orig_net_id,
+                    dest_net_id = object@dest_net_id,
+                    pair_data = value,
                     ...)
   })
 
-#' @inheritParams count
+#' @param what
+#'    A character to indicating from what part the id should be retrieved;
+#'    should be in c("orig","dest", "pair").
 #' @rdname id
 #' @export
 setMethod(
@@ -83,8 +66,8 @@ setMethod(
 
     ids <- c(
       "pair" = object@network_pair_id,
-      "origin" = object@origin_network_id,
-      "destination" = object@destination_network_id
+      "orig" = object@orig_net_id,
+      "dest" = object@dest_net_id
     )
     cases <- names(ids)
     assert_valid_case(what,cases)
@@ -94,7 +77,7 @@ setMethod(
 
 
 #' @rdname id
-#' @export
+#' @keywords internal
 setReplaceMethod(
   f = "id",
   signature = "sp_network_pair",
@@ -106,14 +89,44 @@ setReplaceMethod(
     assert(new_id_pair == value,
            "The provided pair id is not valid.")
 
-    object@origin_network_id      <- new_id_orig
-    object@destination_network_id <- new_id_dest
+    object@orig_net_id      <- new_id_orig
+    object@dest_net_id <- new_id_dest
     object@pair                   <- new_id_orig %p% "_" %p% new_id_dest
 
     if (validObject(object))
       return(object)
   })
 
+#' @rdname npairs
+#' @export
+setMethod(
+  f = "npairs",
+  signature = "sp_network_pair",
+  function(object) { # ---- npairs --------------------------------------------
+    return(object@npairs)
+  })
+
+#' @param what
+#'    A character to indicate what to count; should be in c("orig","dest").
+#' @rdname npairs
+#' @export
+setMethod(
+  f = "nnodes",
+  signature = "sp_network_pair",
+  function(object, what = cases) { # ---- nnodes ------------------------------
+
+    count_nodes <- c(
+      "orig" = object@orig_nnodes,
+      "dest" = object@dest_nnodes
+    )
+    cases <- names(count_nodes)
+    assert_valid_case(what,cases)
+
+    return(count_nodes[what])
+  })
+
+
+#' @export
 setMethod(
   f = "show",
   signature = "sp_network_pair",
@@ -126,17 +139,16 @@ setMethod(
     od_explain <- "\n%s network id: %s (with %s nodes)"
 
     cat(od_explain %>% sprintf(
-      "Origin", id(object,"origin"), count(object, "origins")))
+      "Origin", id(object,"orig"), nnodes(object, "orig")))
     cat(od_explain %>% sprintf(
-      "Destination", id(object,"destination"), count(object, "destinations")))
+      "Destination", id(object,"dest"), nnodes(object, "dest")))
 
-    cat("\nNumber of pairs:", count(object,"pairs"))
+    cat("\nNumber of pairs:", npairs(object))
     pair_explain <- "\nCompleteness of pairs: %s (%i/%i)"
     cat(pair_explain %>% sprintf(
-      format_percent(count(object,"pairs") /
-                       prod(count(object,c("origins","destinations")))),
-      count(object,"pairs"),
-      prod(count(object,c("origins","destinations")))
+      format_percent(npairs(object) / prod(nnodes(object))),
+      npairs(object),
+      prod(nnodes(object))
     ))
 
     has_data <- !is.null(dat(object))
@@ -148,148 +160,94 @@ setMethod(
     invisible(object)
   })
 
-setValidity("sp_network_pair",
-            function(object) { # ---- validity --------------------------------
+setValidity("sp_network_pair", function(object) { # ---- validity -------------
 
+  # check ids
+  ids <- id(object)
+  pair_id <- (ids["orig"] %p% "_" %p% ids["dest"])
+  if (ids["pair"] != pair_id) {
+    error_msg <- "The id of the pair object is invalid!"
+    return(error_msg)
+  }
 
-              consistent_od_dim <-
-                c(nrow(object@node_pair_data),
-                  object@origin_node_count * object@destination_node_count,
-                  object@node_pair_count) %>%
-                has_equal_elements(.)
+  # check plausibility and identifiability of the data
+  if (is.null(dat(object)))
+    return(TRUE)
 
-              if (!consistent_od_dim) {
-                error_msg <- "The dimensions of node pairs are inconsistent!"
-                return(error_msg)
-              }
+  possible_pair_count <- prod(nnodes(object)) >= npairs(object)
+  data_keys <- dat(object)[,data.table::key(dat(object))]
+  unique_identification <- unique(data_keys) %>% nrow() == npairs(object)
 
-              TRUE
-            })
+  if (!all(possible_pair_count,unique_identification)) {
+    error_msg <- "The observations cannot be identifyed!"
+    return(error_msg)
+  }
+
+  # The object is valid
+  return(TRUE)
+})
 # ---- Constructors -----------------------------------------------------------
 
 #' Create an S4 object that contains information on origin-destination pairs
 #'
-#' @param origin_network_id A character that serves as identifier for the origin network
-#' @param destination_network_id A character that serves as identifier for the destination network
-#' @param node_pair_data A data.frame containing information to describe the origin-destination pairs
-#' @param origin_key_column A character indicating the column containing identifiers for the origins
-#' @param origin_node_count A numeric declaring the number of origins
-#' @param destination_key_column A character indicating the column containing identifiers for the destinations
-#' @param destination_node_count A numeric declaring the number of destinations
+#' @param orig_net_id A character that serves as identifier for the origin network
+#' @param dest_net_id A character that serves as identifier for the destination network
+#' @param pair_data A data.frame containing information to describe the origin-destination pairs
+#' @param orig_key_column A character indicating the column containing identifiers for the origins
+#' @param orig_nnodes A numeric declaring the number of origins
+#' @param dest_key_column A character indicating the column containing identifiers for the destinations
+#' @param dest_nnodes A numeric declaring the number of destinations
 #'
 #' @family sp_network
 #'
 #' @return An S4 class of type [sp_network_pair()]
+#' @importFrom data.table setDT := key copy setnames setkeyv
 #' @export
 sp_network_pair <- function(
-  origin_network_id,
-  destination_network_id,
-  node_pair_data = NULL,
-  origin_key_column = NULL,
-  origin_node_count = NULL,
-  destination_key_column = NULL,
-  destination_node_count = NULL
+  orig_net_id,
+  dest_net_id,
+  pair_data = NULL,
+  orig_key_column,
+  dest_key_column
 ) {
 
   network_pair <- new(
     "sp_network_pair",
-    origin_network_id      = origin_network_id,
-    origin_node_count      = NULL,
-    destination_network_id = destination_network_id,
-    destination_node_count = NULL,
-    network_pair_id        =
-      origin_network_id %p% "_" %p% destination_network_id,
-    node_pair_data         = try_coercion(node_pair_data, "data.table"),
-    node_pair_count        = NULL)
+    orig_net_id      = orig_net_id,
+    orig_nnodes      = NULL,
+    dest_net_id      = dest_net_id,
+    dest_nnodes      = NULL,
+    network_pair_id  = orig_net_id %p% "_" %p% dest_net_id,
+    pair_data        = NULL,
+    npairs           = NULL)
 
   # early return with empty counts when no data was provided
-  if (is.null(network_pair@node_pair_data)
-      && validObject(network_pair)) {
+  if (is.null(pair_data) && validObject(network_pair))
     return(network_pair)
-  }
 
-  ### Solve the ids and counts
-  # case when key variables are given ...
-  data_has_origin_key      <-
-    !is.null(origin_key_column) & !is.null(node_pair_data)
-  data_has_destination_key <-
-    !is.null(destination_key_column) & !is.null(node_pair_data)
+  # when the data is provided there must be valid key columns...
+  pair_data <- try_coercion(pair_data,"data.table")
+  has_orig_key <- orig_key_column %in% colnames(pair_data)
+  has_dest_key <- dest_key_column %in% colnames(pair_data)
+  assert(has_orig_key & has_dest_key,
+         "The origin and destination key columns are not found in " %p%
+           "the pair data!")
 
-  if (data_has_origin_key) {
-    data.table::setnames(network_pair@node_pair_data,
-                         old = origin_key_column,
-                         new = "orig_id")
-    network_pair@node_pair_data[, orig_id := factor_in_order(orig_id)]
-    origin_node_count <- nlevels(network_pair@node_pair_data$orig_id)
-  }
+  # rename and convert to factor
+  key_cols <- c("ORIG_ID", "DEST_ID")
+  setnames(pair_data, c(orig_key_column,dest_key_column), key_cols)
 
-  if (data_has_destination_key) {
-    data.table::setnames(network_pair@node_pair_data,
-                         old = destination_key_column,
-                         "dest_id")
+  # IDEA preserve factor levels if already provided
+  pair_data[, ORIG_ID := factor_in_order(ORIG_ID)]
+  pair_data[, DEST_ID := factor_in_order(DEST_ID)]
 
-    network_pair@node_pair_data[
-      , dest_id := factor_in_order(dest_id)]
+  setkeyv(pair_data,cols = key_cols)
+  network_pair@pair_data <- pair_data
+  network_pair@orig_nnodes <- nlevels(network_pair@pair_data$ORIG_ID)
+  network_pair@dest_nnodes <- nlevels(network_pair@pair_data$DEST_ID)
+  network_pair@npairs      <- nrow(pair_data)
 
-    destination_node_count <-
-      nlevels(network_pair@node_pair_data$dest_id)
-  }
-
-  # case when key variables not given ...
-  data_needs_destination_key <-
-    is.null(destination_key_column) & !is.null(node_pair_data)
-  data_needs_origin_key <-
-    is.null(origin_key_column) & !is.null(node_pair_data)
-
-  # infer number of origins and destinations
-  node_pair_count <-
-    nrow(node_pair_data)
-  origin_node_count <-
-    origin_node_count %||% (node_pair_count / destination_node_count)
-  destination_node_count <-
-    destination_node_count %||% (node_pair_count / origin_node_count)
-  node_pair_count <-
-    node_pair_count %||% (destination_node_count * origin_node_count)
-
-  # check if enough information was provided
-  all_counts_defined <-
-    c(origin_node_count, destination_node_count, node_pair_count) %>%
-    length(.) %>%
-    identical(.,3L)
-
-  assert(all_counts_defined,
-         "The provided information does not suffice to identify all " %p%
-         "origin-and destination nodes in the network pair data!\n" %p%
-         "Consider providing the arguments [*_key_column] arguments ")
-
-  if (data_needs_origin_key) {
-    origin_node_key <-
-      factor_in_order(origin_network_id %p%
-                        "_" %p%
-                        seq_len(origin_node_count)
-                      ) %>%
-      rep(.,each = destination_node_count)
-
-    network_pair@node_pair_data[, orig_id := origin_node_key]
-  }
-
-  if (data_needs_destination_key) {
-    destination_node_key <-
-      factor_in_order((destination_network_id %p%
-                         "_" %p%
-                         seq_len(destination_node_count))) %>%
-      rep(., times = origin_node_count)
-
-    network_pair@node_pair_data[, dest_id := destination_node_key]
-  }
-
-  data.table::setkey(network_pair@node_pair_data,orig_id,dest_id)
-  network_pair@origin_node_count <- origin_node_count
-  network_pair@destination_node_count <- destination_node_count
-  network_pair@node_pair_count <- node_pair_count
-
-  if (validObject(network_pair)) {
+  if (validObject(network_pair))
     return(network_pair)
-  }
 }
 

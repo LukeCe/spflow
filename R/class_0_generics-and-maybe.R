@@ -32,15 +32,6 @@ setGenericVerif("add_details",function(object, ...){ # ---- add_details -------
   standardGeneric("add_details")})
 
 
-#' @title Access the node_count of a network object
-#' @param object One of; [sp_network_nodes()], [sp_network_pair()]
-#' @name count
-#' @export
-setGenericVerif("count",function(object, ...){ # ---- count -------------------
-  standardGeneric("count")})
-
-
-
 #' @title Access the data of a network object
 #' @param object One of; [sp_network_nodes()], [sp_network_pair()]
 #' @name dat
@@ -103,31 +94,22 @@ setGenericVerif("neighborhood<-",
                 function(object, value){ # ---- neighborhood <- ---------------
   standardGeneric("neighborhood<-")})
 
-#' @title Access the neighborhood of origin and destination networks in a
-#'   [sp_network_pair()]
+#' @title Access the node count of sp_network objects
+#' @param object One of; [sp_network_nodes()], [sp_network_pair()]
+#' @rdname nnodes
+#' @name nnodes
+#' @export
+setGenericVerif("nnodes",function(object, ...){ # ---- nnodes -----------------
+  standardGeneric("nnodes")})
+
+#' @title Access the pair count of sp_network objects
 #' @param object A [sp_network_pair()]
-#' @name neighborhoods
+#' @rdname npairs
+#' @name npairs
 #' @export
-setGenericVerif("neighborhoods",function(object, ...){
-  standardGeneric("neighborhoods")})
+setGenericVerif("npairs",function(object){ # ---- npairs ----------------------
+  standardGeneric("npairs")})
 
-#' @title Access the one or multiple [sp_network_nodes()] in a
-#'   [sp_multi_network()]
-#' @param object A [sp_multi_network()]
-#' @name network_nodes
-#' @export
-setGenericVerif("network_nodes",
-                function(object, ...){ # ---- network_nodes -------------------
-  standardGeneric("network_nodes")})
-
-#' @title Access the one or multiple [sp_network_pair()] in a
-#'   [sp_multi_network()]
-#' @param object A [sp_multi_network()]
-#' @name network_pairs
-#' @export
-setGenericVerif("network_pairs",
-                function(object, ...){ # ---- network_pairs -------------------
-  standardGeneric("network_pairs")})
 
 #' @title Create a long form data.frame of origin-destination pairs
 #' @param object A [sp_multi_network()]
@@ -135,6 +117,36 @@ setGenericVerif("network_pairs",
 #' @export
 setGenericVerif("pair_merge", function(object, ...){ # ---- pair_merge --------
   standardGeneric("pair_merge")})
+
+
+#' @title Access the neighborhood of origin and destination networks in a
+#'   [sp_network_pair()]
+#' @param object A [sp_network_pair()]
+#' @name pull_neighborhood
+#' @rdname pull_neighborhood
+#' @export
+setGenericVerif("pull_neighborhood",
+                function(object, ...){ # ---- pull_neighborhood ---------------
+                  standardGeneric("pull_neighborhood")})
+
+#' @title Access the one or multiple [sp_network_nodes()] in a
+#'   [sp_multi_network()]
+#' @param object A [sp_multi_network()]
+#' @name pull_nodes
+#' @export
+setGenericVerif("pull_nodes",
+                function(object, ...){ # ---- pull_nodes ----------------------
+                  standardGeneric("pull_nodes")})
+
+#' @title Access the one or multiple [sp_network_pair()] in a
+#'   [sp_multi_network()]
+#' @param object A [sp_multi_network()]
+#' @name pull_pairs
+#' @export
+setGenericVerif("pull_pairs",
+                function(object, ...){ # ---- pull_pairs ----------------------
+                  standardGeneric("pull_pairs")})
+
 
 #' @title Access results of an estimation
 #' @param object spflow_model_meta
