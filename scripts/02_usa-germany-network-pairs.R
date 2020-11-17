@@ -22,8 +22,8 @@ all_dist <-
                  coordinates(usa_grid))) %>%
   as.matrix()
 
-n_ge <- count(germany_net)
-n_usa <- count(usa_net)
+n_ge <- nnodes(germany_net)
+n_usa <- nnodes(usa_net)
 
 index_ge <- seq_len(n_ge)
 index_usa <- seq_len(n_usa) + n_ge
@@ -34,33 +34,33 @@ dist_usa_ge  <- spflow:::stack_cols(all_dist[index_usa,index_ge],value = "distan
 dist_usa_usa <- spflow:::stack_cols(all_dist[index_usa,index_usa],value = "distance")
 
 within_ge_pairs <- sp_network_pair(
-  origin_network_id = "ge",
-  destination_network_id = "ge",
-  node_pair_data = dist_ge_ge,
-  origin_key_column = "row",
-  destination_key_column = "col"
+  orig_net_id = "ge",
+  dest_net_id = "ge",
+  pair_data = dist_ge_ge,
+  orig_key_column = "row",
+  dest_key_column = "col"
 )
 
 within_usa_pairs <- sp_network_pair(
-  origin_network_id = "usa",
-  destination_network_id = "usa",
-  node_pair_data = dist_usa_usa,
-  origin_key_column = "row",
-  destination_key_column = "col"
+  orig_net_id = "usa",
+  dest_net_id = "usa",
+  pair_data = dist_usa_usa,
+  orig_key_column = "row",
+  dest_key_column = "col"
 )
 
 ge_to_usa_pairs <- sp_network_pair(
-  origin_network_id = "ge",
-  destination_network_id = "usa",
-  node_pair_data = dist_ge_usa,
-  origin_key_column = "row",
-  destination_key_column = "col"
+  orig_net_id = "ge",
+  dest_net_id = "usa",
+  pair_data = dist_ge_usa,
+  orig_key_column = "row",
+  dest_key_column = "col"
 )
 
 usa_to_ge_pairs <- sp_network_pair(
-  origin_network_id = "usa",
-  destination_network_id = "ge",
-  node_pair_data = dist_usa_ge,
-  origin_key_column = "row",
-  destination_key_column = "col"
+  orig_net_id = "usa",
+  dest_net_id = "ge",
+  pair_data = dist_usa_ge,
+  orig_key_column = "row",
+  dest_key_column = "col"
 )

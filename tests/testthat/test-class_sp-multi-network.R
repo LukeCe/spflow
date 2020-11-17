@@ -1,67 +1,99 @@
 # ---- constructor ------------------------------------------------------------
 test_network_ids <- c("net1","net2")
-test_multi_net <- sp_multi_network(
-  c(lapply(test_network_ids, sp_network_nodes),
-    lapply(test_network_ids, function(.id) sp_network_pair(.id, .id)))
-  )
+test_nodes <- lapply(test_network_ids, sp_network_nodes)
+test_pair <- lapply(test_network_ids, function(.id) sp_network_pair(.id, .id))
 
-test_that("Correct construction", {
-    expect_s4_class(test_multi_net, "sp_multi_network")
+test_that("sp_multi_network: => correct construction", {
+  test_multi_net <- sp_multi_network(test_nodes,test_pair)
+  expect_s4_class(sp_multi_network(test_nodes,test_pair), "sp_multi_network")
+  expect_warning(sp_multi_network(test_nodes,test_pair,cars))
+})
+
+test_that("sp_multi_network: abusive input => error/warning", {
+
+  # warn if incorrect object is supplied
+  expect_warning(test_multi_net <- sp_multi_network(test_nodes,test_pair,cars))
+  expect_s4_class(test_multi_net, "sp_multi_network")
+
+  # correct but inconsistent objects are supplied...
+  # when origin ids do not match -> error
+  sp_net_letters_altered <- sp_net_letters %>% copy()
+  dat(sp_net_letters_altered)[, ID := factor(letters[1:8 + 9])] %>% setkey(ID)
+  expect_error(sp_multi_network(sp_net_letters_altered, sp_pair_letters))
+
+  # TODO implement the id ordering feature...
+  # ...when origin ids are in different order -> warn and reorder
+  dat(sp_net_letters_altered)[, ID := factor(letters[1:8],
+                                             letters[8:1])] %>% setkey(ID)
+  # expect_warning(test_multi_net <- sp_multi_network(sp_net_letters_altered,
+  #                                                   sp_pair_letters))
+  # expect_equal(test_multi_net,
+  #              sp_multi_network(sp_net_letters, sp_pair_letters))
+
+  # ... for now error instead of warning
+  expect_error(sp_multi_network(sp_net_letters_altered, sp_pair_letters))
+
 })
 
 
-# ---- Method: id -------------------------------------------------------------
-context("sp_multi_network - Method: id")
+# ---- assessor methods -------------------------------------------------------
+test_that("sp_network_nodes: => correct assessors", {
+  test_multi_net <- sp_multi_network(test_nodes,test_pair)
 
-test_that("id is read correctly", {
+  # ids: all
+  actual_id <- id(test_multi_net)
+  expected_id_net <- test_network_ids
+  expected_id_pairs <- lapply(test_pair, "id")
+  expect_equal(actual_id$networks, expected_id_net)
+  expect_equal(actual_id$network_pairs,expected_id_pairs,
+               check.attributes	= FALSE)
+  # ids: specific
+  expect_equal(id(test_multi_net,"networks"), expected_id_net)
+  expect_equal(id(test_multi_net,"network_pairs"), expected_id_pairs,
+               check.attributes	= FALSE)
 
-  test_ids <- id(test_multi_net)
+  # nodes
+  expect_equal(pull_nodes(test_multi_net), test_nodes,
+               check.attributes	= FALSE)
+  expect_equal(pull_nodes(test_multi_net, "net1"), test_nodes[[1]])
+  expect_equal(pull_nodes(test_multi_net, "net2"), test_nodes[[2]])
+  expect_null(pull_nodes(test_multi_net, "net3"))
 
-  expect_equal(object = test_ids$networks,
-               expected = test_network_ids)
+  # pairs
+  expect_equal(pull_pairs(test_multi_net), test_pair,
+               check.attributes	= FALSE)
+  expect_equal(pull_nodes(test_multi_net, "net1"), test_nodes[[1]])
+  expect_equal(pull_nodes(test_multi_net, "net2"), test_nodes[[2]])
+  expect_null(pull_nodes(test_multi_net, "net3"))
 })
 
-# ---- Method: dat ------------------------------------------------------------
-context("sp_multi_network - Method: dat")
+# ---- complex methods --------------------------------------------------------
+test_that("sp_network_nodes.pair_merge: case 1 => correct output", {
 
-test_that("Data retrieval works correctly", {
+  # test case 1:
+  # flows are complete
+  # origin == destination, both are given
+  test_multi_net <- sp_multi_network(sp_net_LETTERS,sp_pair_LETTERS)
+  actual <- pair_merge(test_multi_net, "LETTERS_LETTERS")
 
-  net_id <- "iris"
-  test_net <- sp_network_nodes(net_id,node_data = iris)
+  p_dat <- copy(dat(sp_pair_LETTERS))
+  o_dat <- d_dat <- copy(dat(sp_net_LETTERS))
+  o_dat <- prefix_columns(o_dat, "ORIG_")
+  d_dat <- prefix_columns(d_dat, "DEST_")
+  expected <- p_dat[d_dat,][o_dat]
+  expect_equal(actual,expected)
 
-  orig_id <- "carsO"
-  dest_id <- "carsD"
-  test_pairs <- sp_network_pair("carsO","carsD",
-                                pair_data = cars,
-                                orig_nnodes = 5)
-  test_multi_net <- sp_multi_network(test_net,test_pairs)
+  intital_dim <- c(100,4)
+  dim_after <- dim(dat(test_multi_net,network_pair_id = "LETTERS_LETTERS"))
+  expect_equal(intital_dim, dim_after)
 
-  expect_equal(object = dat(test_multi_net,network_id = net_id),
-               expected = dat(test_net))
-
-  expect_equal(
-    object = dat(test_multi_net,
-                 network_pair_id = orig_id %p% "_" %p% dest_id),
-    expected = dat(test_pairs))
+  expect_error(pair_merge(test_multi_net, "A_A"),
+               "Network pair with id A_A was not found!")
 })
 
-# ---- Method: pair_merge -----------------------------------------------------
-context("sp_multi_network - Method: pair_merge")
-data("multi_net_usa_ge")
-
-test_that("Combining neworks works", {
-
-  test_pair_merged <- pair_merge(multi_net_usa_ge,
-                                 network_pair_id = "ge_ge")
-
-  nrow_ge <- 16
-  ncol_ge <- 1
-  ncol_pairs <- 3
-  id_cols <- 2
-
-  expect_rows <- 16^2
-  expect_cols <- ncol_pairs + 2 * ncol_ge + id_cols
-
-  expect_is(test_pair_merged,c("data.table"))
-  expect_equal(dim(test_pair_merged),c(expect_rows, expect_cols))
+# ---- show method ------------------------------------------------------------
+test_that("sp_multi_network: correct show-method", {
+  test_object <- sp_multi_network(test_nodes,test_pair)
+  expect_output(show(test_object))
 })
+

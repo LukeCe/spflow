@@ -6,7 +6,7 @@
 #
 # For all four network pairs we simulate two types of models.
 # - - - - - - - - - - - - - - - - - - -
-# Date: Mai 2020
+# Date: November 2020
 
 library("spflow")
 source("scripts/02_usa-germany-network-pairs.R")
@@ -36,6 +36,7 @@ W_usa <- usa_net %>% neighborhood() %>% as.matrix()
 usa_data_with_lag[, X_lag := W_usa %*% X ]
 
 # ... insert them in the multi-net
+multi_net_usa_ge_copy <- multi_net_usa_ge %>% data.table::copy()
 dat(multi_net_usa_ge_copy@networks$ge) <- ge_data_with_lag
 dat(multi_net_usa_ge_copy@networks$usa) <- usa_data_with_lag
 

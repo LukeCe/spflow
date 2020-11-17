@@ -87,14 +87,36 @@ test_that("sp_network_pair: => correct replacements", {
         orig_key_column = "A",
         dest_key_column = "B")
 
-    test_df2 <- cbind(A = rep(LETTERS[1:10],10),
-                      B = rep(LETTERS[1:10],each = 10),
-                      rbind(cars,cars))
-
-    dat(test_object, orig_key_column = "A", dest_key_column = "B") <- test_df2
-
-
-    expect_equal(c(orig = 10),  nnodes(test_object, "orig"))
+    test_dt2 <- dat(test_object)[,c("const") := 1]
+    expect_equal(c(orig = 10), nnodes(test_object, "orig"))
     expect_equal(c(dest = 10), nnodes(test_object, "dest"))
-    expect_equal(c(100), npairs(test_object))
+    expect_equal(50, npairs(test_object))
+    expect_equal(dim(dat(test_object)), dim(test_df) + c(0,1))
+
+    # minimal case
+    test_object <- sp_network_pair(orig_net_id = "cars", dest_net_id = "cars")
+    expect_null(nnodes(test_object, "orig"))
+    expect_null(nnodes(test_object, "dest"))
+    expect_null(npairs(test_object))
 })
+
+# ---- show method ------------------------------------------------------------
+test_that("sp_network_pair: correct show-method", {
+    test_object <- sp_network_pair(
+        orig_net_id = "cars",
+        dest_net_id = "cars",
+        pair_data = test_df,
+        orig_key_column = "A",
+        dest_key_column = "B")
+
+    # complete
+    expect_output(show(test_object))
+    # no data
+    dat(test_object) <- NULL
+    expect_output(show(test_object))
+
+    # minimal
+    test_object <- sp_network_pair(orig_net_id = "cars", dest_net_id = "cars")
+    expect_output(show(test_object))
+})
+

@@ -157,7 +157,7 @@ by_role_spatial_lags <- function(
 
   ### 2) pair data: generate, then split lags
   # TODO count to nnodes and npairs
-  n_o <-  count(sp_network_pair, "origins")
+  n_o <-  spflow::count(sp_network_pair, "origins")
   n_d <-  count(sp_network_pair, "destinations")
 
   # ... Y_ lags
@@ -288,12 +288,12 @@ pull_flow_data <- function(
   # identification of the data sources
   data_source_ids <- id(sp_multi_network)$network_pairs[[network_pair_id]]
   pair_id <- data_source_ids["pair"]
-  orig_id <- data_source_ids["origin"]
-  dest_id <- data_source_ids["destination"]
+  orig_id <- data_source_ids["orig"]
+  dest_id <- data_source_ids["dest"]
 
-  orig_data <- network_nodes(sp_multi_network,orig_id)
-  dest_data <- network_nodes(sp_multi_network,dest_id) %T% (orig_id != dest_id)
-  pair_data <- network_pairs(sp_multi_network,pair_id)
+  orig_data <- pull_nodes(sp_multi_network,orig_id)
+  dest_data <- pull_nodes(sp_multi_network,dest_id) %T% (orig_id != dest_id)
+  pair_data <- pull_pairs(sp_multi_network,pair_id)
 
   flow_data <- list("orig" = orig_data,
                     "dest" = dest_data,
@@ -314,7 +314,7 @@ pull_neighborhood_data <-  function(sp_multi_network, network_pair_id) {
   orig_id <- data_source_ids["origin"]
   dest_id <- data_source_ids["destination"]
 
-  neighborhoods <- neighborhoods(sp_multi_network, c(orig_id, dest_id))
+  neighborhoods <- pull_neighborhood(sp_multi_network, c(orig_id, dest_id))
   names(neighborhoods) <- c("OW","DW")
   return(neighborhoods)
 

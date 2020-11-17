@@ -14,6 +14,11 @@ flatlist <- function(lst) {
 }
 
 #' @keywords internal
+lfilter <- function(lst, .f) {
+  Filter(match.fun(.f), lst)
+}
+
+#' @keywords internal
 lreduce <- function(lst, .f, ...) {
   .f <- match.fun(.f)
   f <- function(x, y) .f(x, y, ...)
@@ -28,6 +33,11 @@ named_list <- function(names, init = NULL) {
   named_list[] <- list(init)
 
   return(named_list)
+}
+
+#' @keywords internal
+none <- function(x){
+  !all(x)
 }
 
 #' A less verbose `mapply()`

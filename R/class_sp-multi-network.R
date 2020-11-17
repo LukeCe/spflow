@@ -22,13 +22,17 @@ setClass("sp_multi_network",
 setMethod(
   f = "id",
   signature = "sp_multi_network",
-  function(object) { # ---- id ------------------------------------------------
+  function(object, what = cases) { # ---- id ------------------------------------------------
 
-    network_ids <- rapply(slot(object,"networks"), id)
-    network_pair_ids <- lapply(slot(object,"network_pairs"), id)
+    ids <- list("networks" = as.vector(rapply(slot(object,"networks"), id)),
+                "network_pairs" = lapply(slot(object,"network_pairs"), id))
+    cases <- names(ids)
+    assert_valid_case(what,cases)
 
-    return(list("networks" = as.vector(network_ids),
-                "network_pairs" = network_pair_ids))
+    if (is_single_character(what))
+      return(ids[[what]])
+
+    return(ids[what])
   })
 
 
@@ -49,10 +53,12 @@ setMethod(
     }
 
     if (is.null(network_pair_id)) {
+      assert_is_single_x(network_id, x = "character")
       return(dat(object@networks[[network_id]]))
     }
 
     if (is.null(network_id)) {
+      assert_is_single_x(network_pair_id, x = "character")
       return(dat(object@network_pairs[[network_pair_id]]))
     }
 })
@@ -60,7 +66,7 @@ setMethod(
 #' @param network_ids A character vector of ids for contained
 #'    [sp_network_nodes()] objects
 #' @rdname pull_neighborhood
-#' @export
+#' @keywords internal
 setMethod(
   f = "pull_neighborhood",
   signature = "sp_multi_network",
@@ -95,7 +101,7 @@ setMethod(
   function(object,
            network_pair_ids = NULL) { # ---- pull_pairs ---------------------
 
-    network_pair_ids <- network_pair_ids %||% names(id(object)$pull_pairs)
+    network_pair_ids <- network_pair_ids %||% names(id(object)$network_pairs)
     if (is_single_character(network_pair_ids))
       return(object@network_pairs[[network_pair_ids]])
 
@@ -132,9 +138,9 @@ setMethod(
 
 
     od_pair_info["(o info)"] <-
-      lapply(od_pair_info["origin"],"%in%", nodes_ids)
+      lapply(od_pair_info["orig"],"%in%", nodes_ids)
     od_pair_info["(d info)"] <-
-      lapply(od_pair_info["destination"],"%in%", nodes_ids)
+      lapply(od_pair_info["dest"],"%in%", nodes_ids)
     cat("\n\nAvailability origin-destination pair information:\n")
     print(od_pair_info[,c(1,2,4,3,5)])
 
@@ -152,85 +158,98 @@ setMethod(
   function(object,
            network_pair_id) { # ---- pair_merge -------------------------------
 
-    od_ids <- id(object)[["network_pairs"]][[network_pair_id]]
+    assert_is_single_x(network_pair_id,"character")
+    od_ids <- id(object,"network_pairs")[[network_pair_id]]
 
-    orig_data <- dat(object,network_id = od_ids["origin"])
-    names(orig_data) <- "orig_" %p% names(orig_data)
-
-    dest_data <- dat(object,network_id = od_ids["destination"])
-    names(dest_data) <- "dest_" %p% names(dest_data)
+    assert(!is.null(od_ids),
+           "Network pair with id " %p% network_pair_id %p% " was not found!")
 
     pair_data <- dat(object,network_pair_id = od_ids["pair"])
+    orig_data <- dat(object,network_id = od_ids["orig"])
+    dest_data <- dat(object,network_id = od_ids["dest"])
 
-    expanded_data <- pair_data[dest_data, on = "dest_id"
-                               ][orig_data, on = "orig_id"]
+    names(orig_data) <- "ORIG_" %p% names(orig_data)
+    names(dest_data) <- "DEST_" %p% names(dest_data)
+
+    expanded_data <- pair_data[dest_data, ][orig_data, ]
 
     return(expanded_data)
 })
 
-setValidity("sp_multi_network",
-            function(object) { # ---- validity --------------------------------
+#' @importFrom data.table key
+setValidity("sp_multi_network", function(object) { # ---- validity ------------
 
-              valid_pairs <-
-                c(rapply(object@network_pairs, is_one_of,
-                         .classes = c("sp_network_pair","NULL")),
-                  rapply(object@network_pairs, validObject))
+  ### check validity of pairs and nodes
+  object@network_pairs %>% compact() %>% lapply("assert_is", "sp_network_pair")
+  object@network_pairs %>% lapply("validObject")
 
-              if (!all(valid_pairs)) {
-                error_msg <-
-                  "All objects in the network_pairs accessor " %p%
-                  "must be of class sp_network_pair!"
-                return(error_msg)
-              }
+  object@networks %>% compact() %>% lapply("assert_is", "sp_network_nodes")
+  object@networks %>% lapply("validObject")
 
-              valid_nodes <-
-                c(rapply(object@networks, is_one_of, .classes = c("sp_network_nodes","NULL")),
-                  rapply(object@networks, validObject))
+  ### check consistency of pairs and nodes...
+  #... naming: networks
+  network_names <- lapply(object@networks, slot, name = "network_id")
+  pair_names <- lapply(object@network_pairs, slot, name = "network_pair_id")
+  unique_names <-
+    has_distinct_elements(network_names) & has_distinct_elements(pair_names)
+  if (!unique_names) {
+    error_msg <-
+      "The identification of all networks and network_pairs must be unique!"
+    return(error_msg)
+  }
 
-              if (!all(valid_nodes)) {
-                error_msg <-
-                  "All objects in the networks accessor must be of class sp_network."
-                return(error_msg)
-              }
+  #...identification: nodes
+  extract_node_list <- function(net){
+    id_col <- key(dat(net))
+    nodes <- dat(net) %[[% id_col %>% levels()
+  }
+  cip <- check_node_identification_in_pairs <- function(pair){
 
-              network_names <- lapply(object@networks, slot, name = "network_id")
-              od_names <- lapply(object@network_pairs, pull_slots,
-                                 .slots = c("orig_net_id", "dest_net_id"))
-              od_keys <- lapply(od_names, lreduce, paste, sep = "_")
+    # node ids in the pair data
+    id_cols <- key(dat(pair))
+    od_node_list <- list(
+      "orig" = dat(pair) %[[% id_cols[1] %>% levels(),
+      "dest" = dat(pair) %[[% id_cols[2] %>% levels())
 
-              if (!(has_distinct_elements(network_names)
-                    & has_distinct_elements(od_keys))
-              ) {
-                error_msg <-
-                  "The identification of all networks and network_pairs must be unique!"
-                return(error_msg)
-              }
+    # node ids in the node data and in the pair data: allow null
+    compare_node_lists <- function(str){
 
-              network_sizes <- lapply(object@networks, slot, name = "nnodes")
-              names(network_sizes) <- network_names
+      id_net <- id(pair)[str]
+      node_ids_net <- net_node_lists[[id_net]]
+      node_ids_pair <- od_node_list[[str]]
 
-              od_names <- lreduce(od_names,c)
-              od_sizes <-
-                lapply(object@network_pairs, pull_slots,
-                       .slots = c("orig_nnodes","dest_nnodes")) %>%
-                lreduce(c) %>%
-                setNames(.,od_names)
+      consistent_node_lists <-
+        length(node_ids_net) == length(node_ids_pair) &&
+        all(node_ids_net == node_ids_pair)
+      consistent_node_lists <- consistent_node_lists | is.null(node_ids_net)
 
-              consistent_node_numbers <-
-                lapply(network_names,
-                       function(.name,.net,.od) c(.net[[.name]],.od[[.name]]),
-                       .net = network_sizes, .od = od_sizes) %>%
-                rapply(., has_equal_elements)
+    }
 
-              if (!all(consistent_node_numbers)) {
-                error_msg <-
-                  "The number of nodes in network [%s] is not consistent!" %>%
-                  sprintf(.,paste(od_names[!consistent_node_numbers],sep = " and "))
-                return(error_msg)
-              }
+    node_identifiction <-
+      lookup(c("orig","dest")) %>%
+      lapply("compare_node_lists") %>% unlist()
 
-              return(TRUE)
-            })
+  }
+  net_node_lists <- object@networks %>% lapply("extract_node_list")
+  net_vs_pair_node_lists <- object@network_pairs %>% lapply("cip")
+  names(net_vs_pair_node_lists) <- pair_names
+
+  pair_and_net_nodes_match <- net_vs_pair_node_lists %>% flatten() %>% all()
+  if (!pair_and_net_nodes_match){
+    first_bad_pair <- net_vs_pair_node_lists %>% lfilter("none") %[% 1
+
+    error_msg <-
+      "The %s node ids of the sp_network_pair %s " %p%
+      "do not match with the corresponding nodes in the sp_network_nodes!"
+    bad_o_or_d <-
+      first_bad_pair %[[% 1 %>% names() %>% paste(collapse = " and ")
+
+    return(sprintf(error_msg,bad_o_or_d,names(first_bad_pair)))
+  }
+
+  # object is valid
+  return(TRUE)
+})
 
 
 
@@ -239,10 +258,13 @@ setValidity("sp_multi_network",
 #' Create an S4 class that contains [sp_network_nodes()] and [sp_network_pair()] for one or multiple networks
 #'
 #' @param ... objects of of type [sp_network_nodes()] and [sp_network_pair()]
+#' @param level_node_ids A logical to activate re-levelling of the id columns.
+#'    If `TRUE` the origin and destination nodes in [sp_network_pair()] are set
+#'    to match the levels of the nodes in the [sp_network_nodes()].
 #'
 #' @return A S4 network data object
 #' @export
-sp_multi_network <- function(...) {
+sp_multi_network <- function(..., level_node_ids = TRUE) {
 
   input_nets <- list(...) %>% flatten() %||% list()
 

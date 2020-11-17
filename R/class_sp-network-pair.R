@@ -45,13 +45,10 @@ setMethod(
 setReplaceMethod(
   f = "dat",
   signature = "sp_network_pair",
-  function(object, ..., value) {  # ---- dat <- -------------------------------
-
-    # QUESTION where do I need the data replacement?
-    sp_network_pair(orig_net_id = object@orig_net_id,
-                    dest_net_id = object@dest_net_id,
-                    pair_data = value,
-                    ...)
+  function(object, value) {  # ---- dat <- -------------------------------
+    object@pair_data <- value
+    object@npairs <- nrow(value)
+    return(object)
   })
 
 #' @param what
@@ -115,14 +112,14 @@ setMethod(
   signature = "sp_network_pair",
   function(object, what = cases) { # ---- nnodes ------------------------------
 
-    count_nodes <- c(
+    count_nodes <- list(
       "orig" = object@orig_nnodes,
       "dest" = object@dest_nnodes
     )
     cases <- names(count_nodes)
     assert_valid_case(what,cases)
 
-    return(count_nodes[what])
+    return(unlist(count_nodes[what]))
   })
 
 
@@ -139,17 +136,20 @@ setMethod(
     od_explain <- "\n%s network id: %s (with %s nodes)"
 
     cat(od_explain %>% sprintf(
-      "Origin", id(object,"orig"), nnodes(object, "orig")))
+      "Origin", id(object,"orig"), nnodes(object, "orig") %||% "[?]"))
     cat(od_explain %>% sprintf(
-      "Destination", id(object,"dest"), nnodes(object, "dest")))
+      "Destination", id(object,"dest"), nnodes(object, "dest")  %||% "[?]"))
 
-    cat("\nNumber of pairs:", npairs(object))
-    pair_explain <- "\nCompleteness of pairs: %s (%i/%i)"
-    cat(pair_explain %>% sprintf(
-      format_percent(npairs(object) / prod(nnodes(object))),
-      npairs(object),
-      prod(nnodes(object))
-    ))
+    has_all_counts <- (c(npairs(object),nnodes(object)) %>% length()) == 3
+    if (has_all_counts) {
+      cat("\nNumber of pairs:", npairs(object))
+      pair_explain <- "\nCompleteness of pairs: %s (%i/%i)"
+      cat(pair_explain %>% sprintf(
+        format_percent(npairs(object) / prod(nnodes(object))),
+        npairs(object),
+        prod(nnodes(object))
+      ))
+    }
 
     has_data <- !is.null(dat(object))
     if (has_data) {
