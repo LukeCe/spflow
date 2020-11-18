@@ -3,7 +3,7 @@ by_role_spatial_lags <- function(
   source_model_matrices,
   lag_requirements,
   neighborhoods,
-  flow_matrix_infos,
+  matrix_form_arguments,
   model){
 
   # define lag requirements by role and summarize them by source
@@ -58,15 +58,7 @@ by_role_spatial_lags <- function(
   node_lags <- lapply(node_sources, "apply_lags_to_node_source")
 
   ### 2) pair data: generate, then split lags
-  matrix_form_arguments <- list(
-    n_rows = flow_matrix_infos$flow_dim[1],
-    n_cols = flow_matrix_infos$flow_dim[2],
-    completeness = flow_matrix_infos$completeness,
-    i_rows = flow_matrix_infos$orig_indexes,
-    j_cols = flow_matrix_infos$dest_indexes
-  )
   # ... Y_ lags
-  mat_infos <-
   response_variables <- role_var_lags$Y_ %>% flatten(use.names = FALSE)
   flow_matrices <- source_model_matrices$pair %>%
     matrix_format(response_variables, matrix_form_arguments) %>%
@@ -80,7 +72,7 @@ by_role_spatial_lags <- function(
   pair_covariates <- role_var_lags$G_ %>%
     flatten(use.names = FALSE) %>% unique()
   covariate_matrices <- source_model_matrices$pair %>%
-    matrix_format(pair_covariates, n_d = n_d, n_o = n_o)
+    matrix_format(pair_covariates, matrix_form_arguments)
   lag_pair_covariate <- function(var){
     var_lags <- role_var_lags$G_ %>% lfilter(function(x) x == var) %>% length()
     G_lags <- apply_matrix_od_lags(
@@ -238,17 +230,18 @@ identify_auto_regressive_parameters <- function(model) {
 }
 
 
+#' @importFrom Matrix Diagonal
 #' @keywords internal
-apply_matrix_od_lags <- function(G, OW = NULL, DW = NULL, nb_lags = 0,
-                                 name = "") {
+apply_matrix_od_lags <- function(G, OW = NULL, DW = NULL,
+                                 nb_lags = 0, name = "") {
 
   suffixes <- c("",".lag" %p% seq_len(nb_lags))[seq_len(nb_lags + 1)]
   G_lags <- named_list(names = name %p% suffixes)
   G_lags[[1]] <- G
 
   # Default to identity
-  OW <- OW %||% Matrix::Diagonal(nrow(G))
-  DW <- DW %||% Matrix::Diagonal(ncol(G))
+  OW <- OW %||% Diagonal(nrow(G))
+  DW <- DW %||% Diagonal(ncol(G))
 
   for (i in seq_len(nb_lags)) {
     G_lags[[i + 1]] <- tcrossprod(OW %*% G_lags[[i]], DW)

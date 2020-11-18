@@ -27,10 +27,8 @@ by_source_model_matrix <- function(
   return(c(source_model_matrices))
 }
 
-
 #' @keywords internal
-combine_formulas_by_source <- function(
-  sources, formulas) {
+combine_formulas_by_source <- function(sources, formulas) {
 
   is_between_flow <- ("dest" %in% sources)
   sources_to_formula_part <- list(
@@ -49,10 +47,8 @@ combine_formulas_by_source <- function(
 }
 
 #' @keywords internal
-validate_source_formulas <- function(
-  source_formula,
-  data_source,
-  source_type) {
+validate_source_formulas <- function(source_formula, data_source,
+                                     source_type) {
 
   required_vars <- all.vars(source_formula %>% combine_rhs_formulas())
   available_vars <- c(colnames(data_source),".")

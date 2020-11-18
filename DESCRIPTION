@@ -57,8 +57,9 @@ Collate:
     'utils-error.R'
     'utils-formula.R'
     'utils-list.R'
-    'utils-math.R'
+    'utils-naming.R'
     'utils-pipe.R'
+    'utils-vector.R'
 URL: https://github.com/LukeCe/spflow
 BugReports: https://github.com/LukeCe/spflow/issues
 Suggests:

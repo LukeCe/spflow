@@ -16,37 +16,36 @@ spflow_model_matrix <- function(
   flow_control
 ) {
 
-  # treat the formula
   formula_parts <- interpret_flow_formula(flow_formula, flow_control)
 
   # transform original variables
   data_sources <- pull_flow_data(sp_multi_network, network_pair_id)
-  model_matrices <- by_source_model_matrix(
-    formula_parts = formula_parts,
-    data_sources = data_sources)
+  model_matrices <- by_source_model_matrix(formula_parts, data_sources)
 
-  # define the spatial lags requirements
-  lag_requirements <- def_spatial_lag_requirements(
-    formula_parts = formula_parts,
-    data_sources = data_sources)
+  # prepare arguments for creation of spatial lags and matrix forms
+  lag_requirements <- def_spatial_lag_requirements(formula_parts, data_sources)
+  matrix_infos <- def_matrix_form_args(sp_multi_network, network_pair_id)
+  neighborhoods <- pull_neighborhood_data(sp_multi_network, network_pair_id)
 
   # generate the spatial lags by source then split by role
-  neighborhoods <- pull_neighborhood_data(sp_multi_network, network_pair_id)
-  matrix_infos <- extract_matrix_form_infos(sp_multi_network, network_pair_id)
   model_matrices <- by_role_spatial_lags(
     source_model_matrices = model_matrices,
     lag_requirements = lag_requirements,
     neighborhoods = neighborhoods,
-    flow_matrix_infos = matrix_infos,
+    matrix_form_arguments = matrix_infos,
     model = flow_control$model)
 
-
   # Extract weights and constants if they are defined
-  constants <- define_flow_constants(const_formula = formula_parts$const,
-                                     flow_control = flow_control,
-                                     OW = neighborhoods$OW)
-  weights <- define_flow_weights(pair_data = data_sources$pair,
-                                 flow_control)
+  constants <- define_flow_constants(
+    const_formula = formula_parts$const,
+    use_instruments = flow_control$estimation_method == "s2sls",
+    OW = neighborhoods$OW)
+
+  weights <- define_flow_weights(data_sources$pair,
+                                 flow_control$weight_var,
+                                 matrix_infos)
+
+  return(c(model_matrices,list("constants" = constants, "weights" = weights)))
 }
 
 
@@ -90,14 +89,16 @@ pull_neighborhood_data <-  function(sp_multi_network, network_pair_id) {
 }
 
 #' @keywords internal
-extract_matrix_form_infos <- function(sp_multi_network, network_pair_id) {
+def_matrix_form_args <- function(sp_multi_network, network_pair_id) {
 
   sp_pair <- pull_pairs(sp_multi_network,network_pair_id)
   flow_completeness <- list(
     "completeness" = prod(nnodes(sp_pair)) / npairs(sp_pair),
-    "flow_dim" = c(nnodes(sp_pair)),
-    "orig_indexes" = sp_pair %>% dat() %[[% "ORIG_ID" %>% as.integer(),
-    "dest_indexes" = sp_pair %>% dat() %[[% "DEST_ID" %>% as.integer())
+    "n_rows" = nnodes(sp_pair,"orig"),
+    "n_cols" = nnodes(sp_pair,"dest"),
+    "i_rows" = sp_pair %>% dat() %[[% "ORIG_ID" %>% as.integer(),
+    "j_cols" = sp_pair %>% dat() %[[% "DEST_ID" %>% as.integer())
+
 
   return(flow_completeness)
 
@@ -137,18 +138,13 @@ roles_to_sources <- function(is_within) {
 }
 
 #' @keywords internal
-define_flow_constants <- function(const_formula, flow_control, OW = NULL) {
+define_flow_constants <- function(const_formula, use_instruments, OW = NULL) {
 
   global_const <- 1 %T% const_formula$global
 
-  has_intra_const <- const_formula$intra & flow_control$use_intra
-  if (has_intra_const) {
-    use_instruments <- flow_control$estimation_method == "s2sls"
+  intra_const <- NULL
+  if (const_formula$intra)
     intra_const <- intra_regional_constant(OW, use_instruments)
-  }
-  if (!has_intra_const) {
-    intra_const <- NULL
-  }
 
   return(list("global" = global_const, "intra" = intra_const))
 }
@@ -179,29 +175,21 @@ intra_regional_constant <- function(W, use_instruments = FALSE) {
   return(c(In,w_int))
 }
 
-define_flow_weights <- function(pair_data = data_sources$pair,
-                                flow_control){
+#' @keywords internal
+define_flow_weights <- function(pair_data, weight_var, matrix_form_arguments){
 
-  weights <- pair_data %[[% flow_control$weight_var
-  flow_completeness <-(
-    nlevels(pair_data$ORIG_ID) * nlevels(pair_data$ORIG_ID) /
-    nrow(pair_data))
-
-  weights_dont_matter <- is.null(weights) & (flow_completeness == 1)
+  # When the flows are incomplete and weights weights are not defined, they
+  # are used as indicators.
+  weights <- weight_var %|!|% (pair_data %[[% weight_var)
+  complete_flows <- matrix_form_arguments$completeness == 1
+  weights_dont_matter <- is.null(weights) & complete_flows
   if (weights_dont_matter)
     return(NULL)
 
-  # when the flows are incomplete weights are used as
-  # indicators if they are not defined
-  weights <- weights %||% 1
-  weight_representation <- if (flow_completeness > 0.5) "matrix" else "Matrix"
+  args <- c(list("vec" = weights),matrix_form_arguments)
+  weights_mat <- do.call(vec_to_matrix,args = args)
 
-  weights_are_indicators <- is.null(weights)
-  if (weights_dont_matter)
-
-    return(NULL)
-
-
+  return(weights_mat)
 }
 
 ### =====OLD==== ----

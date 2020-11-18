@@ -37,6 +37,20 @@ lag_requirements <- c(
   named_list(names = c("O_","D_","I_"),
              init = named_list(c("norm","sdm","inst"),"I(XX^2)")))
 
+n <- 8
+YY_mat <- matrix(exp(pair_dat_letters$YY),n,n)
+GG_mat <- matrix(exp(pair_dat_letters$GG),n,n)
+XX_mat <- net_dat_letters$XX^2
+spatial_lags <- c(
+  list("Y_" = lapply(c(1,2,2,4), "*" , YY_mat) %>%
+         plapply(object = . ,
+                 Class = c("matrix",rep("dgeMatrix",3)),.f =  "as"),
+       "G_" = lapply(c(1,2,4), "*" , GG_mat) %>%
+         plapply(object =. ,
+                 Class = c("matrix",rep("dgeMatrix",2)),.f =  "as")),
+  named_list(c("D_","O_","I_"),
+             lapply((2)^(0:3), "*",XX_mat) %>% lreduce(cbind))
+)
 
 # tests of individual steps...
 test_that("by_source_model_matrix: => correct output", {
@@ -51,21 +65,25 @@ test_that("by_source_model_matrix: => correct output", {
 
 test_that("def_spatial_lag_requirements: => correct output", {
 
-  actual_null <- def_spatial_lag_requirements(part_formulas,data_sources)
-  expect_null(actual_null)
-
-  actual <- def_spatial_lag_requirements(fun_input)
-  expected <- reference
+  actual <- def_spatial_lag_requirements(part_formulas,data_sources)
+  expected <- lag_requirements
   expect_equal(actual, expected)
 })
 
 test_that("by_role_spatial_lags: => correct output", {
 
+  args <- def_matrix_form_args(sp_multi_net_alphabet, "letters_letters")
   actual <- by_role_spatial_lags(model_matrices,
                                  lag_requirements,
                                  test_nb,
-                                 flow_dim,
+                                 args,
                                  test_control$model)
+
+  expect_equivalent(actual$Y_, spatial_lags$Y_)
+  expect_equivalent(actual$G_, spatial_lags$G_)
+  expect_equivalent(actual$I_, spatial_lags$I_)
+  expect_equivalent(actual$D_, spatial_lags$D_)
+  expect_equivalent(actual$O_, spatial_lags$O_)
 
 })
 
@@ -78,6 +96,22 @@ test_that("spflow_model_matrix: => correct output", {
     flow_formula = test_formula,
     flow_control = test_control
     )
+
+  expected_names <- c("Y_","G_","O_","D_","I_","constants","weights" )
+  expect_named(actual,expected_names)
+
+  # Test instruments
+  # G
+  actual_inst_stat <- actual$G_ %>%
+    lapply(get_instrument_status) %>%
+    flatten(use.names = FALSE)
+  expect_inst <- c(FALSE,TRUE,TRUE)
+  expect_equal(actual_inst_stat,expect_inst)
+  # D O I
+  expect_inst <- c(FALSE,FALSE,TRUE,TRUE)
+  expect_equal(actual$D_ %>% get_instrument_status(),expect_inst)
+  expect_equal(actual$O_ %>% get_instrument_status(),expect_inst)
+  expect_equal(actual$I_ %>% get_instrument_status(),expect_inst)
 
 })
 
