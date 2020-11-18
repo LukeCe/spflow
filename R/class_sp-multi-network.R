@@ -7,17 +7,23 @@
 #'
 #' @slot networks A list of [sp_network_nodes()] objects
 #' @slot network_pairs A list of [sp_network_pair()] objects
+# #' @slot completeness
+# #'    A data.frame summarizing the identification between pairs and nodes
 #'
 #' @family sp_network
 #' @export
 setClass("sp_multi_network",
          slots = c(networks = "list",
-                   network_pairs = "list"))
+                   network_pairs = "list",
+                   completeness = "maybe_data.frame"))
 
 
 # ---- Methods ----------------------------------------------------------------
 
 #' @export
+#' @param what
+#'     A character to indicating from what part the id should be retrieved;
+#'     should be in c("orig","dest", "pair").
 #' @rdname id
 setMethod(
   f = "id",
@@ -84,7 +90,7 @@ setMethod(
   function(object,
            network_ids = NULL) { # ---- pull_nodes -------------------------
 
-    network_ids <- network_ids %||% id(object)$networks
+    network_ids <- network_ids %>% flatten() %||% id(object)$networks
 
     if (length(network_ids) == 1)
       return(object@networks[[network_ids]])
@@ -283,9 +289,24 @@ sp_multi_network <- function(..., level_node_ids = TRUE) {
   names(sp_networks) <- lapply(sp_networks, id)
   names(sp_network_pairs) <- lapply(sp_network_pairs, id, "pair")
 
+  # TODO add completeness info to multinetwork
+  od_pair_completeness <- NULL
+  # nodes_ids <- id(object, "networks")
+  # od_pair_completeness <-
+  #   id(object, "network_pairs") %>%
+  #   lapply(as.list) %>%
+  #   lapply(data.frame, stringsAsFactors = FALSE) %>%
+  #   lreduce(rbind)
+  #
+  # od_pair_completeness["(o info)"] <-
+  #   lapply(od_pair_info["orig"],"%in%", nodes_ids)
+  # od_pair_completeness["(d info)"] <-
+  #   lapply(od_pair_info["dest"],"%in%", nodes_ids)
+
   return(new("sp_multi_network",
              networks = sp_networks,
-             network_pairs = sp_network_pairs))
+             network_pairs = sp_network_pairs,
+             completeness = od_pair_completeness))
 }
 
 

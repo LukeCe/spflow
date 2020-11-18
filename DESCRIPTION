@@ -47,7 +47,9 @@ Collate:
     'spflow-likelihood.R'
     'spflow-logdet.R'
     'spflow-model-estimation.R'
-    'spflow-model-matrix.R'
+    'spflow-model-matrix_1.R'
+    'spflow-model-matrix_2-transformations.R'
+    'spflow-model-matrix_3-spatial-lags.R'
     'spflow-model-moments.R'
     'spflow.R'
     'spflow_sim.R'
@@ -55,6 +57,7 @@ Collate:
     'utils-error.R'
     'utils-formula.R'
     'utils-list.R'
+    'utils-math.R'
     'utils-pipe.R'
 URL: https://github.com/LukeCe/spflow
 BugReports: https://github.com/LukeCe/spflow/issues

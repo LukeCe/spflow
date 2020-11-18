@@ -9,8 +9,9 @@ flatten <- function(..., use.names = TRUE) {
 }
 
 #' @keywords internal
-flatlist <- function(lst) {
-  do.call(c, lapply(lst, function(x) if( is.list(x)) flatlist(x) else list(x)))
+flatlist <- function(lst, use.names = TRUE) {
+  c2 <- function(...) c(..., use.names = use.names)
+  do.call(c2, lapply(lst, function(x) if(is.list(x)) flatlist(x) else list(x)))
 }
 
 #' @keywords internal

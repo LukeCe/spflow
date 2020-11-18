@@ -109,15 +109,17 @@ spflow <- function(
          "The the network pair id [%s] is not available!" %>%
            sprintf(., network_pair_id))
 
-  ## ... identify the flow type
-  flow_control$flow_type <- ifelse(
-    network_ids["origin"] ==
-      network_ids["destination"],
-    yes = "within", no = "between"
-  )
+
 
   ## ... test the arguments provided to control by calling it again
   flow_control <- do.call(spflow_control, flow_control)
+  # TODO validate and enrich flow control
+  ## ... identify the flow type
+  flow_control$flow_type <- ifelse(
+    network_ids["orig"] ==
+      network_ids["dest"],
+    yes = "within", no = "between"
+  )
 
   ## ... create the design matrix/matrices
   model_matrices <- spflow_model_matrix(

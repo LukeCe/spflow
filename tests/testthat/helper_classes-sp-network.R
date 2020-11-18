@@ -24,7 +24,7 @@ net_dat_LETTERS <- data.table::data.table(
 sp_net_LETTERS <- sp_network_nodes(
   network_id = "LETTERS",
   node_id_column = "ID",
-  node_neighborhood = Diagonal(n_o),
+  node_neighborhood = Diagonal(n_o) * 2,
   node_data = net_dat_LETTERS)
 
 # network letters
@@ -39,7 +39,7 @@ net_dat_letters <- data.table::data.table(
 sp_net_letters <- sp_network_nodes(
   network_id = "letters",
   node_id_column = "ID",
-  node_neighborhood = Diagonal(n_o),
+  node_neighborhood = Diagonal(n_o) * 2,
   node_data = net_dat_letters)
 
 # define the four possible network pairs --------------------------------------

@@ -39,7 +39,7 @@ cols_select <- function(obj_2dim,index_cols, drop = TRUE){
   # sub setting based on drop_index
   index_drop <- unique(index_drop)
   if (length(index_drop) == 0)   return(obj_2dim)
-  if (is(obj_2dim,"data.table")) return(obj_2dim[, (index_drop) := NULL])
+  if (is(obj_2dim,"data.table")) return(obj_2dim[, !index_drop, with = FALSE])
   if (is(obj_2dim,"matrix"))     return(obj_2dim[,-index_drop, drop = FALSE])
   if (is(obj_2dim,"data.frame")) return(obj_2dim[-index_drop])
 }

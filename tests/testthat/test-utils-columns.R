@@ -123,6 +123,17 @@ test_that("cols_drop: => correct output for unknows indexes", {
 
 })
 
+test_that("cols_drop: => no side effects for data.table", {
+
+  test_dt <- data.table::data.table(iris)
+  test_dt_backup <- data.table::data.table(iris)
+
+  col_index <- c("Sepal.Length", "Sepal.Width", "Petal.Length")
+  dummy_actual <- test_dt %>% cols_drop(col_index)
+  expect_equal(test_dt,test_dt_backup)
+
+})
+
 test_that("cols_drop: abusive input => error", {
 
   cols_drop <- 1:4
