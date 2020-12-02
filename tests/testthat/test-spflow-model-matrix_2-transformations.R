@@ -1,3 +1,28 @@
+test_that("by_source_model_matrix: => correct output", {
+
+  ## Define the test case based on the alphabet test data...
+  #... formulas
+  test_formula <- exp(YY) ~ I(XX^2) + G_(exp(GG))
+  part_variables <-
+    c("Y_" = "exp(YY)", "G_" = "exp(GG)", lookup("I(XX^2)", c("O_","D_","I_")))
+  var_to_form <- function(v) {reformulate_string(v) %>% remove_constant()}
+  part_formulas <- part_variables %>% lapply("var_to_form")
+  part_formulas <- list("norm" = part_formulas,
+                        "sdm" = part_formulas[c("O_","D_","I_")],
+                        "inst" = part_formulas[c("O_","D_","I_","G_")])
+  #... data
+  data_sources <- list("orig" = net_dat_letters %>% cols_keep("XX"),
+                       "pair" = pair_dat_letters %>% cols_keep(c("YY","GG")))
+
+  #... tests
+  actual <- by_source_model_matrix(part_formulas, data_sources)
+  expect_orig <- model.matrix( ~ I(XX^2) -1 ,data = net_dat_letters)
+  expect_pair <- model.matrix( ~ exp(YY) + exp(GG) -1 ,data = pair_dat_letters)
+  expect_equal(actual$orig,expect_orig, check.attributes = FALSE)
+  expect_equal(actual$pair,expect_pair, check.attributes = FALSE )
+})
+
+
 test_that("combine_formulas_by_source: => correct output", {
 
   formula_parts <- list("Y_" = ~ y, "G_" =  ~ dist,

@@ -45,7 +45,8 @@ spflow_model_matrix <- function(
                                  flow_control$weight_var,
                                  matrix_infos)
 
-  return(c(model_matrices,list("constants" = constants, "weights" = weights)))
+  return(c(model_matrices, neighborhoods,
+           list("constants" = constants, "weights" = weights)))
 }
 
 
@@ -497,27 +498,5 @@ split_by_source <- function(global_design_matrix,
     SIMPLIFY = FALSE)
 
   return(model_matrices)
-}
-
-# other ----
-
-
-orthoginolize_instruments <- function(mat) {
-
-  inst_index <- attr(mat,"is_instrument_var")
-  no_instruments <- all(!inst_index)
-  if (no_instruments)
-    return(mat)
-
-  vars <- mat[,!inst_index]
-  inst_orth <- mat[,inst_index] %>%
-    decorellate_matrix(cbind(1,vars)) %>%
-    linear_dim_reduction(var_threshold = 0)
-
-  new_matr <- cbind(vars,inst_orth)
-  data.table::setattr(new_matr,name = "is_instrument_var",
-                      value = inst_index[seq_len(ncol(new_matr))])
-
-  return(new_matr)
 }
 

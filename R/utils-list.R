@@ -38,7 +38,7 @@ named_list <- function(names, init = NULL) {
 
 #' @keywords internal
 none <- function(x){
-  !all(x)
+  all(!x)
 }
 
 #' A less verbose `mapply()`

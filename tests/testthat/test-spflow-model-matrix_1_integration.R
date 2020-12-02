@@ -45,9 +45,7 @@ spatial_lags <- c(
   list("Y_" = lapply(c(1,2,2,4), "*" , YY_mat) %>%
          plapply(object = . ,
                  Class = c("matrix",rep("dgeMatrix",3)),.f =  "as"),
-       "G_" = lapply(c(1,2,4), "*" , GG_mat) %>%
-         plapply(object =. ,
-                 Class = c("matrix",rep("dgeMatrix",2)),.f =  "as")),
+       "G_" = lapply(c(1,4,16), "*" , GG_mat)),
   named_list(c("D_","O_","I_"),
              lapply((2)^(0:3), "*",XX_mat) %>% lreduce(cbind))
 )
@@ -97,7 +95,7 @@ test_that("spflow_model_matrix: => correct output", {
     flow_control = test_control
     )
 
-  expected_names <- c("Y_","G_","O_","D_","I_","constants","weights" )
+  expected_names <- c("Y_","G_","O_","D_","I_","OW","DW","constants","weights" )
   expect_named(actual,expected_names)
 
   # Test instruments
@@ -113,6 +111,8 @@ test_that("spflow_model_matrix: => correct output", {
   expect_equal(actual$O_ %>% get_instrument_status(),expect_inst)
   expect_equal(actual$I_ %>% get_instrument_status(),expect_inst)
 
+  # No weights
+  expect_null(actual$weights)
 })
 
 

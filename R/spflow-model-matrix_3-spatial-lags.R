@@ -39,6 +39,7 @@ by_role_spatial_lags <- function(
     lags_names <- suffix_sp_lags(lags) %>% flatten()
 
     # create one matrix for each source
+    # TODO remove magrittr::set_colnames
     lagged_vars_mat <-
       lapply(rev(lags), function(.vars) cols_keep(source_mat,.vars)) %>%
       lreduce(function(.x1, .x2) { cbind(.x2, source_nb %*% .x1) }) %>%
@@ -56,6 +57,13 @@ by_role_spatial_lags <- function(
     mat_by_role
   }
   node_lags <- lapply(node_sources, "apply_lags_to_node_source")
+
+  # impose orthogonality of instruments from X
+  # TODO control decorrelation of instruments
+  decorrelate_instruments <- FALSE
+  if (decorrelate_instruments) {
+    node_lags <- node_lags %>% lapply(orthoginolize_instruments)
+  }
 
   ### 2) pair data: generate, then split lags
   # ... Y_ lags
@@ -98,7 +106,6 @@ by_role_spatial_lags <- function(
 
   return(all_model_matrices)
 }
-
 
 #' @keywords internal
 var_usage_to_lag <- function(.vars, out_inst = FALSE) {
@@ -147,13 +154,11 @@ sources_to_roles <- function(is_within) {
        "dest" = "D_" %T% (!is_within)) %>% compact()
 }
 
-
 #' @keywords internal
 suffix_sp_lags <- function(lag_req) {
   suffix <- c(lag0 = "", lag1 = ".lag1", lag2 = ".lag2", lag3 = ".lag3")
   plapply(lag_req, .f = paste0, suffix[names(lag_req)])
 }
-
 
 #' @keywords internal
 set_instrument_status <- function(x, is_inst) {
@@ -163,6 +168,25 @@ set_instrument_status <- function(x, is_inst) {
 #' @keywords internal
 get_instrument_status <- function(x) {
   attr(x, "is_instrument_var")
+}
+
+#' @keywords internal
+orthoginolize_instruments <- function(mat) {
+
+  inst_index <- get_instrument_status(mat)
+  no_instruments <- none(inst_index)
+  if (no_instruments)
+    return(mat)
+
+  vars <- mat[,!inst_index]
+  inst_orth <- mat[,inst_index] %>%
+    decorellate_matrix(cbind(1,vars)) %>%
+    linear_dim_reduction(var_threshold = 1e-10)
+
+  new_matr <- cbind(vars,inst_orth)
+  set_instrument_status(new_matr, inst_index[seq_len(ncol(new_matr))])
+
+  return(new_matr)
 }
 
 #' @keywords internal
@@ -240,11 +264,8 @@ apply_matrix_od_lags <- function(G, OW = NULL, DW = NULL,
   G_lags[[1]] <- G
 
   # Default to identity
-  OW <- OW %||% Diagonal(nrow(G))
-  DW <- DW %||% Diagonal(ncol(G))
-
   for (i in seq_len(nb_lags)) {
-    G_lags[[i + 1]] <- tcrossprod(OW %*% G_lags[[i]], DW)
+    G_lags[[i + 1]] <- sandwich_prod(OW,G_lags[[i]],DW)
   }
 
   return(G_lags)

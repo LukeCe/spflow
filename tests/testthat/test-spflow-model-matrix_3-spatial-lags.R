@@ -1,27 +1,3 @@
-test_that("by_source_model_matrix: => correct output", {
-
-  ## Define the test case based on the alphabet test data...
-  #... formulas
-  test_formula <- exp(YY) ~ I(XX^2) + G_(exp(GG))
-  part_variables <-
-    c("Y_" = "exp(YY)", "G_" = "exp(GG)", lookup("I(XX^2)", c("O_","D_","I_")))
-  var_to_form <- function(v) {reformulate_string(v) %>% remove_constant()}
-  part_formulas <- part_variables %>% lapply("var_to_form")
-  part_formulas <- list("norm" = part_formulas,
-                        "sdm" = part_formulas[c("O_","D_","I_")],
-                        "inst" = part_formulas[c("O_","D_","I_","G_")])
-  #... data
-  data_sources <- list("orig" = net_dat_letters %>% cols_keep("XX"),
-                       "pair" = pair_dat_letters %>% cols_keep(c("YY","GG")))
-
-  #... tests
-  actual <- by_source_model_matrix(part_formulas, data_sources)
-  expect_orig <- model.matrix( ~ I(XX^2) -1 ,data = net_dat_letters)
-  expect_pair <- model.matrix( ~ exp(YY) + exp(GG) -1 ,data = pair_dat_letters)
-  expect_equal(actual$orig,expect_orig, check.attributes = FALSE)
-  expect_equal(actual$pair,expect_pair, check.attributes = FALSE )
-})
-
 test_that("var_usage_to_lag: for varnames and inst status => correct output", {
 
   advanced_usage <- list("norm" = c("X1","X2",     "X4"         ),
@@ -67,4 +43,52 @@ test_that("matrix_format: => correct output", {
   expect_equal(actual$GG, expected_GG)
   expect_equal(actual$YY, expected_YY)
 })
+
+test_that("apply_matrix_od_lags: => correct output", {
+
+  test_DW <- test_OW <- neighborhood(sp_net_letters)
+  test_G <- matrix(pair_dat_letters$GG,nrow = nrow(test_DW))
+  actual <- apply_matrix_od_lags(G = test_G,OW = test_OW,DW = test_DW,
+                                      nb_lags = 2,name = "GG")
+  # Lag is just multiplication by 4 in this case (look at OW and DW)
+  expect_equal(test_G ,actual$GG)
+  expect_equivalent(test_G*4 ,actual$GG.lag1)
+  expect_equivalent(test_G*16 ,actual$GG.lag2)
+})
+
+
+test_that("orthoginolize_instruments: => correct output", {
+
+  n <- 100
+  var_a <- rnorm(n) # no inst
+  var_b <- rnorm(n) # no inst
+  var_c <- rnorm(n) # inst
+  var_d <- rnorm(n) # inst
+
+  # matrix with four instruments, two of them are redundant
+  mat_with_inst <-
+    cbind(var_a, var_b,
+          var_c + 10 * var_a, var_c + 10 * var_b,
+          var_d + 5 * var_b - 5* var_a, var_d - 5 * var_b + 5* var_a) %>%
+    set_instrument_status(c(FALSE,FALSE,TRUE,TRUE,TRUE,TRUE))
+  mat_without_inst <- cbind(var_a, var_b,var_c,var_d)
+
+  actual <- orthoginolize_instruments(mat_with_inst)
+  cor_expect <- cor(cbind(var_a, var_b,var_c,var_d))
+  cor_actual <- cor(actual)
+  # the redundant variables are filtered out and correlations are removed
+  expect_equal(ncol(actual), 4)
+  expect_true(all(abs(cor_expect) >= abs(cor_actual)))
+
+  # when no instruments do nothing
+  mat_without_inst <- cbind(var_a, var_b,var_c,var_d) %>%
+    set_instrument_status(c(FALSE,FALSE,FALSE,FALSE))
+
+  actual <- orthoginolize_instruments(mat_without_inst)
+  expected <- mat_without_inst
+  expect_equal(actual,expected)
+})
+
+
+
 

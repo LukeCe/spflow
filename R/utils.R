@@ -100,43 +100,6 @@ sequentialize_index <- function(index_list) {
   mapply("+", index_list, as.list(shift),SIMPLIFY = FALSE)
 }
 
-# ---- linear algebra ---------------------------------------------------------
-impose_orthogonality <- function(mat,column_sets){
-
-  # first block does not require orthogonal projection
-  Mx_mat <- mat[,column_sets[[1]]]
-  for (i in seq_along(column_sets)[-1]) {
-
-    # Bind residual of orthogonal projection
-    Px_mat <- projec_onto(mat[,column_sets[[i]]],Mx_mat)
-    Mx_mat <- cbind(Mx_mat, mat[,column_sets[[i]]] - Px_mat)
-  }
-
-  return(Mx_mat)
-
-}
-
-decorellate_matrix <- function(y, with_x) {
-  y - projec_onto(y,with_x)
-}
-
-projec_onto <- function(y, onto_x){
-  beta <- solve(crossprod(onto_x),crossprod(onto_x,y))
-  Px_y <- onto_x %*% beta
-  return(Px_y)
-}
-
-linear_dim_reduction <- function(mat, var_threshold = 0, n_comp = NULL) {
-
-  svd_mat <- La.svd(mat)
-  n_comp <- n_comp %||% sum(svd_mat$d >= var_threshold)
-
-  S_trunc <- diag(svd_mat$d[seq_len(n_comp)])
-  U_trunc <- svd_mat$u[,seq_len(n_comp)]
-
-  return(U_trunc %*% S_trunc)
-}
-
 # ---- lists ------------------------------------------------------------------
 collect <- function(names){
   collection <- lapply(names, get, envir = parent.frame(1))
