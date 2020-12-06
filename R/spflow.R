@@ -132,7 +132,6 @@ spflow <- function(
   estimation_results <-
     spflow_model_estimation(model_matrices,flow_control)
 
-  # return
   return(estimation_results)
 }
 

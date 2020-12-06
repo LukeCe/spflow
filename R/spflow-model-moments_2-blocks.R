@@ -1,55 +1,61 @@
-# ---- Variance Moment ----------------------------------------------------
-moment_empirical_var <- function(flow_model_matrices) {
-  # The moment matrix is grouped into (4x4) blocks
-  # {alpha, alpha_I, beta, gamma}^2
-  # Of those 16 blocks 10 are unique and 6 are inferred by symmetry
+# ---- Variance Moment --------------------------------------------------------
 
-  # The beta block is split into [D,O,I]
-  order_keys <- c("DX","OX","IX")
-  X <- flow_model_matrices[order_keys] %>% compact()
+#' @details
+#' The moment (H'H) moment matrix is grouped into (4x4) blocks.
+#' These 16 blocks are derived as interactions from the four blocks
+#' {alpha, alpha_I, beta, gamma}.
+#' Only ten blocks are unique and the remaining six are inferred by symmetry.
+#'
+#' @keywords internal
+moment_empirical_var <- function(model_matrices) {
+
+  ## ---- prepare weighting of the model matrices
+  wt <- model_matrices$C_
+
+  # prepare weighted neighborhood matrices
+  # and derivatives that serve as instruments
+  const_intra_wt <- wt %|!|% lapply(model_matrices$const_intra, "*", wt)
+
+  # prepare the moment weighting for the site attributes (D,O,I)
+  wt_odi <- derive_weights_ODI(wt,n_d,n_o)
+  order_keys <- c("D_","O_","I_")
+  X <- model_matrices[order_keys] %>% compact()
+
+  # prepare weighted pair attributes
+  G_wt <- wt %|!|% lapply(model_matrices$G_, "*", wt)
+
+
+  ## ---- compute the 10 moment blocks
 
   # [alpha] blocks (4/10)
-  if (flow_model_matrices$const == 1) {
-    N <- Reduce("*", dim(flow_model_matrices$Y[[1]]))
-    alpha_blocks <- list(
-        "alpha"         =
-          var_moment_block_alpha(N),
-        "alpha_alpha_I" =
-          var_moment_block_alpha_alpha_I(flow_model_matrices$const_intra),
-        "alpha_beta"    =
-          var_moment_block_alpha_beta(X),
-        "alpha_gamma"   =
-          var_moment_block_alpha_gamma(flow_model_matrices$G)) %>%
-        reduce(cbind)
-    }
+  alpha_blocks <- model_matrices$const %|!|% (list(
+    var_block_alpha(wt, model_matrices$N),
+    var_block_alpha_alpha_I(const_intra_wt %||% model_matrices$const_intra),
+    var_block_alpha_beta(X,wt_odi),
+    var_block_alpha_gamma(G_wt %||% model_matrices$G_)
+    ) %>% lreduce(cbind))
 
   # [alpha_I] blocks (7/10)
-  alpha_I_blocks <- list(
-      "alpha_I" =
-        var_moment_block_alpha_I(flow_model_matrices$const_intra),
-      "alpha_I_beta" =
-        var_moment_block_alpha_I_beta(flow_model_matrices$const_intra,
-                                      X),
-      "alpha_I_gamma" =
-        var_moment_block_alpha_I_gamma(flow_model_matrices$const_intra,
-                                       flow_model_matrices$G)) %>%
-      reduce(cbind)
+  alpha_I_blocks <- model_matrices$const_intra %|!|% (list(
+    var_block_alpha_I(const_intra_wt %||% model_matrices$const_intra),
+    var_block_alpha_I_beta(const_intra_wt %||% model_matrices$const_intra,X),
+    var_block_alpha_I_gamma(const_intra_wt %||% model_matrices$const_intra,
+                            model_matrices$G)
+    ) %>% lreduce(cbind))
 
   # [beta] blocks (9/10)
-  beta_blocks <- list(
-      "beta" =
-        var_moment_block_beta(X = X),
-      "beta_gamma" =
-        var_moment_block_beta_gamma(X = X,
-                                    G = flow_model_matrices$G)) %>%
-      reduce(cbind)
+  beta_blocks <- X %|!|% (list(
+    var_block_beta(X,wt_odi),
+    var_block_beta_gamma(X, G_wt %||% model_matrices$G)
+    ) %>% lreduce(cbind))
 
   # [gamma] block (10/10)
-  gamma_block <- var_moment_block_gamma(G = flow_model_matrices$G)
+  gamma_block <- model_matrices$G %|!|% var_block_gamma(model_matrices$G, G_wt)
+  #TODO continue here
 
   combined_blocks <-
     list(alpha_blocks,alpha_I_blocks,beta_blocks,gamma_block) %>%
-    reduce(rbind_fill0) %>%
+    lreduce(rbind_fill0) %>%
     Matrix::forceSymmetric(x = ., uplo = "U") %>%
     as.matrix()
 
@@ -58,9 +64,14 @@ moment_empirical_var <- function(flow_model_matrices) {
 
 # ---- Diagonal Blocks ----
 
-var_moment_block_alpha <- function(N) {N %|!|% matrix(N)}
+var_block_alpha <- function(wt,N) {
+  if (is.numeric(wt[1]))
+    return(sum(wt))
 
-var_moment_block_alpha_I <- function(const_intra) {
+  return(N)
+}
+
+var_block_alpha_I <- function(const_intra) {
 
   if (is.null(const_intra))
     return(NULL)
@@ -87,7 +98,7 @@ var_moment_block_alpha_I <- function(const_intra) {
   return(block_alpha_I)
 }
 
-var_moment_block_beta <- function(X) {
+var_block_beta <- function(X) {
 
   # The diagonal sub blocks define the dimensions
   # They correspond to the scaled inner product of each matrix
@@ -120,23 +131,23 @@ var_moment_block_beta <- function(X) {
   cols <- indexes$IX
   block_beta[rows,cols] <-
     lapply(X[od_keys], crossprod, X$IX) %>%
-    reduce(rbind)
+    lreduce(rbind)
 
 
   block_beta <- Matrix::forceSymmetric(block_beta,"U")
   return(as.matrix(block_beta))
 }
 
-var_moment_block_gamma <- function(G) {
+var_block_gamma <- function(G) {
   G %|!|% hadamard_sum_matrix(G)
 }
 
 # ---- Off-diagonal Blocks ----
-var_moment_block_alpha_alpha_I <- function(const_intra) {
+var_block_alpha_alpha_I <- function(const_intra) {
   const_intra %|!|% (rapply(const_intra,sum) %>% matrix(nrow = 1))
   }
 
-var_moment_block_alpha_beta <- function(X) {
+var_block_alpha_beta <- function(X) {
 
   if (is.null(X))
     return(NULL)
@@ -146,28 +157,28 @@ var_moment_block_alpha_beta <- function(X) {
       .x = X %>% lapply(col_sums),
       .y = X %>% derive_scalings(),
       .f = `*`) %>%
-    reduce(cbind)
+    lreduce(cbind)
 
   return(scaled_col_sums)
 }
 
-var_moment_block_alpha_gamma <- function(G) {
+var_block_alpha_gamma <- function(G) {
   G %|!|% (rapply(G,sum) %>% matrix(nrow = 1))
 }
 
-var_moment_block_alpha_I_beta <- function(const_intra,X) {
+var_block_alpha_I_beta <- function(const_intra,X) {
 
   if (is.null(X) || is.null(const_intra))
     return(NULL)
 
   result <-
     lapply(const_intra, matrix_prod_O_D_I, X) %>%
-    reduce(rbind)
+    lreduce(rbind)
 
   return(result)
 }
 
-var_moment_block_alpha_I_gamma <- function(const_intra,G) {
+var_block_alpha_I_gamma <- function(const_intra,G) {
 
   if (is.null(G) || is.null(const_intra))
     return(NULL)
@@ -187,12 +198,12 @@ var_moment_block_alpha_I_gamma <- function(const_intra,G) {
   block_alpha_I_gamma[-1,] <-
     const_intra[-1] %>%
     lapply(had_sum_G) %>%
-    reduce(rbind)
+    lreduce(rbind)
 
   return(block_alpha_I_gamma)
 }
 
-var_moment_block_beta_gamma <- function(X,G) {
+var_block_beta_gamma <- function(X,G) {
 
   if (is.null(X) || is.null(G))
     return(NULL)
@@ -200,7 +211,7 @@ var_moment_block_beta_gamma <- function(X,G) {
   result <-
     lapply(G, matrix_prod_O_D_I, X) %>%
     lapply(t) %>%
-    reduce(cbind)
+    lreduce(cbind)
 
   return(result)
 }
@@ -215,7 +226,7 @@ moment_empirical_covar <- function(Y, flow_model_matrices) {
     cov_moment_block_alpha_I(Y, flow_model_matrices$const_intra),
     cov_moment_block_beta(Y, X),
     cov_moment_block_gamma(Y, flow_model_matrices$G)
-  ) %>% reduce(c)
+  ) %>% lreduce(c)
   return(result)
 }
 
@@ -275,7 +286,7 @@ matrix_prod_O_D_I <- function(mat,X) {
     X$OX %|!|% (colSums(mat) %*% X$OX),
     X$IX %|!|% (diag(mat) %*% X$IX)
     ) %>%
-    reduce(cbind)
+    lreduce(cbind)
 
   return(result)
 }

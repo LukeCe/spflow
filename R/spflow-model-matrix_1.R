@@ -33,7 +33,8 @@ spflow_model_matrix <- function(
     lag_requirements = lag_requirements,
     neighborhoods = neighborhoods,
     matrix_form_arguments = matrix_infos,
-    model = flow_control$model)
+    model = flow_control$model,
+    flow_control$decorrelate_instruments)
 
   # Extract weights and constants if they are defined
   constants <- define_flow_constants(

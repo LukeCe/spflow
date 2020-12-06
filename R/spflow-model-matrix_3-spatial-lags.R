@@ -4,7 +4,8 @@ by_role_spatial_lags <- function(
   lag_requirements,
   neighborhoods,
   matrix_form_arguments,
-  model){
+  model,
+  decorrelate_instruments = FALSE){
 
   # define lag requirements by role and summarize them by source
   role_var_lags <- lapply(lag_requirements, "var_usage_to_lag")
@@ -56,11 +57,11 @@ by_role_spatial_lags <- function(
             .f = "set_instrument_status")
     mat_by_role
   }
-  node_lags <- lapply(node_sources, "apply_lags_to_node_source")
+
+  node_lags <- lapply(node_sources, "apply_lags_to_node_source") %>%
+    flatlist()
 
   # impose orthogonality of instruments from X
-  # TODO control decorrelation of instruments
-  decorrelate_instruments <- FALSE
   if (decorrelate_instruments) {
     node_lags <- node_lags %>% lapply(orthoginolize_instruments)
   }
@@ -100,7 +101,7 @@ by_role_spatial_lags <- function(
 
   # combine
   all_model_matrices <- c(
-    list("Y_" = flow_matrices %>% drop_names() %>%  flatlist(),
+    list("Y_" = flow_matrices %>% drop_lnames() %>% flatlist(),
          "G_" = lagged_covariate_matrices %>% flatlist()),
     node_lags %>% flatlist())
 

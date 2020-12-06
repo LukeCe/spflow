@@ -1,9 +1,9 @@
-#' @export
+#' @keywords internal
 cols_drop <- function(obj_2dim,cols_drop){
   cols_select(obj_2dim,index_cols = cols_drop, drop = TRUE)
 }
 
-#' @export
+#' @keywords internal
 cols_keep <- function(obj_2dim,cols_keep){
   cols_select(obj_2dim,index_cols = cols_keep, drop = FALSE)
 }
@@ -44,17 +44,31 @@ cols_select <- function(obj_2dim,index_cols, drop = TRUE){
   if (is(obj_2dim,"data.frame")) return(obj_2dim[-index_drop])
 }
 
+#' @importFrom data.table setattr
+#' @keywords internal
+set_col_names <- function(obj_2dim,value){
+  assert(is_one_of(obj_2dim, c("data.frame","matrix","data.table")),
+         "Function not implemented for objects of class" %p% class(obj_2dim))
 
-#' @export
+  set_what <- ""
+  if (is(obj_2dim,"matrix")){
+    new_names <- dimnames(obj_2dim)
+    new_names[[2]] <- value
+    value <- new_names
+    set_what <- "dim"
+  }
+
+  set_what <- set_what %p% "names"
+  setattr(obj_2dim,set_what,value)
+}
+
+#' @keywords internal
 prefix_columns <- function(obj,prefix){
-  colnames(obj) <- prefix %p% colnames(obj)
-  obj
+  set_col_names(obj, prefix %p% colnames(obj))
 }
 
-#' @export
+#' @keywords internal
 suffix_columns <- function(obj,suffix){
-  colnames(obj) <- colnames(obj) %p% suffix
-  obj
+  set_col_names(obj, colnames(obj) %p% suffix)
 }
-
 
