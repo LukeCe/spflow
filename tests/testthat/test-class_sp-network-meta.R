@@ -5,7 +5,7 @@ test_that("drop_columns: => correct output", {
   net_object <- sp_network_nodes(network_id = "dummy_net", node_data = cars)
   actual <- drop_columns(net_object,char_cols)
   expected <- data.table::data.table()
-  expect_equal(actual[,id := NULL], expected)
+  expect_equal(actual[,ID := NULL], expected)
 
 
   # test integer input
@@ -13,7 +13,7 @@ test_that("drop_columns: => correct output", {
   net_object <- sp_network_nodes(network_id = "dummy_net", node_data = cars)
   actual <- drop_columns(net_object,char_cols)
   expected <- data.table::data.table()
-  expect_equal(actual[,id := NULL], expected)
+  expect_equal(actual[,ID := NULL], expected)
 })
 
 

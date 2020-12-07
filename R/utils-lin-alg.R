@@ -1,6 +1,48 @@
+#' @importFrom Matrix forceSymmetric
+#' @keywords internal
+crossproduct_mat_list <- function(mat_l1, mat_l2 = NULL, force_sym = FALSE) {
+
+  n_mat1 <- n_mat2 <- length(mat_l1)
+  dim_mat1 <- dim_mat2 <- lapply(mat_l1, dim) %>% lreduce(rbind)
+
+  if (!is.null(mat_l2)) {
+    n_mat2 <- length(mat_l2)
+    dim_mat2 <- lapply(mat_l2, dim) %>% lreduce(rbind)
+  }
+
+  # symmetry: only possible when n1 = n2 + imposed when no m2
+  force_sym <- force_sym && (n_mat1 == n_mat2)
+  force_sym <- force_sym | is.null(mat_l2)
+
+  dims <- rbind(dim_mat1,dim_mat2)
+  # check that dims match + symmetry only works for square case...
+  stopifnot(has_equal_elements(dims[,1]), has_equal_elements(dims[,2]))
+
+  result <- matrix(0, nrow = n_mat1 , ncol = n_mat2)
+
+  # loop over rows
+  for (row in seq_len(n_mat1)) {
+    cols_start <- ifelse(force_sym, row, 1)
+    cols <- seq(cols_start,n_mat2,1)
+    result[row,cols] <-
+      lapply(mat_l2 %||% mat_l1 %[% cols, "hadamard_sum",mat_l1[[row]]) %>%
+      flatten()
+  }
+
+  if (force_sym) result <- as.matrix(forceSymmetric(result, "U"))
+
+  return(result)
+
+}
+
 #' @keywords internal
 decorellate_matrix <- function(y, with_x) {
   y - linear_projection(y,with_x)
+}
+
+#' @keywords internal
+hadamard_sum <- function(x,y = x) {
+  sum( x * y )
 }
 
 #' @keywords internal
@@ -42,3 +84,4 @@ sandwich_prod <- function(w1,mat,w2=w1){
   w_mat_w <- w2 %|!|% as.matrix(tcrossprod(w_mat,w2)) %||% w_mat
   return(w_mat_w)
 }
+

@@ -210,9 +210,10 @@ test_that("cols_keep: => correct output for keep by unknown names", {
 
 test_that("set_col_names: => correct output", {
 
-  test_df <- cars
-  test_dt <- data.table::copy(cars) %>% data.table::setDT(.)
-  test_mat <- as.matrix(cars)
+  cars_copy <- data.table::copy(cars)
+  test_df <- cars_copy
+  test_dt <- cars_copy %>% data.table::setDT(.)
+  test_mat <- as.matrix(cars_copy)
 
   new_names <- c("a","b")
   actual_df <- set_col_names(test_df,new_names)

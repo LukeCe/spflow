@@ -58,6 +58,7 @@ Collate:
     'utils-formula.R'
     'utils-lin-alg.R'
     'utils-list.R'
+    'utils-matrix.R'
     'utils-naming.R'
     'utils-pipe.R'
     'utils-vector.R'

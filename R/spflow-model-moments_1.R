@@ -31,26 +31,25 @@ spflow_model_moments_mat <- function(
   ## ---- define dimensionality of the estimation
   n_o <- nrow(model_matrices$Y_[[1]])
   n_d <- ncol(model_matrices$Y_[[1]])
-  N <- (n_o * n_d) %T% is.null(model_matrices$C_) # full   case
-  N <- N %||% nnzero(model_matrices$C_)           # sparse case
+  N <- (n_o * n_d) %T% is.null(model_matrices$weights) # full   case
+  N <- N %||% nnzero(model_matrices$weights)           # sparse case
 
 
   ## ---- derive moments from the covariates (Z,H)
-  HH <- moment_empirical_var(model_matrices)
+  HH <- moment_empirical_var(model_matrices,N,n_d,n_o)
 
   # subset ZZ
-  variable_order <- c("const","const_intra","D_","O_","I_","G_")
-  Z_index <- !get_instrument_status(model_matrices[variable_order])
+  variable_order <- c("constants","D_","O_","I_","G_")
+  Z_index <- !rapply(model_matrices[variable_order],"get_instrument_status")
   ZZ <- HH[Z_index, Z_index]
 
 
   ## ---- derive moments from the response (HY, ZY, TSS)
   # ...weighted Y if required
-  Y_wt <-
-    model_matrices$C_ %|!|%
-    lapply(model_matrices$Y_,"*",model_matrices$C_)
+  Y_wt <- model_matrices$weights %|!|%
+    lapply(model_matrices$Y_,"*",model_matrices$weights)
   HY <- (Y_wt %||% model_matrices$Y_) %>%
-    lapply(moment_empirical_covar,model_matrices) %>%
+    lapply("moment_empirical_covar",model_matrices) %>%
     Reduce(cbind, x = .,init = matrix(nrow = nrow(HH),ncol = 0))
   ZY <- HY[Z_index,]
 
@@ -59,8 +58,9 @@ spflow_model_moments_mat <- function(
   # because the lagged flows are considered as endogenous regresses and not
   # as additional dependent variable
   is_GMM_estimator <- estimator %in% c("s2sls","ols")
-  nb_lhs_vars <- ifelse(is_GMM_estimator,1,ncol(ZY))
-  TSS <- hadamard_sum_matrix(model_matrices$Y_[seq_len(nb_lhs_vars)])
+  y_index <- ifelse(is_GMM_estimator,1,seq_len(ncol(ZY)))
+  TSS <- crossproduct_mat_list(model_matrices$Y_[y_index],
+                               Y_wt[y_index])
 
   ## ---- Likelihood moments (trace sequence of the weight matrix)
   # sequence of traces to approximate the log-determinant

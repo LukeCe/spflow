@@ -77,9 +77,8 @@ test_that("sp_network_nodes.pair_merge: case 1 => correct output", {
   actual <- pair_merge(test_multi_net, "LETTERS_LETTERS")
 
   p_dat <- copy(dat(sp_pair_LETTERS))
-  o_dat <- d_dat <- copy(dat(sp_net_LETTERS))
-  o_dat <- prefix_columns(o_dat, "ORIG_")
-  d_dat <- prefix_columns(d_dat, "DEST_")
+  o_dat <- copy(dat(sp_net_LETTERS)) %>% prefix_columns("ORIG_")
+  d_dat <- copy(dat(sp_net_LETTERS)) %>% prefix_columns("DEST_")
   expected <- p_dat[d_dat,][o_dat]
   expect_equal(actual,expected)
 

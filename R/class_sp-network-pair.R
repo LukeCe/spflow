@@ -17,6 +17,7 @@
 #' @slot dest_nnodes A numeric that represents the number of nodes in the destination network
 #'
 #' @family sp_network
+#' @importClassesFrom data.table data.table
 #' @importClassesFrom Matrix Matrix
 #' @export
 setClass("sp_network_pair",

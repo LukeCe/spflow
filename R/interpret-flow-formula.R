@@ -51,8 +51,8 @@ split_with_shortcut <- function(case_formula,case_specials,rhs_norm){
     return(split_forumla_specials(case_formula,case_specials))
 
   result <- switch (case_formula,
-    "all" = named_list(case_specials, ~ . - 1),
-    "same" = lapply(rhs_norm[case_specials], "remove_constant"),
+    "all" = named_list(case_specials, ~ .),
+    "same" = rhs_norm[case_specials],
     "none" = NULL)
 
   return(result)

@@ -3,28 +3,28 @@ assert_formula <- function(formula) {
   assert_is(formula,"formula")
 }
 
-#' @export
+#' @keywords internal
 is_one_sided_formula <- function(formula) {
   is(formula,"formula") & (length(formula) == 2)
 }
 
-#' @export
+#' @keywords internal
 is_two_sided_formula <- function(formula) {
   is(formula,"formula") & (length(formula) == 3)
 }
 
-#' @export
+#' @keywords internal
 has_constant <- function(formula) {
   assert_formula(formula)
   attr(terms(formula,allowDotAsName = TRUE),"intercept") == 1
 }
 
-#' @export
+#' @keywords internal
 has_dot_shortcut <- function(formula) {
   "." %in% extract_formula_terms(formula)
 }
 
-#' @export
+#' @keywords internal
 data_permits_formula <- function(formula,data) {
   assert_formula(formula)
   stopifnot(is.data.frame(data))
@@ -37,7 +37,7 @@ data_permits_formula <- function(formula,data) {
   if (possible) TRUE else FALSE
 }
 
-#' @export
+#' @keywords internal
 formula_expands_factors <- function(formula,data) {
   assert_formula(formula)
   stopifnot(is.data.frame(data))
@@ -49,7 +49,7 @@ formula_expands_factors <- function(formula,data) {
 }
 
 # ---- reshaping the formula --------------------------------------------------
-#' @export
+#' @keywords internal
 compact_formula_internal <- function(formula, keep_const = TRUE) {
   assert_formula(formula)
 
@@ -66,17 +66,17 @@ compact_formula_internal <- function(formula, keep_const = TRUE) {
   return(compact_formula)
 }
 
-#' @export
+#' @keywords internal
 compact_formula <- function(formula) {
   compact_formula_internal(formula,keep_const = TRUE)
 }
 
-#' @export
+#' @keywords internal
 remove_constant <- function(formula) {
   compact_formula_internal(formula,keep_const = FALSE)
 }
 
-#' @export
+#' @keywords internal
 combine_rhs_formulas <- function(...) {
 
   rhs_formulas <- list(...) %>% flatlist() %>% compact() %>% lapply("pull_rhs")
@@ -89,7 +89,7 @@ combine_rhs_formulas <- function(...) {
   return(combined_formula)
 }
 
-#' @export
+#' @keywords internal
 pull_rhs <- function(formula) {
   assert_formula(formula)
   return_rhs <- formula
@@ -98,7 +98,7 @@ pull_rhs <- function(formula) {
   return(return_rhs)
 }
 
-#' @export
+#' @keywords internal
 pull_lhs <- function(formula) {
   assert(is_two_sided_formula(formula),
          "The input musst be a two sided formula!")
@@ -107,7 +107,7 @@ pull_lhs <- function(formula) {
 
 
 # ---- accessing formula elements ---------------------------------------------
-#' @export
+#' @keywords internal
 extract_formula_terms <- function(formula, data = NULL) {
   assert_formula(formula)
 
@@ -148,13 +148,13 @@ extract_transformed_varnames <- function(formula,data) {
   return(result)
 }
 
-#' @export
+#' @keywords internal
 predict_tranfomed_vars <- function(formula,data) {
   extract_transformed_varnames(formula,data)$names %>%
     setdiff(., "(Intercept)")
 }
 
-#' @export
+#' @keywords internal
 predict_expanded_factors <- function(formula,data) {
   extract_transformed_varnames(formula,data)$factors
 }
@@ -174,7 +174,7 @@ extract_formula_specials <- function(formula,specials) {
 }
 
 # ---- split the formula by "special" functions -------------------------------
-#' @export
+#' @keywords internal
 split_forumla_specials <- function(
   formula, specials) {
   assert_formula(formula)

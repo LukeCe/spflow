@@ -1,3 +1,32 @@
+test_that("crossproduct_mat_list: => correct output", {
+
+  n_test <- 10
+  mat_list_1 <- lapply(rep(n_test,5), function(.n) matrix(rnorm(.n^2),.n,.n))
+  vec_format_1 <- lapply(mat_list_1, as.vector) %>% lreduce(cbind)
+
+  mat_list_2 <- lapply(rep(n_test,5), function(.n) matrix(rnorm(.n^2),.n,.n))
+  vec_format_2 <- lapply(mat_list_2, as.vector) %>% lreduce(cbind)
+
+  # test single input
+  actual <- crossproduct_mat_list(mat_list_1)
+  expected <- crossprod(vec_format_1)
+  expect_equivalent(actual, expected)
+
+  # double input case
+  actual <- crossproduct_mat_list(mat_list_1, mat_list_2)
+  expected <- crossprod(vec_format_1,vec_format_2)
+  expect_equivalent(actual, expected)
+
+  # forced symmetry
+  actual <- crossproduct_mat_list(mat_list_1, mat_list_2, force_sym = TRUE)
+  select_upper <- upper.tri(actual,diag = TRUE)
+  expected_upper <- crossprod(vec_format_1,vec_format_2) %[% select_upper
+  expect_equivalent(actual[select_upper]   , expected_upper)
+  expect_equivalent(t(actual)[select_upper], expected_upper)
+})
+
+
+
 test_that("impose_orthogonality: => correct output", {
 
   actual_null <- impose_orthogonality(NULL,NULL)
@@ -20,7 +49,6 @@ test_that("impose_orthogonality: => correct output", {
   # cor(a,b) < cor(a,b)
   expect_lt(abs(actual_cor[2,3]), abs(corr_pre[2,3]))
 })
-
 
 
 test_that("linear_dim_reduction: => correct output", {
