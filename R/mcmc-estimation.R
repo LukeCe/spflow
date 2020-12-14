@@ -25,9 +25,9 @@ spflow_mcmc <- function(
   ## create collectors for each parameter
   size_delta <- ncol(ZZ)
 
-  collect_delta  <- matrix(nrow = nb_draw + 1, ncol = size_delta)
-  collect_sigma2 <- matrix(nrow = nb_draw + 1, ncol = 1)
-  collect_rho    <- matrix(nrow = nb_draw + 1, ncol = nb_rho)
+  collect_delta  <- matrix(0, nrow = nb_draw + 1, ncol = size_delta)
+  collect_sigma2 <- matrix(0, nrow = nb_draw + 1, ncol = 1)
+  collect_rho    <- matrix(0, nrow = nb_draw + 1, ncol = nb_rho)
 
   # the first draws are equal to uninformative prior distributions
   collect_delta[1,] <- 0
@@ -49,7 +49,9 @@ spflow_mcmc <- function(
   }
   delta_decomposed <- solve(ZZ,ZY)
 
-  # we also calculate an initial LL value ...
+  # we also calculate an initial log-det value ...
+  initial_log_det <- spflow_logdet(pre_rho,OW_traces, n_o, n_d,model)
+  previous_log_det <- initial_log_det
   proba_initial <-
     partial_spflow_loglik(
       rho = pre_rho, RSS = re_eval_RSS(delta_decomposed,TSS,ZZ,ZY),
@@ -89,12 +91,6 @@ spflow_mcmc <- function(
     # construct residuals based on previous values of rho and delta
     RSS <- re_eval_RSS(delta_t,TSS,ZZ,ZY)
     mcmc_step2_RSS <- tau %*% RSS %*% tau
-    if (mcmc_step2_RSS <= 0)
-      browser()
-
-    if (shape_sigma2 <= 0)
-      browser()
-
     collect_sigma2[i_mcmc  + 1] <-
       1/rgamma(1,shape = shape_sigma2, rate = mcmc_step2_RSS / 2)
 

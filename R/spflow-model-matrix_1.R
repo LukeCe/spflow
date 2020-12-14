@@ -34,7 +34,7 @@ spflow_model_matrix <- function(
     neighborhoods = neighborhoods,
     matrix_form_arguments = matrix_infos,
     model = flow_control$model,
-    flow_control$decorrelate_instruments)
+    decorrelate_instruments = flow_control$decorrelate_instruments)
 
   # Extract weights and constants if they are defined
   constants <- define_flow_constants(
@@ -142,10 +142,11 @@ roles_to_sources <- function(is_within) {
 #' @keywords internal
 define_flow_constants <- function(const_formula, use_instruments, OW = NULL) {
 
-  global_const <- 1 %T% const_formula$global
+  global_const <-
+    (1 %>%  set_instrument_status(FALSE)) %T% const_formula$global
 
   intra_const <- NULL
-  if (const_formula$intra)
+  if (isTRUE(const_formula$intra))
     intra_const <- intra_regional_constant(OW, use_instruments)
 
   return(list("global" = global_const, "intra" = intra_const))

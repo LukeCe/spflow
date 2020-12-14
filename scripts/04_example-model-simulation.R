@@ -50,9 +50,9 @@ pair_variables <- pair_ids %>%
   lapply(function(.dat) .dat[,"distance" := log(distance + 1)])
 
 pair_variables[1:2] <- pair_variables[1:2] %>%
-  lapply(function(.dat) .dat[,"(Intra)" := (orig_id == dest_id) ]) %>%
-  lapply(function(.dat) .dat[,"intra_X" := `(Intra)` * orig_X]) %>%
-  lapply(function(.dat) .dat[,"intra_X_lag" := `(Intra)` * orig_X_lag])
+  lapply(function(.dat) .dat[,"(Intra)" := (ORIG_ID == DEST_ID) ]) %>%
+  lapply(function(.dat) .dat[,"intra_X" := `(Intra)` * ORIG_X]) %>%
+  lapply(function(.dat) .dat[,"intra_X_lag" := `(Intra)` * DEST_X_lag])
 
 model_vars <- names(delta)
 pair_variables_mat <- pair_variables %>%
@@ -63,16 +63,16 @@ pair_variables_mat <- pair_variables %>%
 # compute spatial filter matrices for the simulations
 origin_ids <- spflow:::lookup(pair_ids) %>%
   lapply(function(.id)
-    id(multi_net_usa_ge)$network_pairs[[.id]][["origin"]])
+    id(multi_net_usa_ge)$network_pairs[[.id]][["orig"]])
 
 destination_ids <- spflow:::lookup(pair_ids) %>%
   lapply(function(.id)
-    id(multi_net_usa_ge)$network_pairs[[.id]][["destination"]])
+    id(multi_net_usa_ge)$network_pairs[[.id]][["dest"]])
 
 
 all_regions <- unlist(c(origin_ids,destination_ids)) %>% unique()
 
-sp_neighborhoods <- neighborhoods(multi_net_usa_ge,all_regions)
+sp_neighborhoods <- pull_neighborhood(multi_net_usa_ge,all_regions)
 
 pair_neighborhoods <- mapply(
   function(.o, .d) expand_flow_neighborhood(sp_neighborhoods[[.o]],
@@ -90,7 +90,8 @@ invers_model_filters <- list(
 # simulate for all models
 spflow_sim_multi <- function(filters) {
   mapply(
-    function(filters,variables) { spflow_sim(
+    function(filters,variables) {
+      spflow_sim(
       exogenous_variables = variables,
       model_coefficients = delta[colnames(variables)],
       inverted_filter = filters,
@@ -107,7 +108,7 @@ flows <- invers_model_filters %>%
 
 # add the simulated flows to the initial data
 mapply(set_columns,
-       multi_net_usa_ge %>% network_pairs(),
+       multi_net_usa_ge %>% pull_pairs(),
        flows,
        SIMPLIFY = FALSE) %>%
   invisible()

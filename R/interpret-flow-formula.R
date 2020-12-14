@@ -3,44 +3,46 @@ interpret_flow_formula <- function(
   flow_formula,
   flow_control
 ) {
-  #### define relevant special functions (intra or not)
-  intra_special <- "I_" %T%  flow_control$use_intra
-  all_specials <- c("D_","O_",intra_special,"G_")
 
-  #### split the right hand side for all three cases...
-  # ...1.) normal
-  norm_rhs_split <- split_forumla_specials(pull_rhs(flow_formula),all_specials)
-
-  # ... 2.) sdm (overwrite null if needed)
-  sdm_rhs_split <- split_with_shortcut(
-    flow_control$sdm_variables,
-    setdiff(all_specials,"G_"), # G_(.) are never used as sdm vars
-    norm_rhs_split) %T% flow_control$use_sdm
-
-  # ...3.) inst (overwrite null if needed)
-  use_inst <- flow_control$estimation_method == "s2sls"
-  inst_rhs_split <- split_with_shortcut(
-    flow_control$instrumental_variables,
-    all_specials,
-    norm_rhs_split) %T% use_inst
-
-  #### treat the constant terms and the lhs
+  ### ---- split according to specials and treat constants first
+  all_specials <- c("D_","O_","I_","G_")
+  split_specials <- split_forumla_specials(pull_rhs(flow_formula),all_specials)
   constants <- list(
-    "global" = has_constant(flow_formula),
-    "intra" = norm_rhs_split$I_ %|!|% has_constant(norm_rhs_split$I_ )
-    ) %>% compact()
+    "global" = flow_formula,
+    "intra" =  split_specials$I_ %||% flow_formula %T% flow_control$use_intra
+  ) %>% compact() %>% lapply("has_constant")
 
+  ### ---- split the right hand formulas side for all three cases...
+
+  # define the parts of the formula that are relevant for each case
+  norm_f <- c("D_","O_","I_" %T%  flow_control$use_intra,"G_")
+  sdm_f <- setdiff(norm_f,"G_") %T% flow_control$use_sdm
+  inst_f <- norm_f %T% (flow_control$estimation_method == "s2sls")
+
+  # derive the split formulas
+  norm_rhs_split <- split_specials[norm_f] %>% compact()
   norm_lhs <- list("Y_" = pull_lhs(flow_formula))
+  sdm_rhs_split  <- sdm_f %|!|%
+    split_with_shortcut(flow_control$sdm_variables, sdm_f,norm_rhs_split)
+  inst_rhs_split <- inst_f %|!|%
+    split_with_shortcut(flow_control$instrumental_variables, inst_f,
+                        norm_rhs_split)
 
-  #### assemble all formulas
+  ### ---- assemble all formulas with constants set apart
+  strip_consts <- function(.ll) lapply(compact(.ll),"remove_constant")
+  strip_empty <- function(.ll) {
+    lfilter(.ll, function(.l) length(extract_formula_terms(.l)) != 0)}
+
+
   flow_formulas_decomposed <- list(
-    "const" = constants,
     "norm" = c(norm_lhs,norm_rhs_split),
     "sdm" = sdm_rhs_split,
     "inst" = inst_rhs_split
-  ) %>% compact()
+  ) %>% compact() %>% lapply("strip_consts") %>% lapply("strip_empty")
 
-  return(flow_formulas_decomposed)
+
+  return(c(list("constants" = constants),
+           flow_formulas_decomposed))
 }
 
 #' @keywords internal

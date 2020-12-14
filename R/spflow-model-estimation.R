@@ -6,10 +6,8 @@ spflow_model_estimation <- function(
 
   ## ... derive the model moments
   model_moments <- spflow_model_moments(
-    formulation =  flow_control$formulation,
     model_matrices = model_matrices,
-    estimator = estimator,
-    flow_type = flow_control$flow_type)
+    estimator = estimator)
 
   na_error_template <-
     "The estimation is aborted because the %s variables contain " %p%

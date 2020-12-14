@@ -129,76 +129,62 @@ spflow <- function(
     flow_control)
 
   # ... fit the model and add complementary information to the results
-  estimation_results <-
-    spflow_model_estimation(model_matrices,flow_control)
+  estimation_results <- spflow_model_estimation(model_matrices,flow_control)
 
   return(estimation_results)
 }
 
 
 
+#' @keywords internal
 parameter_names <- function(
   model_matrices,
-  model_formulation,
   model) {
 
   names_rho <- identify_auto_regressive_parameters(model)
+  names_const <- c("Constant", "Constant_intra")
+  use_const <- c(model_matrices$constants$global == 1,
+                 !is.null(model_matrices$constants$intra$In))
+  names_const <- names_const[use_const]
 
-  if (model_formulation == "matrix") {
+  x_prefs <- list("D_" = "Dest_","O_" = "Orig_","I_" = "Intra_")
+  names_X <- model_matrices[names(x_prefs)] %>% compact() %>%
+    lapply("colnames") %>% plapply(x_prefs[names(.)],., .f = "%p%") %>%
+    flatten(use.names = FALSE)
 
-    names_const <- c("Constant", "Constant_intra")
-    use_const <- c(model_matrices$const == 1,
-                   !is.null(model_matrices$const_intra$In))
-    names_const <- names_const[use_const]
-
-    x_structures <- c("DX","OX","IX")
-    names_X <- lapply(
-      model_matrices[x_structures] %>% compact(),
-      colnames) %>% unlist()
-
-    names_G <- names(model_matrices$G)
-    export_names <- c(names_rho,names_const,names_X,names_G)
-  }
-
-  if (model_formulation == "vector") {
-    nb_flow_variables <- 1 + length(names_rho)
-    export_names <- names(model_matrices)[-seq_len(nb_flow_variables)]
-  }
+  names_G <- names(model_matrices$G)
+  export_names <- c(names_rho,names_const,names_X,names_G)
 
   return(export_names)
 
 }
 
+#' @keywords internal
 drop_instruments <- function(model_matrices) {
 
-  vector_treatment <- c("DX","OX","IX")
-  instrument_positions <-
-    lapply(model_matrices[vector_treatment] %>% compact(),
-           attr, "is_instrument_var")
-  matrices_1 <- mapply(
-    FUN = "drop_matrix_columns",
-    matrix = model_matrices[vector_treatment] %>% compact(),
-    drop_index = instrument_positions %>% compact(),
-    SIMPLIFY = FALSE)
+  # ... from constants
+  filter_inst <- function(x) lfilter(x, function(x) !get_instrument_status(x))
+  constants <- list(
+    "global" = model_matrices$constants$global,
+    "intra" = model_matrices$constants$intra %>% filter_inst())
 
-  simple_treatment <- c("const","Y")
-  matrices_2 <- lapply(model_matrices[simple_treatment] %>% compact(),
-                       function(.l) .l[[1]])
+  # ... from site attributes
+  filter_inst_col <- function(x) cols_drop(x,get_instrument_status(x))
+  vector_treatment <- c("D","O","I") %p% "_"
+  matrices_X <- model_matrices[vector_treatment] %>%
+    compact() %>% lapply("filter_inst_col")
 
+  # ... from pair attributes
+  matrices_G <- model_matrices["G_"] %>% lapply("filter_inst")
 
-  matrix_list_treatment <- c("const_intra","G")
-  instrument_positions <-
-    model_matrices[matrix_list_treatment] %>% compact() %>%
-    lapply(function(.l) lapply(.l, attr, "is_instrument_var") %>% unlist())
-  matrices_3 <- mapply(
-    "drop_elements",
-    object = model_matrices[matrix_list_treatment],
-    drop_index = instrument_positions,
-    SIMPLIFY = FALSE)
+  # ... combine cleaned versions
+  matrices_and_spatial_weights <- c(
+    model_matrices["Y_"],
+    list("constants" = constants),
+    matrices_X,
+    matrices_G,
+    model_matrices[c("DW","OW")] %>% compact()
+  )
 
-  matrices_and_spatial_weights <-
-    c(matrices_1,matrices_2,matrices_3,model_matrices[c("DW","OW")])
-
-  nice_order <- c("Y","const","const_intra","DX","OX","IX","G","DW","OW")
-  return(matrices_and_spatial_weights[nice_order])
+  return(matrices_and_spatial_weights)
 }

@@ -177,7 +177,8 @@ setMethod(
     names(orig_data) <- "ORIG_" %p% names(orig_data)
     names(dest_data) <- "DEST_" %p% names(dest_data)
 
-    expanded_data <- pair_data[dest_data, ][orig_data, ]
+    expanded_data <- pair_data[dest_data, on = c("DEST_ID")
+                               ][orig_data, on = c("ORIG_ID")]
 
     return(expanded_data)
 })

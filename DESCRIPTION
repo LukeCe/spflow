@@ -23,7 +23,8 @@ RdMacros: Rdpack
 Imports: 
     magrittr,
     data.table,
-    methods
+    methods,
+    Matrix
 Collate: 
     'spflow-package.R'
     'utils.R'
@@ -81,6 +82,5 @@ Suggests:
     sf
 Language: en-US
 Depends: 
-    R (>= 3.5.0),
-    Matrix
+    R (>= 3.5.0)
 VignetteBuilder: knitr

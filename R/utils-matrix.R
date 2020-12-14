@@ -16,3 +16,19 @@ rbind_fill_left <- function(..., fill = NA){
     lreduce("rbind")
   return(filled_matrix)
 }
+
+#' @keywords internal
+trace_sequence <- function(W, max_power = 10 ) {
+
+  W_traces <- vector(mode = "list", length = max_power + 1)
+  W_pow <- W
+  W_traces[[1]] <- sum(diag(W_pow))
+
+  for (pow in seq_len(max_power)) {
+    W_pow <- W %*% W_pow
+    W_traces[[pow + 1]] <-  sum(diag(W_pow))
+  }
+
+  return(unlist(W_traces))
+}
+

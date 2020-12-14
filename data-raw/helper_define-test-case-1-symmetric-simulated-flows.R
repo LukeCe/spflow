@@ -23,7 +23,7 @@
 # Formulations: [matrix, vector]
 # Models: [model_1, model_2, model_9]
 # - - - - - - - - - - - - - - - - - - -
-# Date: june 2020
+# Date: December 2020
 
 
 # ---- 0. case description ----------------------------------------------------
@@ -78,8 +78,8 @@ input_data$node_neighborhood <-
 # Next we create data describing the origin-destination pairs
 # Each pair is identified by an origin-id and a destination id.
 # Distance and Flows (= Y, to be simulated)
-od_ids <- expand.grid("orig_id" = ge_factor_id,
-                      "dest_id" = ge_factor_id)
+od_ids <- expand.grid("ORIG_ID" = ge_factor_id,
+                      "DEST_ID" = ge_factor_id)
 pair_distance <-
   sp::coordinates(germany_grid) %>%
   dist() %>% as.matrix() %>% as.vector()
@@ -93,7 +93,7 @@ input_data$od_pair_data <-
     "Y1" = 0,
     "Y2" = 0,
     "Y9" = 0,
-    key = c("orig_id", "dest_id"))
+    key = c("ORIG_ID", "DEST_ID"))
 
 rm(pair_distance,od_ids)
 # ---- 1.1 simulation inputs --------------------------------------------------
@@ -114,20 +114,21 @@ simulation_input <-
     named_list(models,init = named_list(model_specific_input)))
 
 
-data("simulation_parameters")
+data("simulation_params")
+list2env(simulation_params,envir = .GlobalEnv)
 set.seed(123)
 n <- nrow(germany_grid)
 N <- n^2
 simulation_input$error <- rnorm(N,sd = sd_error)
 
 # create the exogenous variables for the simulation
-# we use a destinct set of variables for intra-regional observations
+# we use a distinct set of variables for intra-regional observations
 pair_data <- input_data$od_pair_data
 
 # global and intra constant
 Z_const <- cbind(
   "const" = 1,
-  "const_intra" = as.integer(pair_data$orig_id == pair_data$dest_id))
+  "const_intra" = as.integer(pair_data$ORIG_ID == pair_data$DEST_ID))
 
 # X variables
 # For the SDM specification we include a spatial lag of X
@@ -153,7 +154,7 @@ simulation_input$Wd <- In %x% W
 simulation_input$Wo <- W  %x% In
 simulation_input$Ww <- W  %x% W
 
-# regressuion coefficients for all models
+# regression coefficients for all models
 drop_intra_parameters <- grep(pattern = "intra",names(delta),ignore.case = T)
 
 simulation_input$M1$delta <- delta
@@ -162,8 +163,8 @@ simulation_input$M9$delta <- delta
 
 ## simulate according to:
 # model 1 (non-spatial)
-# model 2 (destination depedence)
-# model 9 (orig & dest & o-d -dependence)
+# model 2 (destination dependence)
+# model 9 (origin- & destination- & origin-to-destination dependence)
 simulation_input$M1$rho <- NULL
 simulation_input$M2$rho <- rho[c("rho_d")]
 simulation_input$M9$rho <- rho[c("rho_d", "rho_o", "rho_w")]
@@ -197,13 +198,13 @@ input_data$od_pair_data$Y9 <- as.vector(simulation_input$M9$signal + simulation_
 input_data$od_pair_data$Y2 <- as.vector(simulation_input$M2$signal + simulation_input$M2$noise)
 input_data$od_pair_data$Y1 <- as.vector(simulation_input$M1$signal + simulation_input$M1$noise)
 
-# TODO finsh restructuring of the test case
+# TODO finish restructuring of the test case
 # ---- 2a. relational model matrices ------------------------------------------
 # Here we define the desired output for the relational design matrices,
 # which are used to estimate the model with the more efficient
 # matrix formulation.
 
-# The model matrices include addtional spatial lags which are used as
+# The model matrices include additional spatial lags which are used as
 # instruments or represented the lagged flow matrices.
 
 #... the intra regional constant with instruments
@@ -239,14 +240,14 @@ rm(G_transformed,test_G_lag,test_G_lag2,pair_data)
 
 # ...Y lagged flows
 Y1 <- matrix(input_data$od_pair_data$Y1,n,n)
-Y1 <- list("Y" = list(Y1))
+Y1 <- list("Y_" = list(Y1))
 
 Y2 <- matrix(input_data$od_pair_data$Y2,n,n)
-Y2 <- list("Y" = list(Y2,
+Y2 <- list("Y_" = list(Y2,
                        W %*% Y2))
 
 Y9 <- matrix(input_data$od_pair_data$Y9,n,n)
-Y9 <- list("Y" = list(Y9,
+Y9 <- list("Y_" = list(Y9,
                        W %*% Y9,
                        tcrossprod(Y9,W),
                        W %*% tcrossprod(Y9,W)))
@@ -257,26 +258,24 @@ relational_model_matrices <- named_list(models)
 X_index_instruments <- 3:4
 relational_model_matrices$M1 <-
   c(Y1,
-    list("const" = 1),
-    list("const_intra" = const_intra[1]),
-    lapply(X_lagged2, drop_matrix_columns, X_index_instruments),
-    list("G" = G_lagged[1]))
+    list("constants" = list("global" = 1, "intra" = const_intra[1])),
+    lapply(X_lagged2, "cols_drop", X_index_instruments),
+    list("G_" = G_lagged[1]))
 
 # no intra for model 2
 relational_model_matrices$M2 <-
   c(Y2,
-    list("const" = 1),
-    X_lagged2[c("DX","OX")],
-    list("G" = G_lagged),
+    list("constants" = list("global" = 1)),
+    X_lagged2[c("D_","O_")],
+    list("G_" = G_lagged),
     list("DW" = W))
 
 # all informations for model 9
 relational_model_matrices$M9 <-
   c(Y9,
-    list("const" = 1),
-    list("const_intra" = const_intra),
+    list("constants" = list("global" = 1, "intra" = const_intra)),
     X_lagged2,
-    list("G" = G_lagged),
+    list("G_" = G_lagged),
     list("DW" = W, "OW" = W))
 
 # ---- 2b. long form model matrix ---------------------------------------------
@@ -287,34 +286,34 @@ relational_model_matrices$M9 <-
 
 compact_model_matrix <- named_list(models)
 
-x_matrices <- c("DX", "OX", "IX")
+x_matrices <- c("D_", "O_", "I_")
 M1_rel <- relational_model_matrices$M1
 compact_model_matrix$M1 <-
-  list("H" = cbind(M1_rel$const,
-                   M1_rel$const_intra %>% vec_reference_matrix(),
+  list("H" = cbind(M1_rel$constants$global,
+                   M1_rel$constants$intra %>% vec_reference_matrix(),
                    M1_rel[x_matrices] %>% vec_reference_O_D_I(),
-                   M1_rel$G %>% vec_reference_matrix()),
-       "Y" = M1_rel$Y %>% vec_reference_matrix())
+                   M1_rel$G_ %>% vec_reference_matrix()),
+       "Y" = M1_rel$Y_ %>% vec_reference_matrix())
 
 
 M2_rel <- relational_model_matrices$M2
 compact_model_matrix$M2 <-
-  list("H" = cbind(M2_rel$const,
+  list("H" = cbind(M2_rel$constants$global,
                    M2_rel[x_matrices[1:2]] %>% vec_reference_O_D_I(),
-                   M2_rel$G %>% vec_reference_matrix()),
-       "Y" = M2_rel$Y %>% vec_reference_matrix())
+                   M2_rel$G_ %>% vec_reference_matrix()),
+       "Y" = M2_rel$Y_ %>% vec_reference_matrix())
 
 M9_rel <- relational_model_matrices$M9
 compact_model_matrix$M9 <-
-  list("H" = cbind(M9_rel$const,
-                   M9_rel$const_intra %>% vec_reference_matrix(),
+  list("H" = cbind(M9_rel$constants$global,
+                   M9_rel$constants$intra %>% vec_reference_matrix(),
                    M9_rel[x_matrices] %>% vec_reference_O_D_I(),
-                   M9_rel$G %>% vec_reference_matrix()),
-       "Y" = M9_rel$Y %>% vec_reference_matrix())
+                   M9_rel$G_ %>% vec_reference_matrix()),
+       "Y" = M9_rel$Y_ %>% vec_reference_matrix())
 
 rm(M1_rel,M2_rel,M9_rel)
 
-# decalre which variables in H are instruments
+# declare which variables in H are instruments
 instrumental_variables <- list(
   "const" = FALSE,
   "intra_const" = c(FALSE,rep(TRUE,8)),
@@ -326,7 +325,8 @@ instrumental_variables <- list(
 # Define the required model moments which are used for the estimation
 # procedures.
 
-# TODO the traces should be on the flow neighborhood level to have the same structure for the vector (incomplete) and matric (complete) case
+# TODO the traces should be on the flow neighborhood level to have the same
+# .... structure for the vector (incomplete) and matric (complete) case
 requied_moments <- c(
   "HH", "HY","ZZ", "ZY", "TSS",
   "N","n_d","n_o",
@@ -534,7 +534,7 @@ test_case_1_symmetric <- list(
   "results" = results)
 
 save(test_case_1_symmetric,
-     file = "tests/testthat/test_case_1_symmetric.rda")
+     file = "tests/testthat/integration_tests/test_case_1_symmetric.rda")
 
 
 

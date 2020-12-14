@@ -24,11 +24,11 @@ paris10km_sp_nodes <-
 
 paris10km_sp_pairs <-
   sp_network_pair(
-    origin_network_id = "paris10km",
-    destination_network_id = "paris10km",
-    node_pair_data = paris10km_node_pairs,
-    origin_key_column = "ORIG_ID",
-    destination_key_column = "DEST_ID")
+    orig_net_id = "paris10km",
+    dest_net_id = "paris10km",
+    pair_data = paris10km_node_pairs,
+    orig_key_column = "ORIG_ID",
+    dest_key_column = "DEST_ID")
 
 paris10km_sp_multi <-
   sp_multi_network(paris10km_sp_nodes,paris10km_sp_pairs)
@@ -76,7 +76,6 @@ describe("OLS returns sensible results and is used in the correct case",{
       log(POPULATION) + MED_INCOME + log(NB_COMPANY + 1) +
       G_(log(1 + DISTANCE))
 
-    # 9 cases
     # include special instruments that were not used in estimation
     expect_ols_model <- function(model, est) {
       result <- spflow(
@@ -92,7 +91,7 @@ describe("OLS returns sensible results and is used in the correct case",{
       return(invisible(result))
     }
 
-
+    # 5 cases for OLS
     m1_ols <- expect_ols_model("model_1", "ols")
     m9_ols <- expect_ols_model("model_9", "ols")
     m1_mle <- expect_ols_model("model_1", "mle")
@@ -152,7 +151,6 @@ describe("S2SLS returns sensible results.",{
     })
 
   it("Works for the special case of missing pair variables",{
-
 
 
     # include special instruments that were not used in estimation
@@ -243,7 +241,7 @@ describe("MLE returns sensible results.",{
 # test results for mcmc estimator ---------------------------------------------
 describe("MCMC returns sensible results.",{
 
-  it("Work for all models and all hessians",{
+  it("Work for all models",{
 
     # generic formula for all models
     mcmc_formula <- log(1 + COMMUTE_FLOW) ~

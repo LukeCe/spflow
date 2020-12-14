@@ -49,7 +49,7 @@ test_that("define_flow_constants: => correct output", {
   actual <- define_flow_constants(constants,
                                   use_instruments = TRUE,
                                   OW = Diagonal(10)*3)
-  expect_global <- 1
+  expect_global <- 1 %>% set_instrument_status(FALSE)
   expect_intra_names <- c("In","W","W'","WW","WW'","V","VV", "WV", "VW'")
   expect_equal(actual$global,expect_global)
   expect_equal(actual$intra %>% names(),expect_intra_names)
@@ -59,7 +59,7 @@ test_that("define_flow_constants: => correct output", {
   actual <- define_flow_constants(constants,
                                   use_instruments = FALSE,
                                   OW = Diagonal(10)*3)
-  expect_global <- 1
+  expect_global <- 1 %>% set_instrument_status(FALSE)
   expect_intra <- list("In" = Diagonal(10) %>% set_instrument_status(FALSE))
   expect_equal(actual$global,expect_global)
   expect_equal(actual$intra, expect_intra)

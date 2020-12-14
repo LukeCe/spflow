@@ -4,7 +4,7 @@
 docs/
 data
 man
-tests/testthat/*.rda
+tests/testthat/*/*.rda
 inst/doc
 doc
 Meta

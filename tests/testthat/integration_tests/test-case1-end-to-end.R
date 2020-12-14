@@ -8,17 +8,17 @@
 # The test is based on test case1.
 # (256 flows within the 16 simulated states of germany.)
 # - - - - - - - - - - - - - - - - - - -
-# Date: June 2020
+# Date: December 2020
 
 load(file.path(rprojroot::find_testthat_root_file(),
-               "test_case_1_symmetric.rda"))
+               "integration_tests/test_case_1_symmetric.rda"))
 load_all()
 
 ge_df <- test_case_1_symmetric$input_data$node_data
 ge_neigh <- test_case_1_symmetric$input_data$node_neighborhood
 network_ge <- sp_network_nodes(network_id = "ge",
-                         node_neighborhood = ge_neigh,
-                         node_data = ge_df,node_id_column = "id" )
+                               node_neighborhood = ge_neigh,
+                               node_data = ge_df, node_id_column = "id" )
 
 # setup the network pair object
 ge_pair_df <- test_case_1_symmetric$input_data$od_pair_data
@@ -34,15 +34,15 @@ pairs_ge_ge_default <- sp_network_pair(
   orig_net_id = "ge",
   dest_net_id = "ge",
   pair_data = ge_pair_df_default,
-  orig_key_column = "orig_id",
-  dest_key_column = "dest_id")
+  orig_key_column = "ORIG_ID",
+  dest_key_column = "DEST_ID")
 
 pairs_ge_ge_flexible <- sp_network_pair(
   orig_net_id = "ge",
   dest_net_id = "ge",
   pair_data = ge_pair_df,
-  orig_key_column = "orig_id",
-  dest_key_column = "dest_id")
+  orig_key_column = "ORIG_ID",
+  dest_key_column = "DEST_ID")
 
 # combine them into a multi-network
 multi_net_ge_default  <- sp_multi_network(network_ge, pairs_ge_ge_default)
@@ -67,22 +67,23 @@ describe("Moments can be generated from formula and multinet",{
 
     expected_matrices <- test_case_1_symmetric$relational_model_matrices$M9
 
-    expect_equal(actual_matrices$const,expected_matrices$const,
+    expect_equal(actual_matrices$constants$global,
+                 expected_matrices$constants$global,
                  check.attributes = FALSE)
-    expect_equal(actual_matrices$const_intra,expected_matrices$const_intra,
+    expect_equal(actual_matrices$constants$intra,
+                 expected_matrices$constants$intra,
                  check.attributes = FALSE)
-    expect_equal(actual_matrices$DX,expected_matrices$DX,
+    expect_equal(actual_matrices$D_,expected_matrices$D_,
                  check.attributes = FALSE)
-    expect_equal(actual_matrices$OX,expected_matrices$OX,
+    expect_equal(actual_matrices$O_,expected_matrices$O_,
                  check.attributes = FALSE)
-    expect_equal(actual_matrices$IX,expected_matrices$IX,
+    expect_equal(actual_matrices$I_,expected_matrices$I_,
                  check.attributes = FALSE)
-    expect_equal(actual_matrices$G %>% lapply(as.matrix) ,expected_matrices$G,
+    expect_equal(actual_matrices$G_ %>% lapply(as.matrix) ,expected_matrices$G_,
                  check.attributes = FALSE)
 
 
     actual_moments <- spflow_model_moments(
-      formulation = model_formulation,
       actual_matrices,
       estimator = default_control$estimation_method)
 
@@ -118,29 +119,28 @@ describe("Moments can be generated from formula and multinet",{
 
     expected_matrices <- test_case_1_symmetric$relational_model_matrices$M9
 
-    expect_equal(actual_matrices$const,expected_matrices$const,
+    expect_equal(actual_matrices$constants$global,
+                 expected_matrices$constants$global,
                  check.attributes = FALSE)
-    expect_equal(actual_matrices$const_intra,expected_matrices$const_intra[1],
+    expect_equal(actual_matrices$constants$intra,expected_matrices$constants$intra[1],
                  check.attributes = FALSE)
 
     drop_inst <- -(3:4)
-    expect_equal(actual_matrices$DX,expected_matrices$DX[,drop_inst],
+    expect_equal(actual_matrices$D_,expected_matrices$D_[,drop_inst],
                  check.attributes = FALSE)
-    expect_equal(actual_matrices$OX,expected_matrices$OX[,drop_inst],
+    expect_equal(actual_matrices$O_,expected_matrices$O_[,drop_inst],
                  check.attributes = FALSE)
-    expect_equal(actual_matrices$IX,expected_matrices$IX[,drop_inst],
+    expect_equal(actual_matrices$I_,expected_matrices$I_[,drop_inst],
                  check.attributes = FALSE)
 
-    expect_equal(actual_matrices$G %>% lapply(as.matrix),
-                 expected_matrices$G[1],
+    expect_equal(actual_matrices$G_ %>% lapply(as.matrix),
+                 expected_matrices$G_[1],
                  check.attributes = FALSE)
 
 
     actual_moments <- spflow_model_moments(
-      formulation = model_formulation,
       actual_matrices,
-      estimator = default_control$estimation_method,
-      flow_type = "within")
+      estimator = default_control$estimation_method)
 
     expected_moments <- test_case_1_symmetric$model_moments$M9
 
@@ -275,7 +275,7 @@ describe("Estimation via the formula interface without intra model", {
 
     # should ignore the I(... part) and carry distance to G(... part)
     test_results <- spflow(
-      flow_formula = Y2 ~ D_(X) + O_(X) + I_(X)+ log(pair_distance + 1),
+      flow_formula = Y2 ~ D_(X) + O_(X) + I_(X) + log(pair_distance + 1),
       multi_net_ge_flex,
       flow_control = test_control)
 

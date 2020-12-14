@@ -1,17 +1,3 @@
-trace_sequence <- function(W, max_power = 15 ) {
-
-  W_traces <- vector(mode = "list", length = max_power + 1)
-  W_pow <- W
-  W_traces[[1]] <- sum(diag(W_pow))
-
-  for (pow in seq_len(max_power)) {
-    W_pow <- W %*% W_pow
-    W_traces[[pow + 1]] <-  sum(diag(W_pow))
-  }
-
-  return(unlist(W_traces))
-}
-
 #' Log determinant ???
 #'
 #' @param parms  ??

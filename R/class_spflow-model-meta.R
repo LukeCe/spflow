@@ -40,7 +40,6 @@ setMethod(
     # add coef names
     coef_names <- parameter_names(
       model_matrices = object@design_matrix,
-      model_formulation = flow_control$formulation,
       model = flow_control$model)
     results(object) <- data.frame(results(object),
                                   ".names" = coef_names,
@@ -64,9 +63,9 @@ setMethod(
                                  delta = delta)
 
     object@fitted <- fit_trend + fit_signal
-    object@resid <- as.vector(object@design_matrix$Y) - fitted(object)
-    object@R2_corr <- stats::cor(fitted(object),
-                                 as.vector(object@design_matrix$Y))^2
+    y_vec <- as.vector(object@design_matrix$Y_[[1]])
+    object@resid <- y_vec - fitted(object)
+    object@R2_corr <- cor(fitted(object),y_vec)^2
 
     return(object)
   })
@@ -143,8 +142,9 @@ setMethod(
       # define the spatial filter of the model
       OW <- object@design_matrix$OW
       DW <- object@design_matrix$DW
-      n_d <- nrow(DW) %||% (nobs(object) / nrow(OW))
-      n_o <- nrow(OW) %||% (nobs(object) / nrow(DW))
+      flow_dim <- dim(object@design_matrix$Y_[[1]])
+      n_d <- flow_dim[1]
+      n_o <- flow_dim[2]
       rho <- coef(object)[seq_len(nb_rho)]
       A <- expand_flow_neighborhood(DW = DW, OW = OW,
                                     n_o = n_o, n_d = n_d, model = model) %>%
@@ -157,7 +157,7 @@ setMethod(
 
       # TODO generelize flow extraction to handle vector and matrix
       # create the noise part of the fitted values
-      observed_flows <- as.vector(object@design_matrix$Y)
+      observed_flows <- as.vector(object@design_matrix$Y_[[1]])
       noise <- observed_flows - fit_signal
       precision_mat <- crossprod(A) / (object@sd_error^2)
       diag_Q <- diag(precision_mat)
@@ -304,69 +304,62 @@ spflow_model <- function(
 }
 
 # ---- Helper functions -------------------------------------------------------
+
+#' @importFrom Matrix Diagonal
+#' @keywords internal
 compute_signal <- function(model_matrices, delta) {
 
-  matrix_formulation_case <- !is.matrix(model_matrices)
+  # index the coefficient vectors according to the model segments
+  sub_index <- list(
+    "const" = model_matrices$constants$global %||% 0,
+    "const_intra" = 1 - is.null(model_matrices$constants$intra),
+    "D_" = seq_len(ncol(model_matrices$D_) %||% 0) %|0|% 0,
+    "O_" = seq_len(ncol(model_matrices$O_) %||% 0) %|0|% 0,
+    "I_" = seq_len(ncol(model_matrices$I_) %||% 0) %|0|% 0,
+    "G_" = seq_len(length(model_matrices$G)) %|0|% 0) %>%
+    sequentialize_index()
 
-  if (matrix_formulation_case) {
+  # Calculate the components of the signal
+  # missing components are set to zero and do not affect the final sum
+  # number of destinations is required
+  vector_or_null <- function(part_id) {
+    model_matrices[[part_id]] %|!|%
+      as.vector(model_matrices[[part_id]] %*%
+                  delta[sub_index[[part_id]]])
+  }
+  n_d <- nrow(model_matrices$Y_[[1]])
 
-    # index the coefficient vectors according to the model segments
-    sub_index <- list(
-      "const" = 1,
-      "const_intra" = 1 - is.null(model_matrices$const_intra),
-      "DX" = seq_len(ncol(model_matrices$DX) %||% 0) %|0|% 0,
-      "OX" = seq_len(ncol(model_matrices$OX) %||% 0) %|0|% 0,
-      "IX" = seq_len(ncol(model_matrices$IX) %||% 0) %|0|% 0,
-      "G" = seq_len(length(model_matrices$G)) %|0|% 0) %>%
-      sequentialize_index()
+  # constant
+  const <- delta[sub_index$const]
 
-    # Calculate the components of the signal
-    # missing components are set to zero and do not affect the final sum
-    # number of destinations is required
-    vector_or_null <- function(part_id) {
-      model_matrices[[part_id]] %|!|%
-        as.vector(model_matrices[[part_id]] %*%
-                    delta[sub_index[[part_id]]])
-    }
-    n_d <- nrow(model_matrices$Y)
+  # intra constant
+  const_intra <- model_matrices$constants$intra %|!|%
+    Diagonal(delta[sub_index$const_intra], n = n_d)
+  const_intra <- const_intra %||% 0
 
-    # constant
-    const <- delta[sub_index$const]
+  # destination part - (vector is recycled)
+  dest <- vector_or_null("D_")
+  dest <- dest %||% 0
 
-    # intra constant
-    const_intra <- model_matrices$const_intra %|!|%
-      Matrix::Diagonal(delta[sub_index$const_intra], n = n_d)
-    const_intra <- const_intra %||% 0
+  # origin part - vector is not recycled correctly ...
+  orig <- vector_or_null("O_")
+  orig <- orig %|!|% matrix(rep(orig,n_d),nrow = n_d,byrow = TRUE)
+  orig <- orig %||% 0
 
-    # destination part - (vector is recycled)
-    dest <- vector_or_null("DX")
-    dest <- dest %||% 0
+  # intra part - only for diagonal elements
+  intra <- vector_or_null("I_")
+  intra <- intra %|!|% Diagonal(intra,n = length(intra))
+  intra <- intra %||% 0
 
-    # origin part - vector is not recycled correctly ...
-    orig <- vector_or_null("OX")
-    orig <- orig %|!|% matrix(rep(orig,n_d),nrow = n_d,byrow = TRUE)
-    orig <- orig %||% 0
-
-    # intra part - only for diagonal elements
-    intra <- vector_or_null("IX")
-    intra <- intra %|!|% Matrix::Diagonal(intra,n = length(intra))
-    intra <- intra %||% 0
-
-    # G part - (origin-destination pair attributes)
-    g_term <- 0
-    if (length(model_matrices$G) != 0 ) {
-      g_term <-
-        mapply(FUN = "*", model_matrices$G, delta[sub_index$G],
-               SIMPLIFY = FALSE) %>%
-        Reduce(f = "+", x = .) %>%
-        as.matrix()
-    }
-
-    signal <- as.vector(const + const_intra + dest + orig + intra + g_term)
-    return(signal)
+  # G part - (origin-destination pair attributes)
+  g_term <- 0
+  if (length(model_matrices$G_) != 0 ) {
+    g_term <-
+      plapply(model_matrices$G_, delta[sub_index$G_], .f = "*") %>%
+      lreduce("+") %>% as.matrix()
   }
 
-  # vector formulation...
-  stop("not yet implemented")
+  signal <- as.vector(const + const_intra + dest + orig + intra + g_term)
+  return(signal)
 
 }

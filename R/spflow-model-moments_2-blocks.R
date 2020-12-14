@@ -61,6 +61,7 @@ moment_empirical_var <- function(model_matrices,N,n_d,n_o) {
 
   combined_blocks <-
     list(alpha_blocks,alpha_I_blocks,beta_blocks,gamma_block) %>%
+    compact() %>%
     rbind_fill_left() %>%
     forceSymmetric("U") %>%
     as.matrix()
@@ -91,14 +92,15 @@ var_block_beta <- function(X,wt_odi,wt) {
   if (scalar_weights) {
     cross_prods <- lapply(X, "crossprod") %>% plapply(wt_odi,.f = "*")
     outer_prods <- tcrossprod(colSums(X$D_),colSums(X$O_))
-    intra_prods <- lapply(X %[% od_names, "crossprod", X$I_)
+    intra_prods <- X$I_ %|!|% lapply(X %[% od_names, "crossprod", X$I_)
   }
 
   if (!scalar_weights) {
     cross_prods <-
       plapply(X, wt_odi %>% lapply("sqrt"), .f = "*") %>% lapply("crossprod")
     outer_prods <- crossprod(X$D_, wt) %*% X$O_
-    intra_prods <- lapply(X %[% od_names, "crossprod",wt_odi$I_ * X$I_)
+    wt_XI <- X$I_ %|!|% wt_odi$I_ * X$I_
+    intra_prods <- wt_XI %|!|% lapply(X %[% od_names, "crossprod",wt_XI)
   }
 
   # fill the block from top to bottom

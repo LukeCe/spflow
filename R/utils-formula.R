@@ -53,7 +53,10 @@ formula_expands_factors <- function(formula,data) {
 compact_formula_internal <- function(formula, keep_const = TRUE) {
   assert_formula(formula)
 
-  compact_rhs <- extract_formula_terms(formula)
+  compact_rhs <- extract_formula_terms(formula) %|0|% "1"
+  if (length(compact_rhs) == 0)
+    return(formula)
+
   compact_lhs <- NULL
   if (is_two_sided_formula(formula))
     compact_lhs <- extract_formula_terms(pull_lhs(formula))
@@ -204,7 +207,7 @@ split_forumla_specials <- function(
 
 #' @keywords internal
 special_formula_as_rhs <- function(special,string_formula) {
-  if (length(string_formula) == 0) return(NULL)
+  if (length(nchar(string_formula)) == 0) return(NULL)
 
   # make the special a function
   fun_env <- environment()
@@ -213,6 +216,7 @@ special_formula_as_rhs <- function(special,string_formula) {
   # evaluating the special -> returns its arguments a string
   special_rhs_formula <-
     eval_string_as_function(string_formula, e = fun_env) %>%
+    paste(collapse = "") %>%
     reformulate_string()
 
   return(special_rhs_formula)
@@ -220,6 +224,10 @@ special_formula_as_rhs <- function(special,string_formula) {
 
 #' @keywords internal
 reformulate_string <- function(string_formula) {
+  # catch empty string or only white spaces
+  if ("" == gsub("\\s.*",replacement = "",x = string_formula))
+    string_formula <- "1"
+
   reformulate(string_formula) %>% compact_formula()
 }
 

@@ -150,6 +150,12 @@ test_that("combine_rhs_formulas: => correct output", {
   expected <- ~ a + b + c + d -1
   expect_equal(actual, expected)
 
+  actual <- combine_rhs_formulas(
+    y ~ log(abcdefg_abcdefg + 1) + log(abcdefg + 1),
+    z ~ log(qwerty + 1) + log(qwerty_qwerty + 1) + log(qwerty_qwerty2 + 1))
+  expected <- ~ log(abcdefg_abcdefg + 1) + log(abcdefg + 1) +
+    log(qwerty + 1) + log(qwerty_qwerty + 1) + log(qwerty_qwerty2 + 1)
+  expect_equal(actual, expected)
 
 })
 

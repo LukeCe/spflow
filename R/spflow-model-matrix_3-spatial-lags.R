@@ -182,7 +182,7 @@ orthoginolize_instruments <- function(mat) {
   vars <- mat[,!inst_index]
   inst_orth <- mat[,inst_index] %>%
     decorellate_matrix(cbind(1,vars)) %>%
-    linear_dim_reduction(var_threshold = 1e-10)
+    linear_dim_reduction(var_threshold = 1e-4)
 
   new_matr <- cbind(vars,inst_orth)
   set_instrument_status(new_matr, inst_index[seq_len(ncol(new_matr))])
