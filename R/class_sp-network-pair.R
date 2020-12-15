@@ -154,7 +154,7 @@ setMethod(
 
     has_data <- !is.null(dat(object))
     if (has_data) {
-      cat("\n\nData on individual node-pairs:\n")
+      cat("\n\nData on node-pairs:\n")
       print(dat(object))
     }
     cat("\n")
