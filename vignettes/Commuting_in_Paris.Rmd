@@ -109,11 +109,11 @@ The `sp_network_pairs` object contains all information to describe the pairs of 
 
 ```{r}
 paris10km_net_pairs <- sp_network_pair(
-  origin_network_id = "paris10km",
-  destination_network_id = "paris10km",
-  node_pair_data = paris10km_node_pairs,
-  origin_key_column = "ORIG_ID",
-  destination_key_column = "DEST_ID")
+  orig_net_id = "paris10km",
+  dest_net_id = "paris10km",
+  pair_data = paris10km_node_pairs,
+  orig_key_column = "ORIG_ID",
+  dest_key_column = "DEST_ID")
 
 paris10km_net_pairs
 ```
