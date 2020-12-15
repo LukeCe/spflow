@@ -1,3 +1,4 @@
+#' @keywords internal
 spflow_mle <- function(ZZ,ZY,TSS,N,n_d,n_o,DW_traces,OW_traces,
                        flow_control) {
 
@@ -55,8 +56,7 @@ spflow_mle <- function(ZZ,ZY,TSS,N,n_d,n_o,DW_traces,OW_traces,
   hessian_inputs <- collect(c("ZZ","ZY","TSS","rho","delta","sigma2"))
 
   if ( hessian_method == "mixed" ) {
-    mixed_specific <- list("numerical_hess" = -optim_results$hessian,
-                           "N" = N)
+    mixed_specific <- list("numerical_hess" = -optim_results$hessian, "N" = N)
     hessian_inputs <- c(hessian_inputs,mixed_specific)
   }
 
@@ -93,4 +93,20 @@ spflow_mle <- function(ZZ,ZY,TSS,N,n_d,n_o,DW_traces,OW_traces,
     N = N)
 
   return(estimation_results)
+}
+
+#' @keywords internal
+partial_spflow_loglik <- function(rho,RSS,W_traces,n_o,n_d,model) {
+
+  ## the relevant part of the likelihood is composed of ...
+
+  # ... the log determinant of the filter
+  det_part <- spflow_logdet(rho,W_traces,n_o,n_d,model)
+
+  # ... and the RSS term
+  tau <- c(1, -rho)
+  N <- n_o * n_d
+  rss_part <- -N * log(tau %*% RSS %*% tau) / 2
+
+  return(det_part + rss_part)
 }

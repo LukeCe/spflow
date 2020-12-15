@@ -1,3 +1,11 @@
+# spflow 0.0.0.9008
+
+**This is a prerelease of the package only intended for beta testing.**
+Restructure MCMC and MLE to incorporate advances in the RSS term.
+Revive the f2.
+The version serves as CMSTAT2020 version.
+
+
 # spflow 0.0.0.9007
 
 **This is a prerelease of the package only intended for beta testing.**

@@ -1,11 +1,31 @@
-#' Log determinant ???
-#'
-#' @param parms  ??
-#' @param traces ??
-#' @param n ??
-#' @param model ??
-#'
-#' @return ??
+#' @keywords internal
+spflow_logdet <- function(rho,W_traces,n_o,n_d,model){
+
+  nb_rho <- length(rho)
+  N <- n_o * n_d
+  n <- n_o
+
+  if (nb_rho == 1) {
+    tau <- c(1, -rho[1])
+    log_det <- lndetmc(rho[1], W_traces, n, model)
+  }
+  if (nb_rho == 2) {
+    tau <- c(1, -rho[1], -rho[2])
+    log_det <- fodet1(c(rho[1], rho[2], 0), W_traces, n)
+  }
+  if (nb_rho == 3) {
+    tau <- c(1, -rho[1], -rho[2], -rho[3])
+    if (model == "model_9") {
+      log_det <- fodet1(rho, W_traces, n)
+    } else {
+      log_det <- lndetmc(rho[1], W_traces, n, "model_2") +
+        lndetmc(rho[2], W_traces, n, "model_3")
+    }
+  }
+
+  return(log_det)
+}
+
 #' @keywords internal
 lndetmc <- function(
   parms,

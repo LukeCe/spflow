@@ -1,3 +1,4 @@
+#' @keywords internal
 spflow_hessian <- function(hessian_method, hessian_inputs) {
 
   hessian_function <- "spflow_" %p% hessian_method %p% "_hessian"
@@ -6,6 +7,7 @@ spflow_hessian <- function(hessian_method, hessian_inputs) {
   return(hessian_result)
 }
 
+#' @keywords internal
 spflow_mixed_hessian <- function(
   numerical_hess,
   ZZ,
@@ -44,6 +46,7 @@ spflow_mixed_hessian <- function(
   return(full_hessian)
 }
 
+#' @keywords internal
 spflow_f2_hessian <- function(
   ZZ,
   ZY,
@@ -77,28 +80,16 @@ spflow_f2_hessian <- function(
 
     # shift input values
     shift_params <- params + shift_vec
-
     new_rho <- shift_params[index_rho]
-    new_delta_t <- decompose_shift(
-      delta_t = delta_t,
-      rho     = new_rho,
-      shift   = shift_vec[index_delta])
-
-    # decomposed RSS and logdet
-    new_RSS <- re_eval_RSS(new_delta_t,TSS,ZZ,ZY)
-    det_value <- spflow_logdet(
-      rho = rho,
-      W_traces = W_traces,
-      n_o = n_o,
-      n_d = n_d,
-      model = model)
-
-    # complete RSS for the remainder of the loglik
     new_sigma2 <- shift_params[index_sigma]
+    new_delta <- shift_params[index_delta]
+
+    # evaluate the RSS and log-determinant and the rest of the LL
     new_tau <- c(1, -new_rho)
-    new_RSS_complete <- new_tau %*% new_RSS %*% new_tau
-    ll_rest <- reminder_spflow_loglik(
-      N = N, sigma2 = new_sigma2, RSS = new_RSS_complete)
+    new_RSS <- update_RSS(TSS,ZZ,ZY,new_delta,new_tau)
+    det_value <- spflow_logdet(rho = new_rho, W_traces = W_traces,
+                               n_o = n_o, n_d = n_d, model = model)
+    ll_rest <- reminder_spflow_loglik(N, new_sigma2, new_RSS)
 
     return(det_value + ll_rest)
 
@@ -137,8 +128,11 @@ spflow_f2_hessian <- function(
   return(hess)
 }
 
+#' @keywords internal
+reminder_spflow_loglik <- function(N,sigma2,RSS){
 
+  ll_without_logdet <-
+    -((N / 2) * log(pi)) - ((N / 2) * log(sigma2)) - (RSS / (2 * sigma2))
 
-spflow_exact_hessian <- function(variables) {
-
+  return(ll_without_logdet)
 }

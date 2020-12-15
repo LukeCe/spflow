@@ -17,10 +17,13 @@ spflow_mcmc <- function(
 
   model <- flow_control$model
   ## initialize rho for M-H sampling
-  nb_rho <- ncol(TSS) - 1
+  nb_rho <- ncol(ZY) - 1
   pre_rho <- draw_initial_guess(nb_rho)
-  updated_rho <- pre_rho
   bound_rho <- c("low" = -1, "up" = 1)
+  bound_sum_rho <- 1
+  bound_sum_abs_rho <- 2
+  log_det_minimum <- log(sqrt(.Machine$double.eps))
+  count_failed_candidates <- 0
 
   ## create collectors for each parameter
   size_delta <- ncol(ZZ)
@@ -47,96 +50,118 @@ spflow_mcmc <- function(
   fast_multi_rnorm <- function(n, sd = NULL) {
     rnorm(n,sd = sd) %*% varcov_delta_chol
   }
-  delta_decomposed <- solve(ZZ,ZY)
+  delta_t <- solve(ZZ,ZY)
 
-  # we also calculate an initial log-det value ...
-  initial_log_det <- spflow_logdet(pre_rho,OW_traces, n_o, n_d,model)
-  previous_log_det <- initial_log_det
-  proba_initial <-
-    partial_spflow_loglik(
-      rho = pre_rho, RSS = re_eval_RSS(delta_decomposed,TSS,ZZ,ZY),
-      W_traces = OW_traces,model = model, n_o = n_o, n_d = n_d)
+
+  # we also calculate an initial log-determinant value ...
   #... and pass it to the mcmc variable
-  proba_previous <- proba_initial
-
+  previous_log_det <- spflow_logdet(pre_rho,OW_traces, n_o, n_d,model)
 
   ## begin MCMC sampling ----
   for (i_mcmc in 1:nb_draw) {
 
     ## 1. multivariate normal for beta ##
 
-    # update mean with previous draw of rho
-    tau <- c(1 , -collect_rho[i_mcmc,])
-    mean_delta <- as.vector(tcrossprod(varcov_delta,tcrossprod(tau,ZY)))
-
-    # update the sd with previous draw from sigma2
-    sd_delta <- sqrt(collect_sigma2[[i_mcmc]])
-
-    # construct updated delta using a random deviation
+    # random deviate
     deviate_delta <-
-      fast_multi_rnorm(n = size_delta, sd = sd_delta) %>%
-      as.vector()
+      as.vector(fast_multi_rnorm(size_delta, sqrt(collect_sigma2[i_mcmc])))
 
-    delta_updated <- mean_delta + deviate_delta
-    collect_delta[i_mcmc + 1,] <- delta_updated
+    # add the deviation to the mean vector
+    tau <- c(1 , -collect_rho[i_mcmc,])
+    delta_updated <- as.vector(delta_t %*% tau) + deviate_delta
+    collect_delta[i_mcmc  + 1,] <- delta_updated
 
     ## 2. inverse gamma for sigma2 ##
-    # split the deviate equally on the decomposed delta keeping
-    # the variance of the sum constant
-    delta_t <- decompose_shift(delta_decomposed,
-                               rho = collect_rho[i_mcmc,],
-                               shift = deviate_delta)
-
     # to update scale parameter based on the new RSS
     # construct residuals based on previous values of rho and delta
-    RSS <- re_eval_RSS(delta_t,TSS,ZZ,ZY)
-    mcmc_step2_RSS <- tau %*% RSS %*% tau
-    collect_sigma2[i_mcmc  + 1] <-
-      1/rgamma(1,shape = shape_sigma2, rate = mcmc_step2_RSS / 2)
+    RSS <- update_RSS(TSS,ZZ,ZY,delta_updated,tau)
+    sigma2_updated <- 1/rgamma(1, shape = shape_sigma2, rate = RSS / 2)
+    collect_sigma2[i_mcmc  + 1] <- sigma2_updated
 
 
-    ## 3. Metropolis Hastings for rho
+    ## 3. Metropolis Hastings sampling for rho..
+
+    # 3.1) Generation of candidates
     # ... sample jointly candidates for new values of rho that respect:
-    # ... the interval [-1 , 1] for each rho
-    # ... the stability restriction |sum(rho)| < 1
-    unstable_rho <- TRUE
+    # ... the interval [-LB, UB] for each rho
+    # ... the stability restriction |sum(rho)| < SR
+    # ... the stability restriction sum(|rho|) < SR
+    # ... non-zero log-determinant (-> A non-singular): not applied
+    valid_candidates <- FALSE
     count_draws <- 1
     maximal_draw <- 100
-    while (unstable_rho & count_draws < maximal_draw) {
+    while (!valid_candidates & count_draws < maximal_draw) {
 
       candidate_rho <- collect_rho[i_mcmc ,] + rnorm(nb_rho) * tune_rw
 
-      unstable_rho <- (
-        min(candidate_rho) < bound_rho["low"]
-        | max(candidate_rho) > bound_rho["up"]
-        #| sum(abs(candidate_rho)) < 1
+      valid_candidates <- (
+        min(candidate_rho) > bound_rho["low"]
+        & max(candidate_rho) < bound_rho["up"]
+        & abs(sum(candidate_rho)) < bound_sum_rho
+        & sum(abs(candidate_rho)) < bound_sum_abs_rho
       )
       count_draws <- count_draws + 1
+      count_failed_candidates <-
+        count_failed_candidates + (count_draws >= maximal_draw)
     }
 
+    # 3.2) Metropolis Hastings step
     # for each rho, acceptance of the new candidate depends on the ratio of the
     # conditional likelihoods for updated and previous values
     # when the new candidate has higher value we accept it
     # when the new candidate has lower value we accept with probability p
     # ... where p is the ratio of likelihoods
     accept_hurdle <- runif(nb_rho)
-    previous_rho <- collect_rho[i_mcmc ,]
+    updated_rho <- previous_rho <- collect_rho[i_mcmc ,]
     accept <- vector("logical", nb_rho)
 
-    for (j in seq_along(candidate_rho)) {
-      updated_rho[j] <- candidate_rho[j]
+    for (j in seq_along(previous_rho)) {
 
-      proba_updated <- partial_spflow_loglik(
-        rho = updated_rho,
-        RSS = RSS,W_traces = OW_traces,model = model, n_o = n_o, n_d = n_d)
-      proba_ratio <- exp(proba_updated - proba_previous)
+      # # draw candidates that lead to non-singular filter matrices
+      # count_candidates <- 1
+      # while (!valid_c[j]) {
+      #   # Sampled candidates have to fulfil four constraints
+      #   # ... the interval [-LB, UB] for each rho
+      #   # ... the stability restriction |sum(rho)| < SR
+      #   # ... the log-determinant must not be zero (-> A non-singular)
+      #   rho_c1 <- previous_rho[j] + rnorm(1) * tune_rw[j]
+      #   updated_rho[j] <- rho_c1
+      #   valid_c[j] <- ( # check linear constraints
+      #     rho_c1 > bound_rho["low"]
+      #     & rho_c1 < bound_rho["up"]
+      #     & abs(sum(updated_rho)) < bound_sum_rho
+      #     & sum(abs(updated_rho)) < bound_sum_abs_rho
+      #   )
+      #
+      #   if (valid_c[j]) {
+      #     updated_log_det <- spflow_logdet(updated_rho,OW_traces,n_o, n_d, model)
+      #     # true constraint base on log-determinant value is not yet stable
+      #     valid_c[j] <- log_det_minimum < updated_log_det
+      #   }
+      #
+      #   count_candidates <- 1 + count_candidates
+      #   if (count_candidates >= 100){
+      #     stop("Can not generate valid candidates for the auto-regressive" %p%
+      #            " parameters")
+      #   }
+      # }
+      updated_rho[j] <- candidate_rho[j]
+      tau_c <- c(1, -updated_rho)
+      delta_c <- as.vector(delta_t %*% tau_c) + deviate_delta
+
+      # updated RSS and log-determinant
+      RSS_c <- update_RSS(TSS,ZZ,ZY,delta_c,tau_c)
+      RSS_diff <- (RSS_c - RSS) / (2*sigma2_updated)
+      updated_log_det <- spflow_logdet(updated_rho,OW_traces,n_o, n_d, model)
+      proba_ratio <- exp(updated_log_det - previous_log_det - RSS_diff)
 
       accept[j] <- (proba_ratio > accept_hurdle[j])
-      if (!accept[j]) {
+      if (!accept[j]) { # reject: -> remain and previous
         updated_rho[j] <- previous_rho[j]
       }
-      if (accept[j]) {
-        proba_previous <- proba_updated
+      if (accept[j]) { # accept: -> updated values are used for next iterations
+        previous_log_det <- updated_log_det
+        RSS <- RSS_c
       }
 
     }
@@ -179,5 +204,3 @@ spflow_mcmc <- function(
 
   return(estimation_results)
 }
-
-

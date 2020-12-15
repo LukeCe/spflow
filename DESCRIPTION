@@ -1,6 +1,6 @@
 Package: spflow
 Title: Spatial Econometric Interaction Models in R
-Version: 0.0.0.9007
+Version: 0.0.0.9008
 Authors@R: c(
     person(given = "Lukas",
            family = "Dargel",
@@ -36,10 +36,10 @@ Collate:
     'class_spflow-model-meta.R'
     'class_spflow-model-children.R'
     'example_data.R'
+    'fit-spflow-mcmc.R'
+    'fit-spflow-mle.R'
+    'fit-spflow-mle_hessian.R'
     'interpret-flow-formula.R'
-    'mcmc-estimation.R'
-    'mle-estimation.R'
-    'mle-hessian.R'
     'ols_estimation.R'
     's2sls-estimation.R'
     'spatial-neighborhood.R'
