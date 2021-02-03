@@ -90,5 +90,46 @@ test_that("orthoginolize_instruments: => correct output", {
 })
 
 
+test_that("derive_pair_instruments: => correct output", {
+
+  actual_null <- derive_pair_instruments(G = NULL)
+  expect_null(actual_null)
+
+  #
+  W <- sp_net_letters %>% neighborhood()
+  G <- pair_dat_letters$GG %>% matrix(.,8,8)
+
+  # both matrices given - all instruments
+  actual <- derive_pair_instruments(G,W,W,full_inst = TRUE)
+  expect_length(actual,9)
+
+  # both matrices given - reduced instruments
+  actual <- derive_pair_instruments(G,W,W,full_inst = FALSE)
+  G_names <- "G" %p% c("",".lag.wGw",".lag.wwGww")
+  expect_length(actual,3)
+  expect_equal(names(actual) %>% as.character(),G_names)
+
+  # only OW given
+  actual <- derive_pair_instruments(G,W,NULL,full_inst = FALSE)
+  G_names <- "G" %p% c("",".lag.Gw",".lag.Gww")
+  expect_length(actual,3)
+  expect_equal(names(actual) %>% as.character(),G_names)
+
+  # only DW given
+  actual <- derive_pair_instruments(G,NULL,W,full_inst = FALSE)
+  G_names <- "G" %p% c("",".lag.wG",".lag.wwG")
+  expect_length(actual,3)
+  expect_equal(names(actual) %>% as.character(),G_names)
+
+  # no W given
+  actual <- derive_pair_instruments(G,NULL,NULL,full_inst = FALSE)
+  G_names <- "G" %p% c("")
+  expect_length(actual,1)
+  expect_equal(names(actual) %>% as.character(),G_names)
+})
+
+
+
+
 
 

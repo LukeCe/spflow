@@ -16,7 +16,7 @@
 #' @slot npairs A numeric indicating the number of origin-destination pairs
 #' @slot dest_nnodes A numeric that represents the number of nodes in the destination network
 #'
-#' @family sp_network
+#' @family spflow network objects
 #' @importClassesFrom data.table data.table
 #' @importClassesFrom Matrix Matrix
 #' @export
@@ -195,14 +195,11 @@ setValidity("sp_network_pair", function(object) { # ---- validity -------------
 #' @param dest_net_id A character that serves as identifier for the destination network
 #' @param pair_data A data.frame containing information to describe the origin-destination pairs
 #' @param orig_key_column A character indicating the column containing identifiers for the origins
-#' @param orig_nnodes A numeric declaring the number of origins
 #' @param dest_key_column A character indicating the column containing identifiers for the destinations
-#' @param dest_nnodes A numeric declaring the number of destinations
-#'
-#' @family sp_network
 #'
 #' @return An S4 class of type [sp_network_pair()]
 #' @importFrom data.table setDT := key copy setnames setkeyv
+#' @family spflow network objects
 #' @export
 sp_network_pair <- function(
   orig_net_id,

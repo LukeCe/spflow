@@ -5,7 +5,8 @@ by_role_spatial_lags <- function(
   neighborhoods,
   matrix_form_arguments,
   model,
-  decorrelate_instruments = FALSE){
+  decorrelate_instruments = FALSE,
+  reduce_pair_instruments = TRUE){
 
   # define lag requirements by role and summarize them by source
   role_var_lags <- lapply(lag_requirements, "var_usage_to_lag")
@@ -40,12 +41,11 @@ by_role_spatial_lags <- function(
     lags_names <- suffix_sp_lags(lags) %>% flatten()
 
     # create one matrix for each source
-    # TODO remove magrittr::set_colnames
     lagged_vars_mat <-
       lapply(rev(lags), function(.vars) cols_keep(source_mat,.vars)) %>%
       lreduce(function(.x1, .x2) { cbind(.x2, source_nb %*% .x1) }) %>%
       as.matrix() %>%
-      magrittr::set_colnames(., lags_names)
+      set_col_names(., lags_names)
 
     # split the matrix by roles and declare instruments
     mat_by_role <- role_var_lag_names[role_keys] %>%
@@ -84,16 +84,17 @@ by_role_spatial_lags <- function(
     matrix_format(pair_covariates, matrix_form_arguments)
   lag_pair_covariate <- function(var){
     var_lags <- role_var_lags$G_ %>% lfilter(function(x) x == var) %>% length()
-    G_lags <- apply_matrix_od_lags(
-      covariate_matrices[[var]],
+    G_lags <- derive_pair_instruments(
+      G = covariate_matrices[[var]],
       OW = neighborhoods$OW,
       DW = neighborhoods$DW,
-      nb_lags = var_lags - 1,
-      name = var
-    )
+      name = var,
+      full_inst = !isTRUE(reduce_pair_instruments)
+    ) %T% (var_lags > 1) %||% covariate_matrices[var]
 
-    inst <- !logical(var_lags)
-    inst[1] <- FALSE
+    inst_a <- inst_status_lags$G_ %>% lapply("[", var) %>% unlist()
+    inst <- !logical(length(G_lags))
+    inst[seq_along(inst_a)] <- inst_a
     plapply(x = G_lags,is_inst = inst,.f = "set_instrument_status")
     G_lags
   }
@@ -255,7 +256,6 @@ identify_auto_regressive_parameters <- function(model) {
 }
 
 
-#' @importFrom Matrix Diagonal
 #' @keywords internal
 apply_matrix_od_lags <- function(G, OW = NULL, DW = NULL,
                                  nb_lags = 0, name = "") {
@@ -270,6 +270,56 @@ apply_matrix_od_lags <- function(G, OW = NULL, DW = NULL,
   }
 
   return(G_lags)
+}
+
+#' @keywords internal
+derive_pair_instruments <- function(G,OW,DW,name = "G", full_inst = FALSE) {
+
+
+  if (is.null(G))
+    return(NULL)
+
+  if (is.null(OW) & is.null(DW))
+    return(named_list(name,G))
+
+  if (is.null(OW) | is.null(DW))
+    full_inst <- TRUE
+
+  # initialize lags to null
+  # then compute required ones
+  g_lags <- c("wG","wwG","Gw","Gww","wGw","wwGw","wGww","wwGww")
+  lapply(g_lags, "assign", value = NULL)
+
+  # destination lags
+  d <- T %T% (!is.null(DW))
+  wG <- d %|!|% (DW %*% G)
+  wwG <- d %|!|% (DW %*% wG)
+
+  # origin lags
+  # (not needed when working with reduced instruments and d is given)
+  o <- (T %T% !is.null(OW)) %T% full_inst
+  Gw <- o %|!|% tcrossprod(G, OW)
+  Gww <- o %|!|% tcrossprod(Gw, OW)
+
+  # o-d lags
+  do <- T %T% (!is.null(OW) & !is.null(DW))
+  wGw <- do %|!|% tcrossprod(wG,OW)
+  wwGw <- do %|!|% tcrossprod(wwG,OW)
+  wGww <- do %|!|% ((DW %*% Gww) %T% o)
+  wwGww <- do %|!|% tcrossprod(wwGw, OW)
+
+  # remove super fluent instruments in the reduced case
+  if (!full_inst & isTRUE(do)) {
+    wG <- wwG <- wwGw <- NULL
+  }
+
+
+  # collect and name matrices
+  G_obj <- c("G",g_lags)
+  lag_name <- lookup(names = G_obj,values = name %p% c("", ".lag." %p% g_lags))
+  G_inst <- collect(c("G",g_lags)) %>% compact() %>%
+    set_lnames(lag_name[names(.)])
+  return(G_inst)
 }
 
 

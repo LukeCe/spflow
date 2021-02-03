@@ -54,6 +54,7 @@ Collate:
     'spflow-model-moments_2-blocks.R'
     'spflow.R'
     'spflow_sim.R'
+    'utils-FP.R'
     'utils-columns.R'
     'utils-error.R'
     'utils-formula.R'

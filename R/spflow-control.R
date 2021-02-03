@@ -4,20 +4,43 @@
 #' This function creates a list to fine tune the estimation of a spatial
 #' interaction model with [spflow()].
 #'
-#' @param estimation_method A character which indicates the estimation method
-#' @param model A character indicating the model; one of paste0("model_", 1:9).
-#' @param formulation A character indicating the formulation; "matrix" or "vector"
-#' @param hessian_method A character which indicates the method for hessian calculation
-#' @param sdm_variables A formula which can be used explicitly declare the variables that should be used as sdm variables.
-#' @param instrumental_variables A formula which can be used explicitly declare the variables that should be used as instruments during s2sls estimation.
-#' @param decorrelate_instruments A logical whether to perform a procedure that removes (linear) correlation from the instruments.
-#' @param use_sdm A logical which adds spatial lags of origin and destination attributes as explanatory variables to the model.
-#' @param use_intra A logical which adds separate set of coefficients for intra-observational flows (origin == destination) to the model.
-#' @param flow_type A character indicating the type of flows; "within" or "between"
+#' @param estimation_method
+#'   A character which indicates the estimation method, should be one of
+#'   `c("mle","s2sls","mcmc")`
+#' @param model
+#'   A character indicating the model number,  indicating different spatial
+#'   dependence structures (see documentation for details), should be one of
+#'   `paste0("model_", 1:9)`
+#' @param hessian_method
+#'   A character which indicates the method for hessian calculation
+#' @param sdm_variables
+#'   Either a formula or a character; the formula can be used to explicitly
+#'   declare the variables in SDM specification, the character should be one of
+#'   `c("same", "all")` which are short cuts for using all available variables
+#'   or the same as used in the main formula provided to [spflow()]
+#' @param instrumental_variables
+#'   Either a formula or a character; the formula can be used to explicitly
+#'   declare the variables that should be used as instruments during S2SLS
+#'   estimation, the character should be one of `c("same", "all")` which
+#'   are short cuts for using all available variables or the same as used in
+#'   the main formula provided to [spflow()]
+#' @param decorrelate_instruments
+#'   A logical whether to perform a PCA to remove (linear) correlation from the
+#'   instruments generated for the S2SLS estimator
+#' @param use_sdm
+#'   A logical which adds spatial lags of origin and destination attributes as
+#'   explanatory variables to the model.
+#' @param use_intra
+#'   A logical which activates the option to use a separate set of parameters
+#'   for intra-regional flows (origin == destination)
+#'
+#' @examples
+#' # default is MLE estimation of the most comprehensive model
+#' spflow_control()
+#'
 #'
 #' @seealso spflow
-#'
-#' @return A list of control parameters
+#' @return A list of control parameters for estimation via [spflow()]
 #' @export
 spflow_control <- function(
   estimation_method = "mle",
@@ -29,6 +52,7 @@ spflow_control <- function(
   instrumental_variables = "same",
   weight_variable = NULL,
   decorrelate_instruments = FALSE,
+  reduce_pair_instruments = TRUE,
   hessian_method = "mixed",
   flow_type = NULL) {
 
@@ -53,11 +77,11 @@ spflow_control <- function(
          "The estimation method must be one of [%s]!" %>%
            sprintf(., paste(possible_formulations, collapse = " or ")))
 
-  assert(is_single_logical(use_intra),
-         "The use_intra option must be a logical!")
+  assert_is_single_x(use_intra, "logical")
+  assert_is_single_x(use_sdm, "logical")
+  assert_is_single_x(decorrelate_instruments, "logical")
+  assert_is_single_x(reduce_pair_instruments, "logical")
 
-  assert(is_single_logical(use_sdm),
-         "The use_sdm option must be a logical!")
 
   # check sdm variables
   if (!use_sdm)
@@ -103,6 +127,7 @@ spflow_control <- function(
     "sdm_variables" = sdm_variables,
     "instrumental_variables" = instrumental_variables,
     "decorrelate_instruments" = decorrelate_instruments,
+    "reduce_pair_instruments" = reduce_pair_instruments,
     "use_intra" = use_intra,
     "use_sdm" = use_sdm,
     "model" = model,

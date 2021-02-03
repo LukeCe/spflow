@@ -61,7 +61,7 @@ NULL
 #' @keywords internal
 #' @rdname elvis_operators
 "%T%" <- function(x, y) {
-  if (y) x else NULL
+  if (isTRUE(y)) x else NULL
 }
 
 #' @keywords internal

@@ -51,6 +51,7 @@ spflow_mcmc <- function(
     rnorm(n,sd = sd) %*% varcov_delta_chol
   }
   delta_t <- solve(ZZ,ZY)
+  RSS_t <- TSS - crossprod(ZY,delta_t)
 
 
   # we also calculate an initial log-determinant value ...

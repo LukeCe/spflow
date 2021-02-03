@@ -10,7 +10,7 @@
 # #' @slot completeness
 # #'    A data.frame summarizing the identification between pairs and nodes
 #'
-#' @family sp_network
+#' @family spflow network objects
 #' @export
 setClass("sp_multi_network",
          slots = c(networks = "list",
@@ -78,7 +78,12 @@ setMethod(
   signature = "sp_multi_network",
   function(object,
            network_ids = NULL) { # ---- pull_neighborhood ---------------------
-    return(pull_nodes(object, network_ids) %>% lapply(neighborhood))
+
+    if (length(network_ids) > 1)
+      return(pull_nodes(object, network_ids) %>% lapply(neighborhood))
+
+
+    return(pull_nodes(object, network_ids) %>% neighborhood())
     })
 
 #' @inheritParams pull_neighborhood
@@ -270,6 +275,7 @@ setValidity("sp_multi_network", function(object) { # ---- validity ------------
 #'    to match the levels of the nodes in the [sp_network_nodes()].
 #'
 #' @return A S4 network data object
+#' @family spflow network objects
 #' @export
 sp_multi_network <- function(..., level_node_ids = TRUE) {
 

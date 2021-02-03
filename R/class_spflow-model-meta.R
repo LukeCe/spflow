@@ -12,6 +12,7 @@
 #' @slot design_matrix
 #'
 #' @name spflow_model_meta
+#' @family spflow model objects
 setClass("spflow_model_meta",
          slots = c(
            estimation_results = "data.frame",
@@ -193,6 +194,7 @@ setMethod(
   })
 
 #' @rdname results
+#' @export
 setMethod(
   f = "results",
   signature = "spflow_model_meta",
@@ -209,6 +211,29 @@ setReplaceMethod(
     object@estimation_results <- value
     if (validObject(object))
       return(object)
+  })
+
+#' @rdname results_flat
+#' @export
+setMethod(
+  f = "results_flat",
+  signature = "spflow_model_meta",
+  function(object,
+           res_info = c("est","sd"),
+           cntrol_info = c("estimation_method")){ # ---- results_flat -----------------
+
+    res <- results(object)
+    flat_results <- lapply(res_info, function(.col) {
+      res[.col] %>% t() %>% suffix_columns("_" %p% .col) %>%
+        data.frame(row.names = NULL,check.names = FALSE)
+    })
+
+
+    flat_controls <- object@estimation_control[cntrol_info] %>%
+      as.data.frame() %>%
+      cbind("sigma_est" = sd_error(object))
+
+    return(cbind(flat_controls,flat_results))
   })
 
 #' @rdname sd_error
@@ -262,7 +287,7 @@ setMethod(
 #' @param ... Further arguments passed to more specific classes in accordance to the estimation method
 #'
 #' @importFrom methods slot<- slot
-#' @export
+#' @keywords internal
 spflow_model <- function(
   ...,
   estimation_results,

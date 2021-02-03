@@ -8,8 +8,10 @@
 #' @param DW Destination neighborhood matrix
 #' @param n_o A numeric indicating the number of origins
 #' @param n_d A numeric indicating the number of destinations
-#' @param model A character indicating the model identfyer
+#' @param model A character indicating the model identifier
 #'
+#' @family spflow_simulations
+#' @importFrom Matrix Diagonal
 #' @export
 expand_flow_neighborhood <- function(
   OW,
@@ -34,14 +36,14 @@ expand_flow_neighborhood <- function(
     assert(!is.null(n_o) && !is.null(DW),
            "Construction the destination weight matrix requires arguments" %p%
            " for n_o and DW!")
-    Wd <- Matrix::Diagonal(n_o) %x% DW
+    Wd <- Diagonal(n_o) %x% DW
   }
 
   if (model_number %in% o_models) {
     assert(!is.null(n_o) && !is.null(DW),
            "Construction the origin weight matrix requires arguments" %p%
              " for n_d and OW!")
-    Wo <- OW %x% Matrix::Diagonal(n_d)
+    Wo <- OW %x% Diagonal(n_d)
 
   }
 
@@ -55,9 +57,26 @@ expand_flow_neighborhood <- function(
   return(list("Wd" = Wd, "Wo" = Wo, "Ww" = Ww) %>% compact())
 }
 
+
+#' Derive the spatial filter of an interaction model
+#'
+#' @description
+#' Use the neighborhood matrices of origins and destinations to derive the
+#' three neighborhood matrices of the origin-destination flows.
+#'
+#'
+#' @param weight_matrices List of flow neighborhood matrices
+#' @param autoreg_parameters A numeric containing values for the
+#'     auto-regressive parameters
+#' @param invert A logical indicating whether the results should be inverted
+#'
+#' @family spflow_simulations
+#' @importFrom Matrix Diagonal Matrix
+#' @export
 spatial_filter <- function(
   weight_matrices,
-  autoreg_parameters
+  autoreg_parameters,
+  invert = FALSE
 ) {
 
   combined_weight_matrices <-
@@ -65,15 +84,26 @@ spatial_filter <- function(
     safely_to_list() %>%
     mapply(FUN = "*", ., autoreg_parameters, SIMPLIFY = FALSE) %>%
     Reduce(f = "+", x = .) %>%
-    Matrix::Matrix()
+    Matrix()
 
   N <- nrow(combined_weight_matrices)
+  A <- Diagonal(N) - combined_weight_matrices
+  f_A <- if (invert) solve else x_
 
-  return(Matrix::Diagonal(N) - combined_weight_matrices)
+  return(A %>% f_A)
 }
 
 
-spatial_model_order <- function(model = "model 9") {
+#' Derive the order of the spatial model
+#'
+#' @description
+#' The order of a spatial model corresponds to the number of neighborhood
+#' matrices that is used to describe the spatial dependence.
+#'
+#' @inheritParams spflow_control
+#' @return An integer corresponding to the number of weight matrices
+#' @export
+spatial_model_order <- function(model = "model_9") {
 
   model_number <- substr(model,7,7)
 

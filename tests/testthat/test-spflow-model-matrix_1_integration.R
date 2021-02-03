@@ -78,7 +78,7 @@ test_that("by_role_spatial_lags: => correct output", {
                                  test_control$model)
 
   expect_equivalent(actual$Y_, spatial_lags$Y_)
-  expect_equivalent(actual$G_, spatial_lags$G_)
+  expect_equivalent(actual$G_ %>% lapply(as,"matrix"), spatial_lags$G_)
   expect_equivalent(actual$I_, spatial_lags$I_)
   expect_equivalent(actual$D_, spatial_lags$D_)
   expect_equivalent(actual$O_, spatial_lags$O_)

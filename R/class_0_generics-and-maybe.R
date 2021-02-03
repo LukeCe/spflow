@@ -148,7 +148,7 @@ setGenericVerif("pull_pairs",
                   standardGeneric("pull_pairs")})
 
 
-#' @title Access results of an estimation
+#' @title Access results of a [spflow_model()]
 #' @param object spflow_model_meta
 #' @name results
 #' @rdname results
@@ -159,13 +159,22 @@ setGenericVerif("results",  function(object){ # ---- results -------------
 #' @param value replacement results
 #' @name results
 #' @rdname results
-setGenericVerif("results<-",  function(object, value){ # ---- results <- --------
+setGenericVerif("results<-",  function(object, value){ # ---- results <- ------
   standardGeneric("results<-")})
+
+#' @title Access results of a [spflow_model()] as a one row data.frame
+#' @param object spflow_model_meta
+#' @name results_flat
+#' @rdname results_flat
+#' @export
+setGenericVerif("results_flat",
+                function(object, ...){ # ---- results_flat --------------------
+  standardGeneric("results_flat")})
 
 #' @title Extract the standard deviation from a [spflow_model_meta()]
 #' @param object A [spflow_model_meta()]
 #' @name sd_error
-setGenericVerif("sd_error", function(object){ # ---- sd_error ------------
+setGenericVerif("sd_error", function(object){ # ---- sd_error -----------------
   standardGeneric("sd_error")})
 
 

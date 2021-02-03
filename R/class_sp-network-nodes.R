@@ -12,7 +12,7 @@
 #' @slot node_data A data.frame that contains all information describing the nodes
 #' @slot node_neighborhood A matrix that describes the neighborhood of the nodes
 #'
-#' @family sp_network
+#' @family spflow network objects
 #'
 #' @export
 setClass("sp_network_nodes",
@@ -209,7 +209,7 @@ setValidity(
 #' @param node_neighborhood A matrix that describes the neighborhood of the nodes
 #' @param node_id_column A character indicating the column containing identifiers for the nodes
 #'
-#' @family sp_network
+#' @family spflow network objects
 #' @importFrom data.table := as.data.table setkey setnames
 #'
 #' @return The S4 class sp_network_nodes

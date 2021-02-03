@@ -69,13 +69,12 @@ spflow_f2_hessian <- function(
   index_sigma <- seq_along(sigma2) + length(c(rho,delta))
 
 
-  # Compute the stepsize (h)
+  # Compute the step-size (h)
   eps <- .Machine$double.eps
-  shift <- eps^(1 / 3) * abs(params)
+  shift <- sqrt(eps) * abs(params)
 
-  # new loglik value as a function of a shift in the parameter vector
-  # IDEA use memiose for re_evaluate_logdet -> speed up calculation
-
+  # IDEA spare some log determinant and RSS evaluations by splitting
+  # .... the parameters delta,rho,sigma
   re_evaluate_loglik <- function(shift_vec){
 
     # shift input values
