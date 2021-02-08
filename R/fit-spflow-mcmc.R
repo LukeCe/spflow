@@ -75,8 +75,10 @@ spflow_mcmc <- function(
     ## 2. inverse gamma for sigma2 ##
     # to update scale parameter based on the new RSS
     # construct residuals based on previous values of rho and delta
-    RSS <- update_RSS(TSS,ZZ,ZY,delta_updated,tau)
-    sigma2_updated <- 1/rgamma(1, shape = shape_sigma2, rate = RSS / 2)
+    RSS_mean <- tau %*% RSS_t %*% tau
+    RSS_deviate <- deviate_delta %*% ZZ %*% deviate_delta
+    sigma2_updated <- 1/rgamma(1, shape = shape_sigma2,
+                               rate = (RSS_mean + RSS_deviate) / 2)
     collect_sigma2[i_mcmc  + 1] <- sigma2_updated
 
 
@@ -95,6 +97,7 @@ spflow_mcmc <- function(
 
       candidate_rho <- collect_rho[i_mcmc ,] + rnorm(nb_rho) * tune_rw
 
+      # TODO replace with exact constraints
       valid_candidates <- (
         min(candidate_rho) > bound_rho["low"]
         & max(candidate_rho) < bound_rho["up"]
@@ -118,51 +121,22 @@ spflow_mcmc <- function(
 
     for (j in seq_along(previous_rho)) {
 
-      # # draw candidates that lead to non-singular filter matrices
-      # count_candidates <- 1
-      # while (!valid_c[j]) {
-      #   # Sampled candidates have to fulfil four constraints
-      #   # ... the interval [-LB, UB] for each rho
-      #   # ... the stability restriction |sum(rho)| < SR
-      #   # ... the log-determinant must not be zero (-> A non-singular)
-      #   rho_c1 <- previous_rho[j] + rnorm(1) * tune_rw[j]
-      #   updated_rho[j] <- rho_c1
-      #   valid_c[j] <- ( # check linear constraints
-      #     rho_c1 > bound_rho["low"]
-      #     & rho_c1 < bound_rho["up"]
-      #     & abs(sum(updated_rho)) < bound_sum_rho
-      #     & sum(abs(updated_rho)) < bound_sum_abs_rho
-      #   )
-      #
-      #   if (valid_c[j]) {
-      #     updated_log_det <- spflow_logdet(updated_rho,OW_traces,n_o, n_d, model)
-      #     # true constraint base on log-determinant value is not yet stable
-      #     valid_c[j] <- log_det_minimum < updated_log_det
-      #   }
-      #
-      #   count_candidates <- 1 + count_candidates
-      #   if (count_candidates >= 100){
-      #     stop("Can not generate valid candidates for the auto-regressive" %p%
-      #            " parameters")
-      #   }
-      # }
       updated_rho[j] <- candidate_rho[j]
-      tau_c <- c(1, -updated_rho)
-      delta_c <- as.vector(delta_t %*% tau_c) + deviate_delta
+      tau_candidate <- c(1, -updated_rho)
 
       # updated RSS and log-determinant
-      RSS_c <- update_RSS(TSS,ZZ,ZY,delta_c,tau_c)
-      RSS_diff <- (RSS_c - RSS) / (2*sigma2_updated)
-      updated_log_det <- spflow_logdet(updated_rho,OW_traces,n_o, n_d, model)
-      proba_ratio <- exp(updated_log_det - previous_log_det - RSS_diff)
+      RSS_candidate <- tau_candidate %*% RSS_t %*% tau_candidate
+      RSS_diff <- (RSS_candidate - RSS_mean) / (2*sigma2_updated)
+      candidate_log_det <- spflow_logdet(updated_rho,OW_traces,n_o, n_d, model)
+      proba_ratio <- exp(candidate_log_det - previous_log_det - RSS_diff)
 
       accept[j] <- (proba_ratio > accept_hurdle[j])
-      if (!accept[j]) { # reject: -> remain and previous
+      if (!accept[j]) { # reject: -> remain at previous
         updated_rho[j] <- previous_rho[j]
       }
       if (accept[j]) { # accept: -> updated values are used for next iterations
-        previous_log_det <- updated_log_det
-        RSS <- RSS_c
+        previous_log_det <- candidate_log_det
+        RSS_mean <- RSS_candidate
       }
 
     }

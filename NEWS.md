@@ -1,4 +1,8 @@
-# spflow (development version)
+# spflow 0.0.0.9009
+
+**This is a prerelease of the package only intended for beta testing.**
+Restructure MCMC a bit more and update the documentation.
+Version shared with the M2 course and use for the article.
 
 # spflow 0.0.0.9008
 

@@ -1,5 +1,5 @@
 load(file.path(rprojroot::find_testthat_root_file(),
-               "test_case_1_symmetric.rda"))
+               "integration_tests/test_case_1_symmetric.rda"))
 
 
 test_that("spflow_s2sls: model 9 => correct output", {
