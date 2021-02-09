@@ -57,7 +57,7 @@ describe("Estimate models with advances use of formulas",{
                       flow_control = flow_control)
 
     # test 1: correct return value
-    expect_s4_class(results,"spflow_model_meta")
+    expect_s4_class(results,"spflow_model")
 
     # test 2: correct model was estimated
     transformed_vars <-

@@ -28,7 +28,7 @@ Imports:
 Collate: 
     'spflow-package.R'
     'utils.R'
-    'class_0_generics-and-maybe.R'
+    'class_0_generics-and-maybe-classes.R'
     'class_sp-network-pair.R'
     'class_sp-network-nodes.R'
     'class_sp-multi-network.R'
@@ -39,9 +39,9 @@ Collate:
     'fit-spflow-mcmc.R'
     'fit-spflow-mle.R'
     'fit-spflow-mle_hessian.R'
+    'fit-spflow-ols.R'
     'fit-spflow-s2sls.R'
     'interpret-flow-formula.R'
-    'ols_estimation.R'
     'spatial-neighborhood.R'
     'spflow-control.R'
     'spflow-likelihood.R'
@@ -67,7 +67,6 @@ Collate:
 URL: https://github.com/LukeCe/spflow
 BugReports: https://github.com/LukeCe/spflow/issues
 Suggests:
-    spelling,
     covr,
     sp,
     spdep,

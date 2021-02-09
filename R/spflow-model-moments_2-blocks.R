@@ -1,14 +1,18 @@
 # ---- Variance Moment --------------------------------------------------------
 
+#' @title
 #' Compute the moment expression in an interaction model in matrix form
 #'
 #' @details
-#' The moment (H'H) moment matrix is grouped into (4x4) blocks.
+#' The moment (U'U) moment matrix is grouped into (4x4) blocks.
 #' These 16 blocks are derived as interactions from the four blocks
 #' {alpha, alpha_I, beta, gamma}.
 #' Only ten blocks are unique and the remaining six are inferred by symmetry.
+#' The developments follow the theory presented in
+#' \insertCite{Dargel2021;textual}{spflow}.
 #'
-#' @importFrom Matrix forceSymmetric
+#' @references \insertAllCited{}
+#' @importFrom Matrix forceSymmetric rowSums colSums diag
 #' @keywords internal
 moment_empirical_var <- function(model_matrices,N,n_d,n_o) {
 

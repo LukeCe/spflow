@@ -1,7 +1,9 @@
 #' @include class_sp-network-nodes.R class_sp-network-pair.R
 
 
-#' @title
+#' @title sp_multi_network Class
+#'
+#' @description
 #' An S4 class that gathers information on one or multiple networks
 #' [sp_network_nodes()] and origin-destination pairs [sp_network_pair()].
 #'
@@ -23,7 +25,7 @@ setClass("sp_multi_network",
 #' @export
 #' @param what
 #'     A character to indicating from what part the id should be retrieved;
-#'     should be in c("orig","dest", "pair").
+#'     should be in `c("orig","dest", "pair")`.
 #' @rdname id
 setMethod(
   f = "id",
@@ -42,9 +44,13 @@ setMethod(
   })
 
 
-#' @param network_id A single character for an id of [sp_network_nodes()]
-#' @param network_pair_id A single character for an id of [sp_network_pair()]
-#'
+#' @param network_id
+#'   A single character that correspond to the id of a
+#'   [sp_network_nodes-class()] inside the [sp_multi_network-class()]
+#' @param network_pair_id
+#'   A single character that correspond to the id of a
+#'   [sp_network_pair-class()] inside the [sp_multi_network-class()]
+#' @name dat
 #' @rdname dat
 #' @export
 setMethod(
@@ -122,6 +128,7 @@ setMethod(
     stop("The id must be a character!")
   })
 
+#' @keywords internal
 setMethod(
   f = "show",
   signature = "sp_multi_network",

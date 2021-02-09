@@ -34,7 +34,7 @@
 #' @section Details:
 #' Our estimation procedures make use of the matrix formulation introduced by
 #' \insertCite{LeSage2008;textual}{spflow} and further developed by
-#' (#Dargel2020Improve) to reduce the computational effort and memory
+#' \insertCite{Dargel2021;textual}{spflow} to reduce the computational effort and memory
 #' requirements considerably.
 #' See (#Dargel2020Sim) for an exhaustive simulation study.
 #' The estimation procedure can be adjusted through the `estimation_method`
@@ -44,12 +44,13 @@
 #' Maximum likelihood estimation is the default estimation procedure.
 #' The matrix form estimation in the framework of this model was first
 #' developed by \insertCite{LeSage2008;textual}{spflow} and then improved by
-#' (#Dargel2020Improve).
+#' \insertCite{Dargel2021;textual}{spflow}.
 #'
 #' ## Spatial two-stage least squares (S2SLS):
 #' The S2SLS estimator is an adaptation of the one proposed by
 #' \insertCite{Kelejian1998;textual}{spflow}, to the case of origin-destination
-#' flows, with up to three neighborhood matrices (#Dargel2020Improve).
+#' flows, with up to three neighborhood matrices
+#' \insertCite{Dargel2021;textual}{spflow}.
 #' A similar estimation is done by \insertCite{Tamesue2016;textual}{spflow}.
 #' The user can activate the S2SLS estimation via the `flow_control` argument
 #' using the input `spflow_control(estimation_method = "s2sls")`.

@@ -1,19 +1,39 @@
-#' @title
-#' A S4 class that represent the results of a spatial interaction model
+#' @title spflow_model Class
 #'
-#' @slot estimation_results data.frame.
-#' @slot estimation_control list.
-#' @slot N numeric.
-#' @slot sd_error numeric.
-#' @slot R2_corr numeric.
-#' @slot resid maybe_numeric.
-#' @slot fitted maybe_numeric.
-#' @slot spatial_filter_matrix maybe_matrix.
-#' @slot design_matrix
+#' @description
+#' A S4 class that contains the estimation results of spatial econometric
+#' interaction models estimated by the [spflow()] function.
 #'
-#' @name spflow_model_meta
+#' There are four subclasses that are specific to the chosen estimation method
+#' (OLS, MLE, Bayesian MCMC or S2SLS).
+#' They contain some additional information specific to the corresponding
+#' method but most behaviours and data is identical among them.
+#'
+#' @slot estimation_results
+#'   A data.frame that contains the main [results()] of the estimation
+#' @slot estimation_control
+#'   A list that contains all control parameters of the estimation
+#'   (see [spflow_control()])
+#' @slot N
+#'   A numeric that corresponds to the number of origin-destination pairs
+#'   (the sample size in this model)
+#' @slot sd_error
+#'   A numeric representing the standard deviation of the residual
+#' @slot R2_corr
+#'   A numeric that serves as a goodness of fit criterion.
+#'   The R2_corr is computed as squared correlation between the fitted values
+#'   and the observed values of the dependent variable.
+#' @slot resid
+#'   A numeric vector of regression residuals
+#' @slot fitted
+#'   A numeric vector of fitted values computed as the in sample prediction
+#'   trend signal (TS) prediction described by @Goulard2017
+#' @slot spatial_filter_matrix A matrix (can be sparse) or NULL
+#' @slot design_matrix A matrix (can be sparse) or NULL
+#'
+#' @name spflow_model-class
 #' @family spflow model objects
-setClass("spflow_model_meta",
+setClass("spflow_model",
          slots = c(
            estimation_results = "data.frame",
            estimation_control = "list",
@@ -26,14 +46,24 @@ setClass("spflow_model_meta",
            design_matrix = "ANY"))
 
 # ---- Methods ----------------------------------------------------------------
+
+#' @title Internal method to add details to a [spflow_model-class()]
+#'
+#' @details
+#' The method adds the design matrix and the coefficient names to an
+#' [spflow_model-class()] object.
+#' It also calculates the fitted values and the residuals as well as a
+#' goodness-of-fit measure.
+#'
+#' @param object A [spflow_model-class()]
 #' @param model_matrices A list as returned by [spflow_model_matrix()]
 #' @param flow_control A list as returned by [spflow_control()]
 #'
-#' @rdname add_details
+#' @name add_details
 #' @keywords  internal
 setMethod(
   f = "add_details",
-  signature = "spflow_model_meta",
+  signature = "spflow_model",
   function(object, model_matrices, flow_control) { # ---- add_details ---------------------------------------
 
     object@design_matrix <- drop_instruments(model_matrices)
@@ -77,7 +107,7 @@ setMethod(
 #' @export
 setMethod(
   f = "coef",
-  signature = "spflow_model_meta",
+  signature = "spflow_model",
   function(object) { # ---- coef ----------------------------------------------
     results_df <- object@estimation_results
     return(lookup(results_df$est,rownames(results_df)))
@@ -89,17 +119,18 @@ setMethod(
 #' @export
 setMethod(
   f = "fitted",
-  signature = "spflow_model_meta",
+  signature = "spflow_model",
   function(object) { # ---- fitted --------------------------------------------
     return(object@fitted)
   })
 
 #' @title Access the number if observations of a spatial interaction model
+#'
 #' @param object A [spflow_model()]
 #' @export
 setMethod(
   f = "nobs",
-  signature = "spflow_model_meta",
+  signature = "spflow_model",
   function(object) { # ---- nobs ----------------------------------------------
     return(object@N)
   })
@@ -112,10 +143,11 @@ setMethod(
 #' @param ... Further arguments passed to the prediction function
 #'
 #' @rdname predict
+#' @importFrom Matrix crossprod diag solve
 #' @export
 setMethod(
   f = "predict",
-  signature = "spflow_model_meta",
+  signature = "spflow_model",
   function(object, ..., type = "BP") { # ---- predict -------------------------------------------
 
 
@@ -182,42 +214,57 @@ setMethod(
   })
 
 
-#' @title Extract the vector of residuals values from a spatial interaction model
+#' @title Extract the vector of residuals values from a [spflow_model()]
 #'
 #' @param object A [spflow_model()]
 #' @export
 setMethod(
   f = "resid",
-  signature = "spflow_model_meta",
+  signature = "spflow_model",
   function(object) { # ---- resid ---------------------------------------------
     return(object@resid)
   })
 
+#' @description
+#' The results are given in form of a data frame with the following columns
+#'
+#' * `est`: value of the estimated parameter
+#' * `sd`: value of the standard deviation of the parameter
+#' * `t.test`: value of the t-statistic under the two-sided hypothesis that
+#'  the parameter value is 0.
+#' * `p.val`: the p-value associated to the t-test
+#' * `95.`: for Baysian estimation the 95-quantile
+#' * `5.`: for Baysian estimation the 5-quantile
+#'
 #' @rdname results
 #' @export
 setMethod(
   f = "results",
-  signature = "spflow_model_meta",
+  signature = "spflow_model",
   function(object){ # ---- results --------------------------------------------
     return(object@estimation_results)
   })
 
-#' @rdname results
+#' @noRd
 #' @keywords internal
 setReplaceMethod(
   f = "results",
-  signature = "spflow_model_meta",
+  signature = "spflow_model",
   function(object, value) { # ---- results <- ---------------------------------
     object@estimation_results <- value
     if (validObject(object))
       return(object)
   })
 
+#' @title
+#'   Reshaped version of the estimation results that can be used to compare
+#'   results in simulation studies.
+#'
 #' @rdname results_flat
-#' @export
+#' @keywords internal
 setMethod(
   f = "results_flat",
-  signature = "spflow_model_meta",
+  signature = "spflow_model",
   function(object,
            res_info = c("est","sd"),
            cntrol_info = c("estimation_method")){ # ---- results_flat -----------------
@@ -240,14 +287,15 @@ setMethod(
 #' @export
 setMethod(
   f = "sd_error",
-  signature = "spflow_model_meta",
+  signature = "spflow_model",
   function(object){ # ---- sd_error -------------------------------------------
     return(object@sd_error)
   })
 
+#' @keywords internal
 setMethod(
   f = "show",
-  signature = "spflow_model_meta",
+  signature = "spflow_model",
   function(object){ # ---- show -----------------------------------------------
 
     cntrl <- object@estimation_control
@@ -272,10 +320,9 @@ setMethod(
 
 # ---- Constructors -----------------------------------------------------------
 
-#' @title
-#' Construct an S4 spflow_model class.
+#' @title Construct a [spflow_model-class()]
 #'
-#' @param estimation_results A data.frame of estimation results
+#' @param estimation_results A data.frame of estimation [results()]
 #' @param estimation_control A list of control parameters
 #' @param N A numeric indicating the number of obsevations
 #' @param sd_error A numeric which reports the
@@ -284,8 +331,11 @@ setMethod(
 #' @param fitted A numeric vector of fitted values
 #' @param spatial_filter_matrix A matrix which represents the spatial filter
 #' @param design_matrix The design matrix/matrices of the model
-#' @param ... Further arguments passed to more specific classes in accordance to the estimation method
+#' @param ...
+#'   Further arguments passed to more specific classes in accordance to the
+#'   estimation method
 #'
+#' @family spflow model objects
 #' @importFrom methods slot<- slot
 #' @keywords internal
 spflow_model <- function(

@@ -1,5 +1,7 @@
+#' @title
 #' Generate design matrices for the spatial interaction model
 #'
+#' @description
 #' Creates model matrices from a [sp_multi_network()] network.
 #' For efficiency the relational representation of origin and destination data
 #' is preserved.
@@ -140,6 +142,7 @@ roles_to_sources <- function(is_within) {
   c("Y_" = "pair","G_" = "pair", "O_" = "orig","D_" = D_source, "I_" = "orig")
 }
 
+#' @importFrom Matrix t
 #' @keywords internal
 define_flow_constants <- function(const_formula, use_instruments, OW = NULL) {
 

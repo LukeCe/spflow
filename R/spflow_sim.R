@@ -62,7 +62,7 @@ spflow_sim <- function(
 #'
 #' @family spflow_simulations
 #' @importFrom data.table := melt
-#' @export
+#' @keywords internal
 shape_spflow_benchmark <- function(dt, est_suffixes = c("_est","_sd"),
                                    ground_truth) {
 

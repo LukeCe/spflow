@@ -1,21 +1,43 @@
-#' Spatial econometric interaction models in R.
+#' @title Spatial econometric interaction models in R
 #'
-#' The spflow package provides function to estimate origin-destination flows
-#' with spatial autocorrelation.
+#' @description
+#' The `spflow` package provides function to estimate models of
+#' origin-destination flows with spatial autocorrelation.
+#' The implementation exploits the efficiency gains of the matrix formulation
+#' that avoids duplication of the data that describes the origins and
+#' the destinations.
+#' It offers new data structures and a convenient formula interface
+#' that allows to estimate the models with maximal efficiency and minimal
+#' effort for the user.
+#' The estimators are detailed in \insertCite{Dargel2021;textual}{spflow}.
+#'
 #'
 #' @section Network data:
 #' The package provides a new class for representing network data.
+#' [These classes][spflow_network_classes] help to exploit the relational
+#' structure of the data and ensure that all origins and destinations are
+#' correctly identified.
+#'
 #'
 #' @section Model estimation:
-#' The package provides functions to estimate spatial interaction models.
+#' The [spflow()] function is the main function for estimation and can be used
+#' out of the box using the default configuration, which corresponds to the
+#' most general model possible.
+#' Fine grained control over the estimation procedure is given via the
+#' [spflow_control()] argument through which the user can change, for example,
+#' the estimation method or the way in which the covariates should be used.
+#'
 #'
 #' @aliases spflow-package
 #' @docType package
-#' @import Matrix
 #' @importClassesFrom Matrix Matrix
-#' @importFrom methods as canCoerce is isGeneric new setClassUnion setGeneric slot validObject
-#' @importFrom stats as.formula contrasts formula model.matrix optim predict pt quantile reformulate rgamma rnorm runif sd terms terms.formula
+#' @importFrom utils head tail
+#' @importFrom methods as canCoerce is isGeneric new setClassUnion setGeneric
+#'   slot validObject
+#' @importFrom stats as.formula contrasts cor formula model.matrix optim predict pt
+#'   quantile reformulate rgamma rnorm runif sd terms terms.formula
 #' @keywords internal
+#' @references \insertAllCited{}
 "_PACKAGE"
 
 # The following block is used by usethis to automatically manage
@@ -25,4 +47,4 @@
 NULL
 
 # A trick to use the x %>% fun(.) notation without R CMD Note
-utils::globalVariables(c(".","dest_id","orig_id"))
+utils::globalVariables(c(".","ORIG_ID","DEST_ID","ID"))

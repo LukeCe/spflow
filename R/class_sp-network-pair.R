@@ -40,8 +40,8 @@ setMethod(
     return(object@pair_data)
   })
 
-#' @rdname dat
 #' @param ... more arguments passed to the constructor [sp_network_pair()]
+#' @rdname dat-set
 #' @keywords internal
 setReplaceMethod(
   f = "dat",
@@ -124,7 +124,7 @@ setMethod(
   })
 
 
-#' @export
+#' @keywords internal
 setMethod(
   f = "show",
   signature = "sp_network_pair",

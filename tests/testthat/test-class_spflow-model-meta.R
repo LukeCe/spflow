@@ -23,7 +23,7 @@ class_dummy <- spflow_model(
 
 test_that("spflow_model: => correct construction", {
 
-  expect_s4_class(class_dummy,"spflow_model_meta")
+  expect_s4_class(class_dummy,"spflow_model")
 })
 
 

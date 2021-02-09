@@ -3,7 +3,8 @@
 #'
 #' @description
 #' In this representation a network is composed of nodes which are must be
-#' identified uniquely and can be described by variables stored in a data.frame.
+#' identified uniquely by and ID.
+#' Each node is described by variables stored in a data.frame.
 #' The node neighborhood matrix describes strength of links between the nodes of
 #' the network.
 #'
@@ -13,19 +14,18 @@
 #' @slot node_neighborhood A matrix that describes the neighborhood of the nodes
 #'
 #' @family spflow network objects
-#'
 #' @export
 setClass("sp_network_nodes",
          slots = c(
            network_id        = "character",
            nnodes            = "maybe_numeric",
-           node_neighborhood = "maybe_Matrix",
+           node_neighborhood = "maybe_any_matrix",
            node_data         = "maybe_data.table"))
 
 # ---- Methods ----------------------------------------------------------------
 
-#' @export
 #' @rdname dat
+#' @export
 setMethod(
   f = "dat",
   signature = "sp_network_nodes",
@@ -33,8 +33,8 @@ setMethod(
     return(object@node_data)
     })
 
+#' @rdname dat-set
 #' @keywords internal
-#' @rdname dat
 setReplaceMethod(
   f = "dat",
   signature = "sp_network_nodes",
@@ -112,7 +112,7 @@ setMethod(
   })
 
 
-#' @export
+#' @keywords internal
 setMethod(
   f = "show",
   signature = "sp_network_nodes",
