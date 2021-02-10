@@ -224,11 +224,13 @@ sp_network_nodes <- function(
   dim_neighborhood <- dim(node_neighborhood)
   dim_node_data <- dim(node_data)
   nnodes <- c(dim_node_data[1],dim_neighborhood) %>% unique() %[[% 1
+  node_neighborhood <- node_neighborhood %|!|%
+    try_coercion(node_neighborhood,"Matrix")
 
   nodes <- new(
     "sp_network_nodes",
     network_id        = network_id,
-    node_neighborhood = try_coercion(node_neighborhood,"Matrix"),
+    node_neighborhood = node_neighborhood,
     nnodes            = nnodes,
     node_data         = NULL)
 

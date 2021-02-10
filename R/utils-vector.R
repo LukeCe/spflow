@@ -23,3 +23,8 @@ vec_to_matrix <- function(vec,completeness,n_rows,n_cols,i_rows,j_cols) {
   }
   return(mat)
 }
+
+#' @keywords internal
+factor_in_order <- function(x) {
+  factor(x,levels = as.character(unique(x)))
+}

@@ -1,4 +1,12 @@
 #' @keywords internal
+collect <- function(names){
+  collection <- lapply(names, get, envir = parent.frame(1))
+  names(collection) <- names
+
+  return(collection)
+}
+
+#' @keywords internal
 compact <- function(.x) {
   Filter(length, .x)
 }
@@ -71,4 +79,10 @@ translist <- function(.l) {
   names(result) <-  all_inner_names
 
   return(lapply(result, compact))
+}
+
+#' @keywords internal
+safely_to_list <- function(obj) {
+  if (is.list(obj)) return(obj)
+  else return(list(obj))
 }

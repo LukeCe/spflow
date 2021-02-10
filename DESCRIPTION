@@ -27,7 +27,7 @@ Imports:
     Matrix
 Collate: 
     'spflow-package.R'
-    'utils.R'
+    'utils-OO.R'
     'class_0_generics-and-maybe-classes.R'
     'class_sp-network-pair.R'
     'class_sp-network-nodes.R'
@@ -58,11 +58,14 @@ Collate:
     'utils-columns.R'
     'utils-error.R'
     'utils-formula.R'
+    'utils-indexing.R'
     'utils-lin-alg.R'
     'utils-list.R'
+    'utils-math.R'
     'utils-matrix.R'
     'utils-naming.R'
     'utils-pipe.R'
+    'utils-print.R'
     'utils-vector.R'
 URL: https://github.com/LukeCe/spflow
 BugReports: https://github.com/LukeCe/spflow/issues

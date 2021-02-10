@@ -32,3 +32,9 @@ trace_sequence <- function(W, max_power = 10 ) {
   return(unlist(W_traces))
 }
 
+#' @keywords internal
+#' @importFrom Matrix bdiag
+block_diag <- function(...){
+  as.matrix(bdiag(...))
+}
+

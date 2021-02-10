@@ -72,3 +72,7 @@ suffix_columns <- function(obj,suffix){
   set_col_names(obj, colnames(obj) %p% suffix)
 }
 
+#' @keywords internal
+col_sums <- function(x) {
+  matrix(colSums(x),nrow = 1)
+}

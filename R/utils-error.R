@@ -30,6 +30,13 @@ assert_is_single_x <- function(obj,x){
                  deparse(substitute(obj)),x))
 }
 
+#' @keywords internal
+assert_valid_case <- function(argument,cases) {
+  assert(all(argument %in% cases),
+         "The what argument can only be a subset of the character vector [%s]!" %>%
+           sprintf(deparse(cases)))
+}
+
 # ---- primitives -------------------------------------------------------------
 #' @keywords internal
 is_one_of <- function(.obj, .classes) {
@@ -44,4 +51,14 @@ is_single_character <- function(x) {
 #' @keywords internal
 is_single_logical <- function(x) {
   is.logical(x) && (length(x) == 1L)
+}
+
+#' @keywords internal
+has_equal_elements <- function(obj) {
+  length(unique(obj)) <= 1
+}
+
+#' @keywords internal
+has_distinct_elements <- function(obj) {
+  length(unique(obj)) == length(obj)
 }
