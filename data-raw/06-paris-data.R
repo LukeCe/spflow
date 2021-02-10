@@ -1,5 +1,5 @@
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-# Project: spflow - create an exmaple dataset for illustrations and examples
+# Project: spflow - create an example dataset for illustrations
 # Author: Lukas Dargel
 # = = = = = = = = = = = = = = = = = = =
 # Description:
@@ -12,7 +12,7 @@
 # The data is prepared with functions that are contained in the package
 # spflowDataTool written by Gabriel Watkinson.
 # - - - - - - - - - - - - - - - - - - -
-# Date: August 2020
+# Date: February 2021
 
 devtools::load_all()
 library("readr")

@@ -6,13 +6,14 @@
 #
 # For all four network pairs we simulate two types of models.
 # - - - - - - - - - - - - - - - - - - -
-# Date: November 2020
+# Date: February 2021
+
 
 library("spflow")
-source("scripts/02_usa-germany-network-pairs.R")
-source("scripts/03_example-model-parameters.R")
-data("germany_net")
-data("usa_net")
+source("data-raw/01_sim-data_germany-16-states.R")
+source("data-raw/02_sim-data_usa-51-states.R")
+source("data-raw/03_sim-data_network-pairs.R")
+source("data-raw/04_sim-data_parameters.R")
 
 # default multi-network
 multi_net_usa_ge <- sp_multi_network(
@@ -25,12 +26,12 @@ multi_net_usa_ge <- sp_multi_network(
 )
 
 # copy that includes lags...
-# ... for germany
+# ... for Germany
 ge_data_with_lag <- germany_net %>% dat() %>% data.table::copy()
 W_ge <- germany_net %>% neighborhood() %>% as.matrix()
 ge_data_with_lag[, X_lag := W_ge %*% X ]
 
-# ... for usa
+# ... for USA
 usa_data_with_lag <- usa_net %>% dat() %>% data.table::copy()
 W_usa <- usa_net %>% neighborhood() %>% as.matrix()
 usa_data_with_lag[, X_lag := W_usa %*% X ]

@@ -1,24 +1,25 @@
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-# Project: spflow - simulate 16 german states as an example network
+# Project: spflow - simulate 16 German states as an example network
 # Author: Lukas Dargel & Thibault Laurent
 # = = = = = = = = = = = = = = = = = = =
 # Description:
 #
-# We create an artificial explanatory variable, as well as a simplifyed spatial
-# structre for the states Germany.
+# We create an artificial explanatory variable, as well as a simplified spatial
+# structure for the states Germany.
 # = = = = = = = = = = = = = = = = = = =
 # Notes:
 #
-# Our examples come from https://ialab.it.monash.edu/~dwyer/papers/maptrix.pdf.
+# Our examples come from https://ialab.it.monash.edu/~dwyer/papers/maptrix.pdf
 # - - - - - - - - - - - - - - - - - - -
-# Date: Mai 2020
+# Date: February 2021
 
 load_all()
+library("sf")
 library("sp")
 library("spdep")
-source("scripts/00_create_grid.R")
+source("data-raw/helpers_sim-data.R")
 
-# invent data for the 16 states of germany
+# generate data for the 16 states of Germany
 germany_data <-
   data.frame("state_ids" = c("SH", "HH", "MV", "NW", "HB", "BB", "BE", "RP",
                              "NI", "ST", "SN", "SL", "HE", "TH", "BW", "BY"),

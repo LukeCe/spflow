@@ -9,16 +9,17 @@
 # = = = = = = = = = = = = = = = = = = =
 # Notes:
 #
-# Our examples come from https://ialab.it.monash.edu/~dwyer/papers/maptrix.pdf.
+# Our examples come from https://ialab.it.monash.edu/~dwyer/papers/maptrix.pdf
 # - - - - - - - - - - - - - - - - - - -
-# Date: Mai 2020
+# Date: February 2021
 
 load_all()
+library("sf")
 library("sp")
 library("spdep")
-source("scripts/00_create_grid.R")
+source("data-raw/helpers_sim-data.R")
 
-# invent data for the 51 states of the USA
+# generate data for the 16 states of the USA
 usa_data <-
   data.frame(
     "state_ids" = c("AK", "ME", "WI", "VT", "NH", "WA", "ID", "MT", "ND",

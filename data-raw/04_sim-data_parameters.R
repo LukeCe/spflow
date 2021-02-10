@@ -6,12 +6,10 @@
 #
 # For the two example networks we simulate trade flows for the the four
 # possible pairs of networks.
-# This script sets the model parameters.
+# This script sets the model parameters used for the simulation.
 # - - - - - - - - - - - - - - - - - - -
-# Date: Mai 2020
+# Date: February 2021
 
-
-#### Model parameters
 # model coefficients
 delta <- c("(Intercept)"    = 12,
            "(Intra)"        = 5,
