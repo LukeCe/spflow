@@ -159,15 +159,11 @@ spflow_mcmc <- function(
   results_df <- data.frame(
     est = colMeans(mcmc_results),
     sd = apply(mcmc_results, 2, sd),
-    lower_05 = apply(mcmc_results, 2, quantile, 0.05),
-    lower_95 = apply(mcmc_results, 2, quantile, 0.95)
+    quant_025 = apply(mcmc_results, 2, quantile, 0.025),
+    quant_975 = apply(mcmc_results, 2, quantile, 0.975)
   )
 
   N <- n_o * n_d
-  results_df$"t.stat" <- results_df$est / results_df$sd
-  results_df$"p.value" <- 1 - pt(q = abs(results_df$est / results_df$sd),
-                                 df =  1)
-
   id_sd <- nrow(results_df)
   estimation_results <- spflow_model(
     mcmc_results = mcmc_results,

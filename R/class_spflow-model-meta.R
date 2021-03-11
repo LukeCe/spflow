@@ -32,7 +32,31 @@
 #' @slot design_matrix A matrix (can be sparse) or NULL
 #'
 #' @name spflow_model-class
-#' @family spflow model objects
+#' @seealso [spflow()], [sp_network_classes()]
+#' @examples
+#'
+#' spflow_results <- spflow(y9 ~ . + G_(log(distance + 1)),multi_net_usa_ge)
+#'
+#' # General methods
+#' results(spflow_results) # data.frame of main results
+#' coef(spflow_results) # vector of estimated coefficients
+#' fitted(spflow_results) # vector of fitted values
+#' resid(spflow_results) # vector of residuals
+#' nobs(spflow_results) # number of observations
+#' sd_error(spflow_results) # standard deviation of the error term
+#' predict(spflow_results) # computation of the in sample predictor
+#'
+#' # MLE methods
+#' logLik(spflow_results) # value of the likelihood function
+#'
+#' # MLE, OLS and S2SLS methods
+#' varcov(spflow_results) # variance covariance matrix of the estimators
+#'
+#' # MCMC methods
+#' \dontrun{
+#' mcmc_results(spflow_results) # parameter values during the mcmc sampling
+#' }
+#'
 setClass("spflow_model",
          slots = c(
            estimation_results = "data.frame",
@@ -68,13 +92,18 @@ setMethod(
 
     object@design_matrix <- drop_instruments(model_matrices)
 
-    # add coef names
+    # add parameter names and significance
     coef_names <- parameter_names(
       model_matrices = object@design_matrix,
       model = flow_control$model)
-    results(object) <- data.frame(results(object),
-                                  ".names" = coef_names,
-                                  row.names = ".names")
+
+    results_df <- data.frame(results(object),
+                             ".names" = coef_names,
+                             row.names = ".names")
+    results_df$"t.stat" <- results_df$est / results_df$sd
+    results_df$"p.value" <- 1 - pt(q = abs(results_df$est / results_df$sd),
+                                   df =  1)
+    results(object) <- results_df
 
     # add fitted values , residuals, and goodness-of-fit
     nb_rho <- spatial_model_order(flow_control$model)
@@ -104,6 +133,7 @@ setMethod(
 
 #' @title Extract the coefficient vector from a spatial interaction model
 #' @param object A [spflow_model()]
+#' @rdname spflow_model-class
 #' @export
 setMethod(
   f = "coef",
@@ -116,6 +146,7 @@ setMethod(
 
 #' @title Extract a vector of fitted values from a spatial interaction model
 #' @param object A [spflow_model()]
+#' @rdname spflow_model-class
 #' @export
 setMethod(
   f = "fitted",
@@ -127,6 +158,7 @@ setMethod(
 #' @title Access the number if observations of a spatial interaction model
 #'
 #' @param object A [spflow_model()]
+#' @rdname spflow_model-class
 #' @export
 setMethod(
   f = "nobs",
@@ -142,8 +174,8 @@ setMethod(
 #' @param type A character declaring the type of prediction (for now only "BP")
 #' @param ... Further arguments passed to the prediction function
 #'
-#' @rdname predict
 #' @importFrom Matrix crossprod diag solve
+#' @rdname spflow_model-class
 #' @export
 setMethod(
   f = "predict",
@@ -217,6 +249,7 @@ setMethod(
 #' @title Extract the vector of residuals values from a [spflow_model()]
 #'
 #' @param object A [spflow_model()]
+#' @rdname spflow_model-class
 #' @export
 setMethod(
   f = "resid",
@@ -225,18 +258,19 @@ setMethod(
     return(object@resid)
   })
 
-#' @description
-#' The results are given in form of a data frame with the following columns
+#' @section Main results:
+#' The main results are accessed with the `results()` method.
+#' They are given in form of a data frame with the following columns;
 #'
 #' * `est`: value of the estimated parameter
 #' * `sd`: value of the standard deviation of the parameter
 #' * `t.test`: value of the t-statistic under the two-sided hypothesis that
 #'  the parameter value is 0.
 #' * `p.val`: the p-value associated to the t-test
-#' * `95.`: for Baysian estimation the 95-quantile
-#' * `5.`: for Baysian estimation the 5-quantile
+#' * `quant_025`: for Bayesian estimation the lower bound of 95% interval
+#' * `quant_975`: for Bayesian estimation the upper bound of 95% interval
 #'
-#' @rdname results
+#' @rdname spflow_model-class
 #' @export
 setMethod(
   f = "results",
@@ -245,6 +279,7 @@ setMethod(
     return(object@estimation_results)
   })
 
+#' @title Internal method for overwriting the results
 #' @noRd
 #' @keywords internal
 setReplaceMethod(
@@ -283,7 +318,7 @@ setMethod(
     return(cbind(flat_controls,flat_results))
   })
 
-#' @rdname sd_error
+#' @rdname spflow_model-class
 #' @export
 setMethod(
   f = "sd_error",
@@ -320,11 +355,11 @@ setMethod(
 
 # ---- Constructors -----------------------------------------------------------
 
-#' @title Construct a [spflow_model-class()]
+#' @title Internal function to construct a [spflow_model-class()]
 #'
 #' @param estimation_results A data.frame of estimation [results()]
 #' @param estimation_control A list of control parameters
-#' @param N A numeric indicating the number of obsevations
+#' @param N A numeric indicating the number of observations
 #' @param sd_error A numeric which reports the
 #' @param R2_corr A numeric which reports a pseudo R^2 measure
 #' @param resid A numeric vector of regression residuals
@@ -335,7 +370,6 @@ setMethod(
 #'   Further arguments passed to more specific classes in accordance to the
 #'   estimation method
 #'
-#' @family spflow model objects
 #' @importFrom methods slot<- slot
 #' @keywords internal
 spflow_model <- function(

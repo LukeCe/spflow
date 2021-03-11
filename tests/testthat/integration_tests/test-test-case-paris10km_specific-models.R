@@ -61,7 +61,7 @@ describe("Estimate models with advances use of formulas",{
 
     # test 2: correct model was estimated
     transformed_vars <-
-      c("log(POPULATION + 1)", "log(NB_COMPANY + 1)","log(MED_INCOME + 1)")
+      c("log(MED_INCOME + 1)","log(NB_COMPANY + 1)","log(POPULATION + 1)")
 
     expected_parameters <- c(
       "rho_d","rho_o",

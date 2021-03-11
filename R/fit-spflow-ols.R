@@ -15,10 +15,6 @@ spflow_ols <- function(ZZ,ZY,TSS,N,flow_control) {
     "est" = delta,
     "sd" = sd_delta)
 
-  results_df$"t.stat" <- results_df$est / results_df$sd
-  results_df$"p.value" <- 1 - pt(q = abs(results_df$est / results_df$sd),
-                                 df =  1)
-
   estimation_results <- spflow_model(
     varcov = varcov,
     estimation_results = results_df,

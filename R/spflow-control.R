@@ -1,8 +1,21 @@
+#' @title
 #' Define details of the estimation procedure with the [spflow()] function.
 #'
 #' @description
 #' This function creates a list to fine tune the estimation of a spatial
 #' interaction model with [spflow()].
+#' The options allow to adjust the estimation method and give the user full
+#' control over the use of the explanatory variables.
+#' The user can also adjust the form of autocorrelation to be considered.
+#'
+#' @section Adjusting the form of autocorrelation:
+#'
+#' The option `model` allows to declare one of nine different forms of
+#' autocorrelation that follow the naming convention of
+#' \insertCite{LeSage2008;textual}{spflow}.
+#' The most general specification is "model_9" and all other correspond to
+#' special cases of this one.
+#' The different sub models are summarized in this table.
 #'
 #' @param estimation_method
 #'   A character which indicates the estimation method, should be one of
@@ -33,19 +46,39 @@
 #' @param use_intra
 #'   A logical which activates the option to use a separate set of parameters
 #'   for intra-regional flows (origin == destination)
-#'
-#' @examples
-#' # default is MLE estimation of the most comprehensive model
-#' spflow_control()
-#'
-#'
-#' @seealso spflow
+#' @param weight_variable
+#'   A character indicating the name of a variable that should be used to
+#'   weight the origin-destination pairs
+#' @param reduce_pair_instruments
+#'   A logical that indicates whether the number of instruments that are
+#'   derived from pair attributes should be reduced or not (default is TRUE
+#'   because constructing these instruments is often the most demanding part of
+#'   the estimation.)
+#' @seealso [spflow()]
+#' @references \insertAllCited{}
 #' @return A list of control parameters for estimation via [spflow()]
 #' @export
+#' @examples
+#'
+#' # default is MLE estimation of the most comprehensive model
+#' default_control <- spflow_control()
+#'
+#' # change the estimation method
+#' custom_control <- spflow_control(estimation_method = "mcmc")
+#'
+#' # change the form of autocorrelation to be considered
+#' custom_control <- spflow_control(model = "model_7")
+#'
+#' # declare precisely which variables are to be used in the SDM form
+#' custom_control <-
+#'   spflow_control(sdm_variables = ~ O_(v1 + v2) + D_(v2 + v3) + I_(v1 + v4))
+#'
+#' # deactivate the intra-regional coefficients and SDM variables
+#' custom_control <- spflow_control(use_intra = FALSE, use_sdm = FALSE)
+#' custom_control <- spflow_control(use_intra = FALSE, sdm_variables = "none")
 spflow_control <- function(
   estimation_method = "mle",
   model = "model_9",
-  formulation = "matrix",
   use_intra = TRUE,
   use_sdm = TRUE,
   sdm_variables = "same",
@@ -53,8 +86,7 @@ spflow_control <- function(
   weight_variable = NULL,
   decorrelate_instruments = FALSE,
   reduce_pair_instruments = TRUE,
-  hessian_method = "mixed",
-  flow_type = NULL) {
+  hessian_method = "mixed") {
 
   available_estimators <- c("s2sls", "mle","mcmc","ols")
   assert(estimation_method %in% available_estimators,
@@ -71,11 +103,6 @@ spflow_control <- function(
     estimation_method <- "ols"
     model <- "model_1"
   }
-
-  possible_formulations <- c("matrix", "vector")
-  assert(formulation %in% possible_formulations,
-         "The estimation method must be one of [%s]!" %>%
-           sprintf(., paste(possible_formulations, collapse = " or ")))
 
   assert_is_single_x(use_intra, "logical")
   assert_is_single_x(use_sdm, "logical")
@@ -114,6 +141,8 @@ spflow_control <- function(
            sprintf(., paste(available_hessians, collapse = " or ")))
 
   # check flow types
+  # can be within or between once the rectangular case is available
+  flow_type <- NULL
   between_flows <- !is.null(flow_type) && (flow_type == "between")
   impossible_intra <- use_intra && between_flows
 
@@ -130,10 +159,25 @@ spflow_control <- function(
     "reduce_pair_instruments" = reduce_pair_instruments,
     "use_intra" = use_intra,
     "use_sdm" = use_sdm,
-    "model" = model,
-    "formulation" = formulation,
-    "flow_type" = flow_type
+    "model" = model
   ))
 }
 
 # TODO create validate_control function
+
+#' @keywords internal
+sp_model_type <- function(cntrl) {
+
+  has_lagged_x <- cntrl$use_sdm & cntrl$sdm_variables != "none"
+
+  if (cntrl$model == "model_1") {
+    model_type <- ifelse(has_lagged_x,"SLM","OLM")
+  }
+
+  if (cntrl$model != "model_1") {
+    model_type <- ifelse(has_lagged_x,"SDM","LAG")
+  }
+
+  return(model_type)
+
+}

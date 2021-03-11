@@ -57,11 +57,11 @@ setClassUnion("spflow_model_mle_s2sls_ols",
                 "spflow_model_mle",
                 "spflow_model_s2sls"))
 
-# ---- generics & methods -----------------------------------------------------
+# ---- Methods ----------------------------------------------------------------
 
-#' @title Access the value of the log-likelihood function
 #' @param object A [spflow_model-class()]
-#' @rdname spflow_model_mle
+#' @rdname spflow_model-class
+#' @export
 setMethod(
   f = "logLik",
   signature = "spflow_model_mle",
@@ -69,13 +69,22 @@ setMethod(
     return(object@ll)
   })
 
-#' @title Access the value of the log-likelihood function for the MLE
 #' @param object A [spflow_model-class()]
 #' @rdname spflow_model-class
 setMethod(
   f = "varcov",
   signature = "spflow_model_mle_s2sls_ols",
   function(object){ # ---- varcov ---------------------------------------------
+    return(object@varcov)
+  })
+
+
+#' @param object A [spflow_model-class()]
+#' @rdname spflow_model-class
+setMethod(
+  f = "mcmc_results",
+  signature = "spflow_model_mcmc",
+  function(object){ # ---- mcmc_results ---------------------------------------
     return(object@varcov)
   })
 

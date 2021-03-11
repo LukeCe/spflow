@@ -4,13 +4,14 @@
 #' @title sp_multi_network Class
 #'
 #' @description
-#' An S4 class that gathers information on one or multiple networks
+#' A S4 class that gathers information on one or multiple networks
 #' [sp_network_nodes()] and origin-destination pairs [sp_network_pair()].
 #'
-#' @slot networks A list of [sp_network_nodes()] objects
-#' @slot network_pairs A list of [sp_network_pair()] objects
-# #' @slot completeness
-# #'    A data.frame summarizing the identification between pairs and nodes
+#' @slot networks A list of [sp_network_nodes-class()] objects
+#' @slot network_pairs A list of [sp_network_pair-class()] objects
+#' @slot completeness
+#'   A data.frame that provides summary information on the matching between
+#'   the nodes and node pairs that are provided to the sp_multi_network class
 #'
 #' @family spflow network objects
 #' @export
@@ -22,11 +23,16 @@ setClass("sp_multi_network",
 
 # ---- Methods ----------------------------------------------------------------
 
-#' @export
+#' @rdname id
 #' @param what
 #'     A character to indicating from what part the id should be retrieved;
 #'     should be in `c("orig","dest", "pair")`.
-#' @rdname id
+#' @export
+#' @examples
+#' ## Methods for sp_multinet_work
+#'
+#' id(multi_net_usa_ge,"networks")
+#' id(multi_net_usa_ge,"network_pairs")
 setMethod(
   f = "id",
   signature = "sp_multi_network",
@@ -50,9 +56,13 @@ setMethod(
 #' @param network_pair_id
 #'   A single character that correspond to the id of a
 #'   [sp_network_pair-class()] inside the [sp_multi_network-class()]
-#' @name dat
 #' @rdname dat
 #' @export
+#' @examples
+#' ## Methods for sp_multinet_work
+#'
+#' dat(multi_net_usa_ge,network_id = "ge") # extract data of nodes
+#' dat(multi_net_usa_ge,network_pair_id = "ge_ge") # extract data of pairs
 setMethod(
   f = "dat",
   signature = "sp_multi_network",
@@ -95,6 +105,8 @@ setMethod(
 #' @inheritParams pull_neighborhood
 #' @rdname pull_nodes
 #' @export
+#' @examples
+#' pull_nodes(multi_net_usa_ge,"ge")
 setMethod(
   f = "pull_nodes",
   signature = "sp_multi_network",
@@ -112,6 +124,8 @@ setMethod(
 #' @param network_pair_ids A character vector of ids for contained [sp_network_pair()] objects
 #' @rdname pull_pairs
 #' @export
+#' @examples
+#' pull_pairs(multi_net_usa_ge,"ge")
 setMethod(
   f = "pull_pairs",
   signature = "sp_multi_network",
@@ -159,7 +173,7 @@ setMethod(
       lapply(od_pair_info["orig"],"%in%", nodes_ids)
     od_pair_info["(d info)"] <-
       lapply(od_pair_info["dest"],"%in%", nodes_ids)
-    cat("\n\nAvailability origin-destination pair information:\n")
+    cat("\n\nAvailability of origin-destination pair information:\n")
     print(od_pair_info[,c(1,2,4,3,5)])
 
     cat("\n")
@@ -167,9 +181,24 @@ setMethod(
   })
 
 
-#' @inheritParams dat
+#' @title Create a long form data.frame of origin-destination pairs
+#'
+#' @description
+#' The method merges all available information on origins and destinations to
+#' the data.frame describing the pairs.
+#'
+#' @param object
+#'   A [sp_multi_network-class()]
+#' @param network_pair_id
+#'   A character indicating the id of a [sp_network_pair-class()]
 #' @rdname pair_merge
 #' @export
+#' @examples
+#' # long form data for flows from Germany to Germany
+#' pair_merge(multi_net_usa_ge,"ge_ge")
+#'
+#' # long form data for flows from Germany to USA
+#' pair_merge(multi_net_usa_ge,"ge_usa")
 setMethod(
   f = "pair_merge",
   signature = "sp_multi_network",
@@ -284,6 +313,9 @@ setValidity("sp_multi_network", function(object) { # ---- validity ------------
 #' @return A S4 network data object
 #' @family spflow network objects
 #' @export
+#' @examples
+#' sp_multi_network() # empty
+#' sp_multi_network(germany_net,usa_net) # two networks, no pairs
 sp_multi_network <- function(..., level_node_ids = TRUE) {
 
   input_nets <- list(...) %>% flatten() %||% list()
@@ -303,7 +335,7 @@ sp_multi_network <- function(..., level_node_ids = TRUE) {
   names(sp_networks) <- lapply(sp_networks, id)
   names(sp_network_pairs) <- lapply(sp_network_pairs, id, "pair")
 
-  # TODO add completeness info to multinetwork
+  # TODO add completeness info to multi network
   od_pair_completeness <- NULL
   # nodes_ids <- id(object, "networks")
   # od_pair_completeness <-

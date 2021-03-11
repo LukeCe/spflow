@@ -1,7 +1,7 @@
-#' @title
-#' An S4 class which holds information on origin-destination pairs.
+#' @title sp_network_pair Class
 #'
 #' @description
+#' An S4 class which holds information on origin-destination pairs.
 #' Each origin destination pair is composed of two nodes (see [sp_network_nodes()]).
 #' All origins belong to the same (origin-) network and all destination belong to
 #' the same (destination-) network.
@@ -31,8 +31,13 @@ setClass("sp_network_pair",
 
 # ---- Methods ----------------------------------------------------------------
 
-#' @export
 #' @rdname dat
+#' @export
+#' @examples
+#' ## Method for sp_network_pair
+#'
+#' net_pair_ge_ge <- pull_pairs(multi_net_usa_ge,"ge_ge")
+#' dat(net_pair_ge_ge)
 setMethod(
   f = "dat",
   signature = "sp_network_pair",
@@ -56,7 +61,14 @@ setReplaceMethod(
 #'    A character to indicating from what part the id should be retrieved;
 #'    should be in c("orig","dest", "pair").
 #' @rdname id
+#' @aliases id<-
 #' @export
+#' @examples
+#' ## Method for sp_network_pair
+#'
+#' net_pair_ge_ge <- pull_pairs(multi_net_usa_ge,"ge_ge")
+#' id(net_pair_ge_ge)
+#' id(net_pair_ge_ge) <- "Germany_Germany"
 setMethod(
   f = "id",
   signature = "sp_network_pair",
@@ -75,21 +87,21 @@ setMethod(
 
 
 #' @rdname id
-#' @keywords internal
+#' @export
 setReplaceMethod(
   f = "id",
   signature = "sp_network_pair",
   function(object,value) {  # ---- id <- --------------------------------------
 
-    new_id_orig <- strsplit("_",value) %>% unlist() %>% head(1)
-    new_id_dest <- strsplit("_",value) %>% unlist() %>% tail(1)
+    new_id_orig <- strsplit(value,"_") %>% unlist() %>% head(1)
+    new_id_dest <- strsplit(value,"_") %>% unlist() %>% tail(1)
     new_id_pair <- new_id_orig %p% "_" %p% new_id_dest
     assert(new_id_pair == value,
            "The provided pair id is not valid.")
 
-    object@orig_net_id      <- new_id_orig
+    object@orig_net_id <- new_id_orig
     object@dest_net_id <- new_id_dest
-    object@pair                   <- new_id_orig %p% "_" %p% new_id_dest
+    object@network_pair_id <- new_id_orig %p% "_" %p% new_id_dest
 
     if (validObject(object))
       return(object)
@@ -97,6 +109,9 @@ setReplaceMethod(
 
 #' @rdname npairs
 #' @export
+#' @examples
+#' net_pair_ge_ge <- pull_pairs(multi_net_usa_ge,"ge_ge")
+#' npairs(net_pair_ge_ge)
 setMethod(
   f = "npairs",
   signature = "sp_network_pair",
@@ -107,7 +122,11 @@ setMethod(
 #' @param what
 #'    A character to indicate what to count; should be in c("orig","dest").
 #' @rdname npairs
-#' @export
+#' @examples
+#' net_pair_ge_ge <- pull_pairs(multi_net_usa_ge,"ge_ge")
+#' nnodes(net_pair_ge_ge)
+#' nnodes(net_pair_ge_ge,"orig")
+#' nnodes(net_pair_ge_ge,"dest")
 setMethod(
   f = "nnodes",
   signature = "sp_network_pair",
@@ -201,6 +220,10 @@ setValidity("sp_network_pair", function(object) { # ---- validity -------------
 #' @importFrom data.table setDT := key copy setnames setkeyv
 #' @family spflow network objects
 #' @export
+#' @examples
+#' pair_frame <- data.table::CJ(origins = germany_grid$NOM,
+#'                              destinations = germany_grid$NOM)
+#' sp_network_pair("ge","ge",pair_frame,"origins","destinations")
 sp_network_pair <- function(
   orig_net_id,
   dest_net_id,

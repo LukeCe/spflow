@@ -9,10 +9,10 @@ test_that("var_usage_to_lag: for varnames and inst status => correct output", {
   actual <- lapply(actual,"sort")
 
 
-  expect_lag3 <- c("X1",     "X3")
-  expect_lag2 <- c("X1","X2","X3")
-  expect_lag1 <- c("X1","X2","X3",     "X5","X6")
-  expect_lag0 <- c("X1","X2",     "X4",     "X6")
+  expect_lag3 <- c("X1",     "X3") %>% lookup()
+  expect_lag2 <- c("X1","X2","X3") %>% lookup()
+  expect_lag1 <- c("X1","X2","X3",     "X5","X6") %>% lookup()
+  expect_lag0 <- c("X1","X2",     "X4",     "X6") %>% lookup()
   expect_equal(actual$lag3, expect_lag3)
   expect_equal(actual$lag2, expect_lag2)
   expect_equal(actual$lag1, expect_lag1)

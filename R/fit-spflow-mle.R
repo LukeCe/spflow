@@ -80,10 +80,6 @@ spflow_mle <- function(ZZ,ZY,TSS,N,n_d,n_o,DW_traces,OW_traces,
     "est" = mu,
     "sd" = sd_mu[-drop_sigma])
 
-  results_df$"t.stat" <- results_df$est / results_df$sd
-  results_df$"p.value" <- 1 - pt(q = abs(results_df$est / results_df$sd),
-                                 df =  1)
-
   estimation_results <- spflow_model(
     varcov = varcov,
     ll = loglik_value,

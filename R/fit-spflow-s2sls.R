@@ -41,10 +41,6 @@ spflow_s2sls <- function(HH,HY,ZZ,ZY,TSS,N,flow_control) {
     "est" = mu,
     "sd" = sd_mu)
 
-  results_df$"t.stat" <- results_df$est / results_df$sd
-  results_df$"p.value" <- 1 - pt(q = abs(results_df$est / results_df$sd),
-                                 df =  1)
-
   estimation_results <- spflow_model(
     varcov = varcov,
     estimation_results = results_df,

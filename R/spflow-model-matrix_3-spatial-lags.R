@@ -115,9 +115,9 @@ var_usage_to_lag <- function(.vars, out_inst = FALSE) {
   # pull out variables and declare their instrument status
   norm <- .vars$norm
   sdm <- .vars$sdm
-
   inst <- .vars$inst
-  inst0 <- inst %>% setdiff(norm)  %>% setdiff(sdm)
+
+  inst0 <- inst %>% setdiff(norm) %>% setdiff(sdm)
   inst1 <- inst %>% setdiff(sdm)
   inst2 <- inst %>% setdiff(inst0)
   inst3 <- inst %>% setdiff(inst0) %>% intersect(sdm)
@@ -129,7 +129,7 @@ var_usage_to_lag <- function(.vars, out_inst = FALSE) {
       return(NULL)
 
     if (!out_inst)
-      return(.var)
+      return(lookup(.var))
 
     lookup(is_inst,.var)
   }
@@ -142,7 +142,7 @@ var_usage_to_lag <- function(.vars, out_inst = FALSE) {
       "lag1" = c(ni(sdm),i(inst1)),
       "lag2" = i(inst2),
       "lag3" = i(inst3)
-    ) %>% compact()
+    ) %>% compact() %>% lapply("sort_names")
 
   return(required_lags)
 

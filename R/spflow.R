@@ -181,16 +181,34 @@ spflow <- function(
            sprintf(., network_pair_id))
 
 
-
   ## ... test the arguments provided to control by calling it again
+  assert(is.null(flow_control$weight_variable),warn = TRUE,
+         "Weighting of observations is not yet possible and will be ignored.")
+
   flow_control <- do.call(spflow_control, flow_control)
   # TODO validate and enrich flow control
+  # TODO check completeness information and add to estimation control
   ## ... identify the flow type
   flow_control$flow_type <- ifelse(
     network_ids["orig"] ==
       network_ids["dest"],
     yes = "within", no = "between"
   )
+  flow_control$flow_completeness <- (
+    sp_multi_network %>% pull_pairs(network_pair_id) %>% npairs() /
+    sp_multi_network %>% pull_pairs(network_pair_id) %>% nnodes() %>% prod()
+  )
+  flow_control$sp_model_type <- sp_model_type(flow_control)
+
+
+  # TODO generalize for the case of sparse flows and multiple networks
+  assert(flow_control$flow_completeness == 1,
+         "Estimation are for only possible if the number of pairs is excatly
+         the number of origins multiplied by the number of destinations!")
+
+  assert(flow_control$flow_type == "within",
+         "Estimation of flows between two diffrent networks are " %p%
+         "not yet available!")
 
   ## ... create the design matrix/matrices
   model_matrices <- spflow_model_matrix(

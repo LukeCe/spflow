@@ -29,28 +29,26 @@ setGenericVerif("add_details",function(object, ...){ # ---- add_details -------
 #' @param object One of [sp_network_nodes-class()], [sp_network_pair-class()]
 #' @name dat
 #' @export
-#' @examples
-#' dat(germany_net)
 setGenericVerif("dat",  function(object, ...){ # ---- dat ---------------------
   standardGeneric("dat")})
 
-
-#' @title Internal method for replacing data inside [sp_network_classes()]
-#'
+#' @title Access the data of [sp network objects][sp_network_classes()]
+#' @inheritParams dat
 #' @param value A data.frame to replace existing data
-#' @name dat-set
-#' @rdname dat-set
-#' @keywords internal
+#' @name dat<-
+#' @export
 setGenericVerif("dat<-",  function(object, ..., value){ # ---- dat <- ---------
   standardGeneric("dat<-")})
 
 #' @name dat_template
 #' @rdname dat_template
+#' @keywords internal
 setGenericVerif("dat_template", function(object, ...){ # ---- dat_template ----
   standardGeneric("dat_template")})
 
 #' @name drop_columns
 #' @rdname drop_columns
+#' @keywords internal
 setGenericVerif("drop_columns", function(object, ...){ # ---- drop_columns ----
   standardGeneric("drop_columns")})
 
@@ -59,6 +57,7 @@ setGenericVerif("drop_columns", function(object, ...){ # ---- drop_columns ----
 #'
 #' @param object A [spflow network object][sp_network_classes()]
 #' @name id
+#' @aliases id-set
 #' @export
 setGenericVerif("id", function(object, ...){ # ---- id ------------------------
   standardGeneric("id")})
@@ -69,6 +68,12 @@ setGenericVerif("id", function(object, ...){ # ---- id ------------------------
 #' @export
 setGenericVerif("id<-",function(object,...,value){ # ---- id <- ---------------
   standardGeneric("id<-")})
+
+#' @name mcmc_results
+#' @rdname spflow_model-class
+#' @export
+setGenericVerif("mcmc_results", function(object){ # ---- mcmc_results ---------
+  standardGeneric("mcmc_results")})
 
 #' @title Access the neighborhood of a [sp_network_nodes-class()]
 #' @param object A [sp_network_nodes-class()]
@@ -106,21 +111,9 @@ setGenericVerif("npairs",function(object){ # ---- npairs ----------------------
   standardGeneric("npairs")})
 
 
-#' @title Create a long form data.frame of origin-destination pairs
-#'
-#' @description
-#' The method merges all available information on origins and destinations to
-#' the data.frame describing the pairs.
-#'
-#' @param object A [sp_multi_network()]
+#' @rdname pair_merge
 #' @name pair_merge
 #' @export
-#' @examples
-#' # long form data for flows from Germany to Germany
-#' pair_merge(multi_net_usa_ge,"ge_ge")
-#'
-#' # long form data for flows from Germany to USA
-#' pair_merge(multi_net_usa_ge,"ge_usa")
 setGenericVerif("pair_merge", function(object, ...){ # ---- pair_merge --------
   standardGeneric("pair_merge")})
 
@@ -181,8 +174,9 @@ setGenericVerif("results_flat",
                 function(object, ...){ # ---- results_flat --------------------
   standardGeneric("results_flat")})
 
-#' @title Extract the standard deviation from a [spflow_model_meta()]
-#' @param object A [spflow_model_meta()]
+#' @title Extract the standard deviation from a [spflow_model-class()]
+#' @param object A [spflow_model-class()]
+#' @rdname spflow_model
 #' @name sd_error
 setGenericVerif("sd_error", function(object){ # ---- sd_error -----------------
   standardGeneric("sd_error")})

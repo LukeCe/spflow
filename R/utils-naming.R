@@ -25,3 +25,8 @@ lookup <- function(values, names = as.character(values)) {
 list_lookup <- function(values, names = as.character(values)) {
   as.list(lookup(names = names,values))
 }
+
+#' @keywords internal
+sort_names <- function(x) {
+  x[order(names(x))]
+}

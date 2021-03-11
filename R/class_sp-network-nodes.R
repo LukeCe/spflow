@@ -1,19 +1,24 @@
-#' @title
-#' An S4 class that holds on a single network
+#' @title sp_network_nodes Class
 #'
 #' @description
+#' An S4 class that contains all information on a single network.
 #' In this representation a network is composed of nodes which are must be
 #' identified uniquely by and ID.
 #' Each node is described by variables stored in a data.frame.
-#' The node neighborhood matrix describes strength of links between the nodes of
-#' the network.
+#' The node neighborhood matrix describes strength of links between the nodes
+#' of the network.
 #'
-#' @slot network_id A character that serves as identifier for the network
-#' @slot nnodes A numeric that indicates the number of nodes in the network
-#' @slot node_data A data.frame that contains all information describing the nodes
-#' @slot node_neighborhood A matrix that describes the neighborhood of the nodes
+#' @slot network_id
+#'   A character that serves as identifier for the network
+#' @slot nnodes
+#'   A numeric that indicates the number of nodes in the network
+#' @slot node_data
+#'   A data.frame that contains all information describing the nodes
+#' @slot node_neighborhood
+#'   A matrix that describes the neighborhood relations of the nodes
 #'
 #' @family spflow network objects
+#' @name sp_network_nodes-class
 #' @export
 setClass("sp_network_nodes",
          slots = c(
@@ -26,6 +31,10 @@ setClass("sp_network_nodes",
 
 #' @rdname dat
 #' @export
+#' @examples
+#' ## Method for sp_network_nodes
+#'
+#' dat(germany_net)
 setMethod(
   f = "dat",
   signature = "sp_network_nodes",
@@ -55,6 +64,13 @@ setReplaceMethod(
 
 #' @export
 #' @rdname id
+#' @aliases id<-
+#' @examples
+#' ## Method for sp_network_nodes
+#'
+#' germany_net2 <- germany_net
+#' id(germany_net2)
+#' id(germany_net2) <- "Germany"
 setMethod(
   f = "id",
   signature = "sp_network_nodes",
@@ -62,8 +78,8 @@ setMethod(
     return(object@network_id)
   })
 
-#' @export
 #' @rdname id
+#' @export
 setReplaceMethod(
   f = "id",
   signature = "sp_network_nodes",
@@ -75,6 +91,8 @@ setReplaceMethod(
 
 #' @export
 #' @rdname neighborhood
+#' @examples
+#' neighborhood(germany_net)
 setMethod(
   f = "neighborhood",
   signature = "sp_network_nodes",
@@ -104,6 +122,8 @@ setReplaceMethod(
 
 #' @export
 #' @rdname nnodes
+#' @examples
+#' nnodes(germany_net)
 setMethod(
   f = "nnodes",
   signature = "sp_network_nodes",
@@ -142,7 +162,7 @@ setMethod(
 
     has_data <- !is.null(dat(object))
     if (has_data) {
-      cat("\n\nData on individual nodes:\n")
+      cat("\n\nData on nodes:\n")
       print(dat(object))
     }
     cat("\n")
@@ -202,18 +222,27 @@ setValidity(
 
 # ---- Constructors -----------------------------------------------------------
 
-#' Create an S4 object that contains information in the nodes of a network
+#' Create a [sp_network_nodes-class()]
 #'
-#' @param network_id A character that serves as identifier for the network
-#' @param node_data A data.frame that contains all information describing the nodes
-#' @param node_neighborhood A matrix that describes the neighborhood of the nodes
-#' @param node_id_column A character indicating the column containing identifiers for the nodes
+#' @param network_id
+#'   A character that serves as identifier for the network
+#' @param node_data
+#'   A data.frame that contains all information describing the nodes
+#' @param node_neighborhood
+#'   A matrix that describes the neighborhood of the nodes
+#' @param node_id_column
+#'   A character indicating the column containing identifiers for the nodes
 #'
 #' @family spflow network objects
 #' @importFrom data.table := as.data.table setkey setnames
 #'
 #' @return The S4 class sp_network_nodes
 #' @export
+#' @examples
+#' sp_network_nodes("germany",
+#'                  germany_grid %>% spdep::poly2nb() %>% spdep::nb2mat(),
+#'                  germany_grid %>% as.data.frame(),
+#'                  "NOM")
 sp_network_nodes <- function(
   network_id,
   node_neighborhood = NULL,
