@@ -7,6 +7,7 @@
 #' Each node is described by variables stored in a data.frame.
 #' The node neighborhood matrix describes strength of links between the nodes
 #' of the network.
+#' The class is constructed by the [sp_network_nodes()] function.
 #'
 #' @slot network_id
 #'   A character that serves as identifier for the network
@@ -25,16 +26,16 @@ setClass("sp_network_nodes",
            network_id        = "character",
            nnodes            = "maybe_numeric",
            node_neighborhood = "maybe_any_matrix",
-           node_data         = "maybe_data.table"))
+           node_data         = "maybe_data.frame"))
 
 # ---- Methods ----------------------------------------------------------------
 
-#' @rdname dat
+#' @rdname sp_network_nodes-class
 #' @export
 #' @examples
-#' ## Method for sp_network_nodes
-#'
+#' ## access the data describing the nodes
 #' dat(germany_net)
+#'
 setMethod(
   f = "dat",
   signature = "sp_network_nodes",
@@ -42,7 +43,7 @@ setMethod(
     return(object@node_data)
     })
 
-#' @rdname dat-set
+#' @rdname sp_network_nodes-class
 #' @keywords internal
 setReplaceMethod(
   f = "dat",
@@ -63,14 +64,13 @@ setReplaceMethod(
     })
 
 #' @export
-#' @rdname id
-#' @aliases id<-
+#' @rdname sp_network_nodes-class
 #' @examples
-#' ## Method for sp_network_nodes
-#'
+#' # access the id of the network
 #' germany_net2 <- germany_net
 #' id(germany_net2)
 #' id(germany_net2) <- "Germany"
+#'
 setMethod(
   f = "id",
   signature = "sp_network_nodes",
@@ -78,7 +78,7 @@ setMethod(
     return(object@network_id)
   })
 
-#' @rdname id
+#' @rdname sp_network_nodes-class
 #' @export
 setReplaceMethod(
   f = "id",
@@ -89,10 +89,12 @@ setReplaceMethod(
       return(object)
   })
 
+#' @rdname sp_network_nodes-class
 #' @export
-#' @rdname neighborhood
 #' @examples
+#' # access the neighborhood matrix of the nodes
 #' neighborhood(germany_net)
+#'
 setMethod(
   f = "neighborhood",
   signature = "sp_network_nodes",
@@ -100,8 +102,8 @@ setMethod(
     return(object@node_neighborhood)
   })
 
+#' @rdname sp_network_nodes-class
 #' @keywords internal
-#' @rdname neighborhood
 setReplaceMethod(
   f = "neighborhood",
   signature = "sp_network_nodes",
@@ -120,10 +122,12 @@ setReplaceMethod(
       return(object)
   })
 
+#' @rdname sp_network_nodes-class
 #' @export
-#' @rdname nnodes
 #' @examples
+#' # access the number of nodes inside the network
 #' nnodes(germany_net)
+#'
 setMethod(
   f = "nnodes",
   signature = "sp_network_nodes",
@@ -149,13 +153,12 @@ setMethod(
 
     has_neighborhood <- !is.null(neighborhood(object))
     if (has_neighborhood) {
+      nb_links <- nnzero(neighborhood(object))
       cat("\nAverage number of links per node:",
-          round(neighborhood(object) %>% nnzero()/
-                  (neighborhood(object) %>% nrow()),3)
-      )
+          round(nb_links/nnodes(object),3)
+          )
       cat("\nDensity of the neighborhood matrix:",
-          format_percent(neighborhood(object) %>% nnzero()/
-                           neighborhood(object) %>% length()),
+          format_percent(nb_links/(nnodes(object)^2)),
           "(non-zero connections)"
           )
     }
@@ -181,7 +184,7 @@ setValidity(
 
     # check dimensions of nb matrix
     dim_nb <- dim(neighborhood(object))
-    consitent <- dim_nb %>% has_equal_elements()
+    consitent <- has_equal_elements(dim_nb)
     if (!consitent) {
       error_msg <- "The neighborhood matrix must be a square matrix!"
       return(error_msg)
@@ -190,7 +193,7 @@ setValidity(
     # check dimensions of data and matrix
     nr_dat <- nrow(dat(object))
     nnodes <- nnodes(object)
-    consitent <- c(nr_dat,dim_nb,nnodes) %>% has_equal_elements()
+    consitent <- has_equal_elements(c(nr_dat,dim_nb,nnodes))
     if (!consitent) {
       error_msg <-
         "The row number of node_data does not match the dimensions of" %p%
@@ -202,7 +205,8 @@ setValidity(
     if (is.null(dat(object)))
       return(TRUE)
 
-    data_id_col <- key(dat(object))
+
+    data_id_col <- key(dat(object)) # TODO remove data.table dependency
     if (is.null(data_id_col)) {
       error_msg <- "The data musst have an id column!"
       return(error_msg)
@@ -240,8 +244,8 @@ setValidity(
 #' @export
 #' @examples
 #' sp_network_nodes("germany",
-#'                  germany_grid %>% spdep::poly2nb() %>% spdep::nb2mat(),
-#'                  germany_grid %>% as.data.frame(),
+#'                  spdep::nb2mat(spdep::poly2nb(germany_grid)),
+#'                  as.data.frame(germany_grid),
 #'                  "NOM")
 sp_network_nodes <- function(
   network_id,
@@ -252,7 +256,8 @@ sp_network_nodes <- function(
 
   dim_neighborhood <- dim(node_neighborhood)
   dim_node_data <- dim(node_data)
-  nnodes <- c(dim_node_data[1],dim_neighborhood) %>% unique() %[[% 1
+  nnodes <- c(dim_node_data[1],dim_neighborhood)
+  nnodes <- unique(nnodes)[[1]]
   node_neighborhood <- node_neighborhood %|!|%
     try_coercion(node_neighborhood,"Matrix")
 
@@ -267,11 +272,13 @@ sp_network_nodes <- function(
     return(nodes)
 
   # determine the key used for sorting and merging
-  assert_is_one_of(node_data, c("matrix", "data.frame","data.table"))
+  assert_is_one_of(node_data, c("matrix", "data.frame","data.table", "Matrix"))
   node_data <- as.data.table(node_data)
 
   # Create the ID column and make it a key
   data_needs_key <- is.null(node_id_column)
+
+  # TODO remove data.table
   if (data_needs_key) {
     node_keys <- network_id %p% "_" %p% seq_len(nrow(node_data))
     node_data[, ID := factor_in_order(node_keys)]
@@ -280,7 +287,7 @@ sp_network_nodes <- function(
     data.table::setnames(node_data, node_id_column, "ID")
     node_data[, ID := factor_in_order(ID)]
   }
-  nodes@node_data <- node_data %>% setkey(ID)
+  nodes@node_data <- setkey(node_data, ID)
 
   if (validObject(nodes))
     return(nodes)

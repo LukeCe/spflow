@@ -2,13 +2,12 @@
 
 # This script adds new generics and virtual classes that are used inside the
 # package it should be run before all other classes which is ensured by the
-# class_[abc] naming convention.
+# class_[abc] naming convention for scripts that define classes.
 
 
 # ---- Maybe Classes ----------------------------------------------------------
 # allow NULL slots during instantiation of classes
 # data.table is not exported -> resort to data.frame
-setClassUnion("maybe_data.table", c("NULL", "data.frame"))
 setClassUnion("maybe_data.frame", c("NULL", "data.frame"))
 setClassUnion("maybe_Matrix"    , c("NULL", "Matrix"))
 setClassUnion("maybe_matrix"    , c("NULL", "matrix"))
@@ -21,6 +20,7 @@ setClassUnion("maybe_numeric"   , c("NULL", "numeric"))
 
 #' @rdname add_details
 #' @name add_details
+#' @keywords internal
 setGenericVerif("add_details",function(object, ...){ # ---- add_details -------
   standardGeneric("add_details")})
 
@@ -33,7 +33,6 @@ setGenericVerif("dat",  function(object, ...){ # ---- dat ---------------------
   standardGeneric("dat")})
 
 #' @title Access the data of [sp network objects][sp_network_classes()]
-#' @inheritParams dat
 #' @param value A data.frame to replace existing data
 #' @name dat<-
 #' @export

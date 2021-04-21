@@ -19,6 +19,7 @@
 #' @family spflow network objects
 #' @importClassesFrom data.table data.table
 #' @importClassesFrom Matrix Matrix
+#' @name sp_network_pair-class
 #' @export
 setClass("sp_network_pair",
          slots = c(orig_net_id     = "character",
@@ -26,18 +27,19 @@ setClass("sp_network_pair",
                    dest_net_id     = "character",
                    dest_nnodes     = "maybe_numeric",
                    network_pair_id = "character",
-                   pair_data       = "maybe_data.table",
+                   pair_data       = "maybe_data.frame",
                    npairs          = "maybe_numeric"))
 
 # ---- Methods ----------------------------------------------------------------
 
-#' @rdname dat
+#' @rdname sp_network_pair-class
 #' @export
 #' @examples
-#' ## Method for sp_network_pair
+#' ## access the data describing the node pairs
 #'
 #' net_pair_ge_ge <- pull_pairs(multi_net_usa_ge,"ge_ge")
 #' dat(net_pair_ge_ge)
+#'
 setMethod(
   f = "dat",
   signature = "sp_network_pair",
@@ -46,7 +48,7 @@ setMethod(
   })
 
 #' @param ... more arguments passed to the constructor [sp_network_pair()]
-#' @rdname dat-set
+#' @rdname sp_network_pair-class
 #' @keywords internal
 setReplaceMethod(
   f = "dat",
@@ -54,26 +56,28 @@ setReplaceMethod(
   function(object, value) {  # ---- dat <- -------------------------------
     object@pair_data <- value
     object@npairs <- nrow(value)
-    return(object)
+    if (validObject(object))
+      return(object)
   })
 
 #' @param what
-#'    A character to indicating from what part the id should be retrieved;
+#'    A character to indicating from which part the id should be retrieved;
 #'    should be in c("orig","dest", "pair").
-#' @rdname id
-#' @aliases id<-
+#' @rdname sp_network_pair-class
 #' @export
 #' @examples
-#' ## Method for sp_network_pair
+#' ## access the id of a network pair
 #'
 #' net_pair_ge_ge <- pull_pairs(multi_net_usa_ge,"ge_ge")
 #' id(net_pair_ge_ge)
 #' id(net_pair_ge_ge) <- "Germany_Germany"
+#'
 setMethod(
   f = "id",
   signature = "sp_network_pair",
   function(object,what = cases) { # ---- id -----------------------------------
 
+    # TODO remove the what argument from id
     ids <- c(
       "pair" = object@network_pair_id,
       "orig" = object@orig_net_id,
@@ -86,15 +90,16 @@ setMethod(
   })
 
 
-#' @rdname id
+#' @rdname sp_network_pair-class
 #' @export
 setReplaceMethod(
   f = "id",
   signature = "sp_network_pair",
   function(object,value) {  # ---- id <- --------------------------------------
 
-    new_id_orig <- strsplit(value,"_") %>% unlist() %>% head(1)
-    new_id_dest <- strsplit(value,"_") %>% unlist() %>% tail(1)
+    split_ids   <- unlist(strsplit(value,"_"))
+    new_id_orig <- split_ids[1]
+    new_id_dest <- split_ids[length(split_ids)]
     new_id_pair <- new_id_orig %p% "_" %p% new_id_dest
     assert(new_id_pair == value,
            "The provided pair id is not valid.")
@@ -107,11 +112,14 @@ setReplaceMethod(
       return(object)
   })
 
-#' @rdname npairs
+#' @rdname sp_network_pair-class
 #' @export
 #' @examples
+#' ## access the number of node pairs in a network pair
+#'
 #' net_pair_ge_ge <- pull_pairs(multi_net_usa_ge,"ge_ge")
 #' npairs(net_pair_ge_ge)
+#'
 setMethod(
   f = "npairs",
   signature = "sp_network_pair",
@@ -121,17 +129,23 @@ setMethod(
 
 #' @param what
 #'    A character to indicate what to count; should be in c("orig","dest").
-#' @rdname npairs
+#' @rdname sp_network_pair-class
+#' @export
 #' @examples
+#' ## access the number of origin and destination nodes in a network pair
+
 #' net_pair_ge_ge <- pull_pairs(multi_net_usa_ge,"ge_ge")
 #' nnodes(net_pair_ge_ge)
-#' nnodes(net_pair_ge_ge,"orig")
-#' nnodes(net_pair_ge_ge,"dest")
+#' nnodes(net_pair_ge_ge)["orig"]
+#' nnodes(net_pair_ge_ge)["dest"]
+#' prod(nnodes(net_pair_ge_ge) == npairs(net_pair_ge_ge))
+#'
 setMethod(
   f = "nnodes",
   signature = "sp_network_pair",
   function(object, what = cases) { # ---- nnodes ------------------------------
 
+    # TODO remove the what argument from nnodes
     count_nodes <- list(
       "orig" = object@orig_nnodes,
       "dest" = object@dest_nnodes
@@ -155,20 +169,22 @@ setMethod(
 
     od_explain <- "\n%s network id: %s (with %s nodes)"
 
-    cat(od_explain %>% sprintf(
-      "Origin", id(object,"orig"), nnodes(object, "orig") %||% "[?]"))
-    cat(od_explain %>% sprintf(
-      "Destination", id(object,"dest"), nnodes(object, "dest")  %||% "[?]"))
+    cat(sprintf(od_explain,
+                "Origin", id(object,"orig"),
+                nnodes(object, "orig") %||% "[?]"))
+    cat(sprintf(od_explain,
+                "Destination", id(object,"dest"),
+                nnodes(object, "dest")  %||% "[?]"))
 
-    has_all_counts <- (c(npairs(object),nnodes(object)) %>% length()) == 3
+    has_all_counts <- length(c(npairs(object),nnodes(object))) == 3
     if (has_all_counts) {
       cat("\nNumber of pairs:", npairs(object))
       pair_explain <- "\nCompleteness of pairs: %s (%i/%i)"
-      cat(pair_explain %>% sprintf(
-        format_percent(npairs(object) / prod(nnodes(object))),
-        npairs(object),
-        prod(nnodes(object))
-      ))
+      cat(sprintf(pair_explain,
+                  format_percent(npairs(object) / prod(nnodes(object))),
+                  npairs(object),
+                  prod(nnodes(object))
+                  ))
     }
 
     has_data <- !is.null(dat(object))
@@ -194,9 +210,10 @@ setValidity("sp_network_pair", function(object) { # ---- validity -------------
   if (is.null(dat(object)))
     return(TRUE)
 
+  # TODO remove data.table
   possible_pair_count <- prod(nnodes(object)) >= npairs(object)
   data_keys <- dat(object)[,data.table::key(dat(object))]
-  unique_identification <- unique(data_keys) %>% nrow() == npairs(object)
+  unique_identification <- nrow(unique(data_keys)) == npairs(object)
 
   if (!all(possible_pair_count,unique_identification)) {
     error_msg <- "The observations cannot be identifyed!"
@@ -263,7 +280,7 @@ sp_network_pair <- function(
   pair_data[, DEST_ID := factor_in_order(DEST_ID)]
 
   setkeyv(pair_data,cols = key_cols)
-  network_pair@pair_data <- pair_data
+  network_pair@pair_data   <- pair_data
   network_pair@orig_nnodes <- nlevels(network_pair@pair_data$ORIG_ID)
   network_pair@dest_nnodes <- nlevels(network_pair@pair_data$DEST_ID)
   network_pair@npairs      <- nrow(pair_data)

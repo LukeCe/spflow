@@ -35,7 +35,7 @@
 #' paris10km_net <- sp_network_nodes(
 #'   network_id = "paris10km",
 #'   node_neighborhood = paris10km_mat_nb$by_border,
-#'   node_data = paris10km_nodes %>% sf::st_drop_geometry(.),
+#'   node_data = sf::st_drop_geometry(paris10km_nodes),
 #'   node_id_column = "ID")
 #'
 #' # define the sp_network_pair...
@@ -172,7 +172,7 @@ setMethod(
 #' @inheritParams dat_template
 #' @rdname variable_names
 #' @aliases variable_names<-
-#' @export
+#' @keywords internal
 setMethod(
   f = "variable_names",
   signature = c("sp_network_nodes_pairs"),

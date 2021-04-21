@@ -83,7 +83,6 @@ setClass("spflow_model",
 #' @param model_matrices A list as returned by [spflow_model_matrix()]
 #' @param flow_control A list as returned by [spflow_control()]
 #'
-#' @name add_details
 #' @keywords  internal
 setMethod(
   f = "add_details",
@@ -113,10 +112,8 @@ setMethod(
 
     fit_trend <- nb_rho
     if (nb_rho > 0) {
-      fit_trend <-
-        mapply(FUN = "*", model_matrices$Y[-1],rho,SIMPLIFY = FALSE) %>%
-        Reduce("+", x = . ) %>%
-        as.vector()
+      fit_trend <- mapply(FUN = "*", model_matrices$Y[-1],rho,SIMPLIFY = FALSE)
+      fit_trend <- as.vector(Reduce("+", x = fit_trend ))
     }
 
     fit_signal <- compute_signal(model_matrices = object@design_matrix,
@@ -212,15 +209,15 @@ setMethod(
       n_o <- flow_dim[2]
       rho <- coef(object)[seq_len(nb_rho)]
       A <- expand_flow_neighborhood(DW = DW, OW = OW,
-                                    n_o = n_o, n_d = n_d, model = model) %>%
-        spatial_filter(., rho)
+                                    n_o = n_o, n_d = n_d, model = model)
+      A <- spatial_filter(A, rho)
 
       # create the signal part of the fitted values
       delta <- coef(object)[-seq_len(nb_rho)]
       signal <- compute_signal(object@design_matrix, delta)
       fit_signal <- solve(A,signal)
 
-      # TODO generelize flow extraction to handle vector and matrix
+      # TODO generalize flow extraction to handle vector and matrix
       # create the noise part of the fitted values
       observed_flows <- as.vector(object@design_matrix$Y_[[1]])
       noise <- observed_flows - fit_signal
@@ -306,14 +303,14 @@ setMethod(
 
     res <- results(object)
     flat_results <- lapply(res_info, function(.col) {
-      res[.col] %>% t() %>% suffix_columns("_" %p% .col) %>%
-        data.frame(row.names = NULL,check.names = FALSE)
+        tmp <- suffix_columns(t(res[.col]), "_" %p% .col)
+        data.frame(tmp, row.names = NULL,check.names = FALSE)
     })
 
 
-    flat_controls <- object@estimation_control[cntrol_info] %>%
-      as.data.frame() %>%
-      cbind("sigma_est" = sd_error(object))
+    flat_controls <-
+      cbind(as.data.frame(object@estimation_control[cntrol_info]),
+            "sigma_est" = sd_error(object))
 
     return(cbind(flat_controls,flat_results))
   })
@@ -422,19 +419,18 @@ compute_signal <- function(model_matrices, delta) {
   sub_index <- list(
     "const" = model_matrices$constants$global %||% 0,
     "const_intra" = 1 - is.null(model_matrices$constants$intra),
-    "D_" = seq_len(ncol(model_matrices$D_) %||% 0) %|0|% 0,
-    "O_" = seq_len(ncol(model_matrices$O_) %||% 0) %|0|% 0,
-    "I_" = seq_len(ncol(model_matrices$I_) %||% 0) %|0|% 0,
-    "G_" = seq_len(length(model_matrices$G)) %|0|% 0) %>%
-    sequentialize_index()
+    "D_" = seq_len(ncol(model_matrices$D_) %||% 0) %||% 0,
+    "O_" = seq_len(ncol(model_matrices$O_) %||% 0) %||% 0,
+    "I_" = seq_len(ncol(model_matrices$I_) %||% 0) %||% 0,
+    "G_" = seq_len(length(model_matrices$G)) %||% 0)
+  sub_index <- sequentialize_index(sub_index)
 
-  # Calculate the components of the signal
-  # missing components are set to zero and do not affect the final sum
-  # number of destinations is required
+  ## Calculate the components of the signal.
+  # Missing components are set to zero and do not affect the final sum.
+  # Number of destinations is required because of recycling.
   vector_or_null <- function(part_id) {
-    model_matrices[[part_id]] %|!|%
-      as.vector(model_matrices[[part_id]] %*%
-                  delta[sub_index[[part_id]]])
+    .v <- model_matrices[[part_id]]
+    .v %|!|% as.vector(.v %*% delta[sub_index[[part_id]]])
   }
   n_d <- nrow(model_matrices$Y_[[1]])
 
@@ -463,9 +459,8 @@ compute_signal <- function(model_matrices, delta) {
   # G part - (origin-destination pair attributes)
   g_term <- 0
   if (length(model_matrices$G_) != 0 ) {
-    g_term <-
-      plapply(model_matrices$G_, delta[sub_index$G_], .f = "*") %>%
-      lreduce("+") %>% as.matrix()
+    g_term <- Map("*", model_matrices$G_, delta[sub_index$G_])
+    g_term <- as.matrix(Reduce("+", g_term))
   }
 
   signal <- as.vector(const + const_intra + dest + orig + intra + g_term)
