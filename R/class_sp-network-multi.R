@@ -89,9 +89,10 @@ setMethod(
     }
 })
 
-#' @param network_ids
-#'     A character vector of ids for contained [sp_network_nodes()] objects
 #' @rdname sp_multi_network-class
+#' @param network_ids A character vector indicating the ids of the
+#'     [sp_network_nodes()] objects to extract from the
+#'     [sp_multi_network-class()]
 #' @keywords internal
 setMethod(
   f = "pull_neighborhood",
@@ -106,8 +107,10 @@ setMethod(
     return(neighborhood(network_nodes))
     })
 
-#' @inheritParams pull_neighborhood
 #' @rdname sp_multi_network-class
+#' @param network_ids A character vector indicating the ids of the
+#'     [sp_network_nodes()] objects to extract from the
+#'     [sp_multi_network-class()]
 #' @export
 #' @examples
 #' ## access a network inside a multi_network

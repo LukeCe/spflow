@@ -117,10 +117,12 @@ var_usage_to_lag <- function(.vars, out_inst = FALSE) {
   sdm <- .vars$sdm
   inst <- .vars$inst
 
-  inst0 <- inst %>% setdiff(norm) %>% setdiff(sdm)
-  inst1 <- inst %>% setdiff(sdm)
-  inst2 <- inst %>% setdiff(inst0)
-  inst3 <- inst %>% setdiff(inst0) %>% intersect(sdm)
+  inst0 <- setdiff(inst, norm)
+  inst0 <- setdiff(inst0, sdm)
+  inst1 <- setdiff(inst, sdm)
+  inst2 <- setdiff(inst, inst0)
+  inst3 <- setdiff(inst, inst0)
+  inst3 <- intersect(inst3, sdm)
 
   # variable order them into the required number of lags
   # optionally output the instrument status instead of the variable names
@@ -136,24 +138,24 @@ var_usage_to_lag <- function(.vars, out_inst = FALSE) {
   i <- function(.var) inst_lookup(.var,is_inst = TRUE)
   ni <- function(.var) inst_lookup(.var,is_inst = FALSE)
 
-  required_lags <-
-    list(
-      "lag0" = c(ni(norm), i(inst0)),
-      "lag1" = c(ni(sdm),i(inst1)),
-      "lag2" = i(inst2),
-      "lag3" = i(inst3)
-    ) %>% compact() %>% lapply("sort_names")
-
+  required_lags <- list(
+    "lag0" = c(ni(norm), i(inst0)),
+    "lag1" = c(ni(sdm), i(inst1)),
+    "lag2" = i(inst2),
+    "lag3" = i(inst3)
+  )
+  required_lags <- lapply(compact(required_lags), "sort_names")
   return(required_lags)
-
 }
 
 #' @keywords  internal
 sources_to_roles <- function(is_within) {
   D_ <- "D_" %T% is_within
-  list("pair" = c("Y_", "G_"),
-       "orig" = c("O_", D_, "I_"),
-       "dest" = "D_" %T% (!is_within)) %>% compact()
+  compact(list(
+    "pair" = c("Y_", "G_"),
+    "orig" = c("O_", D_, "I_"),
+    "dest" = "D_" %T% (!is_within)
+  ))
 }
 
 #' @keywords internal
@@ -164,6 +166,7 @@ suffix_sp_lags <- function(lag_req) {
 
 #' @keywords internal
 set_instrument_status <- function(x, is_inst) {
+  #TODO remove data.table
   data.table::setattr(x, "is_instrument_var", is_inst)
 }
 
@@ -181,9 +184,8 @@ orthoginolize_instruments <- function(mat) {
     return(mat)
 
   vars <- mat[,!inst_index]
-  inst_orth <- mat[,inst_index] %>%
-    decorellate_matrix(cbind(1,vars)) %>%
-    linear_dim_reduction(var_threshold = 1e-4)
+  inst_orth <- decorellate_matrix(mat[,inst_index], cbind(1,vars))
+  inst_orth <- linear_dim_reduction(inst_orth, var_threshold = 1e-4)
 
   new_matr <- cbind(vars,inst_orth)
   set_instrument_status(new_matr, inst_index[seq_len(ncol(new_matr))])
@@ -194,11 +196,11 @@ orthoginolize_instruments <- function(mat) {
 #' @keywords internal
 matrix_format <- function(mat_vec_fmt, columns, ...){
 
-  args <- list(...) %>% flatlist()
+  args <- flatlist(list(...))
   column_to_matrix <- function(col) {
     do.call("vec_to_matrix",args = c(args, list(vec = mat_vec_fmt[,col])))
     }
-  matrix_list <- lookup(columns) %>% lapply(column_to_matrix)
+  matrix_list <- lapply(lookup(columns), column_to_matrix)
   return(matrix_list)
 }
 
@@ -317,8 +319,8 @@ derive_pair_instruments <- function(G,OW,DW,name = "G", full_inst = FALSE) {
   # collect and name matrices
   G_obj <- c("G",g_lags)
   lag_name <- lookup(names = G_obj,values = name %p% c("", ".lag." %p% g_lags))
-  G_inst <- collect(c("G",g_lags)) %>% compact() %>%
-    set_lnames(lag_name[names(.)])
+  G_inst <- compact(collect(c("G",g_lags)))
+  names(G_inst) <- lag_name[names(G_inst)]
   return(G_inst)
 }
 

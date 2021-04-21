@@ -308,15 +308,13 @@ trace_lookup_template <- function(aprox_order) {
   possible_powers <- 0:aprox_order
 
   # generate all options for a trinominal expansion
-  trace_orders <-
-    utils::combn(rep(possible_powers,3),3) %>% t() %>%
-    data.table::as.data.table()
+  # TODO remove data.table
+  trace_orders <- utils::combn(rep(possible_powers,3),3)
+  trace_orders <- data.table::as.data.table(t(trace_orders))
   data.table::setnames(trace_orders,"rho_" %p% c("d","o","w") )
 
   trace_orders[,t := rowSums(trace_orders)]
-  trace_orders <-
-    trace_orders[data.table::between(t,1,aprox_order),] %>%
-    unique()
+  trace_orders <- unique(trace_orders[data.table::between(t,1,aprox_order),])
 
   # add the trinominal coefficient
   trace_orders[, c_trinom := multinom_coef(list(rho_d,rho_o,rho_w))]

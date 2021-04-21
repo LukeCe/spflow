@@ -59,7 +59,6 @@
 #' alternative definitions of the neighborhood of the municipalities.
 #'
 #'
-#'
 #' @source The data combine different public sources:
 #'   * \href{https://public.opendatasoft.com/explore/dataset/code-postal-code-insee-2015/table/?flg=fr}{Population, area, shape, ...}
 #'   * \href{https://www.insee.fr/fr/statistiques/2021271}{Number of companies in each municipality}

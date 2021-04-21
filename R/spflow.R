@@ -195,8 +195,8 @@ spflow <- function(
     yes = "within", no = "between"
   )
   flow_control$flow_completeness <- (
-    sp_multi_network %>% pull_pairs(network_pair_id) %>% npairs() /
-    sp_multi_network %>% pull_pairs(network_pair_id) %>% nnodes() %>% prod()
+    npairs(pull_pairs(sp_multi_network, network_pair_id)) /
+      prod(nnodes(pull_pairs(sp_multi_network, network_pair_id)))
   )
   flow_control$sp_model_type <- sp_model_type(flow_control)
 

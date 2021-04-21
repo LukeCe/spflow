@@ -18,22 +18,24 @@ setClassUnion("maybe_numeric"   , c("NULL", "numeric"))
 
 # ---- New Generics -----------------------------------------------------------
 
-#' @rdname add_details
 #' @name add_details
+#' @rdname add_details
 #' @keywords internal
 setGenericVerif("add_details",function(object, ...){ # ---- add_details -------
   standardGeneric("add_details")})
 
 
 #' @title Access the data of [sp network objects][sp_network_classes()]
+#' @description For details see the documentation of the corresponding classes.
 #' @param object One of [sp_network_nodes-class()], [sp_network_pair-class()]
 #' @name dat
+#' @aliases dat-set
 #' @export
 setGenericVerif("dat",  function(object, ...){ # ---- dat ---------------------
   standardGeneric("dat")})
 
-#' @title Access the data of [sp network objects][sp_network_classes()]
 #' @param value A data.frame to replace existing data
+#' @rdname dat
 #' @name dat<-
 #' @export
 setGenericVerif("dat<-",  function(object, ..., value){ # ---- dat <- ---------
@@ -53,7 +55,7 @@ setGenericVerif("drop_columns", function(object, ...){ # ---- drop_columns ----
 
 
 #' @title Access the id of [spflow network objects][sp_network_classes()]
-#'
+#' @description For details see the documentation of the corresponding classes.
 #' @param object A [spflow network object][sp_network_classes()]
 #' @name id
 #' @aliases id-set
@@ -68,13 +70,16 @@ setGenericVerif("id", function(object, ...){ # ---- id ------------------------
 setGenericVerif("id<-",function(object,...,value){ # ---- id <- ---------------
   standardGeneric("id<-")})
 
+#' @title Access the sampling results of a [spflow_model_mcmc-class()]
+#' @description For details see the documentation of the corresponding class.
 #' @name mcmc_results
-#' @rdname spflow_model-class
+#' @param object A [spflow_model_mcmc-class()]
 #' @export
 setGenericVerif("mcmc_results", function(object){ # ---- mcmc_results ---------
   standardGeneric("mcmc_results")})
 
 #' @title Access the neighborhood of a [sp_network_nodes-class()]
+#' @description For details see the documentation of the corresponding class.
 #' @param object A [sp_network_nodes-class()]
 #' @name neighborhood
 #' @export
@@ -89,8 +94,9 @@ setGenericVerif("neighborhood<-",
                 function(object, value){ # ---- neighborhood <- ---------------
   standardGeneric("neighborhood<-")})
 
-#' @title
-#' Access the node count of [spflow network objects][sp_network_classes()]
+#' @title Access the node count of a [sp_network_nodes-class()] or a
+#'     [sp_network_pair-class()]
+#' @description For details see the documentation of the corresponding classes.
 #' @param object One of [sp_network_nodes-class()], [sp_network_pair-class()]
 #' @rdname nnodes
 #' @name nnodes
@@ -98,39 +104,38 @@ setGenericVerif("neighborhood<-",
 setGenericVerif("nnodes",function(object, ...){ # ---- nnodes -----------------
   standardGeneric("nnodes")})
 
-#' @title Access the pair count of a [sp_network_pair-class()]
+#' @title Access the node pair count of a [sp_network_pair-class()]
+#' @description For details see the documentation of the corresponding class.
 #' @param object A [sp_network_pair-class()]
-#' @rdname npairs
 #' @name npairs
 #' @export
-#' @examples
-#' pairs_ge_ge <- pull_pairs(multi_net_usa_ge, "ge_ge")
-#' npairs(pairs_ge_ge)
 setGenericVerif("npairs",function(object){ # ---- npairs ----------------------
   standardGeneric("npairs")})
 
-
+#' @title Merge the all information on origins and destinations to the node
+#'     pairs.
 #' @rdname pair_merge
 #' @name pair_merge
+#' @param object A [sp_multi_network-class()]
 #' @export
 setGenericVerif("pair_merge", function(object, ...){ # ---- pair_merge --------
   standardGeneric("pair_merge")})
 
 
-#' @title
-#'   Access the neighborhood matrix of the nodes inside
-#'   [spflow network objects][sp_network_classes()]
-#' @param object A [sp_network_pair()]
+#' @title Access the neighborhood matrix of the nodes inside a
+#'     [sp_multi_network-class()]
+#' @description For details see the documentation of the corresponding class.
+#' @param object A [sp_multi_network-class()]
 #' @name pull_neighborhood
-#' @rdname pull_neighborhood
 #' @export
 setGenericVerif("pull_neighborhood",
                 function(object, ...){ # ---- pull_neighborhood ---------------
                   standardGeneric("pull_neighborhood")})
 
 #' @title Access the one or multiple [sp_network_nodes()] in a
-#'   [sp_multi_network()]
-#' @param object A [sp_multi_network()]
+#'     [sp_multi_network-class()]
+#' @param object A [sp_multi_network-class()]
+#' @description For details see the documentation of the corresponding class.
 #' @name pull_nodes
 #' @export
 setGenericVerif("pull_nodes",
@@ -138,8 +143,9 @@ setGenericVerif("pull_nodes",
                   standardGeneric("pull_nodes")})
 
 #' @title Access the one or multiple [sp_network_pair()] in a
-#'   [sp_multi_network()]
+#'     [sp_multi_network()]
 #' @param object A [sp_multi_network()]
+#' @description For details see the documentation of the corresponding class.
 #' @name pull_pairs
 #' @export
 setGenericVerif("pull_pairs",
@@ -147,11 +153,10 @@ setGenericVerif("pull_pairs",
                   standardGeneric("pull_pairs")})
 
 
-#' @title
-#' Access results of a [spflow_model()]
-#'
+#' @title Access results of a [spflow_model-class()]
 #' @name results
-#' @param object A [spflow_model()]
+#' @description For details see the documentation of the corresponding class.
+#' @param object A [spflow_model-class()]
 #' @export
 setGenericVerif("results",  function(object){ # ---- results -------------
   standardGeneric("results")})
@@ -168,20 +173,21 @@ setGenericVerif("results<-",  function(object, value){ # ---- results <- ------
 #' @param object spflow_model_meta
 #' @name results_flat
 #' @rdname results_flat
-#' @export
+#' @keywords internal
 setGenericVerif("results_flat",
                 function(object, ...){ # ---- results_flat --------------------
   standardGeneric("results_flat")})
 
 #' @title Extract the standard deviation from a [spflow_model-class()]
+#' @description For details see the documentation of the corresponding class.
 #' @param object A [spflow_model-class()]
-#' @rdname spflow_model
 #' @name sd_error
 setGenericVerif("sd_error", function(object){ # ---- sd_error -----------------
   standardGeneric("sd_error")})
 
 
-#' @title Add columns to the data in a [sp_network_nodes()] or [sp_network_pair()]
+#' @title Add columns to the data in a [sp_network_nodes()] or
+#'     [sp_network_pair()]
 #' @details  This function assigns by reference.
 #' @param object One of; [sp_network_nodes()], [sp_network_pair()]
 #' @name set_columns
@@ -191,6 +197,7 @@ setGenericVerif("set_columns", function(object, ...){ # ---- set_columns ------
 
 
 #' @title Access variance-covariance matrix in a [spflow_model-class()]
+#' @description For details see the documentation of the corresponding class.
 #' @param object A [spflow_model-class()]
 #' @name varcov
 #' @export
@@ -200,7 +207,7 @@ setGenericVerif("varcov",  function(object){ # ---- varcov --------------------
 
 #' @rdname variable_names
 #' @name variable_names
-#' @export
+#' @keywords internal
 setGenericVerif("variable_names",
                 function(object,...){ # ---- variable_names -------------------
   standardGeneric("variable_names")})

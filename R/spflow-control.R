@@ -90,8 +90,8 @@ spflow_control <- function(
 
   available_estimators <- c("s2sls", "mle","mcmc","ols")
   assert(estimation_method %in% available_estimators,
-         "The estimation method must be one of [%s]!" %>%
-           sprintf(., paste(available_estimators, collapse = " or ")))
+         sprintf("The estimation method must be one of [%s]!",
+                 paste(available_estimators, collapse = " or ")))
 
   possible_models <- ("model_" %p% 1:9)
   assert(model %in% possible_models,
@@ -137,8 +137,8 @@ spflow_control <- function(
 
   available_hessians <- c("mixed","f2") # ,... exact
   assert(hessian_method %in% available_hessians,
-         "The hessian method must be one of [%s]!" %>%
-           sprintf(., paste(available_hessians, collapse = " or ")))
+         sprintf("The hessian method must be one of [%s]!",
+                 paste(available_hessians, collapse = " or ")))
 
   # check flow types
   # can be within or between once the rectangular case is available

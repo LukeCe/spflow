@@ -30,13 +30,12 @@ spflow_mixed_hessian <- function(
   tau <- c(1, -rho)
   ZJ <- ZY[ ,-1, drop = FALSE]
 
-  hess_21 <-
-    rbind(-ZJ/sigma2,
-          (crossprod(delta,ZJ) - tau %*% TSS[, -1])/sigma4) %>%
-    matrix(ncol = size_rho)
+  hess_21 <- rbind(-ZJ/sigma2,
+                   (crossprod(delta,ZJ) - tau %*% TSS[, -1])/sigma4)
+  hess_21 <- matrix(hess_21, ncol = size_rho)
   hess_12 <- t(hess_21)
 
-  # block 1,1 = rho, rho = mixed numrical analytical solution
+  # block 1,1 = rho, rho = mixed numerical analytical solution
   hess_11 <- numerical_hess + hess_12 %*% solve(hess_22, hess_21)
 
   full_hessian <-

@@ -82,7 +82,7 @@ setClass("spflow_model",
 #' @param object A [spflow_model-class()]
 #' @param model_matrices A list as returned by [spflow_model_matrix()]
 #' @param flow_control A list as returned by [spflow_control()]
-#'
+#' @name add_details
 #' @keywords  internal
 setMethod(
   f = "add_details",
@@ -153,7 +153,6 @@ setMethod(
   })
 
 #' @title Access the number if observations of a spatial interaction model
-#'
 #' @param object A [spflow_model()]
 #' @rdname spflow_model-class
 #' @export
@@ -166,7 +165,6 @@ setMethod(
 
 
 #' @title Prediction methods for spatial interaction models
-#'
 #' @param object A [spflow_model()]
 #' @param type A character declaring the type of prediction (for now only "BP")
 #' @param ... Further arguments passed to the prediction function
@@ -177,7 +175,7 @@ setMethod(
 setMethod(
   f = "predict",
   signature = "spflow_model",
-  function(object, ..., type = "BP") { # ---- predict -------------------------------------------
+  function(object, ..., type = "BP") { # ---- predict -------------------------
 
 
     # TODO describe the prediction better
@@ -217,7 +215,7 @@ setMethod(
       signal <- compute_signal(object@design_matrix, delta)
       fit_signal <- solve(A,signal)
 
-      # TODO generalize flow extraction to handle vector and matrix
+      # TODO generalize flow extraction to handle vector and matrix formulation
       # create the noise part of the fitted values
       observed_flows <- as.vector(object@design_matrix$Y_[[1]])
       noise <- observed_flows - fit_signal

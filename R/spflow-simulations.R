@@ -12,11 +12,9 @@ invert_spatial_filter <- function(
 ) {
 
   combined_weight_matrices <-
-    weight_matrices %>%
-    safely_to_list() %>%
-    plapply(., autoreg_parameters, .f = "*") %>%
-    lreduce("+") %>%
-    as.matrix()
+    Map("*", safely_to_list(weight_matrices),autoreg_parameters)
+  combined_weight_matrices <-
+    as.matrix(Reduce("+", combined_weight_matrices))
 
   N <- nrow(combined_weight_matrices)
 
@@ -86,7 +84,7 @@ expand_flow_neighborhood <- function(
   Wo <- NULL
   Ww <- NULL
 
-  model_number <- substr(model,7,7) %>% as.integer()
+  model_number <- as.integer(substr(model,7,7))
 
   d_models <- c(2,5:9)
   o_models <- c(3,5:9)
@@ -114,7 +112,7 @@ expand_flow_neighborhood <- function(
     Ww <- OW %x% DW
   }
 
-  return(list("Wd" = Wd, "Wo" = Wo, "Ww" = Ww) %>% compact())
+  return(compact(list("Wd" = Wd, "Wo" = Wo, "Ww" = Ww)))
 }
 
 
@@ -140,17 +138,15 @@ spatial_filter <- function(
 ) {
 
   combined_weight_matrices <-
-    weight_matrices %>%
-    safely_to_list() %>%
-    mapply(FUN = "*", ., autoreg_parameters, SIMPLIFY = FALSE) %>%
-    Reduce(f = "+", x = .) %>%
-    Matrix()
+    Map("*", safely_to_list(weight_matrices),autoreg_parameters)
+  combined_weight_matrices <-
+    Matrix(Reduce("+", combined_weight_matrices))
 
   N <- nrow(combined_weight_matrices)
   A <- Diagonal(N) - combined_weight_matrices
-  f_A <- if (invert) solve else x_
+  A <- if (invert) solve(A) else A_
 
-  return(A %>% f_A)
+  return(A)
 }
 
 
@@ -167,10 +163,10 @@ spatial_model_order <- function(model = "model_9") {
 
   model_number <- substr(model,7,7)
 
-  order0_models <- c(1)   %>% lookup(rep(0, length(.)), .)
-  order1_models <- c(2:6) %>% lookup(rep(1, length(.)), .)
-  order2_models <- c(7)   %>% lookup(rep(2, length(.)), .)
-  order3_models <- c(8,9) %>% lookup(rep(3, length(.)), .)
+  order0_models <- lookup(0,1)
+  order1_models <- lookup(1,2:6)
+  order2_models <- lookup(2,7)
+  order3_models <- lookup(3,c(8,9))
 
   model_order <- c(order0_models,order1_models,order2_models,order3_models
   )[model_number]

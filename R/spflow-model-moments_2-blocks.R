@@ -29,8 +29,8 @@ moment_empirical_var <- function(model_matrices,N,n_d,n_o) {
 
   # prepare the moment weighting for the site attributes (D,O,I)
   order_keys <- c("D_","O_","I_")
-  X <- model_matrices[order_keys] %>% compact()
-  wt_odi <- derive_weights_ODI(wt,n_d,n_o) %[% names(X)
+  X <- compact(model_matrices[order_keys])
+  wt_odi <- derive_weights_ODI(wt,n_d,n_o)[names(X)]
 
   # prepare weighted pair attributes
   G_wt <- wt %|!|% lapply(model_matrices$G_, "*", wt)
@@ -39,36 +39,33 @@ moment_empirical_var <- function(model_matrices,N,n_d,n_o) {
   ## ---- compute the 10 moment blocks
 
   # [alpha] blocks (4/10)
-  alpha_blocks <- const_global %|!|% (list(
+  alpha_blocks <- const_global %|!|% Reduce("cbind",list(
     var_block_alpha(wt, N),
     var_block_alpha_alpha_I(const_intra_wt %||% const_intra),
     var_block_alpha_beta(X,wt_odi),
     var_block_alpha_gamma(G_wt %||% model_matrices$G_)
-    ) %>% lreduce(cbind))
+    ))
 
   # [alpha_I] blocks (7/10)
-  alpha_I_blocks <- const_intra %|!|% (list(
+  alpha_I_blocks <- const_intra %|!|% Reduce("cbind",list(
     var_block_alpha_I(const_intra,const_intra_wt),
     var_block_alpha_I_beta(const_intra_wt %||% const_intra,X),
     var_block_alpha_I_gamma(const_intra_wt %||% const_intra,
                             model_matrices$G)
-    ) %>% lreduce(cbind))
+    ))
 
   # [beta] blocks (9/10)
-  beta_blocks <- X %|!|% (list(
+  beta_blocks <- X %|!|% Reduce("cbind",list(
     var_block_beta(X,wt_odi,wt),
     var_block_beta_gamma(X, G_wt %||% model_matrices$G)
-    ) %>% lreduce(cbind))
+    ))
 
   # [gamma] block (10/10)
   gamma_block <- model_matrices$G %|!|% var_block_gamma(model_matrices$G, G_wt)
 
-  combined_blocks <-
-    list(alpha_blocks,alpha_I_blocks,beta_blocks,gamma_block) %>%
-    compact() %>%
-    rbind_fill_left() %>%
-    forceSymmetric("U") %>%
-    as.matrix()
+  combined_blocks <- list(alpha_blocks,alpha_I_blocks,beta_blocks,gamma_block)
+  combined_blocks <- rbind_fill_left(compact(combined_blocks))
+  combined_blocks <- as.matrix(forceSymmetric(combined_blocks, "U"))
 
   return(combined_blocks)
 }
@@ -92,31 +89,28 @@ var_block_alpha_I <- function(const_intra, const_intra_wt) {
 var_block_beta <- function(X,wt_odi,wt) {
 
   od_names <- c("D","O") %p% "_"
-  scalar_weights <- c(rapply(wt_odi, length),1) %>% has_equal_elements()
+  scalar_weights <- has_equal_elements(c(rapply(wt_odi, length),1))
   if (scalar_weights) {
-    cross_prods <- lapply(X, "crossprod") %>% plapply(wt_odi,.f = "*")
+    cross_prods <- Map("*", lapply(X, "crossprod"), wt_odi)
     outer_prods <- tcrossprod(colSums(X$D_),colSums(X$O_))
-    intra_prods <- X$I_ %|!|% lapply(X %[% od_names, "crossprod", X$I_)
+    intra_prods <- X$I_ %|!|% lapply(X[od_names], "crossprod", X$I_)
   }
 
   if (!scalar_weights) {
-    cross_prods <-
-      plapply(X, wt_odi %>% lapply("sqrt"), .f = "*") %>% lapply("crossprod")
+    cross_prods <- Map("*", X, lapply(wt_odi,"sqrt"))
+    cross_prods <- lapply(cross_prods, "crossprod")
     outer_prods <- crossprod(X$D_, wt) %*% X$O_
     wt_XI <- X$I_ %|!|% wt_odi$I_ * X$I_
-    intra_prods <- wt_XI %|!|% lapply(X %[% od_names, "crossprod",wt_XI)
+    intra_prods <- wt_XI %|!|% lapply(X[od_names], "crossprod",wt_XI)
   }
 
   # fill the block from top to bottom
-  beta_block <- list(
+  beta_block <- compact(list(
     "D_" = cbind(cross_prods$D_,outer_prods,intra_prods$D_),
     "O_" = cbind(cross_prods$O_,intra_prods$O_),
-    "I_" = cbind(cross_prods$I_)) %>%
-    compact() %>%
-    rbind_fill_left() %>%
-    forceSymmetric("U") %>%
-    as.matrix()
-
+    "I_" = cbind(cross_prods$I_)))
+  beta_block <- rbind_fill_left(beta_block)
+  beta_block <- as.matrix(forceSymmetric(beta_block, "U"))
   return(beta_block)
 }
 
@@ -128,7 +122,7 @@ var_block_gamma <- function(G,G_wt) {
 # ---- Off-diagonal Blocks ----------------------------------------------------
 #' @keywords internal
 var_block_alpha_alpha_I <- function(const_intra) {
-  const_intra %|!|% (rapply(const_intra,sum) %>% matrix(nrow = 1))
+  const_intra %|!|% matrix(rapply(const_intra,sum), nrow = 1)
   }
 
 #' @keywords internal
@@ -137,15 +131,15 @@ var_block_alpha_beta <- function(X, wt_odi) {
   if (is.null(X))
     return(NULL)
 
-  scalar_weights <- c(rapply(wt_odi, length),1) %>% has_equal_elements()
+  scalar_weights <- has_equal_elements(c(rapply(wt_odi, length),1))
   if (scalar_weights) {
-    scaled_col_sums <-
-      plapply(wt_odi, X %>% lapply(col_sums),.f = "*") %>% lreduce(cbind)
+    scaled_col_sums <- Map("*", wt_odi, lapply(X, "col_sums"))
+    scaled_col_sums <- Reduce("cbind", scaled_col_sums)
   }
 
   if (!scalar_weights) {
-    scaled_col_sums <-
-      plapply(wt_odi, X, .f = "%*%") %>% lreduce(cbind)
+    scaled_col_sums <- Map("%*%", wt_odi, X)
+    scaled_col_sums <- Reduce("cbind", scaled_col_sums)
   }
   return(scaled_col_sums)
 }
@@ -153,7 +147,7 @@ var_block_alpha_beta <- function(X, wt_odi) {
 
 #' @keywords internal
 var_block_alpha_gamma <- function(G) {
-  G %|!|% (rapply(G,sum) %>% matrix(nrow = 1))
+  G %|!|% matrix(rapply(G,sum), nrow = 1)
 }
 
 #' @keywords internal
@@ -162,10 +156,7 @@ var_block_alpha_I_beta <- function(const_intra,X) {
   if (is.null(X) || is.null(const_intra))
     return(NULL)
 
-  result <-
-    lapply(const_intra, "matrix_prod_ODI", X) %>%
-    lreduce(rbind)
-
+  result <- Reduce("rbind", lapply(const_intra, "matrix_prod_ODI", X))
   return(result)
 }
 
@@ -186,27 +177,24 @@ var_block_beta_gamma <- function(X,G) {
   if (is.null(X) || is.null(G))
     return(NULL)
 
-  result <-
-    lapply(G, "matrix_prod_ODI", X) %>%
-    lapply(t) %>%
-    lreduce(cbind)
-
+  result <- lapply(G, "matrix_prod_ODI", X)
+  result <- Reduce("cbind", lapply(result, "t"))
   return(result)
 }
 
-# ---- Covariance Moments -------------------------------------------------
+# ---- Covariance Moments -----------------------------------------------------
 
 #' @keywords internal
 moment_empirical_covar <- function(Y, model_matrices) {
 
   order_keys <- c("D","O","I") %p% "_"
-  X <- model_matrices[order_keys] %>% compact()
-  result <- c(
+  X <- compact(model_matrices[order_keys])
+  result <- Reduce("c", c(
     cov_moment_alpha(Y) %T% (1 == model_matrices$constants$global),
     cov_moment_alpha_I(Y, model_matrices$constants$intra),
     cov_moment_beta(Y, X),
     cov_moment_gamma(Y, model_matrices$G)
-  ) %>% lreduce(c)
+  ))
   return(result)
 }
 
@@ -237,7 +225,7 @@ cov_moment_alpha_I <- function(Y,const_intra) {
 
 #' @keywords internal
 cov_moment_beta <- function(Y, X) {
-  matrix_prod_ODI(mat = Y,X = X) %>% as.vector()
+  as.vector(matrix_prod_ODI(mat = Y,X = X))
 }
 
 #' @keywords internal
@@ -266,8 +254,7 @@ matrix_prod_ODI <- function(mat,X) {
   result <- list(
     X$D_ %|!|% (rowSums(mat) %*% X$D_),
     X$O_ %|!|% (colSums(mat) %*% X$O_),
-    X$I_ %|!|% (diag(mat) %*% X$I_)
-    ) %>% lreduce(cbind)
-
+    X$I_ %|!|% (diag(mat) %*% X$I_))
+  result <- Reduce("cbind", result)
   return(result)
 }

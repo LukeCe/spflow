@@ -43,7 +43,7 @@ NULL
 #' @keywords internal
 #' @rdname elvis_operators
 "%|!|%" <- function(x, y) {
-  if (is.null(x)) NULL else y
+  if (length(x) != 0) y else NULL
 }
 
 #' @keywords internal

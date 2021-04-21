@@ -48,9 +48,10 @@ spflow_model_moments_mat <- function(
   # ...weighted Y if required
   Y_wt <- model_matrices$weights %|!|%
     lapply(model_matrices$Y_,"*",model_matrices$weights)
-  HY <- (Y_wt %||% model_matrices$Y_) %>%
-    lapply("moment_empirical_covar",model_matrices) %>%
-    Reduce(cbind, x = .,init = matrix(nrow = nrow(HH),ncol = 0))
+  HY <- Y_wt %||% model_matrices$Y_
+  HY <- lapply(HY, "moment_empirical_covar", model_matrices)
+  HY <- Reduce("cbind", x = HY,init = matrix(nrow = nrow(HH),ncol = 0))
+
   ZY <- HY[Z_index, , drop = FALSE]
 
   # ... TSS (dim = 1, for GMM | dim = rho + 1, for LL)
@@ -59,8 +60,7 @@ spflow_model_moments_mat <- function(
   # as additional dependent variable
   is_GMM_estimator <- estimator %in% c("s2sls","ols")
   y_index <- if (is_GMM_estimator) 1L else seq_len(ncol(ZY))
-  TSS <- crossproduct_mat_list(model_matrices$Y_[y_index],
-                               Y_wt[y_index])
+  TSS <- crossproduct_mat_list(model_matrices$Y_[y_index], Y_wt[y_index])
 
   ## ---- Likelihood moments (trace sequence of the weight matrix)
   # sequence of traces to approximate the log-determinant
@@ -73,7 +73,7 @@ spflow_model_moments_mat <- function(
   DW_traces <- model_matrices$DW %T% !is_GMM_estimator
   DW_traces <- DW_traces %|!|% trace_sequence(DW_traces, approximate_order)
 
-  model_moments <- list(
+  model_moments <- compact(list(
     "n_d"       = n_d,
     "n_o"       = n_o,
     "N"         = N,
@@ -83,7 +83,7 @@ spflow_model_moments_mat <- function(
     "ZY"        = ZY,
     "TSS"       = TSS,
     "OW_traces" = OW_traces,
-    "DW_traces" = DW_traces) %>% compact()
+    "DW_traces" = DW_traces))
 
   return(model_moments)
 }

@@ -68,13 +68,14 @@ pull_flow_data <- function(sp_multi_network, network_pair_id) {
   dest_data <- pull_nodes(sp_multi_network,dest_id) %T% (orig_id != dest_id)
   pair_data <- pull_pairs(sp_multi_network,pair_id)
 
-  flow_data <- list("orig" = orig_data,
-                    "dest" = dest_data,
-                    "pair" = pair_data) %>% compact() %>%
-    lapply("dat") %>% copy()
+  flow_data <- compact(list("orig" = orig_data,
+                            "dest" = dest_data,
+                            "pair" = pair_data))
+  flow_data <- lapply(flow_data, "dat")
+  flow_data <- lapply(flow_data, "copy")
 
   # define completeness and extract the keys
-  flow_data <- flow_data %>% lapply(function(.d) cols_drop(.d,key(.d)))
+  flow_data <- lapply(flow_data, function(.d) cols_drop(.d,key(.d)))
 
   return(flow_data)
 }
@@ -83,7 +84,7 @@ pull_flow_data <- function(sp_multi_network, network_pair_id) {
 pull_neighborhood_data <-  function(sp_multi_network, network_pair_id) {
 
   # identification of the data sources
-  data_source_ids <- id(sp_multi_network,"network_pairs") %[[% network_pair_id
+  data_source_ids <- id(sp_multi_network,"network_pairs")[[network_pair_id]]
   orig_id <- data_source_ids["orig"]
   dest_id <- data_source_ids["dest"]
 
@@ -101,8 +102,8 @@ def_matrix_form_args <- function(sp_multi_network, network_pair_id) {
     "completeness" = prod(nnodes(sp_pair)) / npairs(sp_pair),
     "n_rows" = nnodes(sp_pair,"orig"),
     "n_cols" = nnodes(sp_pair,"dest"),
-    "i_rows" = sp_pair %>% dat() %[[% "ORIG_ID" %>% as.integer(),
-    "j_cols" = sp_pair %>% dat() %[[% "DEST_ID" %>% as.integer())
+    "i_rows" = as.integer(dat(sp_pair)[["ORIG_ID"]]),
+    "j_cols" = as.integer(dat(sp_pair)[["DEST_ID"]]))
 
 
   return(flow_completeness)
@@ -118,15 +119,16 @@ def_spatial_lag_requirements <- function(formula_parts, data_sources) {
   roles <- c("Y_","G_","O_","D_","I_")
   is_within <- !is.null(data_sources)
   source_role_lookup <- roles_to_sources(is_within)
-  role_usage <- formula_parts %>% translist() %[% roles %>% compact()
+  role_usage <- translist(formula_parts)[roles]
+  role_usage <- compact(role_usage)
 
   what_vars_are_lagged_roles <- function(role_key) {
     source_key <- source_role_lookup[role_key]
     lapply(role_usage[[role_key]], "predict_tranfomed_vars",
            data_sources[[source_key]])
   }
-  role_lags <- lookup(names(role_usage)) %>%
-    lapply(what_vars_are_lagged_roles) %>% compact()
+  role_lags <- lapply(lookup(names(role_usage)), "what_vars_are_lagged_roles")
+  role_lags <- compact(role_lags)
 
   # remove lags for Y_ where it does not belong...
   dependent_vars <- role_lags$Y_$norm
@@ -146,9 +148,7 @@ roles_to_sources <- function(is_within) {
 #' @keywords internal
 define_flow_constants <- function(const_formula, use_instruments, OW = NULL) {
 
-  global_const <-
-    (1 %>%  set_instrument_status(FALSE)) %T% const_formula$global
-
+  global_const <- set_instrument_status(1, FALSE) %T% const_formula$global
   intra_const <- NULL
   if (isTRUE(const_formula$intra))
     intra_const <- intra_regional_constant(OW, use_instruments)
@@ -161,7 +161,7 @@ define_flow_constants <- function(const_formula, use_instruments, OW = NULL) {
 #' @keywords internal
 intra_regional_constant <- function(W, use_instruments = FALSE) {
 
-  In <- list("In" =  Diagonal(nrow(W)) %>% set_instrument_status(FALSE))
+  In <- list("In" =  set_instrument_status(Diagonal(nrow(W)),FALSE))
   if (!use_instruments)
     return(In)
 
@@ -177,7 +177,8 @@ intra_regional_constant <- function(W, use_instruments = FALSE) {
     "VV"  = tcrossprod(WV, W),
     "WV"  = WV,
     "VW'" = t(WV)
-  ) %>% lapply("set_instrument_status",TRUE)
+  )
+  w_int <- lapply(w_int, "set_instrument_status",TRUE)
 
   return(c(In,w_int))
 }
@@ -187,7 +188,7 @@ define_flow_weights <- function(pair_data, weight_var, matrix_form_arguments){
 
   # When the flows are incomplete and weights weights are not defined, they
   # are used as indicators.
-  weights <- weight_var %|!|% (pair_data %[[% weight_var)
+  weights <- weight_var %|!|% pair_data[[weight_var]]
   complete_flows <- matrix_form_arguments$completeness == 1
   weights_dont_matter <- is.null(weights) & complete_flows
   if (weights_dont_matter)
