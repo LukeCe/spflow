@@ -11,26 +11,22 @@ by_role_spatial_lags <- function(
   # define lag requirements by role and summarize them by source
   role_var_lags <- lapply(lag_requirements, "var_usage_to_lag")
   inst_status_lags <- lapply(lag_requirements, "var_usage_to_lag", TRUE)
-  sources <- c("pair","orig","dest")
-  sources <- sources %>% intersect(names(source_model_matrices))
+  sources <- intersect(c("pair","orig","dest"),
+                       names(source_model_matrices))
 
   is_within_flow <- !"dest" %in% sources
   role_lookup <- sources_to_roles(is_within_flow)
   summarize_lags_by_source <- function(source_key){
     role_key <- role_lookup[[source_key]]
-    role_var_lags[role_key] %>%
-      translist() %>%
-      lapply(unlist) %>%
-      lapply(unique)
+    result <- lapply(translist(role_var_lags[role_key]), "unlist")
+    lapply(result, "unique")
   }
-  source_var_lags <- lookup(sources) %>% lapply("summarize_lags_by_source")
+  source_var_lags <- lapply(lookup(sources), "summarize_lags_by_source")
 
   ### 1) node data lags
-  node_sources <- c("orig","dest")
-  node_sources <- node_sources %>% intersect(sources)
-  role_var_lag_names <- role_var_lags %>%
-    lapply(suffix_sp_lags) %>%
-    lapply(unlist)
+  node_sources <- intersect(c("orig","dest"), sources)
+  role_var_lag_names <- lapply(role_var_lags, "suffix_sp_lags")
+  role_var_lag_names <- lapply(role_var_lag_names, "unlist")
 
   apply_lags_to_node_source <- function(source_key) {
     role_keys <- role_lookup[[source_key]]
@@ -38,52 +34,59 @@ by_role_spatial_lags <- function(
     source_nb <- neighborhoods[[nb_key]]
     source_mat <- source_model_matrices[[source_key]]
     lags <- source_var_lags[[source_key]]
-    lags_names <- suffix_sp_lags(lags) %>% flatten()
+    lags_names <- unlist(suffix_sp_lags(lags))
 
     # create one matrix for each source
-    lagged_vars_mat <-
-      lapply(rev(lags), function(.vars) cols_keep(source_mat,.vars)) %>%
-      lreduce(function(.x1, .x2) { cbind(.x2, source_nb %*% .x1) }) %>%
-      as.matrix() %>%
-      set_col_names(., lags_names)
+    lagged_vars_mat <- as.matrix(Reduce(
+      function(.x1, .x2) { cbind(.x2, source_nb %*% .x1) },
+      lapply(rev(lags), function(.vars) cols_keep(source_mat,.vars))))
+    colnames(lagged_vars_mat) <- lags_names
 
     # split the matrix by roles and declare instruments
-    mat_by_role <- role_var_lag_names[role_keys] %>%
-      lapply(function(.vars) cols_keep(lagged_vars_mat,.vars))
-    inst_status <- inst_status_lags[role_keys] %>%
-      lapply(unlist) %>% lapply(as.logical)
+    mat_by_role <- lapply(role_var_lag_names[role_keys],
+                          function(.vars) cols_keep(lagged_vars_mat,.vars))
 
-    plapply(x = mat_by_role, is_inst = inst_status,
-            .f = "set_instrument_status")
-    mat_by_role
+    inst_status <- lapply(inst_status_lags[role_keys], "unlist")
+    inst_status <- lapply(inst_status, "as.logical")
+
+    Map("set_instrument_status", x = mat_by_role, is_inst = inst_status)
+    return(mat_by_role)
   }
 
-  node_lags <- lapply(node_sources, "apply_lags_to_node_source") %>%
-    flatlist()
+  node_lags <- flatlist(lapply(node_sources, "apply_lags_to_node_source"))
 
   # impose orthogonality of instruments from X
   if (decorrelate_instruments) {
-    node_lags <- node_lags %>% lapply(orthoginolize_instruments)
+    node_lags <- lapply(node_lags, orthoginolize_instruments)
   }
 
   ### 2) pair data: generate, then split lags
   # ... Y_ lags
-  response_variables <- role_var_lags$Y_ %>% flatten(use.names = FALSE)
-  flow_matrices <- source_model_matrices$pair %>%
-    matrix_format(response_variables, matrix_form_arguments) %>%
-    plapply(Y = ., name = response_variables,
-            .f = "lag_flow_matrix",
-            fix_args = list(model = model,
-                            OW = neighborhoods$OW,
-                            DW = neighborhoods$DW))
+  response_variables <- unlist(role_var_lags$Y_, use.names = FALSE)
+  flow_matrices <- matrix_format(
+    source_model_matrices$pair,
+    response_variables,
+    matrix_form_arguments)
+  flow_matrices <- Map(
+    "lag_flow_matrix",
+    Y = flow_matrices,
+    name = response_variables,
+    MoreArgs = list(
+      model = model,
+      OW = neighborhoods$OW,
+      DW = neighborhoods$DW
+    ))
 
   # ... G_ lags
-  pair_covariates <- role_var_lags$G_ %>%
-    flatten(use.names = FALSE) %>% unique()
-  covariate_matrices <- source_model_matrices$pair %>%
-    matrix_format(pair_covariates, matrix_form_arguments)
+  pair_covariates <- unique(unlist(role_var_lags$G_, use.names = FALSE))
+  covariate_matrices <- matrix_format(
+    source_model_matrices$pair,
+    pair_covariates,
+    matrix_form_arguments)
+
+
   lag_pair_covariate <- function(var){
-    var_lags <- role_var_lags$G_ %>% lfilter(function(x) x == var) %>% length()
+    var_lags <- length(Filter(function(x) x == var, role_var_lags$G_))
     G_lags <- derive_pair_instruments(
       G = covariate_matrices[[var]],
       OW = neighborhoods$OW,
@@ -92,19 +95,19 @@ by_role_spatial_lags <- function(
       full_inst = !isTRUE(reduce_pair_instruments)
     ) %T% (var_lags > 1) %||% covariate_matrices[var]
 
-    inst_a <- inst_status_lags$G_ %>% lapply("[", var) %>% unlist()
+    inst_a <- unlist(lapply(inst_status_lags$G_, "[", var))
     inst <- !logical(length(G_lags))
     inst[seq_along(inst_a)] <- inst_a
-    plapply(x = G_lags,is_inst = inst,.f = "set_instrument_status")
-    G_lags
+    Map("set_instrument_status", x = G_lags,is_inst = inst)
+    return(G_lags)
   }
   lagged_covariate_matrices <- lapply(pair_covariates, "lag_pair_covariate")
 
   # combine
   all_model_matrices <- c(
-    list("Y_" = flow_matrices %>% drop_lnames() %>% flatlist(),
-         "G_" = lagged_covariate_matrices %>% flatlist()),
-    node_lags %>% flatlist())
+    list("Y_" = flatlist(drop_lnames(flow_matrices)),
+         "G_" = flatlist(lagged_covariate_matrices)),
+    flatlist(node_lags))
 
   return(all_model_matrices)
 }

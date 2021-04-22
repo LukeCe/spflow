@@ -17,14 +17,13 @@ knitr::opts_chunk$set(
 
 ```{r setup}
 library("spflow")
-library("dplyr")
 library("sf")
 library("spdep")
 ```
 
 # Introduction
 
-This article illustrates the use of the `spflow` package for spatial interaction modeling, using the example of home-to-work commuting flows within 71  municipalities that are no further than 10km away from the center of Paris.
+This article illustrates the use of the `spflow` package for spatial interaction modelling, using the example of home-to-work commuting flows within 71 municipalities that are no further than 10km away from the center of Paris.
 The examples employs data to describe the municipalities their neighborhood structure additional data on the size of the commuting flow and the distance between all possible origin-destination pairs is also available.
 
 
@@ -38,9 +37,8 @@ data(list = example_data_sets)
 Each municipality has a unique identification and additional variables describing it.
 
 ```{r}
-paris10km_nodes %>% 
-  select(-AREA) %>% 
-  plot()
+drop_area <- names(paris10km_nodes != "AREA")
+plot(paris10km_nodes[drop_area])
 ```
 
 
@@ -49,9 +47,7 @@ Additionally there are three different neighborhood matrices that can be used to
 ```{r}
 par(mfrow = c(1, 3), mar = c(0,0,1,0))
 mid_points <- suppressWarnings({
-  paris10km_nodes %>%
-    st_geometry() %>% 
-    st_point_on_surface()})
+    st_point_on_surface(st_geometry(paris10km_nodes))})
 
 paris10km_nb <- list(
   "by_border" = spdep::poly2nb(paris10km_nodes),
@@ -59,15 +55,15 @@ paris10km_nb <- list(
   "by_knn" = spdep::knn2nb(knearneigh(mid_points,3))
 )
 
-plot(paris10km_nodes %>% st_geometry())
+plot(st_geometry(paris10km_nodes))
 plot(paris10km_nb$by_border, mid_points, add = T, col = rgb(0,0,0,alpha=0.5))
 title("Contiguity") 
 
-plot(paris10km_nodes %>% st_geometry())
+plot(st_geometry(paris10km_nodes))
 plot(paris10km_nb$by_distance,mid_points, add = T, col = rgb(0,0,0,alpha=0.5)) 
 title("Distance") 
 
-plot(paris10km_nodes %>% st_geometry())
+plot(st_geometry(paris10km_nodes))
 plot(paris10km_nb$by_knn, mid_points, add = T, col = rgb(0,0,0,alpha=0.5))
 title("3 Nearest Neighbors") 
 ```
@@ -98,8 +94,8 @@ To describe the nodes of the network we then use the `sp_network_nodes` object w
 paris10km_net <- 
   sp_network_nodes(
     network_id = "paris10km",
-    node_neighborhood = paris10km_nb$by_border %>% nb2mat(),
-    node_data = paris10km_nodes %>% st_drop_geometry(),
+    node_neighborhood = nb2mat(paris10km_nb$by_border),
+    node_data = st_drop_geometry(paris10km_nodes),
     node_id_column = "ID")
 
 paris10km_net

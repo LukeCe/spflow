@@ -1,12 +1,12 @@
 #' @keywords internal
 drop_lnames <- function(.obj){
-  .obj %>% set_lnames(NULL)
+  set_lnames(.obj, NULL)
 }
 
 #' @importFrom data.table setattr
 #' @keywords internal
 set_lnames <- function(.obj, value){
-  .obj %>% setattr("names",value)
+  setattr(.obj, "names",value)
 }
 
 #' @keywords internal

@@ -1,8 +1,8 @@
 #' @keywords internal
 rbind_fill_left <- function(..., fill = NA){
 
-  mat_list <- list(...) %>% flatlist()
-  mat_cols <- lapply(mat_list, "ncol") %>% unlist()
+  mat_list <- flatlist(list(...))
+  mat_cols <- unlist(lapply(mat_list, "ncol"))
 
   assert(all(diff(mat_cols) <= 0),
          "The number of columns of the matrices must be weakly decreasing!")
@@ -12,8 +12,8 @@ rbind_fill_left <- function(..., fill = NA){
     cbind(matrix(fill,ncol = nb_cols, nrow = nrow(mat)),mat)
   }
 
-  filled_matrix <- plapply(mat_list, mat_col_missing,.f = "cbind_fill") %>%
-    lreduce("rbind")
+  filled_matrix <- Map("cbind_fill", mat_list, mat_col_missing)
+  filled_matrix <- Reduce("rbind", filled_matrix)
   return(filled_matrix)
 }
 

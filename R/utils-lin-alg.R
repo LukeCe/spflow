@@ -3,11 +3,11 @@
 crossproduct_mat_list <- function(mat_l1, mat_l2 = NULL, force_sym = FALSE) {
 
   n_mat1 <- n_mat2 <- length(mat_l1)
-  dim_mat1 <- dim_mat2 <- lapply(mat_l1, dim) %>% lreduce(rbind)
+  dim_mat1 <- dim_mat2 <- Reduce("rbind", lapply(mat_l1, dim))
 
   if (!is.null(mat_l2)) {
     n_mat2 <- length(mat_l2)
-    dim_mat2 <- lapply(mat_l2, dim) %>% lreduce(rbind)
+    dim_mat2 <- Reduce("rbind", lapply(mat_l2, dim))
   }
 
   # symmetry: only possible when n1 = n2 + imposed when no m2
@@ -25,8 +25,7 @@ crossproduct_mat_list <- function(mat_l1, mat_l2 = NULL, force_sym = FALSE) {
     cols_start <- ifelse(force_sym, row, 1)
     cols <- seq(cols_start,n_mat2,1)
     result[row,cols] <-
-      lapply(mat_l2 %||% mat_l1 %[% cols, "hadamard_sum",mat_l1[[row]]) %>%
-      flatten()
+      sapply((mat_l2 %||% mat_l1)[cols], "hadamard_sum",mat_l1[[row]])
   }
 
   if (force_sym) result <- as.matrix(forceSymmetric(result, "U"))

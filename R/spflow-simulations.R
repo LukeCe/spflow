@@ -144,7 +144,7 @@ spatial_filter <- function(
 
   N <- nrow(combined_weight_matrices)
   A <- Diagonal(N) - combined_weight_matrices
-  A <- if (invert) solve(A) else A_
+  A <- if (invert) solve(A) else A
 
   return(A)
 }

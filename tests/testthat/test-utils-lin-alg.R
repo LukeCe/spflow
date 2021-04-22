@@ -20,7 +20,7 @@ test_that("crossproduct_mat_list: => correct output", {
   # forced symmetry
   actual <- crossproduct_mat_list(mat_list_1, mat_list_2, force_sym = TRUE)
   select_upper <- upper.tri(actual,diag = TRUE)
-  expected_upper <- crossprod(vec_format_1,vec_format_2) %[% select_upper
+  expected_upper <- crossprod(vec_format_1,vec_format_2)[select_upper]
   expect_equivalent(actual[select_upper]   , expected_upper)
   expect_equivalent(t(actual)[select_upper], expected_upper)
 })

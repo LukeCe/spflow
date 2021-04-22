@@ -1,4 +1,8 @@
-# spflow (development version)
+# spflow 0.0.0.9011
+
+**This is a prerelease of the package only intended for beta testing.**
+Create man pages for all exported functions and start to remove uneccessary
+dependencies.
 
 # spflow 0.0.0.9009
 

@@ -177,8 +177,8 @@ spflow <- function(
 
   network_ids <- id(sp_multi_network)[["network_pairs"]][[network_pair_id]]
   assert(!is.null(network_ids),
-         "The the network pair id [%s] is not available!" %>%
-           sprintf(., network_pair_id))
+         sprintf("The the network pair id [%s] is not available!",
+                 network_pair_id))
 
 
   ## ... test the arguments provided to control by calling it again
@@ -189,22 +189,19 @@ spflow <- function(
   # TODO validate and enrich flow control
   # TODO check completeness information and add to estimation control
   ## ... identify the flow type
-  flow_control$flow_type <- ifelse(
-    network_ids["orig"] ==
-      network_ids["dest"],
-    yes = "within", no = "between"
-  )
-  flow_control$flow_completeness <- (
-    npairs(pull_pairs(sp_multi_network, network_pair_id)) /
-      prod(nnodes(pull_pairs(sp_multi_network, network_pair_id)))
-  )
+  flow_control$flow_type <- ifelse(network_ids["orig"] == network_ids["dest"],
+                                   yes = "within", no = "between")
+  nb_od_pairs <- npairs(pull_pairs(sp_multi_network, network_pair_id))
+  nb_od_optins <- prod(nnodes(pull_pairs(sp_multi_network, network_pair_id)))
+  flow_control$flow_completeness <- nb_od_pairs / nb_od_optins
   flow_control$sp_model_type <- sp_model_type(flow_control)
 
 
   # TODO generalize for the case of sparse flows and multiple networks
   assert(flow_control$flow_completeness == 1,
-         "Estimation are for only possible if the number of pairs is excatly
-         the number of origins multiplied by the number of destinations!")
+         "Estimation are for only possible if the number of pairs is " %p%
+         "excatly the number of origins multiplied by the number of " %p%
+         "destinations!")
 
   assert(flow_control$flow_type == "within",
          "Estimation of flows between two diffrent networks are " %p%
@@ -237,9 +234,9 @@ parameter_names <- function(
   names_const <- names_const[use_const]
 
   x_prefs <- list("D_" = "Dest_","O_" = "Orig_","I_" = "Intra_")
-  names_X <- model_matrices[names(x_prefs)] %>% compact() %>%
-    lapply("colnames") %>% plapply(x_prefs[names(.)],., .f = "%p%") %>%
-    flatten(use.names = FALSE)
+  names_X <- compact(model_matrices[names(x_prefs)])
+  names_X <- Map("%p%", x_prefs[names(names_X)], lapply(names_X, "colnames"))
+  names_X <- unlist(names_X, use.names = FALSE)
 
   names_G <- names(model_matrices$G)
   export_names <- c(names_rho,names_const,names_X,names_G)
@@ -255,16 +252,16 @@ drop_instruments <- function(model_matrices) {
   filter_inst <- function(x) lfilter(x, function(x) !get_instrument_status(x))
   constants <- list(
     "global" = model_matrices$constants$global,
-    "intra" = model_matrices$constants$intra %>% filter_inst())
+    "intra" = filter_inst(model_matrices$constants$intra))
 
   # ... from site attributes
   filter_inst_col <- function(x) cols_drop(x,get_instrument_status(x))
   vector_treatment <- c("D","O","I") %p% "_"
-  matrices_X <- model_matrices[vector_treatment] %>%
-    compact() %>% lapply("filter_inst_col")
+  matrices_X <- lapply(compact(model_matrices[vector_treatment]),
+                       "filter_inst_col")
 
   # ... from pair attributes
-  matrices_G <- model_matrices["G_"] %>% lapply("filter_inst")
+  matrices_G <- lapply(model_matrices["G_"], "filter_inst")
 
   # ... combine cleaned versions
   matrices_and_spatial_weights <- c(
@@ -272,7 +269,7 @@ drop_instruments <- function(model_matrices) {
     list("constants" = constants),
     matrices_X,
     matrices_G,
-    model_matrices[c("DW","OW")] %>% compact()
+    compact(model_matrices[c("DW","OW")])
   )
 
   return(matrices_and_spatial_weights)

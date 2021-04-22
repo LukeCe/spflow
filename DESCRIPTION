@@ -21,9 +21,9 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.1
 RdMacros: Rdpack
 Imports: 
-    magrittr,
     data.table,
     methods,
+    magrittr,
     Matrix
 Collate: 
     'spflow-package.R'
@@ -80,7 +80,6 @@ Suggests:
     remotes,
     knitr,
     rmarkdown,
-    dplyr,
     sf
 Language: en-US
 Depends: 

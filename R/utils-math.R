@@ -3,14 +3,11 @@
 #' @keywords internal
 multinom_coef <- function(...) {
 
-  k_args <- list(...) %>% flatlist()
+  k_args <- flatlist(list(...))
   t <- Reduce("+",k_args)
 
   # calculate the denominator
-  chose_k_factorial <- k_args %>%
-    lapply(factorial) %>%
-    Reduce(f = "*", .)
-
+  chose_k_factorial <- Reduce("*", lapply(k_args , factorial))
   return(factorial(t)/chose_k_factorial)
 }
 
@@ -21,7 +18,5 @@ count_trinom_coefs <- function(n) {
 
 #' @keywords internal
 sum_trinom_coefs <- function(n) {
-  lapply(seq_len(n), count_trinom_coefs) %>%
-    Reduce("+",.) %>%
-    as.integer()
+  as.integer(Reduce("+",lapply(seq_len(n), count_trinom_coefs)))
 }

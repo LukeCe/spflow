@@ -43,9 +43,8 @@ formula_expands_factors <- function(formula,data) {
   stopifnot(is.data.frame(data))
   data <- data[0,]
 
-  no_fct <- model.matrix(formula, data = data) %>%
-    attr("contrasts") %>% is.null()
-  return(!no_fct)
+  no_fct <-  attr(model.matrix(formula, data = data), "contrasts")
+  return(!is.null(no_fct))
 }
 
 # ---- reshaping the formula --------------------------------------------------
@@ -53,7 +52,7 @@ formula_expands_factors <- function(formula,data) {
 compact_formula_internal <- function(formula, keep_const = TRUE) {
   assert_formula(formula)
 
-  compact_rhs <- extract_formula_terms(formula) %|0|% "1"
+  compact_rhs <- extract_formula_terms(formula) %||% "1"
   if (length(compact_rhs) == 0)
     return(formula)
 
@@ -82,13 +81,13 @@ remove_constant <- function(formula) {
 #' @keywords internal
 combine_rhs_formulas <- function(...) {
 
-  rhs_formulas <- list(...) %>% flatlist() %>% compact() %>% lapply("pull_rhs")
-  use_constant <- all(rhs_formulas %>% lapply("has_constant") %>% unlist())
+  rhs_formulas <- flatlist(list(...))
+  rhs_formulas <- lapply(compact(rhs_formulas), "pull_rhs")
+  use_constant <- all(sapply(rhs_formulas , "has_constant"))
 
-  combined_formula <- rhs_formulas %>%
-    lapply("extract_formula_terms") %>% unlist() %>% unique() %>%
-    reformulate(intercept = use_constant)
-
+  combined_formula <- unlist(lapply(rhs_formulas, extract_formula_terms))
+  combined_formula <- reformulate(unique(combined_formula),
+                                  intercept = use_constant)
   return(combined_formula)
 }
 
@@ -136,7 +135,7 @@ extract_transformed_varnames <- function(formula,data) {
   trans_vars <- colnames(dummy_matrix)
 
   # were there factors?
-  used_factor <- attr(dummy_matrix,"contrasts") %>% names()
+  used_factor <- names(attr(dummy_matrix,"contrasts"))
   expanded_factor <- NULL
   if (!is.null(used_factor)) {
     fact_index_pre <- which(attr(terms_obj,"term.labels") %in% used_factor)
@@ -144,17 +143,16 @@ extract_transformed_varnames <- function(formula,data) {
     expanded_factor <- trans_vars[fact_index_trans]
   }
 
-  result <- list(
+  result <- compact(list(
     "names" = setdiff(trans_vars, "(Intercept)" %T% !has_constant(formula)),
-    "factors" = expanded_factor) %>% compact()
+    "factors" = expanded_factor))
 
   return(result)
 }
 
 #' @keywords internal
 predict_tranfomed_vars <- function(formula,data) {
-  extract_transformed_varnames(formula,data)$names %>%
-    setdiff(., "(Intercept)")
+  setdiff(extract_transformed_varnames(formula,data)$names, "(Intercept)")
 }
 
 #' @keywords internal
@@ -169,8 +167,8 @@ extract_formula_specials <- function(formula,specials) {
   terms_obj_formula <- terms.formula(formula, specials, allowDotAsName = TRUE)
   all_terms <-  rownames(attr(terms_obj_formula, "factors"))
 
-  special_terms <- attr(terms_obj_formula,"specials") %>%
-    lapply(FUN = function(.s_index) {all_terms[.s_index]})
+  special_terms <- lapply(attr(terms_obj_formula,"specials"),
+                          function(.s_index) {all_terms[.s_index]})
   non_special_terms <- setdiff(all_terms,unlist(special_terms))
 
   return(list("specials" = special_terms, "normals" = non_special_terms))
@@ -187,7 +185,7 @@ split_forumla_specials <- function(
 
   # first create the normal formula
   nt <- split_terms$normals
-  normal_formula <- nt %|!0|% reformulate(nt,intercept = has_constant(formula))
+  normal_formula <- nt %|!|% reformulate(nt,intercept = has_constant(formula))
 
   # then create the special formulas
   st <- split_terms$specials
@@ -214,12 +212,9 @@ special_formula_as_rhs <- function(special,string_formula) {
   assign(x = special, parse_fun_arguments_as_string, envir = fun_env)
 
   # evaluating the special -> returns its arguments a string
-  special_rhs_formula <-
-    eval_string_as_function(string_formula, e = fun_env) %>%
-    paste(collapse = "") %>%
-    reformulate_string()
-
-  return(special_rhs_formula)
+  special_rhs_formula <- eval_string_as_function(string_formula, e = fun_env)
+  special_rhs_formula <- paste(special_rhs_formula, collapse = "")
+  return(reformulate_string(special_rhs_formula))
 }
 
 #' @keywords internal
@@ -228,7 +223,9 @@ reformulate_string <- function(string_formula) {
   if ("" == gsub("\\s.*",replacement = "",x = string_formula))
     string_formula <- "1"
 
-  reformulate(string_formula) %>% compact_formula()
+  result <- reformulate(string_formula)
+  result <- compact_formula(result)
+  return(result)
 }
 
 #' @keywords internal

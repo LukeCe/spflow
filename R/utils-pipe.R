@@ -12,18 +12,6 @@
 #' @usage lhs \%>\% rhs
 NULL
 
-#' Exposing pipe
-#'
-#' See \code{magrittr::\link[magrittr:pipe]{\%$\%}} for details.
-#'
-#' @name %$%
-#' @rdname pipe
-#' @keywords internal
-#' @export
-#' @importFrom magrittr %$%
-#' @usage lhs \%$\% rhs
-NULL
-
 # ---- Elvis pipes ------------------------------------------------------------
 #' Elvis operators
 #'
@@ -48,32 +36,8 @@ NULL
 
 #' @keywords internal
 #' @rdname elvis_operators
-"%|0|%" <- function(x, y) {
-  if (length(x) == 0) y else x
-}
-
-#' @keywords internal
-#' @rdname elvis_operators
-"%|!0|%" <- function(x, y) {
-  if (length(x) != 0) y else NULL
-}
-
-#' @keywords internal
-#' @rdname elvis_operators
 "%T%" <- function(x, y) {
   if (isTRUE(y)) x else NULL
-}
-
-#' @keywords internal
-#' @rdname elvis_operators
-"%[[%" <- function(x,y) {
-  x[[y]]
-}
-
-#' @keywords internal
-#' @rdname elvis_operators
-"%[%" <- function(x,y) {
-  x[y]
 }
 
 # ---- String pipe ------------------------------------------------------------
