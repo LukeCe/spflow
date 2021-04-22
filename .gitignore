@@ -2,7 +2,6 @@
 .Rhistory
 .RData
 docs/
-data
 tests/testthat/*/*.rda
 inst/doc
 doc
