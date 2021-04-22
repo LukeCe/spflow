@@ -2,7 +2,6 @@
 .Rhistory
 .RData
 docs/
-tests/testthat/*/*.rda
 inst/doc
 doc
 Meta
