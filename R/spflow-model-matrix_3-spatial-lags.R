@@ -57,7 +57,7 @@ by_role_spatial_lags <- function(
 
   # impose orthogonality of instruments from X
   if (decorrelate_instruments) {
-    node_lags <- lapply(node_lags, orthoginolize_instruments)
+    node_lags <- lapply(node_lags, "orthoginolize_instruments")
   }
 
   ### 2) pair data: generate, then split lags
@@ -174,6 +174,17 @@ set_instrument_status <- function(x, is_inst) {
 }
 
 #' @keywords internal
+`attr_inst_status<-` <- function(x, value) {
+  attr(x, "is_instrument_var") <- value
+  x
+}
+
+#' @keywords internal
+attr_inst_status <- function(x) {
+  attr(x, "is_instrument_var")
+}
+
+#' @keywords internal
 get_instrument_status <- function(x) {
   attr(x, "is_instrument_var")
 }
@@ -181,18 +192,19 @@ get_instrument_status <- function(x) {
 #' @keywords internal
 orthoginolize_instruments <- function(mat) {
 
-  inst_index <- get_instrument_status(mat)
+  inst_index <- attr_inst_status(mat)
   no_instruments <- none(inst_index)
   if (no_instruments)
     return(mat)
 
-  vars <- mat[,!inst_index]
-  inst_orth <- decorellate_matrix(mat[,inst_index], cbind(1,vars))
+  vars <- mat[,!inst_index, drop = FALSE]
+  inst_orth <- decorellate_matrix(mat[,inst_index, drop = FALSE],
+                                  cbind(1,vars))
   inst_orth <- linear_dim_reduction(inst_orth, var_threshold = 1e-4)
 
   new_matr <- cbind(vars,inst_orth)
-  set_instrument_status(new_matr, inst_index[seq_len(ncol(new_matr))])
-
+  new_inst_order <- Map("rep", c(FALSE,TRUE), c(ncol(vars),ncol(inst_orth)))
+  attr_inst_status(new_matr) <- unlist(new_inst_order)
   return(new_matr)
 }
 

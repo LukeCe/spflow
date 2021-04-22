@@ -234,8 +234,8 @@ parameter_names <- function(
   names_const <- names_const[use_const]
 
   x_prefs <- list("D_" = "Dest_","O_" = "Orig_","I_" = "Intra_")
-  names_X <- compact(model_matrices[names(x_prefs)])
-  names_X <- Map("%p%", x_prefs[names(names_X)], lapply(names_X, "colnames"))
+  names_X <- lapply(compact(model_matrices[names(x_prefs)]), "colnames")
+  names_X <- Map("%p%", x_prefs[names(names_X)], names_X)
   names_X <- unlist(names_X, use.names = FALSE)
 
   names_G <- names(model_matrices$G)

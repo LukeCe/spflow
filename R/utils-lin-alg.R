@@ -66,7 +66,6 @@ linear_dim_reduction <- function(mat, var_threshold = 0, n_comp = NULL) {
 
   S_trunc <- diag(svd_mat$d[seq_len(n_comp)])
   U_trunc <- svd_mat$u[,seq_len(n_comp)]
-
   return(U_trunc %*% S_trunc)
 }
 

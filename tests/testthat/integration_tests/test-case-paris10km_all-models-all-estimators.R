@@ -122,7 +122,8 @@ describe("S2SLS returns sensible results.",{
         flow_control = spflow_control(
           "s2sls", model = model,
           decorrelate_instruments = TRUE,
-          instrumental_variables = ~log(POPULATION) + log(AREA) + G_(log(1 + DISTANCE))))
+          instrumental_variables =
+            ~log(POPULATION) + log(AREA) + G_(log(1 + DISTANCE))))
 
       expect_is(result,class = "spflow_model_s2sls")
       expect_true(resid(result) %>% sum() < 1)

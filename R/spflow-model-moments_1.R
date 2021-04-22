@@ -40,7 +40,7 @@ spflow_model_moments_mat <- function(
 
   # subset ZZ
   variable_order <- c("constants","D_","O_","I_","G_")
-  Z_index <- !rapply(model_matrices[variable_order],f = get_instrument_status)
+  Z_index <- !rapply(model_matrices[variable_order],f = attr_inst_status)
   ZZ <- HH[Z_index, Z_index]
 
 
