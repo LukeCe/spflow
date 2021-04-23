@@ -35,12 +35,9 @@ pair_frame <- data.table::CJ(origins = germany_grid$NOM,
 sp_network_pair("ge","ge",pair_frame,"origins","destinations")
 }
 \seealso{
-Other spflow network objects: 
-\code{\link{sp_multi_network-class}},
+Other Constructors for \link[=sp_network_classes]{spflow network classes}: 
 \code{\link{sp_multi_network}},
 \code{\link{sp_network_classes}},
-\code{\link{sp_network_nodes-class}},
-\code{\link{sp_network_nodes}},
-\code{\link{sp_network_pair-class}}
+\code{\link{sp_network_nodes}}
 }
-\concept{spflow network objects}
+\concept{Constructors for \link[=sp_network_classes]{spflow network classes}}

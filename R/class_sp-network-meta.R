@@ -1,4 +1,4 @@
-#' @title spflow network objects
+#' @title spflow network classes
 #'
 #' @description
 #' The spflow packages provides three additional classes to the R environment
@@ -18,10 +18,11 @@
 #'
 #' @include class_sp-network-nodes.R class_sp-network-pair.R
 #' @name sp_network_classes
-#' @family spflow network objects
+#' @family [spflow network classes][sp_network_classes()]
+#' @family Constructors for [spflow network classes][sp_network_classes()]
 #' @examples
 #'
-#' ### An example use case for the spflow network objects and model estimation
+#' ### An example use case for the spflow network classes and model estimation
 #' \dontrun{
 #' # load example data
 #' example_data_sets <- c("paris10km_nodes",

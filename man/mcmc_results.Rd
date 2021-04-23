@@ -9,3 +9,6 @@
 \description{
 For details see the documentation of the corresponding class.
 }
+\seealso{
+\code{\link[=spflow_model_mcmc-class]{spflow_model_mcmc-class()}}
+}

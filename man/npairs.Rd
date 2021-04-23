@@ -2,10 +2,15 @@
 % Please edit documentation in R/class_0_generics-and-maybe-classes.R
 \name{npairs}
 \alias{npairs}
-\title{Access the node pair count of a \code{\link[=sp_network_pair-class]{sp_network_pair-class()}}}
+\title{Generic for accessing the node pair count of a
+\code{\link[=sp_network_pair-class]{sp_network_pair-class()}}}
 \arguments{
 \item{object}{A \code{\link[=sp_network_pair-class]{sp_network_pair-class()}}}
 }
 \description{
-For details see the documentation of the corresponding class.
+For details on the method see the documentation of the
+corresponding class.
+}
+\seealso{
+\code{\link[=sp_network_pair-class]{sp_network_pair-class()}}
 }

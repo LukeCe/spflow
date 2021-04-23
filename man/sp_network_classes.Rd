@@ -2,7 +2,7 @@
 % Please edit documentation in R/class_sp-network-meta.R
 \name{sp_network_classes}
 \alias{sp_network_classes}
-\title{spflow network objects}
+\title{spflow network classes}
 \description{
 The spflow packages provides three additional classes to the R environment
 that allow to handle origin-destination flow data efficiently.
@@ -20,7 +20,7 @@ nodes at the origin and destination.
 }
 \examples{
 
-### An example use case for the spflow network objects and model estimation
+### An example use case for the spflow network classes and model estimation
 \dontrun{
 # load example data
 example_data_sets <- c("paris10km_nodes",
@@ -80,12 +80,15 @@ flow_control <- spflow_control(sdm_variables = sdm_formula)
 }
 }
 \seealso{
-Other spflow network objects: 
+Other \link[=sp_network_classes]{spflow network classes}: 
 \code{\link{sp_multi_network-class}},
-\code{\link{sp_multi_network}},
 \code{\link{sp_network_nodes-class}},
+\code{\link{sp_network_pair-class}}
+
+Other Constructors for \link[=sp_network_classes]{spflow network classes}: 
+\code{\link{sp_multi_network}},
 \code{\link{sp_network_nodes}},
-\code{\link{sp_network_pair-class}},
 \code{\link{sp_network_pair}}
 }
-\concept{spflow network objects}
+\concept{Constructors for \link[=sp_network_classes]{spflow network classes}}
+\concept{\link[=sp_network_classes]{spflow network classes}}

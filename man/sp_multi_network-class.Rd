@@ -5,30 +5,31 @@
 \alias{sp_multi_network-class}
 \alias{id,sp_multi_network-method}
 \alias{dat,sp_multi_network-method}
-\alias{pull_neighborhood,sp_multi_network-method}
+\alias{neighborhood,sp_multi_network-method}
 \alias{pull_nodes,sp_multi_network-method}
 \alias{pull_pairs,sp_multi_network-method}
 \title{sp_multi_network Class}
 \usage{
 \S4method{id}{sp_multi_network}(object, what = cases)
 
-\S4method{dat}{sp_multi_network}(object, network_id = NULL, network_pair_id = NULL)
+\S4method{dat}{sp_multi_network}(object, .id, from = "networks")
 
-\S4method{pull_neighborhood}{sp_multi_network}(object, network_ids = NULL)
+\S4method{neighborhood}{sp_multi_network}(object, network_id)
 
 \S4method{pull_nodes}{sp_multi_network}(object, network_ids = NULL)
 
 \S4method{pull_pairs}{sp_multi_network}(object, network_pair_ids = NULL)
 }
 \arguments{
-\item{what}{A character to indicating if ids of the single networks or the network
-pairs should be retrieved; should be in \code{c("networks","network_pairs")}.}
+\item{what}{A character to indicating if ids of the single networks or the
+network pairs should be retrieved; should be in
+\code{c("networks","network_pairs")}.}
 
-\item{network_id}{A single character that correspond to the id of a
-\code{\link[=sp_network_nodes-class]{sp_network_nodes-class()}} inside the \code{\link[=sp_multi_network-class]{sp_multi_network-class()}}}
+\item{.id}{A single character id of a \code{\link[=sp_network_nodes-class]{sp_network_nodes-class()}} or a
+\code{\link[=sp_network_pair-class]{sp_network_pair-class()}} inside the \code{\link[=sp_multi_network-class]{sp_multi_network-class()}}.}
 
-\item{network_pair_id}{A single character that correspond to the id of a
-\code{\link[=sp_network_pair-class]{sp_network_pair-class()}} inside the \code{\link[=sp_multi_network-class]{sp_multi_network-class()}}}
+\item{from}{A single character; must be one of
+\code{c("networks","network_pairs")}}
 
 \item{network_ids}{A character vector indicating the ids of the
 \code{\link[=sp_network_nodes]{sp_network_nodes()}} objects to extract from the
@@ -60,8 +61,8 @@ id(multi_net_usa_ge,"network_pairs")
 
 ## access the data of a network or a network_pair inside a multi_network
 
-dat(multi_net_usa_ge,network_id = "ge") # extract data of nodes
-dat(multi_net_usa_ge,network_pair_id = "ge_ge") # extract data of pairs
+dat(multi_net_usa_ge, "ge") # extract data of nodes (is default)
+dat(multi_net_usa_ge, "ge_ge", "network_pairs") # extract data of pairs
 
 ## access a network inside a multi_network
 
@@ -75,13 +76,10 @@ pull_pairs(multi_net_usa_ge,"usa_usa")
 
 }
 \seealso{
-Other spflow network objects: 
-\code{\link{sp_multi_network}},
+Other \link[=sp_network_classes]{spflow network classes}: 
 \code{\link{sp_network_classes}},
 \code{\link{sp_network_nodes-class}},
-\code{\link{sp_network_nodes}},
-\code{\link{sp_network_pair-class}},
-\code{\link{sp_network_pair}}
+\code{\link{sp_network_pair-class}}
 }
-\concept{spflow network objects}
+\concept{\link[=sp_network_classes]{spflow network classes}}
 \keyword{internal}

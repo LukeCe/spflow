@@ -14,7 +14,7 @@
 #'   A data.frame that provides summary information on the matching between
 #'   the nodes and node pairs that are provided to the sp_multi_network class
 #'
-#' @family spflow network objects
+#' @family [spflow network classes][sp_network_classes()]
 #' @name sp_multi_network-class
 #' @export
 setClass("sp_multi_network",
@@ -26,9 +26,9 @@ setClass("sp_multi_network",
 # ---- Methods ----------------------------------------------------------------
 
 #' @rdname sp_multi_network-class
-#' @param what
-#'     A character to indicating if ids of the single networks or the network
-#'     pairs should be retrieved; should be in `c("networks","network_pairs")`.
+#' @param what A character to indicating if ids of the single networks or the
+#'   network pairs should be retrieved; should be in
+#'   `c("networks","network_pairs")`.
 #' @export
 #' @examples
 #' ## access the id of a networks or network_pairs inside a multi network
@@ -54,42 +54,50 @@ setMethod(
 
 
 #' @rdname sp_multi_network-class
-#' @param network_id
-#'   A single character that correspond to the id of a
-#'   [sp_network_nodes-class()] inside the [sp_multi_network-class()]
-#' @param network_pair_id
-#'   A single character that correspond to the id of a
-#'   [sp_network_pair-class()] inside the [sp_multi_network-class()]
+#' @param .id A single character id of a [sp_network_nodes-class()] or a
+#'   [sp_network_pair-class()] inside the [sp_multi_network-class()].
+#' @param from A single character; must be one of
+#'   `c("networks","network_pairs")`
 #' @export
 #' @examples
 #' ## access the data of a network or a network_pair inside a multi_network
 #'
-#' dat(multi_net_usa_ge,network_id = "ge") # extract data of nodes
-#' dat(multi_net_usa_ge,network_pair_id = "ge_ge") # extract data of pairs
+#' dat(multi_net_usa_ge, "ge") # extract data of nodes (is default)
+#' dat(multi_net_usa_ge, "ge_ge", "network_pairs") # extract data of pairs
 #'
 setMethod(
   f = "dat",
   signature = "sp_multi_network",
-  function(object,
-           network_id = NULL,
-           network_pair_id = NULL) { # ---- dat -------------------------------
+  function(object, .id,
+           from = "networks") { # ---- dat ------------------------------------
 
-    if (is.null(network_id) & is.null(network_pair_id)) {
-      return(NULL)
-    }
+    from_cases <- c("networks","network_pairs")
+    assert(from %in% from_cases,
+           'The from argument must be one of c("%s", "%s")!',
+           from_cases[1], from_cases[2])
 
-    if (is.null(network_pair_id)) {
-      assert_is_single_x(network_id, x = "character")
-      return(dat(object@networks[[network_id]]))
-    }
-
-    if (is.null(network_id)) {
-      assert_is_single_x(network_pair_id, x = "character")
-      return(dat(object@network_pairs[[network_pair_id]]))
-    }
+    return(dat(slot(object,from))[[.id]])
 })
 
+
 #' @rdname sp_multi_network-class
+#' @param network_ids A single character vector indicating the id of a
+#'   [sp_network_nodes-class()] objects to extract from the
+#'   [sp_multi_network-class()]
+#' @keywords internal
+setMethod(
+  f = "neighborhood",
+  signature = "sp_multi_network",
+  function(object, network_id) { # ---- neighborhood --------------------------
+
+    assert_is_single_x(network_id, "character")
+
+    sp_net <- slot(object, "networks")[[network_id]]
+    return(neighborhood(sp_net))
+  })
+
+
+#' @rdname pull_neighborhood-deprecated
 #' @param network_ids A character vector indicating the ids of the
 #'     [sp_network_nodes()] objects to extract from the
 #'     [sp_multi_network-class()]
@@ -100,12 +108,19 @@ setMethod(
   function(object,
            network_ids = NULL) { # ---- pull_neighborhood ---------------------
 
+    .Deprecated("neighborhood")
     network_nodes <- pull_nodes(object, network_ids)
     if (length(network_ids) > 1)
       return(lapply(network_nodes, "neighborhood"))
 
     return(neighborhood(network_nodes))
-    })
+  })
+
+
+#' @templateVar old pull_neighborhood
+#' @templateVar new neighborhood
+#' @template template-deprecate_pkg
+NULL
 
 #' @rdname sp_multi_network-class
 #' @param network_ids A character vector indicating the ids of the
@@ -326,7 +341,7 @@ setValidity("sp_multi_network", function(object) { # ---- validity ------------
 #'    to match the levels of the nodes in the [sp_network_nodes()].
 #'
 #' @return A S4 network data object
-#' @family spflow network objects
+#' @family Constructors for [spflow network classes][sp_network_classes()]
 #' @export
 #' @examples
 #' sp_multi_network() # empty

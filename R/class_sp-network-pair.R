@@ -16,7 +16,7 @@
 #' @slot npairs A numeric indicating the number of origin-destination pairs
 #' @slot dest_nnodes A numeric that represents the number of nodes in the destination network
 #'
-#' @family spflow network objects
+#' @family [spflow network classes][sp_network_classes()]
 #' @importClassesFrom data.table data.table
 #' @importClassesFrom Matrix Matrix
 #' @name sp_network_pair-class
@@ -235,7 +235,7 @@ setValidity("sp_network_pair", function(object) { # ---- validity -------------
 #'
 #' @return An S4 class of type [sp_network_pair()]
 #' @importFrom data.table setDT := key copy setnames setkeyv
-#' @family spflow network objects
+#' @family Constructors for [spflow network classes][sp_network_classes()]
 #' @export
 #' @examples
 #' pair_frame <- data.table::CJ(origins = germany_grid$NOM,

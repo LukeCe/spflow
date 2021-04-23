@@ -18,7 +18,7 @@
 #' @slot node_neighborhood
 #'   A matrix that describes the neighborhood relations of the nodes
 #'
-#' @family spflow network objects
+#' @family [spflow network classes][sp_network_classes()]
 #' @name sp_network_nodes-class
 #' @export
 setClass("sp_network_nodes",
@@ -237,7 +237,7 @@ setValidity(
 #' @param node_id_column
 #'   A character indicating the column containing identifiers for the nodes
 #'
-#' @family spflow network objects
+#' @family Constructors for [spflow network classes][sp_network_classes()]
 #' @importFrom data.table := as.data.table setkey setnames
 #'
 #' @return The S4 class sp_network_nodes

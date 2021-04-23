@@ -4,12 +4,17 @@
 \alias{dat}
 \alias{dat-set}
 \alias{dat<-}
-\title{Access the data of \link[=sp_network_classes]{sp network objects}}
+\title{Generic for accessing the data inside
+\link[=sp_network_classes]{spflow network classes}}
 \arguments{
-\item{object}{One of \code{\link[=sp_network_nodes-class]{sp_network_nodes-class()}}, \code{\link[=sp_network_pair-class]{sp_network_pair-class()}}}
+\item{object}{A \link[=sp_network_classes]{spflow network classes}}
 
 \item{value}{A data.frame to replace existing data}
 }
 \description{
-For details see the documentation of the corresponding classes.
+For details on the methods see the documentation of the
+corresponding classes.
+}
+\seealso{
+\code{\link[=sp_network_classes]{sp_network_classes()}}
 }

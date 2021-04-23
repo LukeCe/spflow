@@ -1,18 +1,3 @@
-# ---- assertions -------------------------------------------------------------
-assert <- function(expr, error_msg, warn = FALSE) {
-  if (expr) {
-    return(invisible(TRUE))
-  }
-  do.call(ifelse(warn,yes = "warning",no = "stop"),
-          list(error_msg = error_msg, call. = FALSE))
-}
-
-assert_valid_case <- function(argument,cases) {
-  assert(all(argument %in% cases),
-         "The what argument can only be a subset of the character vector [%s]!" %>%
-           sprintf(deparse(cases)))
-}
-
 # ---- classes ----------------------------------------------------------------
 coerce_to <- function(obj, class, ...) {
 

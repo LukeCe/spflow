@@ -3,12 +3,17 @@
 \name{neighborhood}
 \alias{neighborhood}
 \alias{neighborhood<-}
-\title{Access the neighborhood of a \code{\link[=sp_network_nodes-class]{sp_network_nodes-class()}}}
+\title{Generic for accessing the neighborhood matrix inside
+\link[=sp_network_classes]{spflow network classes}}
 \arguments{
-\item{object}{A \code{\link[=sp_network_nodes-class]{sp_network_nodes-class()}}}
+\item{object}{One of \code{\link[=sp_network_nodes-class]{sp_network_nodes-class()}}, \code{\link[=sp_multi_network-class]{sp_multi_network-class()}}}
 
 \item{value}{A neighborhood matrix to replace the existing one}
 }
 \description{
-For details see the documentation of the corresponding class.
+For details on the methods see the documentation of the
+corresponding classes.
+}
+\seealso{
+\code{\link[=sp_network_nodes-class]{sp_network_nodes-class()}} \code{\link[=sp_multi_network-class]{sp_multi_network-class()}}
 }
