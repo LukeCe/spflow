@@ -24,6 +24,14 @@ assert_is <- function(obj,.class){
 
 #' @rdname assert_errors
 #' @keywords internal
+assert_inherits <- function(obj,.class){
+  assert(inherits(obj,.class),
+         "The input argument %s must inherit from class %s!",
+         deparse(substitute(obj)),.class)
+}
+
+#' @rdname assert_errors
+#' @keywords internal
 assert_is_one_of <- function(obj,.classes){
   assert(is_one_of(obj,.classes),
          sprintf("The input argument %s must be of class %s!",
@@ -79,4 +87,10 @@ has_equal_elements <- function(obj) {
 #' @keywords internal
 has_distinct_elements <- function(obj) {
   length(unique(obj)) == length(obj)
+}
+
+#' @rdname custom_primitives
+#' @keywords internal
+none <- function(x){
+  all(!x)
 }
