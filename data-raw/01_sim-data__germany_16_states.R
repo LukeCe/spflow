@@ -13,7 +13,7 @@
 # - - - - - - - - - - - - - - - - - - -
 # Date: February 2021
 
-load_all()
+library("magrittr")
 library("sf")
 library("sp")
 library("spdep")
@@ -21,8 +21,8 @@ source("data-raw/helpers_sim-data.R")
 
 # generate data for the 16 states of Germany
 germany_data <-
-  data.frame("state_ids" = c("SH", "HH", "MV", "NW", "HB", "BB", "BE", "RP",
-                             "NI", "ST", "SN", "SL", "HE", "TH", "BW", "BY"),
+  data.frame("ID_STATE" = c("SH", "HH", "MV", "NW", "HB", "BB", "BE", "RP",
+                            "NI", "ST", "SN", "SL", "HE", "TH", "BW", "BY"),
              "X" = c(10, 15, 20,  7, 20, 25, 15, 10,
                      30, 20, 15, 10, 15, 10,  7, 7))
 
@@ -34,8 +34,12 @@ state_coordinates <- list(
 
 germany_grid <- SpatialPointsDataFrame(
   coords = Reduce("cbind", state_coordinates),
-  data = data.frame(germany_data, row.names = "state_ids")) %>%
-  create_grid(.)
+  data = data.frame(germany_data, row.names = "ID_STATE")) %>%
+  create_grid(.) %>%
+  st_as_sf()
+
+germany_grid <- st_as_sf(germany_grid)[c(2,1,3)]
+names(germany_grid)[c(1,2)] <-names(germany_data)
 
 germany_contingency <- germany_grid %>%
   poly2nb() %>%
@@ -46,7 +50,13 @@ germany_net <- sp_network_nodes(
   network_id = "ge",
   node_neighborhood = germany_contingency,
   node_data = germany_data,
-  node_id_column = "state_ids")
+  node_key_column = "ID_STATE")
 
-usethis::use_data(germany_net, overwrite = TRUE)
-usethis::use_data(germany_grid, overwrite = TRUE)
+germany_inputs <- list("data" = germany_data,
+                       "neighborhood" = germany_contingency,
+                       "key_column" = "ID_STATE",
+                       "net_id" = "ge")
+
+save(germany_inputs, file = "data/germany_inputs.rda")
+save(germany_net, file = "data/germany_net.rda")
+save(germany_grid, file = "data/germany_grid.rda")

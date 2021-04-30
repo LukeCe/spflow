@@ -22,16 +22,18 @@ source("data-raw/helpers_sim-data.R")
 # generate data for the 16 states of the USA
 usa_data <-
   data.frame(
-    "state_ids" = c("AK", "ME", "WI", "VT", "NH", "WA", "ID", "MT", "ND",
-                    "MN", "IL", "MI", "NY", "MA", "OR", "NV", "WY", "SD",
-                    "IA", "IN", "OH", "PA", "NJ", "CT", "RI", "CA", "UT",
-                    "CO", "NE", "MO", "KY", "WV", "VA", "MD", "DE", "AZ",
-                    "NM", "KS", "AR", "TN", "NC", "SC", "DC", "OK", "LA",
-                    "MS", "AL", "GA", "HI", "TX", "FL"),
-    "X" = c(35, 29, 30, 29, 26, 35, 31, 28, 32, 40, 32, 27, 33, 32,
-                       31, 32, 25, 35, 32, 31, 35, 32, 38, 29, 35, 31, 27, 29,
-                       30, 33, 38, 30, 30, 30, 40, 35, 34, 34, 33, 37, 31, 31,
-                       31, 27, 32, 31, 30, 28, 29, 29, 34))
+    "ID_STATE" =
+      c("AK", "ME", "WI", "VT", "NH", "WA", "ID", "MT", "ND",
+        "MN", "IL", "MI", "NY", "MA", "OR", "NV", "WY", "SD",
+        "IA", "IN", "OH", "PA", "NJ", "CT", "RI", "CA", "UT",
+        "CO", "NE", "MO", "KY", "WV", "VA", "MD", "DE", "AZ",
+        "NM", "KS", "AR", "TN", "NC", "SC", "DC", "OK", "LA",
+        "MS", "AL", "GA", "HI", "TX", "FL"),
+    "X" =
+      c(35, 29, 30, 29, 26, 35, 31, 28, 32, 40, 32, 27, 33, 32,
+        31, 32, 25, 35, 32, 31, 35, 32, 38, 29, 35, 31, 27, 29,
+        30, 33, 38, 30, 30, 30, 40, 35, 34, 34, 33, 37, 31, 31,
+        31, 27, 32, 31, 30, 28, 29, 29, 34))
 
 # add stylized geographic information
 # introduce shifts compared to the german example
@@ -47,11 +49,15 @@ state_coordinates <- list(
 
 usa_grid <- SpatialPointsDataFrame(
   coords = Reduce("cbind", state_coordinates),
-  data = data.frame(usa_data, row.names = "state_ids")) %>%
-  create_grid(.)
+  data = data.frame(usa_data, row.names = "ID_STATE")) %>%
+  create_grid(.) %>%
+  st_as_sf()
 
-usa_4_nearest_neighbours <- usa_grid %>%
-  coordinates() %>%
+usa_grid <- st_as_sf(usa_grid)[c(2,1,3)]
+names(usa_grid)[c(1,2)] <- names(usa_data)
+
+usa_4_nearest_neighbours <-
+  suppressWarnings(st_centroid(usa_grid)) %>%
   knearneigh(k = 4) %>%
   knn2nb() %>%
   nb2listw() %>%
@@ -61,7 +67,7 @@ usa_net <- sp_network_nodes(
   network_id = "usa",
   node_neighborhood = usa_4_nearest_neighbours,
   node_data = usa_data,
-  node_id_column = "state_ids")
+  node_key_column = "ID_STATE")
 
-usethis::use_data(usa_net, overwrite = TRUE)
-usethis::use_data(usa_grid, overwrite = TRUE)
+save(usa_net, file = "data/usa_net.rda")
+save(usa_grid, file = "data/usa_grid.rda")
