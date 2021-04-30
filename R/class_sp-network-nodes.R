@@ -48,15 +48,10 @@ setMethod(
 setReplaceMethod(
   f = "dat",
   signature = "sp_network_nodes",
-  function(object, node_key_column, value) { # ---- dat <- --------------------
+  function(object, value) { # ---- dat <- -------------
 
-    if (missing(value)) {
-      # try to recover the existing key column
-      value <- node_key_column
-      node_key_column <- attr_key_nodes(object)
-    }
-    attr_key_nodes(value) <- node_key_column
     object@node_data <- value
+    object@nnodes <- nrow(value) %||% object@nnodes
     validObject(object)
     return(object)
     })
@@ -241,7 +236,7 @@ setValidity(
 #' sp_network_nodes("germany",
 #'                  spdep::nb2mat(spdep::poly2nb(germany_grid)),
 #'                  as.data.frame(germany_grid),
-#'                  "NOM")
+#'                  "ID_STATE")
 sp_network_nodes <- function(
   network_id,
   node_neighborhood = NULL,

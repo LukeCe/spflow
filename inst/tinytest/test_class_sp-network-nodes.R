@@ -48,20 +48,21 @@ test_sp_nodes <-
 expect_equal(test_node_data,dat(test_sp_nodes), check.attributes = FALSE)
 
 # ... check that unsuitable data is rejected
-# ... for size wrong size
-to_small_data <- data.frame(key = factor(LETTERS[seq(2)]), val = seq(2))
-expect_error(dat(test_sp_nodes, "key") <- to_small_data,
-             "invalid class")
-# ... for missing ids
+# ... for missing ids (which can be set)
 valid_node_data <- data.frame(key = factor(LETTERS[seq(3)]), val = seq(3))
 expect_error(dat(test_sp_nodes) <- valid_node_data,
              "invalid class")
-# ... if set id is reused
 attr_key_nodes(valid_node_data) <- "key"
 expect_equal(dat(test_sp_nodes), valid_node_data)
+# ... for size wrong size
+to_small_data <- data.frame(key = factor(LETTERS[seq(2)]), val = seq(2))
+attr_key_nodes(to_small_data) <- "key"
+expect_error(dat(test_sp_nodes) <- to_small_data,
+             "invalid class")
 # ... error when id is not unique
-data_without_id <- data.frame(key = factor(LETTERS[c(1,1,3)]), val = seq(3))
-expect_error(dat(test_sp_nodes, "key") <- data_without_id,
+data_wit_duplipcate_key <- data.frame(key = factor(LETTERS[c(1,1,3)]), val = seq(3))
+attr_key_nodes(valid_node_data) <- "key"
+expect_error(dat(test_sp_nodes) <- data_wit_duplipcate_key,
              "invalid class")
 
 # ---- neighborhood -----------------------------------------------------------
