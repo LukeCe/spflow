@@ -8,7 +8,7 @@ sp_network_nodes(
   network_id,
   node_neighborhood = NULL,
   node_data = NULL,
-  node_id_column = NULL
+  node_key_column
 )
 }
 \arguments{
@@ -18,10 +18,10 @@ sp_network_nodes(
 
 \item{node_data}{A data.frame that contains all information describing the nodes}
 
-\item{node_id_column}{A character indicating the column containing identifiers for the nodes}
+\item{node_key_column}{A character indicating the column containing identifiers for the nodes}
 }
 \value{
-The S4 class sp_network_nodes
+The S4 class \code{\link[=sp_network_nodes-class]{sp_network_nodes-class()}}
 }
 \description{
 Create a \code{\link[=sp_network_nodes-class]{sp_network_nodes-class()}}
