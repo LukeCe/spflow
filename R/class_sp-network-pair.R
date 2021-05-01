@@ -151,18 +151,18 @@ setMethod(
   signature = "sp_network_pair",
   function(object){ # ---- show -----------------------------------------------
 
-    cat("Spatial network pair with id:",id(object,"pair"))
+    cat("Spatial network pair with id:",id(object)["pair"])
     cat("\n")
     cat(print_line(50))
 
     od_explain <- "\n%s network id: %s (with %s nodes)"
 
     cat(sprintf(od_explain,
-                "Origin", id(object,"orig"),
-                nnodes(object, "orig") %||% "[?]"))
+                "Origin", id(object)["orig"],
+                nnodes(object)["orig"] %||% "[?]"))
     cat(sprintf(od_explain,
-                "Destination", id(object,"dest"),
-                nnodes(object, "dest")  %||% "[?]"))
+                "Destination", id(object)["dest"],
+                nnodes(object)["dest"]  %||% "[?]"))
 
     has_all_counts <- length(c(npairs(object),nnodes(object))) == 3
     if (has_all_counts) {

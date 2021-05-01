@@ -37,7 +37,7 @@
 #'   network_id = "paris10km",
 #'   node_neighborhood = paris10km_mat_nb$by_border,
 #'   node_data = sf::st_drop_geometry(paris10km_nodes),
-#'   node_id_column = "ID")
+#'   node_key_column = "ID")
 #'
 #' # define the sp_network_pair...
 #' # ... contains pairwise data (flows and distances)
