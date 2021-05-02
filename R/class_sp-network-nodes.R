@@ -18,6 +18,7 @@
 #' @slot node_neighborhood
 #'   A matrix that describes the neighborhood relations of the nodes
 #'
+#' @importClassesFrom Matrix Matrix
 #' @family [spflow network classes][sp_network_classes()]
 #' @name sp_network_nodes-class
 #' @export
@@ -174,13 +175,13 @@ setValidity(
       return(error_msg)
     }
 
-    # TODO activate check when suit is ported
     # check content of nb matrix
-    # if (!is.null(dim_nb) | !all(diag(neighborhood(object)) == 0)) {
-    #   error_msg <-
-    #     "The neighborhood matrix must have zeros on the main diagonal!"
-    #   return(error_msg)
-    # }
+    if (!is.null(neighborhood(object))
+        && any(diag(neighborhood(object)) != 0)) {
+      error_msg <-
+        "The neighborhood matrix must have zeros on the main diagonal!"
+      return(error_msg)
+    }
 
     # check dimensions of data and matrix
     nr_dat <- nrow(dat(object))
@@ -230,6 +231,7 @@ setValidity(
 #'   A character indicating the column containing identifiers for the nodes
 #'
 #' @family Constructors for [spflow network classes][sp_network_classes()]
+#' @importClassesFrom Matrix Matrix
 #' @return The S4 class [sp_network_nodes-class()]
 #' @export
 #' @examples
