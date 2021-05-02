@@ -13,7 +13,7 @@ interpret_flow_formula <- function(
   )
   constants <- lapply(compact(constants), "has_constant")
 
-  ### ---- split the right hand formulas side for all three cases...
+  ### ---- split the right hand side formulas for all three cases...
 
   # define the parts of the formula that are relevant for each case
   norm_f <- c("D_","O_","I_" %T%  flow_control$use_intra,"G_")
@@ -32,7 +32,8 @@ interpret_flow_formula <- function(
   ### ---- assemble all formulas with constants set apart
   strip_consts <- function(.ll) lapply(compact(.ll),"remove_constant")
   strip_empty <- function(.ll) {
-    lfilter(.ll, function(.l) length(extract_formula_terms(.l)) != 0)}
+    Filter(function(.l) length(extract_formula_terms(.l)) != 0, .ll)
+    }
 
 
   flow_formulas_decomposed <- list(

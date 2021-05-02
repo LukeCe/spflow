@@ -90,7 +90,7 @@ expect_error(spflow:::extract_formula_terms(1:10),
 expect_error(spflow:::extract_formula_terms(a ~ b + c, data = 1:10),
              pattern = "^The input argument .* must be of class .*!")
 
-# ---- spflow:::combine_rhs_formulas ---------------------------------------------------
+# ---- combine_rhs_formulas ---------------------------------------------------
 expect_error(spflow:::combine_rhs_formulas(NULL))
 
 expect_equal(spflow:::combine_rhs_formulas(y ~ a + b, z ~ c + d),
@@ -161,7 +161,7 @@ expect_error(spflow:::extract_transformed_varnames(
 expect_error(spflow:::extract_transformed_varnames(
   formula = ~ not_available + Species, data = iris))
 
-# ---- spflow:::split_forumla_specials -------------------------------------------------
+# ---- split_forumla_specials -------------------------------------------------
 expect_error(spflow:::split_forumla_specials(NULL   ,NULL))
 expect_error(spflow:::split_forumla_specials(NULL   ,c("A_","B_")))
 expect_error(spflow:::split_forumla_specials(~ y - a,NULL))
