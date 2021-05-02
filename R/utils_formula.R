@@ -27,7 +27,7 @@ has_dot_shortcut <- function(formula) {
 #' @keywords internal
 data_permits_formula <- function(formula,data) {
   assert_formula(formula)
-  stopifnot(is.data.frame(data))
+  stopifnot(inherits(data, "data.frame"))
   data <- data[0,]
 
   possible <- tryCatch(
@@ -190,8 +190,7 @@ split_forumla_specials <- function(
   # then create the special formulas
   st <- split_terms$specials
   special_formulas <- st %|!|%
-    plapply(special = names(st),string_formula = st,
-            .f = "special_formula_as_rhs")
+    Map("special_formula_as_rhs", special = names(st), string_formula = st)
 
   null_special <- unlist(lapply(special_formulas,is.null))
   if (any(null_special)) {
