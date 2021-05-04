@@ -1,5 +1,6 @@
 # ==== [+++ constructor +++] ==================================================
-## correct construction and data adjustment ##
+library("spflow")
+library("Matrix")
 
 expect_inherits({
   sp_network_nodes("net1")

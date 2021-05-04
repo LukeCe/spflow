@@ -17,8 +17,8 @@ expect_equal({
   },
   {
     data.frame(
-      o_key = factor_in_order(rep(LETTERS[1:3], times = 3)),
-      d_key = factor_in_order(rep(LETTERS[1:3], each = 3)),
+      o_key = factor(rep(LETTERS[1:3], times = 3)),
+      d_key = factor(rep(LETTERS[1:3], each = 3)),
       dist = 1:9)
     },
   info = "check that data is not changed apart from factor conversions",

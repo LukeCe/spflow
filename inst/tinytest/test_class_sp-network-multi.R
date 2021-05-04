@@ -167,7 +167,25 @@ expect_equal({
 
 # ---- show method ------------------------------------------------------------
 expect_stdout({
-  test_multi_net <- sp_multi_network(sp_network_nodes("net1"))
+  test_o_net <-
+    sp_network_nodes("net1", NULL, data.frame("ID" = c("A", "B"),
+                                              "VAL" = "OO"),
+                     "ID")
+  test_d_net <-
+    sp_network_nodes("net2", NULL, data.frame("ID" = c("C", "D"),
+                                              "VAL" = "DD"),
+                     "ID")
+  test_net_pair <- sp_network_pair("net1",
+                                   "net2",
+                                   data.frame(
+                                     "ID_O" = c("A", "B"),
+                                     "ID_D" = c("C", "D"),
+                                     "DIST" = c(1, 4)
+                                   ),
+                                   "ID_O",
+                                   "ID_D")
+  test_multi_net <-
+    sp_multi_network(test_net_pair, test_o_net, test_d_net)
   test_multi_net
   },
   info = "show something on print")
