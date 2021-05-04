@@ -24,35 +24,38 @@
 #'   A character indicating the model number,  indicating different spatial
 #'   dependence structures (see documentation for details), should be one of
 #'   `paste0("model_", 1:9)`
-#' @param hessian_method
-#'   A character which indicates the method for hessian calculation
+#' @param use_intra
+#'   A logical which activates the option to use a separate set of parameters
+#'   for intra-regional flows (origin == destination)
 #' @param sdm_variables
 #'   Either a formula or a character; the formula can be used to explicitly
 #'   declare the variables in SDM specification, the character should be one of
 #'   `c("same", "all")` which are short cuts for using all available variables
 #'   or the same as used in the main formula provided to [spflow()]
-#' @param instrumental_variables
+#' @param weight_variable
+#'   A character indicating the name of one column in the node pair data.
+#' @param parameter_space
+#'   A character indicating how to define the limits of the parameter space.
+#'   The only available option is `c("approx")`.
+#' @param mle_hessian_method
+#'   A character which indicates the method for Hessian calculation
+#' @param twosls_instrumental_variables
 #'   Either a formula or a character; the formula can be used to explicitly
 #'   declare the variables that should be used as instruments during S2SLS
 #'   estimation, the character should be one of `c("same", "all")` which
 #'   are short cuts for using all available variables or the same as used in
 #'   the main formula provided to [spflow()]
-#' @param decorrelate_instruments
+#' @param twosls_decorrelate_instruments
 #'   A logical whether to perform a PCA to remove (linear) correlation from the
 #'   instruments generated for the S2SLS estimator
-#' @param use_sdm
-#'   A logical which adds spatial lags of origin and destination attributes as
-#'   explanatory variables to the model.
-#' @param use_intra
-#'   A logical which activates the option to use a separate set of parameters
-#'   for intra-regional flows (origin == destination)
-#' @param weight_variable
-#'   A character indicating the name of a variable that should be used to
-#'   weight the origin-destination pairs
-#' @param reduce_pair_instruments
+#' @param twosls_reduce_pair_instruments
 #'   A logical that indicates whether the number of instruments that are
 #'   derived from pair attributes should be reduced or not (default is TRUE
 #'   because constructing these instruments is often the most demanding part of
+#' @param mcmc_iterations
+#'   A numeric indicating
+#' @param mcmc_burn_in
+#' @param mcmc_resampling_limit
 #'   the estimation.)
 #' @seealso [spflow()]
 #' @references \insertAllCited{}
@@ -80,104 +83,105 @@ spflow_control <- function(
   estimation_method = "mle",
   model = "model_9",
   use_intra = TRUE,
-  use_sdm = TRUE,
   sdm_variables = "same",
-  instrumental_variables = "same",
   weight_variable = NULL,
-  decorrelate_instruments = FALSE,
-  reduce_pair_instruments = TRUE,
-  hessian_method = "mixed") {
+  parameter_space = "approx",
+  mle_hessian_method = "mixed",
+  twosls_instrumental_variables = "same",
+  twosls_decorrelate_instruments = FALSE,
+  twosls_reduce_pair_instruments = TRUE,
+  mcmc_iterations = 5500,
+  mcmc_burn_in = 2500,
+  mcmc_resampling_limit = 100) {
+
 
   available_estimators <- c("s2sls", "mle","mcmc","ols")
   assert(estimation_method %in% available_estimators,
-         sprintf("The estimation method must be one of [%s]!",
-                 paste(available_estimators, collapse = " or ")))
+         'The estimation_method must one string among c("%s")!',
+         paste0(available_estimators, collapse = ", "))
 
   possible_models <- ("model_" %p% 1:9)
   assert(model %in% possible_models,
-         "The model can only be one of:\\n" %p%
-           paste0(possible_models,collapse =  "\\n"))
+         'The model must one string among c("%s")!',
+         paste0(possible_models, collapse = ", "))
 
-  # model 1 is always ols
   if (estimation_method == "ols" | model == "model_1") {
     estimation_method <- "ols"
     model <- "model_1"
   }
 
   assert_is_single_x(use_intra, "logical")
-  assert_is_single_x(use_sdm, "logical")
-  assert_is_single_x(decorrelate_instruments, "logical")
-  assert_is_single_x(reduce_pair_instruments, "logical")
 
-
-  # check sdm variables
-  if (!use_sdm)
-    sdm_variables <- "none"
-
+  check_formula_msg <-
+    "The %s must either be declared as a formula " %p%
+    'or one string among c("none", "all", "same")!'
   assert(is(sdm_variables,"formula")
          || sdm_variables %in% c("none","same","all"),
-         "The sdm_variables must either be declared as a formula " %p%
-         "or as a string with one of the keywords [none, or all, or same]!")
-
-  # check instrumental variables
-  if (estimation_method != "s2sls")
-    instrumental_variables <- "none"
-
-  assert(is(instrumental_variables,"formula")
-         || instrumental_variables %in% c("none","same","all"),
-         "The instrumental_variables must either be declared as a formula " %p%
-           "or as a string with one of the keywords [none, or all, or same]!")
+         check_formula_msg, sdm_variables)
 
   assert(is_single_character(weight_variable) || is.null(weight_variable),
          "The weight_variable must be a character of length one!")
 
-  # check hessian (only relevant for mle estimator)
-  if (estimation_method != "mle")
-    hessian_method <- "mixed"
-
-  available_hessians <- c("mixed","f2") # ,... exact
-  assert(hessian_method %in% available_hessians,
-         sprintf("The hessian method must be one of [%s]!",
-                 paste(available_hessians, collapse = " or ")))
-
-  # check flow types
-  # can be within or between once the rectangular case is available
-  flow_type <- NULL
-  between_flows <- !is.null(flow_type) && (flow_type == "between")
-  impossible_intra <- use_intra && between_flows
-
-  assert(!impossible_intra, warn = TRUE,
-         "Intra model option is only available for within network flows." %p%
-         "The option was deactivated.")
-
-  return(list(
+  general_control <- list(
     "estimation_method" = estimation_method,
-    "hessian_method" = hessian_method,
-    "sdm_variables" = sdm_variables,
-    "instrumental_variables" = instrumental_variables,
-    "decorrelate_instruments" = decorrelate_instruments,
-    "reduce_pair_instruments" = reduce_pair_instruments,
+    "model" = model,
     "use_intra" = use_intra,
-    "use_sdm" = use_sdm,
-    "model" = model
-  ))
-}
+    "sdm_variables" = sdm_variables,
+    "weight_variable" = weight_variable
+  )
 
-# TODO create validate_control function
+  if (estimation_method == "ols")
+    return(general_control)
 
-#' @keywords internal
-sp_model_type <- function(cntrl) {
+  ps_methods <- c("approx")
+  assert(parameter_space %in% ps_methods,
+         'The parameter_space must be a one string among c("%s")!',
+         paste0(ps_methods, collapse = ", "))
+  general_control <-
+    c(general_control, list("parameter_space" = parameter_space))
 
-  has_lagged_x <- cntrl$use_sdm & cntrl$sdm_variables != "none"
+  if (estimation_method == "mle") {
+    available_hessians <- c("mixed","f2")
+    assert(mle_hessian_method %in% available_hessians,
+           'The parameter_space must be a one string among c("%s")!',
+           paste0(available_hessians, collapse = ", "))
 
-  if (cntrl$model == "model_1") {
-    model_type <- ifelse(has_lagged_x,"SLM","OLM")
+    mle_control <- list("mle_hessian_method" = mle_hessian_method)
+    return(c(general_control,mle_control))
   }
 
-  if (cntrl$model != "model_1") {
-    model_type <- ifelse(has_lagged_x,"SDM","LAG")
+  if (estimation_method == "s2sls") {
+    assert_is_single_x(twosls_decorrelate_instruments, "logical")
+    assert_is_single_x(twosls_reduce_pair_instruments, "logical")
+    assert(is(twosls_instrumental_variables,"formula")
+           || twosls_instrumental_variables %in% c("none","same","all"),
+           check_vars_msg)
+
+    twosls_control <- list(
+      "twosls_instrumental_variables"  = twosls_instrumental_variables,
+      "twosls_decorrelate_instruments" = twosls_decorrelate_instruments,
+      "twosls_reduce_pair_instruments" = twosls_reduce_pair_instruments
+    )
+    return(c(general_control,mle_control))
   }
 
-  return(model_type)
+  if (estimation_method == "mcmc") {
 
+    assert_is_single_x(mcmc_iterations, "numeric")
+    assert_is_single_x(mcmc_burn_in, "numeric")
+    assert_is_single_x(mcmc_resampling_limit, "numeric")
+
+    assert(mcmc_burn_in < mcmc_iterations,
+           "The mcmc_burn_in must be smaller than mcmc_iterations!")
+
+    assert(all(c(mcmc_iterations, mcmc_burn_in, mcmc_resampling_limit) > 0),
+           "All mcmc control parameters must be postive.")
+
+    mcmc_control <- list(
+      "mcmc_iterations"  = mcmc_iterations,
+      "mcmc_burn_in" = mcmc_burn_in,
+      "mcmc_resampling_limit" = mcmc_resampling_limit
+    )
+    return(c(general_control,mcmc_control))
+  }
 }
