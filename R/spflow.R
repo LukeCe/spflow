@@ -160,64 +160,115 @@
 spflow <- function(
   flow_formula,
   sp_multi_network,
-  network_pair_id = id(sp_multi_network,"network_pairs")[[1]]["pair"],
+  network_pair_id,
   flow_control = spflow_control()
 ) {
 
-  ## ... check for abusive inputs
-  assert(is(flow_formula,"formula"),
-         "A valid formula is required!")
+  ## check for abusive inputs and correct ids
+  assert_is(flow_formula,"formula")
+  assert_is(sp_multi_network,"sp_multi_network")
 
-  assert(is(sp_multi_network,"sp_multi_network"),
-         "The data must be a network data object!")
-
-  ## ... check correct types of ids
-  assert(is_single_character(network_pair_id),
+  pair_ids <- id(sp_multi_network)[["network_pairs"]]
+  if (missing(network_pair_id)) network_pair_id <- pair_ids[[1]]
+  assert(valid_network_pair_id(network_pair_id),
          "The network_pair_id must be a character of length 1!")
 
-  network_ids <- id(sp_multi_network)[["network_pairs"]][[network_pair_id]]
-  assert(!is.null(network_ids),
-         sprintf("The the network pair id [%s] is not available!",
-                 network_pair_id))
+  assert(network_pair_id %in% pair_ids,
+         'The the network pair id "%s" is not available!',
+         network_pair_id)
 
 
-  ## ... test the arguments provided to control by calling it again
-  assert(is.null(flow_control$weight_variable),warn = TRUE,
+  ## validate (by calling again) then enrich control parameters
+  flow_control <- do.call("spflow_control", flow_control)
+  estim_control <- c(
+    flow_control,
+    list("model_type" = sp_model_type(flow_control)),
+    matrix_form_control(pull_member(sp_multi_network, network_pair_id)))
+
+  # below cases should become available in future versions
+  assert(!is.null(estim_control$weight_variable), warn = TRUE,
          "Weighting of observations is not yet possible and will be ignored.")
 
-  flow_control <- do.call(spflow_control, flow_control)
-  # TODO validate and enrich flow control
-  # TODO check completeness information and add to estimation control
-  ## ... identify the flow type
-  flow_control$flow_type <- ifelse(network_ids["orig"] == network_ids["dest"],
-                                   yes = "within", no = "between")
-  nb_od_pairs <- npairs(pull_pairs(sp_multi_network, network_pair_id))
-  nb_od_optins <- prod(nnodes(pull_pairs(sp_multi_network, network_pair_id)))
-  flow_control$flow_completeness <- nb_od_pairs / nb_od_optins
-  flow_control$sp_model_type <- sp_model_type(flow_control)
-
-
-  # TODO generalize for the case of sparse flows and multiple networks
-  assert(flow_control$flow_completeness == 1,
-         "Estimation are for only possible if the number of pairs is " %p%
+  assert(estim_control$mat_complet == 1,
+         "Estimation is (for now) only possible if the number of pairs is " %p%
          "excatly the number of origins multiplied by the number of " %p%
          "destinations!")
 
-  assert(flow_control$flow_type == "within",
+  assert(estim_control$mat_within,
          "Estimation of flows between two diffrent networks are " %p%
          "not yet available!")
 
-  ## ... create the design matrix/matrices
-  model_matrices <- spflow_model_matrix(
-    sp_multi_network,
-    network_pair_id,
+  formula_parts <- interpret_flow_formula(
     flow_formula,
     flow_control)
 
-  # ... fit the model and add complementary information to the results
-  estimation_results <- spflow_model_estimation(model_matrices,flow_control)
+  model_matrices <- spflow_model_matrix(
+    sp_multi_network,
+    network_pair_id,
+    formula_parts,
+    estim_control)
+
+  model_moments <- spflow_model_moments(
+    model_matrices = model_matrices,
+    estimator = estimator)
+
+  estimation_results <- spflow_model_estimation(
+    model_moments,
+    estim_control)
+
+  estimation_results <- add_details(
+    estimation_results,
+    model_matrices = model_matrices,
+    estim_control = estim_control)
 
   return(estimation_results)
+}
+
+
+#' @importFrom Matrix sparseMatrix
+#' @keywords internal
+matrix_form_control <- function(sp_net_pair) {
+
+  matrix_arguments <- list(
+    "mat_complet" = npairs(sp_net_pair) / prod(nnodes(sp_net_pair)),
+    "mat_within" = id(sp_net_pair)["orig"] == id(sp_net_pair)["dest"],
+    "mat_n_rows" = nnodes(sp_net_pair)["orig"],
+    "mat_n_cols" = nnodes(sp_net_pair)["dest"],
+    "mat_format" = NULL)
+
+  if (matrix_arguments[["mat_complet"]] == 1) {
+    matrix_arguments[["mat_format"]] <- function(vec) {
+      matrix(vec,
+             nrow = matrix_arguments[["mat_n_rows"]],
+             ncol = matrix_arguments[["mat_n_cols"]])
+    }
+  }
+
+  if (matrix_arguments[["mat_complet"]] < 1) {
+    od_keys <- attr_key_od(dat(sp_net_pair))
+    mat_i_rows <- as.integer(dat(sp_pair)[[od_keys[1]]])
+    mat_j_cols <- as.integer(dat(sp_pair)[[od_keys[2]]])
+    matrix_arguments[["mat_format"]] <- function(vec) {
+      mat <- matrix(0,
+                    nrow = matrix_arguments[["mat_n_rows"]],
+                    ncol = matrix_arguments[["mat_n_cols"]])
+      mat[cbind(mat_i_rows, mat_j_cols)] <- vec
+      mat
+
+    }
+  }
+
+  if (matrix_arguments[["mat_complet"]] < .5) {
+    od_keys <- attr_key_od(dat(sp_net_pair))
+    matrix_arguments[["mat_format"]] <- function(vec) {
+      sparseMatrix(i= mat_i_rows, j=mat_j_cols,
+                   x= vec,
+                   dims = c(matrix_arguments[["mat_n_rows"]],
+                            matrix_arguments[["mat_n_cols"]]))
+    }
+  }
+
+  return(matrix_arguments)
 }
 
 
@@ -273,4 +324,17 @@ drop_instruments <- function(model_matrices) {
   )
 
   return(matrices_and_spatial_weights)
+}
+
+#' @keywords internal
+sp_model_type <- function(cntrl) {
+  has_lagged_x <- cntrl$sdm_variables != "none"
+
+  if (cntrl$model == "model_1")
+    model_type <- ifelse(has_lagged_x,"SLX","OLM")
+
+  if (cntrl$model != "model_1")
+    model_type <- ifelse(has_lagged_x,"SDM","LAG")
+
+  return(model_type)
 }

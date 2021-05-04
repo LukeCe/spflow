@@ -14,11 +14,14 @@ interpret_flow_formula <- function(
   constants <- lapply(compact(constants), "has_constant")
 
   ### ---- split the right hand side formulas for all three cases...
-
   # define the parts of the formula that are relevant for each case
-  norm_f <- c("D_","O_","I_" %T%  flow_control$use_intra,"G_")
-  sdm_f <- setdiff(norm_f,"G_") %T% flow_control$use_sdm
-  inst_f <- norm_f %T% (flow_control$estimation_method == "s2sls")
+  I_ <- "I_" %T% flow_control$use_intra
+  norm_f <-
+    c("D_", "O_", I_, "G_")
+  sdm_f <-
+    c("D_", "O_", I_)       %T% (flow_control$sdm_variables != "none")
+  inst_f <-
+    c("D_", "O_", I_, "G_") %T% (flow_control$estimation_method == "s2sls")
 
   # derive the split formulas
   norm_rhs_split <- compact(split_specials[norm_f])
@@ -34,7 +37,6 @@ interpret_flow_formula <- function(
   strip_empty <- function(.ll) {
     Filter(function(.l) length(extract_formula_terms(.l)) != 0, .ll)
     }
-
 
   flow_formulas_decomposed <- list(
     "norm" = c(norm_lhs,norm_rhs_split),

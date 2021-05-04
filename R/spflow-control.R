@@ -162,7 +162,7 @@ spflow_control <- function(
       "twosls_decorrelate_instruments" = twosls_decorrelate_instruments,
       "twosls_reduce_pair_instruments" = twosls_reduce_pair_instruments
     )
-    return(c(general_control,mle_control))
+    return(c(general_control,twosls_control))
   }
 
   if (estimation_method == "mcmc") {

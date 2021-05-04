@@ -33,9 +33,10 @@ expect_error({
 
 # ---- flow_conform_model_matrix ----------------------------------------------
 expect_equal(
-  spflow:::flow_conform_model_matrix(~ . , cars),
+  spflow:::flow_conform_model_matrix(~ . , data.frame("A" = 1:2, "B" = 3:4)),
   model.matrix(~ . , data.frame("A" = 1:2, "B" = 3:4))[,c("A","B")],
-  info = "handles intercept removal")
+  info = "handles intercept removal",
+  check.attributes = FALSE)
 
 expect_equal(
   spflow:::flow_conform_model_matrix(~ . - 1 , data.frame("A" = 1:2, "B" = 3:4)),

@@ -286,6 +286,10 @@ sp_network_pair <- function(
 }
 
 # ---- Helpers ----------------------------------------------------------------
+#' @keywords internal
+split_pair_id <- function(pair_id){
+  strsplit(pair_id,"_")[[1]]
+}
 
 #' @keywords internal
 attr_key_orig <- function(df) {

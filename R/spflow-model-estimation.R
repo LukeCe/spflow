@@ -1,34 +1,22 @@
 spflow_model_estimation <- function(
-  model_matrices,
-  flow_control) {
-
-  estimator <- flow_control$estimation_method
-
-  ## ... derive the model moments
-  model_moments <- spflow_model_moments(
-    model_matrices = model_matrices,
-    estimator = estimator)
+  model_moments,
+  estim_control) {
 
   na_error_template <-
-    "The estimation is aborted because the %s variables contain " %p%
-    "NA values!" %p%
-    "\nPlease check that all variables are well defined."
+    "The estimation is aborted because the %s variables contain NA values!" %p%
+    "\nPlease ensure that all variables in the network objects are well " %p%
+    "defined."
+  assert(all(!is.na(model_moments$ZZ)), na_error_template, "explanatory")
+  assert(all(!is.na(model_moments$ZY)), na_error_template, "response")
 
-  assert(all(!is.na(model_moments$ZZ)),
-         sprintf(na_error_template, "explanatory"))
-
-  assert(all(!is.na(model_moments$ZY)),
-         sprintf(na_error_template, "response"))
-
-
-  estimation_results <- switch(estimator,
+  estimation_results <- switch(estim_control$estimation_method,
     "ols" = {
       spflow_ols(
         ZZ  = model_moments$ZZ,
         ZY  = model_moments$ZY,
         TSS = model_moments$TSS,
         N   = model_moments$N,
-        flow_control = flow_control
+        flow_control = estim_control
       )},
     "s2sls" = {
       spflow_s2sls(
@@ -38,7 +26,7 @@ spflow_model_estimation <- function(
         ZY  = model_moments$ZY,
         TSS = model_moments$TSS,
         N   = model_moments$N,
-        flow_control = flow_control
+        flow_control = estim_control
       )},
     "mle" = {
       spflow_mle(
@@ -50,7 +38,7 @@ spflow_model_estimation <- function(
         n_o   = model_moments$n_o,
         OW_traces = model_moments$OW_traces,
         DW_traces = model_moments$DW_traces,
-        flow_control = flow_control
+        flow_control = estim_control
       )},
     "mcmc" = {spflow_mcmc(
       ZZ = model_moments$ZZ,
@@ -61,14 +49,9 @@ spflow_model_estimation <- function(
       n_o = model_moments$n_o,
       OW_traces = model_moments$OW_traces,
       DW_traces = model_moments$DW_traces,
-      flow_control = flow_control
+      flow_control = estim_control
     )}
   )
-
-  estimation_results <- add_details(estimation_results,
-                                    model_matrices = model_matrices,
-                                    flow_control = flow_control)
-
 
   return(estimation_results)
 
