@@ -53,10 +53,12 @@
 #'   derived from pair attributes should be reduced or not (default is TRUE
 #'   because constructing these instruments is often the most demanding part of
 #' @param mcmc_iterations
-#'   A numeric indicating
+#'   A numeric indicating the number of iteration
 #' @param mcmc_burn_in
+#'   A numeric indicating the length of the burn in period
 #' @param mcmc_resampling_limit
-#'   the estimation.)
+#'   A numeric indicating the maximal number of trials during rejection
+#'   sampling of the autoregressive parameters
 #' @seealso [spflow()]
 #' @references \insertAllCited{}
 #' @return A list of control parameters for estimation via [spflow()]

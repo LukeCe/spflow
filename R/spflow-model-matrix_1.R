@@ -70,7 +70,7 @@ pull_flow_data <- function(sp_multi_net, pair_id) {
     if (names(flow_data)[i] %in% c("orig","dest"))
       key_cols <- attr_key_nodes(flow_data[[i]])
 
-    flow_data[[i]][,key_cols] <- NULL
+    flow_data[[i]][key_cols] <- NULL
   }
 
 
@@ -91,6 +91,7 @@ pull_neighborhood_data <-  function(sp_multi_network, network_pair_id) {
 
 }
 
+#' @title Internal functions to generate model matrices
 #' @details
 #'   The function generates a list for each role `c("Y_","G_","O_","D_","I_")`
 #'   which indicates whether a variable in the design matrix is used as

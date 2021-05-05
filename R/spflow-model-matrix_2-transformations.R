@@ -1,3 +1,4 @@
+#' @title Internal functions to generate model matrices
 #' @details
 #'   Sources describe the data.frames holding the original information on
 #'   the nodes and the node pairs. There are three possible source data.frame

@@ -186,7 +186,7 @@ spflow <- function(
     matrix_form_control(pull_member(sp_multi_network, network_pair_id)))
 
   # below cases should become available in future versions
-  assert(!is.null(estim_control$weight_variable), warn = TRUE,
+  assert(is.null(estim_control$weight_variable), warn = TRUE,
          "Weighting of observations is not yet possible and will be ignored.")
 
   assert(estim_control$mat_complet == 1,

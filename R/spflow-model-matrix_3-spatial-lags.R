@@ -6,8 +6,10 @@ by_role_spatial_lags <- function(
   estim_control){
 
   ### 0) Define requirements
-  lag_requirements_by_role <- lapply(variable_roles, "var_usage_to_lag")
-  instrument_statu_by_role <- lapply(variable_roles, "var_usage_to_lag", TRUE)
+  instrument_statu_by_role <-
+    lapply(variable_roles, "predict_lags_and_inst_satus")
+  lag_requirements_by_role <-
+    lapply(lag_and_inst_by_role, function(.n) lookup(names))
 
   summarize_lags_by_source <- function(source_key){
     role_key <- role_lookup[[source_key]]
@@ -20,7 +22,7 @@ by_role_spatial_lags <- function(
     lapply(lookup(sources), "summarize_lags_by_source")
 
   ### 1) Lag data for nodes
-  node_sources <- intersect(c("orig","dest"), sources)
+  node_sources <- intersect(c("orig","dest"), names(model_matrices))
   lag_varnames_by_role <- lapply(lag_requirements_by_role, "suffix_sp_lags")
   lag_varnames_by_role <- lapply(lag_varnames_by_role, "unlist")
 
@@ -106,7 +108,7 @@ by_role_spatial_lags <- function(
 # ---- Helpers 1: defining requirements ---------------------------------------
 
 #' @keywords internal
-var_usage_to_lag <- function(.vars, out_inst = FALSE) {
+predict_lags_and_inst_satus <- function(.vars) {
 
   # pull out variables and declare their instrument status
   norm <- .vars$norm
@@ -120,20 +122,8 @@ var_usage_to_lag <- function(.vars, out_inst = FALSE) {
   inst3 <- setdiff(inst, inst0)
   inst3 <- intersect(inst3, sdm)
 
-  # variable order them into the required number of lags
-  # optionally output the instrument status instead of the variable names
-  inst_lookup <- function(.var,is_inst) {
-    if (length(.var) == 0)
-      return(NULL)
-
-    if (out_inst)
-      return(lookup(is_inst,.var))
-
-    return(lookup(.var))
-  }
-  i <- function(.var) inst_lookup(.var,is_inst = TRUE)
-  ni <- function(.var) inst_lookup(.var,is_inst = FALSE)
-
+  i <- function(.var) lookup(.var, TRUE)
+  ni <- function(.var) lookup(.var, FALSE)
   required_lags <- list(
     "lag0" = c(ni(norm), i(inst0)),
     "lag1" = c(ni(sdm), i(inst1)),
@@ -161,12 +151,6 @@ suffix_sp_lags <- function(lag_req) {
 }
 
 #' @keywords internal
-set_instrument_status <- function(x, is_inst) {
-  #TODO remove data.table
-  data.table::setattr(x, "is_instrument_var", is_inst)
-}
-
-#' @keywords internal
 `attr_inst_status<-` <- function(x, value) {
   attr(x, "is_instrument_var") <- value
   x
@@ -174,11 +158,6 @@ set_instrument_status <- function(x, is_inst) {
 
 #' @keywords internal
 attr_inst_status <- function(x) {
-  attr(x, "is_instrument_var")
-}
-
-#' @keywords internal
-get_instrument_status <- function(x) {
   attr(x, "is_instrument_var")
 }
 
@@ -206,34 +185,25 @@ orthoginolize_instruments <- function(mat) {
 
 # ---- Helpers 3: lagging pair data -------------------------------------------
 #' @keywords internal
-matrix_format <- function(mat_vec_fmt, columns, ...){
-
-  args <- flatlist(list(...))
-  column_to_matrix <- function(col) {
-    do.call("vec_to_matrix",args = c(args, list(vec = mat_vec_fmt[,col])))
-    }
-  matrix_list <- lapply(lookup(columns), column_to_matrix)
-  return(matrix_list)
-}
-
-#' @keywords internal
 lag_flow_matrix <- function(Y, model, OW, DW, name = "Y") {
 
   names_rho <- define_spatial_lag_params(model)
+  need_d <- any(names_rho %in% c("rho_d","rho_od","rho_odw"))
+  need_o <- any(names_rho %in% c("rho_o","rho_od","rho_odw"))
+  need_w <- any(names_rho %in% c("rho_w","rho_odw"))
 
-  # destination case
-  if (any(c("rho_d","rho_od","rho_odw") %in% names_rho)) {
+  if (need_d)
     WY <- DW %*% Y
-  }
-
-  # origin case
-  if (any(c("rho_o","rho_od","rho_odw") %in% names_rho)) {
+  if (need_o)
     YW <- tcrossprod(Y,OW)
-  }
-
-  # orig-&-dest case
-  if (any(c("rho_w","rho_odw") %in% names_rho)) {
-    WYW <- OW %*% tcrossprod(Y,DW)
+  # The two sided lag may exploit the existing one-sided ones for efficiency
+  if (need_w) {
+    if (need_d)
+      WYW <- tcrossprod(WY, OW)
+    if (!need_d & need_o)
+      WYW <- DW %*% YW
+    if (!need_d & !need_o)
+      WYW <-  DW %*% tcrossprod(Y,OW)
   }
 
   Y_lags <- switch(substr(model, 7, 7),   # (8.15) in LeSage book
@@ -249,7 +219,6 @@ lag_flow_matrix <- function(Y, model, OW, DW, name = "Y") {
 
 
   names(Y_lags) <- name %p% c("",rep(".",length(names_rho))) %p% names(Y_lags)
-
   return(Y_lags)
 }
 
@@ -269,23 +238,6 @@ define_spatial_lag_params <- function(model) {
   return(names_rho)
 }
 
-
-#' @keywords internal
-apply_matrix_od_lags <- function(G, OW = NULL, DW = NULL,
-                                 nb_lags = 0, name = "") {
-
-  suffixes <- c("",".lag" %p% seq_len(nb_lags))[seq_len(nb_lags + 1)]
-  G_lags <- named_list(names = name %p% suffixes)
-  G_lags[[1]] <- G
-
-  # Default to identity
-  for (i in seq_len(nb_lags)) {
-    G_lags[[i + 1]] <- sandwich_prod(OW,G_lags[[i]],DW)
-  }
-
-  return(G_lags)
-}
-
 #' @keywords internal
 derive_pair_instruments <- function(
   G,
@@ -303,41 +255,34 @@ derive_pair_instruments <- function(
   if (is.null(OW) | is.null(DW))
     full_inst <- TRUE
 
-  # initialize lags to null
-  # then compute required ones
-  g_lags <- c("wG","wwG","Gw","Gww","wGw","wwGw","wGww","wwGww")
-  lapply(g_lags, "assign", value = NULL)
-
   # destination lags
   d <- TRUE %T% (!is.null(DW))
+  g_lags <- c("wG","wwG") %T% d
   wG <- d %|!|% (DW %*% G)
   wwG <- d %|!|% (DW %*% wG)
 
   # origin lags
   # (not needed when working with reduced instruments and d is given)
   o <- (TRUE %T% !is.null(OW)) %T% full_inst
+  g_lags <- c(g_lags, c("Gw","Gww") %T% o)
   Gw <- o %|!|% tcrossprod(G, OW)
   Gww <- o %|!|% tcrossprod(Gw, OW)
 
   # o-d lags
-  do <- TRUE %T% (!is.null(OW) & !is.null(DW))
-  wGw <- do %|!|% tcrossprod(wG,OW)
-  wwGw <- do %|!|% tcrossprod(wwG,OW)
-  wGww <- do %|!|% ((DW %*% Gww) %T% o)
-  wwGww <- do %|!|% tcrossprod(wwGw, OW)
-
-  # remove super fluent instruments in the reduced case
-  if (!full_inst & isTRUE(do)) {
-    wG <- wwG <- wwGw <- NULL
-  }
+  od <- TRUE %T% (!is.null(OW) & !is.null(DW))
+  g_lags <- c(g_lags, c("wGw","wwGw","wGww","wwGww") %T% od)
+  wGw <- od %|!|% tcrossprod(wG,OW)
+  wwGw <- od %|!|% tcrossprod(wwG,OW)
+  wGww <- od %|!|% ((DW %*% Gww) %T% o)
+  wwGww <- od %|!|% tcrossprod(wwGw, OW)
 
   # collect and name matrices
-  G_obj <- c("G",g_lags)
-  lag_name <- lookup(names = G_obj,
-                     values = name %p% c("", ".lag." %p% g_lags))
-  G_inst <- compact(collect(c("G",g_lags)))
-  names(G_inst) <- lag_name[names(G_inst)]
-  return(G_inst)
+  if (!full_inst & isTRUE(od))
+    g_lags <- c("wGw","wwGww")
+
+  G_mats <- collect(c("G",g_lags))
+  names(G_mats) <- "G" %p% c("", "." %p% g_lags)
+  return(G_mats)
 }
 
 
