@@ -46,31 +46,34 @@
 #' commuting flows for 71 municipalities around the centrer of Paris.
 #' The data for the example is stored in three objects
 #'
-#' 1. `paris10km_nodes` contains information on the municipalities.
-#' It contains some socioeconomic variable, the identifier of the municipality
+#' 1. `paris10km_municipalities` contains information on the municipalities.
+#' It contains some socio-economic variable, the identifier of the municipality
 #' and a geometry column.
 #' The geometry is a MULTIPOLYGON that describes the shape of the region.
 #'
-#' 2. `paris10km_node_pairs` contains information on pairs of municipalities.
-#' It is a data.table with origin and destination identifiers and contains
+#' 2. `paris10km_commuteflows` contains information on pairs of municipalities.
+#' It is a data.frame with origin and destination identifiers and contains
 #' the information on the size of the flow and the distance.
 #'
-#' 3. `paris10km_mat_nb` contains three sparse matrices that correspond to
+#' 3. `paris10km_neighborhood` contains three sparse matrices that represent
 #' alternative definitions of the neighborhood of the municipalities.
+#' The first is based on contiguity, the second one on distance and the third
+#' one is based on the three nearest neighbours.
 #'
 #'
-#' @source The data combine different public sources:
-#'   * \href{https://public.opendatasoft.com/explore/dataset/code-postal-code-insee-2015/table/?flg=fr}{Population, area, shape, ...}
-#'   * \href{https://www.insee.fr/fr/statistiques/2021271}{Number of companies in each municipality}
-#'   * \href{https://www.data.gouv.fr/fr/datasets/prix-moyen-au-m2-des-ventes-de-maisons-et-dappartements-par-commune-en-2019/}{Average price of housing}
-#'   * \href{https://www.insee.fr/fr/statistiques/3560121}{Average Income}
+#' @source
+#' The data combine different public sources (last accessed 2021-05-05):
+#'   * \href{https://www.insee.fr/fr/statistiques/fichier/3566477/base-texte-flux-mobilite-domicile-lieu-travail-2015.zip}{Commute flows}
+#'   * \href{https://www.insee.fr/fr/statistiques/2021271}{Number of companies}
+#'   * \href{https://www.insee.fr/fr/statistiques/3560121}{Median income}
+#'   * \href{https://public.opendatasoft.com/explore/dataset/code-postal-code-insee-2015/export/?flg=fr&location=2,18.52839,-2.98471&basemap=jawg.streets}{Geographies, population and area}
 #' @rdname paris_data
 #' @name paris_data
-"paris10km_nodes"
+"paris10km_municipalities"
 
 #' @rdname paris_data
-"paris10km_node_pairs"
+"paris10km_commuteflows"
 
 #' @rdname paris_data
-"paris10km_mat_nb"
+"paris10km_neighborhood"
 
