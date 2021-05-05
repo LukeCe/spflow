@@ -34,8 +34,8 @@ assert_inherits <- function(obj,.class){
 #' @keywords internal
 assert_is_one_of <- function(obj,.classes){
   assert(is_one_of(obj,.classes),
-         sprintf("The input argument %s must be of class %s!",
-                 deparse(substitute(obj)),paste(.classes, collapse = " or ")))
+         "The input argument %s must be of class %s!",
+         deparse(substitute(obj)),paste(.classes, collapse = " or "))
 }
 
 #' @rdname assert_errors
@@ -75,6 +75,12 @@ is_single_character <- function(x) {
 #' @keywords internal
 is_single_logical <- function(x) {
   is.logical(x) && (length(x) == 1L)
+}
+
+#' @rdname custom_primitives
+#' @keywords internal
+is_single_numeric <- function(x) {
+  is.numeric(x) && (length(x) == 1L)
 }
 
 #' @rdname custom_primitives

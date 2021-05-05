@@ -82,7 +82,7 @@ setMethod(
   f = "neighborhood",
   signature = "sp_multi_network",
   function(object, network_id = 1) { # ---- neighborhood ----------------------
-    assert(.id %in% id(object)[["networks"]],
+    assert(network_id %in% id(object)[["networks"]],
            "The provided id does not correspond to any sp_network_nodes.")
     sp_net <- slot(object, "networks")[[network_id]]
     return(sp_net %|!|% neighborhood(sp_net))
@@ -129,21 +129,19 @@ setMethod(
         "sets of spatial network nodes.",
         "\n    With ids:", paste(nodes_ids, collapse = ", "))
 
-    pair_ids <- names(multi_net_ids$network_pairs)
+    pair_ids <- multi_net_ids$network_pairs
     cat("\nContains",length(pair_ids),
         "sets of spatial network pairs",
         "\n    With ids:", paste(pair_ids, collapse = ", "))
 
-    od_pair_info <- lapply(multi_net_ids$network_pairs, "as.list")
-    od_pair_info <- lapply(od_pair_info, "data.frame",
-                           stringsAsFactors = FALSE)
-    od_pair_info <- Reduce("rbind",od_pair_info)
+    if (length(pair_ids) > 0) {
+      cat("\n\nAvailability of origin-destination pair information:\n")
+      od_pair_info <- check_pair_completeness(object)
+      od_pair_info$COMPLETENESS <-
+        format_percent(od_pair_info$COMPLETENESS) %||%
+        print(od_pair_info)
+    }
 
-
-    od_pair_info["(o info)"] <- lapply(od_pair_info["orig"],"%in%", nodes_ids)
-    od_pair_info["(d info)"] <- lapply(od_pair_info["dest"],"%in%", nodes_ids)
-    cat("\n\nAvailability of origin-destination pair information:\n")
-    print(od_pair_info[,c(1,2,4,3,5)])
 
     cat("\n")
     invisible(object)
@@ -364,16 +362,33 @@ sp_multi_network <- function(...) {
 # ---- Helpers ----------------------------------------------------------------
 
 #' @keywords internal
-check_pair_completeness <- function(net_pair,orig_nodes,dest_nodes) {
+check_pair_completeness <- function(multi_net) {
 
-  pair_meta_data <- data.frame(
-    "ID_NET_PAIR" = id(net_pair),
-    "NPAIRS" = npairs(net_pair),
-    "COMPLETENESS" = npairs(net_pair) /nnodes(orig_nodes) /nnodes(dest_nodes),
-    "ID_ORIG_NET" = id(orig_nodes),
-    "ORIG_NNODES" = nnodes(orig_nodes),
-    "ID_DEST_NET" = id(dest_nodes),
-    "DEST_NNODES" = nnodes(dest_nodes))
+  all_ids <- id(multi_net)
+
+  pair_meta_data <- lapply(
+    all_ids$network_pairs,
+    function(.p_id) {
+      od_id <- split_pair_id(.p_id)
+      od_nnodes <- nnodes(multi_net@network_pairs[[.p_id]])
+      has_o_id <- od_id[1] %in% all_ids$networks
+      has_d_id <- od_id[2] %in% all_ids$networks
+
+      data.frame(
+        "ID_NET_PAIR" =
+          .p_id,
+        "NPAIRS" =
+          npairs(multi_net@network_pairs[[.p_id]]),
+        "COMPLETENESS" =
+          npairs(multi_net@network_pairs[[.p_id]]) / prod(od_nnodes),
+        "ID_ORIG_NET" = ifelse(has_o_id, od_id[1], "(missing)"),
+        "ORIG_NNODES" = ifelse(has_o_id, od_nnodes[1], "(missing)"),
+        "ID_DEST_NET" = ifelse(has_o_id, od_id[2], "(missing)"),
+        "DEST_NNODES" = ifelse(has_o_id, od_nnodes[2], "(missing)"),
+        row.names = NULL)})
+
+  Reduce("rbind", pair_meta_data)
+
 }
 
 #' @keywords internal

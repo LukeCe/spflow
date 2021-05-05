@@ -104,6 +104,15 @@ list_lookup <- function(values, names = as.character(values)) {
   as.list(lookup(names = names,values))
 }
 
+#' @rdname lookup_operators
+#' @keywords internal
+collect <- function(names){
+  collection <- lapply(names, get, envir = parent.frame(1))
+  names(collection) <- names
+
+  return(collection)
+}
+
 # ---- maybe ------------------------------------------------------------------
 #' @title Functions that replace errors by `NULL`
 #' @rdname maybe_operators
