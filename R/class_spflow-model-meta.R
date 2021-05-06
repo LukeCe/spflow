@@ -66,8 +66,9 @@ setClass("spflow_model",
            R2_corr = "maybe_numeric",
            resid = "maybe_numeric",
            fitted = "maybe_numeric",
-           spatial_filter_matrix = "maybe_matrix",
-           design_matrix = "ANY"))
+           spatial_filter_matrix = "maybe_any_matrix",
+           design_matrix = "maybe_list",
+           model_moments = "maybe_list"))
 
 # ---- Methods ----------------------------------------------------------------
 
@@ -82,12 +83,16 @@ setClass("spflow_model",
 #' @param object A [spflow_model-class()]
 #' @param model_matrices A list as returned by [spflow_model_matrix()]
 #' @param flow_control A list as returned by [spflow_control()]
+#' @param model_moments A list as returned by [spflow_model_moments()]
 #' @name add_details
 #' @keywords  internal
 setMethod(
   f = "add_details",
   signature = "spflow_model",
-  function(object, model_matrices, flow_control) { # ---- add_details ---------------------------------------
+  function(object,
+           model_matrices,
+           flow_control,
+           model_moments) { # ---- add_details --------------------------------
 
     object@design_matrix <- drop_instruments(model_matrices)
 
@@ -116,6 +121,7 @@ setMethod(
       fit_trend <- as.vector(Reduce("+", x = fit_trend ))
     }
 
+    browser()
     fit_signal <- compute_signal(model_matrices = object@design_matrix,
                                  delta = delta)
 
@@ -377,7 +383,8 @@ spflow_model <- function(
   resid = NULL,
   fitted = NULL,
   spatial_filter_matrix = NULL,
-  design_matrix = NULL) {
+  design_matrix = NULL,
+  model_moments = NULL) {
 
   est <- estimation_control$estimation_method
   model_class <- "spflow_model_" %p% est

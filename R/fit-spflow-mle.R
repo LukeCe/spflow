@@ -3,7 +3,7 @@ spflow_mle <- function(ZZ,ZY,TSS,N,n_d,n_o,DW_traces,OW_traces,
                        flow_control) {
 
   model <- flow_control$model
-  hessian_method <- flow_control$hessian_method
+  hessian_method <- flow_control$mle_hessian_method
 
   # compute the decomposed coefficients to obtain the decomposed RSS
   delta_t <- solve(ZZ,ZY)

@@ -202,6 +202,7 @@ spflow <- function(
     flow_formula,
     flow_control)
 
+  stop("The constants are missing!")
   model_matrices <- spflow_model_matrix(
     sp_multi_network,
     network_pair_id,
@@ -210,7 +211,7 @@ spflow <- function(
 
   model_moments <- spflow_model_moments(
     model_matrices = model_matrices,
-    estimator = estimator)
+    estim_control = estim_control)
 
   estimation_results <- spflow_model_estimation(
     model_moments,
@@ -219,7 +220,8 @@ spflow <- function(
   estimation_results <- add_details(
     estimation_results,
     model_matrices = model_matrices,
-    estim_control = estim_control)
+    flow_control = flow_control,
+    model_moments = model_moments)
 
   return(estimation_results)
 }
@@ -232,15 +234,16 @@ matrix_form_control <- function(sp_net_pair) {
   matrix_arguments <- list(
     "mat_complet" = npairs(sp_net_pair) / prod(nnodes(sp_net_pair)),
     "mat_within" = id(sp_net_pair)["orig"] == id(sp_net_pair)["dest"],
-    "mat_n_rows" = nnodes(sp_net_pair)["orig"],
-    "mat_n_cols" = nnodes(sp_net_pair)["dest"],
+    "mat_npairs" = npairs(sp_net_pair),
+    "mat_nrows" = nnodes(sp_net_pair)["orig"],
+    "mat_ncols" = nnodes(sp_net_pair)["dest"],
     "mat_format" = NULL)
 
   if (matrix_arguments[["mat_complet"]] == 1) {
     matrix_arguments[["mat_format"]] <- function(vec) {
       matrix(vec,
-             nrow = matrix_arguments[["mat_n_rows"]],
-             ncol = matrix_arguments[["mat_n_cols"]])
+             nrow = matrix_arguments[["mat_nrows"]],
+             ncol = matrix_arguments[["mat_ncols"]])
     }
   }
 
@@ -250,8 +253,8 @@ matrix_form_control <- function(sp_net_pair) {
     mat_j_cols <- as.integer(dat(sp_pair)[[od_keys[2]]])
     matrix_arguments[["mat_format"]] <- function(vec) {
       mat <- matrix(0,
-                    nrow = matrix_arguments[["mat_n_rows"]],
-                    ncol = matrix_arguments[["mat_n_cols"]])
+                    nrow = matrix_arguments[["mat_nrows"]],
+                    ncol = matrix_arguments[["mat_ncols"]])
       mat[cbind(mat_i_rows, mat_j_cols)] <- vec
       mat
 
@@ -263,8 +266,8 @@ matrix_form_control <- function(sp_net_pair) {
     matrix_arguments[["mat_format"]] <- function(vec) {
       sparseMatrix(i= mat_i_rows, j=mat_j_cols,
                    x= vec,
-                   dims = c(matrix_arguments[["mat_n_rows"]],
-                            matrix_arguments[["mat_n_cols"]]))
+                   dims = c(matrix_arguments[["mat_nrows"]],
+                            matrix_arguments[["mat_ncols"]]))
     }
   }
 
@@ -278,7 +281,7 @@ parameter_names <- function(
   model_matrices,
   model) {
 
-  names_rho <- identify_auto_regressive_parameters(model)
+  names_rho <- define_spatial_lag_params(model)
   names_const <- c("Constant", "Constant_intra")
   use_const <- c(model_matrices$constants$global == 1,
                  !is.null(model_matrices$constants$intra$In))
@@ -300,13 +303,13 @@ parameter_names <- function(
 drop_instruments <- function(model_matrices) {
 
   # ... from constants
-  filter_inst <- function(x) lfilter(x, function(x) !get_instrument_status(x))
+  filter_inst <- function(x) Filter(function(x) !attr_inst_status(x), x)
   constants <- list(
     "global" = model_matrices$constants$global,
     "intra" = filter_inst(model_matrices$constants$intra))
 
   # ... from site attributes
-  filter_inst_col <- function(x) cols_drop(x,get_instrument_status(x))
+  filter_inst_col <- function(x) cols_drop(x,attr_inst_status(x))
   vector_treatment <- c("D","O","I") %p% "_"
   matrices_X <- lapply(compact(model_matrices[vector_treatment]),
                        "filter_inst_col")
