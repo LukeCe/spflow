@@ -172,7 +172,7 @@ setMethod(
   function(object, network_pair_id, all_pairs = FALSE) { # ---- pair_merge ----
 
     od_ids <- id(object)[["network_pairs"]]
-    assert(od_ids %in% network_pair_id,
+    assert(network_pair_id %in% od_ids,
            "Network pair with id " %p% network_pair_id %p% " was not found!")
 
     pair_data <- dat(object, network_pair_id)

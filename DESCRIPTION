@@ -27,7 +27,7 @@ Imports:
     Matrix
 Collate: 
     'spflow-package.R'
-    'utils-OO.R'
+    'utils_classes.R'
     'class_0_generics-and-maybe-classes.R'
     'class_sp-network-pair.R'
     'class_sp-network-nodes.R'

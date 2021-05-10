@@ -1,26 +1,3 @@
-#' Create an inverted spatial filter that can be used for simulations
-#'
-#' @param weight_matrices A list of neighborhood matrices
-#' @param autoreg_parameters A vector of parameters
-#'
-#' @family spflow simulation functions
-#' @return A matrix representing the inverted spatial filter
-#' @keywords internal
-invert_spatial_filter <- function(
-  weight_matrices,
-  autoreg_parameters
-) {
-
-  combined_weight_matrices <-
-    Map("*", safely_to_list(weight_matrices),autoreg_parameters)
-  combined_weight_matrices <-
-    as.matrix(Reduce("+", combined_weight_matrices))
-
-  N <- nrow(combined_weight_matrices)
-
-  return(solve(diag(N) - combined_weight_matrices))
-}
-
 #' Simulate spatial interactions
 #'
 #' @param exogenous_variables A matrix of exogenous variables
@@ -133,9 +110,7 @@ expand_flow_neighborhood <- function(
 #' @keywords internal
 spatial_filter <- function(
   weight_matrices,
-  autoreg_parameters,
-  invert = FALSE
-) {
+  autoreg_parameters) {
 
   combined_weight_matrices <-
     Map("*", safely_to_list(weight_matrices),autoreg_parameters)
@@ -144,8 +119,6 @@ spatial_filter <- function(
 
   N <- nrow(combined_weight_matrices)
   A <- Diagonal(N) - combined_weight_matrices
-  A <- if (invert) solve(A) else A
-
   return(A)
 }
 

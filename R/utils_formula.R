@@ -28,7 +28,7 @@ has_dot_shortcut <- function(formula) {
 data_permits_formula <- function(formula,data) {
   assert_formula(formula)
   stopifnot(inherits(data, "data.frame"))
-  data <- data[0,]
+  data <- data[0, ,drop = FALSE]
 
   possible <- tryCatch(
     expr = {is(model.matrix(formula, data = data),"matrix")},
@@ -41,7 +41,7 @@ data_permits_formula <- function(formula,data) {
 formula_expands_factors <- function(formula,data) {
   assert_formula(formula)
   stopifnot(is.data.frame(data))
-  data <- data[0,]
+  data <- data[0, ,drop = FALSE]
 
   no_fct <-  attr(model.matrix(formula, data = data), "contrasts")
   return(!is.null(no_fct))
@@ -124,7 +124,7 @@ extract_formula_terms <- function(formula, data = NULL) {
 # ---- fine tuned expansions of the formula -----------------------------------
 #' @keywords internal
 extract_transformed_varnames <- function(formula,data) {
-  data <- data[0,]
+  data <- data[0, ,drop = FALSE]
   assert(data_permits_formula(formula,data),
          "The formula cannot be applied to the data!")
 

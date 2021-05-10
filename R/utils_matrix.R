@@ -43,3 +43,13 @@ sort_columns <- function(mat) {
   mat[,sort(colnames(mat))]
 }
 
+#' @keywords  internal
+stack_columns <- function(mat ,rows = "row", cols = "col", value = "value") {
+  vec_form <- cbind(
+    expand.grid(row = factor_in_order(rownames(mat)),
+                col = factor_in_order(colnames(mat))),
+    value = as.vector(mat))
+  names(vec_form) <- c(rows,cols,value)
+  vec_form
+}
+

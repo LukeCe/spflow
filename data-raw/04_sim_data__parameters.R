@@ -13,20 +13,20 @@
 # model coefficients
 delta <- c("(Intercept)"    = 12,
            "(Intra)"        = 5,
-           "orig_X"         = 0.8,
-           "orig_X_lag"     = 0.3,
-           "dest_X"         = 1,
-           "dest_X_lag"     = 0.75,
-           "intra_X"        = 2,
-           "intra_X_lag"    = 0.5,
-           "distance"       = -2)
+           "ORIG_X"         = 0.8,
+           "ORIG_X.lag1"    = 0.3,
+           "DEST_X"         = 1,
+           "DEST_X.lag1"    = 0.75,
+           "INTRA_X"        = 2,
+           "INTRA_X.lag"    = 0.5,
+           "DISTANCE"       = -2)
 
 
 # auto-correlation parameters
-rho <- c(rho_d = 0.45,
-         rho_o = 0.32,
-         rho_w = -0.21,
-         rho_od = 0.41,
+rho <- c(rho_d   = 0.45,
+         rho_o   = 0.32,
+         rho_w   = -0.21,
+         rho_od  = 0.41,
          rho_odw = 0.25)
 
 # sd of errors
@@ -34,4 +34,4 @@ sd_error <- c(sigma = 2)
 
 simulation_params <- list("delta" = delta, "rho" = rho, "sd_error" = sd_error)
 
-usethis::use_data(simulation_params, overwrite = TRUE)
+save(simulation_params, file = "data/simulation_params.rda")

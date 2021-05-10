@@ -1,4 +1,10 @@
 #' @keywords internal
+safely_to_list <- function(obj) {
+  if (is.list(obj)) return(obj)
+  else return(list(obj))
+}
+
+#' @keywords internal
 setGenericVerif <- function(x,y) {
   if ( !isGeneric(x))  setGeneric(x,y)
 }

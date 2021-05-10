@@ -1,4 +1,4 @@
-#' @include utils-OO.R spflow-package.R
+#' @include utils_classes.R spflow-package.R
 
 # This script adds new generics and virtual classes that are used inside the
 # package it should be run before all other classes which is ensured by the
