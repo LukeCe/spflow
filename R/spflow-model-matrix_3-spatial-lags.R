@@ -28,7 +28,7 @@ by_role_spatial_lags <- function(
   lag_varnames_by_role <- lapply(lag_varnames_by_role, "unlist")
 
   apply_lags_to_node_source <- function(source_key) {
-    role_keys <- role_lookup[[source_key]]
+
     nb_key <- c("orig" = "OW", "dest" = "DW")[source_key]
     source_nb <- neighborhoods[[nb_key]]
     source_mat <- model_matrices[[source_key]]
@@ -38,15 +38,17 @@ by_role_spatial_lags <- function(
     # create one matrix for each source
     lagged_vars_mat <- as.matrix(Reduce(
       function(.x1, .x2) { cbind(.x2, source_nb %*% .x1) },
-      lapply(rev(lags), function(.vars) cols_keep(source_mat,.vars))))
+      lapply(rev(lags), function(.vars) source_mat[,.vars, drop = FALSE])))
     colnames(lagged_vars_mat) <- lags_names
 
     # split the matrix by roles and declare instruments
-    mat_by_role <- lapply(lag_varnames_by_role[role_keys],
-                          function(.vars) cols_keep(lagged_vars_mat,.vars))
+    role_keys <- role_lookup[[source_key]]
+    mat_by_role <- lapply(
+      compact(lag_varnames_by_role[role_keys]),
+      function(.vars) lagged_vars_mat[,.vars, drop = FALSE])
 
-    inst_status <- lapply(instrument_statu_by_role[role_keys], "unlist")
-    inst_status <- lapply(inst_status, "as.logical")
+    inst_status <- lapply(compact(instrument_statu_by_role[role_keys]),
+                          "unlist", use.names = FALSE)
 
     for (i in seq_along(mat_by_role))
       attr_inst_status(mat_by_role[[i]]) <- inst_status[[i]]
@@ -97,8 +99,9 @@ by_role_spatial_lags <- function(
   lagged_covariate_matrices <- lapply(pair_covariates, "lag_pair_covariate")
 
   ### 3) Combine
+  names(flow_matrices) <- NULL
   all_model_matrices <- c(
-    list("Y_" = flatlist(drop_lnames(flow_matrices)),
+    list("Y_" = flatlist(flow_matrices),
          "G_" = flatlist(lagged_covariate_matrices)),
     flatlist(node_lags))
 
@@ -287,7 +290,7 @@ derive_pair_instruments <- function(
     g_lags <- c("wGw","wwGww")
 
   G_mats <- collect(c("G",g_lags))
-  names(G_mats) <- "G" %p% c("", "." %p% g_lags)
+  names(G_mats) <- name %p% c("", "." %p% g_lags)
   return(G_mats)
 }
 

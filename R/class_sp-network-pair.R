@@ -106,6 +106,7 @@ setReplaceMethod(
     return(object)
   })
 
+
 #' @rdname sp_network_pair-class
 #' @export
 #' @examples
@@ -284,6 +285,56 @@ sp_network_pair <- function(
   validObject(network_pair)
   return(network_pair)
 }
+
+
+# ---- Functions --------------------------------------------------------------
+#' @importFrom Matrix sparseMatrix
+#' @keywords internal
+matrix_form_control <- function(sp_net_pair) {
+
+  matrix_arguments <- list(
+    "mat_complet" = npairs(sp_net_pair) / prod(nnodes(sp_net_pair)),
+    "mat_within" = id(sp_net_pair)["orig"] == id(sp_net_pair)["dest"],
+    "mat_npairs" = npairs(sp_net_pair),
+    "mat_nrows" = nnodes(sp_net_pair)["orig"],
+    "mat_ncols" = nnodes(sp_net_pair)["dest"],
+    "mat_format" = NULL)
+
+  if (matrix_arguments[["mat_complet"]] == 1) {
+    matrix_arguments[["mat_format"]] <- function(vec) {
+      matrix(vec,
+             nrow = matrix_arguments[["mat_nrows"]],
+             ncol = matrix_arguments[["mat_ncols"]])
+    }
+  }
+
+  if (matrix_arguments[["mat_complet"]] < 1) {
+    od_keys <- attr_key_od(dat(sp_net_pair))
+    mat_i_rows <- as.integer(dat(sp_net_pair)[[od_keys[1]]])
+    mat_j_cols <- as.integer(dat(sp_net_pair)[[od_keys[2]]])
+    matrix_arguments[["mat_format"]] <- function(vec) {
+      mat <- matrix(0,
+                    nrow = matrix_arguments[["mat_nrows"]],
+                    ncol = matrix_arguments[["mat_ncols"]])
+      mat[cbind(mat_i_rows, mat_j_cols)] <- vec
+      mat
+
+    }
+  }
+
+  if (matrix_arguments[["mat_complet"]] < .5) {
+    od_keys <- attr_key_od(dat(sp_net_pair))
+    matrix_arguments[["mat_format"]] <- function(vec) {
+      sparseMatrix(i= mat_i_rows, j=mat_j_cols,
+                   x= vec,
+                   dims = c(matrix_arguments[["mat_nrows"]],
+                            matrix_arguments[["mat_ncols"]]))
+    }
+  }
+
+  return(matrix_arguments)
+}
+
 
 # ---- Helpers ----------------------------------------------------------------
 #' @keywords internal

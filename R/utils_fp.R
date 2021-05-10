@@ -113,6 +113,12 @@ collect <- function(names){
   return(collection)
 }
 
+#' @rdname lookup_operators
+#' @keywords internal
+sort_names <- function(x) {
+  x[order(names(x))]
+}
+
 # ---- maybe ------------------------------------------------------------------
 #' @title Functions that replace errors by `NULL`
 #' @rdname maybe_operators

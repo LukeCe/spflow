@@ -121,7 +121,6 @@ setMethod(
       fit_trend <- as.vector(Reduce("+", x = fit_trend ))
     }
 
-    browser()
     fit_signal <- compute_signal(model_matrices = object@design_matrix,
                                  delta = delta)
 

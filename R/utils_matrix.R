@@ -38,3 +38,8 @@ block_diag <- function(...){
   as.matrix(bdiag(...))
 }
 
+#' @keywords internal
+sort_columns <- function(mat) {
+  mat[,sort(colnames(mat))]
+}
+

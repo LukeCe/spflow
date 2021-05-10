@@ -34,7 +34,7 @@ spflow_model_matrix <- function(
 
   # Extract weights and constants if they are defined
   constants <- define_flow_constants(
-    const_formula = formula_parts[["const"]],
+    const_formula = formula_parts[["constants"]],
     use_instruments = estim_control[["estimation_method"]] == "s2sls",
     OW = neighborhoods[["OW"]])
 
@@ -150,7 +150,8 @@ define_flow_constants <- function(const_formula, use_instruments, OW = NULL) {
 #' @keywords internal
 intra_regional_constant <- function(W, use_instruments = FALSE) {
 
-  In <- list("In" =  set_instrument_status(Diagonal(nrow(W)),FALSE))
+  In <- list("In" =  Diagonal(nrow(W)))
+  attr_inst_status(In$In) <- FALSE
   if (!use_instruments)
     return(In)
 
@@ -167,19 +168,7 @@ intra_regional_constant <- function(W, use_instruments = FALSE) {
     "WV"  = WV,
     "VW'" = t(WV)
   )
-  w_int <- lapply(w_int, "set_instrument_status",TRUE)
+  w_int <- lapply(w_int, "attr_inst_status<-",TRUE)
 
   return(c(In,w_int))
-}
-
-#' @keywords internal
-pair_column_to_matrix <- function(vec, estim_control){
-
-  args <- formalArgs("vec_to_matrix")
-  mat_args <- extract_substring(names(estim_control), "^mat_.*$")
-  mat_control <- estim_control[mat_args]
-  names(mat_control) <- extract_substring(mat_args, "[^mat_].*$")
-  args <- c(list(vec = vec), compact(mat_control[args]))
-  mat <- do.call("vec_to_matrix", args)
-  return(mat)
 }
