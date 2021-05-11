@@ -15,13 +15,13 @@ interpret_flow_formula <- function(
 
   ### ---- split the right hand side formulas for all three cases...
   # define the parts of the formula that are relevant for each case
+  has_sdm <- flow_control[["sdm_variables"]] != "none"
+  has_inst <- flow_control[["estimation_method"]] == "s2sls"
+
   I_ <- "I_" %T% flow_control$use_intra
-  norm_f <-
-    c("D_", "O_", I_, "G_")
-  sdm_f <-
-    c("D_", "O_", I_)       %T% (flow_control$sdm_variables != "none")
-  inst_f <-
-    c("D_", "O_", I_, "G_") %T% (flow_control$estimation_method == "s2sls")
+  norm_f <- c("D_", "O_", I_, "G_")
+  sdm_f  <- c("D_", "O_", I_) %T% has_sdm
+  inst_f <- c("D_", "O_", I_, "G_") %T% has_inst
 
   # derive the split formulas
   norm_rhs_split <- compact(split_specials[norm_f])
@@ -29,8 +29,8 @@ interpret_flow_formula <- function(
   sdm_rhs_split  <- sdm_f %|!|%
     split_with_shortcut(flow_control$sdm_variables, sdm_f,norm_rhs_split)
   inst_rhs_split <- inst_f %|!|%
-    split_with_shortcut(flow_control$instrumental_variables, inst_f,
-                        norm_rhs_split)
+    split_with_shortcut(flow_control$twosls_instrumental_variables,
+                        inst_f, norm_rhs_split)
 
   ### ---- assemble all formulas with constants set apart
   strip_consts <- function(.ll) lapply(compact(.ll),"remove_constant")

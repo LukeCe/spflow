@@ -13,7 +13,7 @@
 # - - - - - - - - - - - - - - - - - - -
 # Date: February 2021
 
-load_all()
+library("magrittr")
 library("sf")
 library("sp")
 library("spdep")

@@ -78,7 +78,7 @@ expect_equal({
   spflow:::pull_neighborhood_data(test_mult_net,"net1_net2")
   },
   {
-    named_list(c("OW","DW"),Matrix(c(0,1,1,0),2,2))
+    spflow:::named_list(c("OW","DW"),Matrix(c(0,1,1,0),2,2))
   },
   info = "neigborhood matrices of origins and destinations as list")
 
@@ -98,7 +98,7 @@ expect_equal({
   spflow:::pull_neighborhood_data(test_mult_net,"net1_net1")
   },
   {
-    named_list(c("OW"),Matrix(c(0,1,1,0),2,2))
+    spflow:::named_list(c("OW"),Matrix(c(0,1,1,0),2,2))
   },
   info = "destinations matrix is ignored for (orig == dest)")
 
@@ -124,48 +124,10 @@ expect_equal({
   lapply(intra_const, "is", "Matrix")
 },
   {
-    named_list(c("In","W","W'","WW","WW'","V","VV", "WV", "VW'"),
-               TRUE)
+    spflow:::named_list(c("In","W","W'","WW","WW'","V","VV", "WV", "VW'"),
+                        TRUE)
   },
   info = "define memory efficient constants")
-
-# ---- pair_column_to_matrix --------------------------------------------------
-pair_column_to_matrix
-expect_equal({
-  mat_args <- list("mat_complet" = 1,
-                   "mat_n_rows" = 2,
-                   "mat_n_cols" = 2,
-                   "mat_i_rows" = rep(1:2,2),
-                   "mat_j_cols" = rep(1:2,each = 2),
-                   "mat_random_element" = "should be ignored")
-  spflow:::pair_column_to_matrix(1:4, mat_args)
-  }, matrix(1:4,2),
-  info = "construct matrix form from vector (full)"
-  )
-
-expect_equal({
-  mat_args <- list("mat_complet" = .75,
-                   "mat_n_rows" = 2,
-                   "mat_n_cols" = 2,
-                   "mat_i_rows" = c(1,2,1),
-                   "mat_j_cols" = c(1,1,2),
-                   "mat_random_element" = "should be ignored")
-  spflow:::pair_column_to_matrix(1:3, mat_args)
-}, matrix(c(1,2,3,0),2),
-info = "construct matrix form from vector (dense)"
-)
-
-expect_equal({
-  mat_args <- list("mat_complet" = .25,
-                   "mat_n_rows" = 2,
-                   "mat_n_cols" = 2,
-                   "mat_i_rows" = c(2),
-                   "mat_j_cols" = c(1),
-                   "mat_random_element" = "should be ignored")
-  spflow:::pair_column_to_matrix(1, mat_args)
-}, Matrix::sparseMatrix(i = 2, j = 1, x = 1, dims = c(2,2)),
-info = "construct matrix form from vector (sparse)"
-)
 
 # ---- define_variable_roles --------------------------------------------------
 expect_equal({
@@ -199,4 +161,4 @@ expect_equal({
                     "sdm"  = "log(d2)",
                     "inst" = "sqrt(d1)"))
   },
-  info = "collect all by role and they way it is used in the model")
+  info = "collect all variables by role and the way it is used in the model")

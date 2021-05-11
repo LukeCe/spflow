@@ -63,14 +63,16 @@ pair_variables_mat <- lapply(pair_variables, function(.dat) {
 # compute spatial filter matrices for the simulations
 pair_neighborhoods <- lapply(spflow:::lookup(pair_ids), function(.id) {
   od_ids <- spflow:::split_pair_id(.id)
-  expand_flow_neighborhood(neighborhood(multi_net_usa_ge_copy,od_ids[1]),
-                           neighborhood(multi_net_usa_ge_copy,od_ids[2]))
+  spflow:::expand_flow_neighborhood(
+    neighborhood(multi_net_usa_ge_copy,od_ids[1]),
+    neighborhood(multi_net_usa_ge_copy,od_ids[2]))
   })
 
 invers_model_filters <- lapply(pair_neighborhoods, function(.nbs) {
   rho_ <- function(x) rho[paste0("rho_",x)]
   list("y9" = solve(spflow:::spatial_filter(.nbs, rho_(c("d","o","w")))),
-       "y2" = solve(spatial_filter(.nbs["Wd"], rho_("d"))))})
+       "y2" = solve(spflow:::spatial_filter(.nbs["Wd"], rho_("d"))),
+       "y1" = Matrix::Diagonal(nrow(.nbs[["Wd"]])))})
 
 # simulate for all models
 flows <- mapply(function(filters,variables) {
@@ -87,8 +89,13 @@ flows <- mapply(function(filters,variables) {
 
 # add the simulated flows to the initial data
 for (i in seq_along(multi_net_usa_ge@network_pairs)) {
-  multi_net_usa_ge@network_pairs[[i]]@pair_data[c("y9","y2")] <-
+  multi_net_usa_ge@network_pairs[[i]]@pair_data[c("y9","y2","y1")] <-
     flows[[i]]
 }
 
 save(multi_net_usa_ge,file = "data/multi_net_usa_ge.rda")
+
+# keep the vectorized data for integration tests
+vec_data_usa_ge <- lapply(Map("cbind",flows,pair_variables_mat), "as.matrix")
+saveRDS(vec_data_usa_ge, "tests/integration/vec_data_usa_ge.Rds")
+saveRDS(pair_neighborhoods, "tests/integration/pair_neighborhoods_usa_ge.Rds")

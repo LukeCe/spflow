@@ -12,10 +12,9 @@
 library("sf")
 library("sp")
 library("spflow")
-data("germany_grid")
-data("germany_net")
-data("usa_grid")
-data("usa_net")
+source("data-raw/01_sim_data__germany_16_states.R")
+source("data-raw/02_sim_data__usa_51_states.R")
+
 
 # create the distances
 all_dist <- as.matrix(dist(

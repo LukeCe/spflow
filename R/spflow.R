@@ -160,7 +160,7 @@
 spflow <- function(
   flow_formula,
   sp_multi_network,
-  network_pair_id,
+  network_pair_id = id(sp_multi_network)[["network_pairs"]][[1]],
   flow_control = spflow_control()
 ) {
 
@@ -169,14 +169,11 @@ spflow <- function(
   assert_is(sp_multi_network,"sp_multi_network")
 
   pair_ids <- id(sp_multi_network)[["network_pairs"]]
-  if (missing(network_pair_id)) network_pair_id <- pair_ids[[1]]
   assert(valid_network_pair_id(network_pair_id),
          "The network_pair_id must be a character of length 1!")
-
   assert(network_pair_id %in% pair_ids,
          'The the network pair id "%s" is not available!',
          network_pair_id)
-
 
   ## validate (by calling again) then enrich control parameters
   flow_control <- do.call("spflow_control", flow_control)
@@ -185,15 +182,13 @@ spflow <- function(
     list("model_type" = sp_model_type(flow_control)),
     matrix_form_control(pull_member(sp_multi_network, network_pair_id)))
 
-  # below cases should become available in future versions
+  # below cases should become available in future versions of the package
   assert(is.null(estim_control$weight_variable), warn = TRUE,
          "Weighting of observations is not yet possible and will be ignored.")
-
   assert(estim_control$mat_complet == 1,
          "Estimation is (for now) only possible if the number of pairs is " %p%
          "excatly the number of origins multiplied by the number of " %p%
          "destinations!")
-
   assert(estim_control$mat_within,
          "Estimation of flows between two diffrent networks are " %p%
          "not yet available!")
@@ -232,12 +227,12 @@ parameter_names <- function(
   model) {
 
   names_rho <- define_spatial_lag_params(model)
-  names_const <- c("Constant", "Constant_intra")
+  names_const <- c("(Intercept)", "(Intra)")
   use_const <- c(model_matrices$constants$global == 1,
                  !is.null(model_matrices$constants$intra$In))
   names_const <- names_const[use_const]
 
-  x_prefs <- list("D_" = "Dest_","O_" = "Orig_","I_" = "Intra_")
+  x_prefs <- list("D_" = "DEST_","O_" = "ORIG_","I_" = "INTRA_")
   names_X <- lapply(compact(model_matrices[names(x_prefs)]), "colnames")
   names_X <- Map("%p%", x_prefs[names(names_X)], names_X)
   names_X <- unlist(names_X, use.names = FALSE)

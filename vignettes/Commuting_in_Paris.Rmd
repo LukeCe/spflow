@@ -134,7 +134,7 @@ lead by default to the most comprehensive spatial interaction model that the pac
 
 ```{r}
 sim_fit_default <- spflow(
-  flow_formula = log(1 + COMMUTE_FLOW) ~ .,
+  flow_formula = log(1 + COMMUTE_FLOW) ~ . + G_(log( 1 + DISTANCE)),
   sp_multi_network = paris10km_multi_net)
 
 

@@ -1,4 +1,4 @@
-#' @importFrom Matrix forceSymmetric
+# ---- linear algebra ---------------------------------------------------------
 #' @keywords internal
 crossproduct_mat_list <- function(mat_l1, mat_l2 = NULL, force_sym = FALSE) {
 
@@ -24,14 +24,21 @@ crossproduct_mat_list <- function(mat_l1, mat_l2 = NULL, force_sym = FALSE) {
   for (row in seq_len(n_mat1)) {
     cols_start <- ifelse(force_sym, row, 1)
     cols <- seq(cols_start,n_mat2,1)
-    result[row,cols] <-
-      sapply((mat_l2 %||% mat_l1)[cols], "hadamard_sum",mat_l1[[row]])
+    result[row,cols] <- ulapply(
+      (mat_l2 %||% mat_l1)[cols], "hadamard_sum", mat_l1[[row]])
   }
 
-  if (force_sym) result <- as.matrix(forceSymmetric(result, "U"))
+  if (force_sym)
+    result <- make_symmetric(result)
 
   return(result)
+}
 
+#' @keywords internal
+make_symmetric <- function(mat){
+  tri <- lower.tri(mat)
+  mat[tri] <- t(mat)[tri]
+  mat
 }
 
 #' @keywords internal
@@ -82,4 +89,3 @@ sandwich_prod <- function(w1,mat,w2=w1){
   w_mat_w <- w2 %|!|% as.matrix(tcrossprod(w_mat,w2)) %||% w_mat
   return(w_mat_w)
 }
-

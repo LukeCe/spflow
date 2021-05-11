@@ -79,3 +79,48 @@ expect_error({
   },
   pattern = "invalid class",
   info = "data replacements works only when od pairs are unique")
+
+# ==== [+++ functions +++] ====================================================
+# ---- matrix_form_control ----------------------------------------------------
+
+expect_equal({
+  test_pair_data <- data.frame(o_key = rep(LETTERS[1:3],times = 3),
+                               d_key = rep(LETTERS[1:3],each = 3),
+                               dist = 1:9)
+  test_sp_net_pair <- sp_network_pair("net1","net1",test_pair_data,
+                                      "o_key","d_key")
+  mat_cntrl <- spflow:::matrix_form_control(test_sp_net_pair)
+  mat_cntrl$mat_format(test_pair_data$dist)
+  },
+  {
+    matrix(1:9,3,3)
+  },
+  info = "Matrix format: dense case")
+
+expect_equal({
+  test_pair_data <- data.frame(o_key = LETTERS[1:3],
+                               d_key = LETTERS[1:3],
+                               dist = 1:3)
+  test_sp_net_pair <- sp_network_pair("net1","net1",test_pair_data,
+                                      "o_key","d_key")
+  mat_cntrl <- spflow:::matrix_form_control(test_sp_net_pair)
+  mat_cntrl$mat_format(test_pair_data$dist)
+  },
+  {
+    Matrix::sparseMatrix(i = 1:3,j = 1:3,x = 1:3)
+  },
+  info = "Matrix format: sparse case")
+
+expect_equal({
+  test_pair_data <- data.frame(o_key = rep(LETTERS[1:3],2),
+                               d_key = rep(LETTERS[1:3],each =2),
+                               dist = 1:6)
+  test_sp_net_pair <- sp_network_pair("net1","net1",test_pair_data,
+                                      "o_key","d_key")
+  mat_cntrl <- spflow:::matrix_form_control(test_sp_net_pair)
+  mat_cntrl$mat_format(test_pair_data$dist)
+  },
+  {
+    matrix(c(1,2,0,4,0,3,0,5,6),3,3)
+  },
+  info = "Matrix format: incomplete (but dense) case")

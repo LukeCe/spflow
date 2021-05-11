@@ -50,9 +50,8 @@ compute_spflow_moments <- function(
   # total sum of squares is different for GMM and likelihood based estimators
   # because the lagged flows are considered as endogenous regresses and not
   # as additional dependent variable
-  is_GMM_estimator <-
-    estim_control[["estimation_method"]] %in% c("s2sls","ols")
-  y_index <- if (is_GMM_estimator) 1L else seq_len(ncol(ZY))
+  is_twosls <- estim_control[["estimation_method"]] == "s2sls"
+  y_index <- if (is_twosls) 1L else seq_len(ncol(ZY))
   TSS <- crossproduct_mat_list(model_matrices$Y_[y_index], Y_wt[y_index])
 
   ## ---- Likelihood moments (trace sequence of the weight matrix)
@@ -60,18 +59,18 @@ compute_spflow_moments <- function(
   approximate_order <- 10
   if (estim_control[["estimation_method"]] %in% c("mle", "mcmc")) {
     if (!is.null(model_matrices[["OW"]]))
-      OW_traces <-trace_sequence(model_matrices[["OW"]], approximate_order)
+      OW_traces <- trace_sequence(model_matrices[["OW"]], approximate_order)
     if (!is.null(model_matrices[["DW"]]))
-      DW_traces <-trace_sequence(model_matrices[["DW"]], approximate_order)
+      DW_traces <- trace_sequence(model_matrices[["DW"]], approximate_order)
   }
 
   model_moments <- compact(list(
     "n_d"       = n_d,
     "n_o"       = n_o,
     "N"         = N,
-    "HH"        = HH %T% is_GMM_estimator,
+    "HH"        = HH %T% is_twosls,
     "ZZ"        = ZZ,
-    "HY"        = HY %T% is_GMM_estimator,
+    "HY"        = HY %T% is_twosls,
     "ZY"        = ZY,
     "TSS"       = TSS,
     "OW_traces" = OW_traces,

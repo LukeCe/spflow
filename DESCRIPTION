@@ -55,12 +55,12 @@ Collate:
     'spflow.R'
     'utils-columns.R'
     'utils-indexing.R'
-    'utils-lin-alg.R'
     'utils-math.R'
     'utils-vector.R'
     'utils_error.R'
     'utils_formula.R'
     'utils_fp.R'
+    'utils_math.R'
     'utils_matrix.R'
     'utils_strings.R'
 URL: https://github.com/LukeCe/spflow

@@ -193,16 +193,18 @@ setMethod(
 
     names(orig_data) <- "ORIG_" %p% names(orig_data)
     names(dest_data) <- "DEST_" %p% names(dest_data)
-    pair_data <- merge(pair_data,orig_data,
-                       by.x = od_keys[1],
-                       by.y = "ORIG_" %p% attr_key_nodes(orig_data),
-                       all = all_pairs)
     pair_data <- merge(pair_data,dest_data,
                        by.x = od_keys[2],
                        by.y = "DEST_" %p% attr_key_nodes(dest_data),
                        all = all_pairs)
+    pair_data <- merge(pair_data,orig_data,
+                       by.x = od_keys[1],
+                       by.y = "ORIG_" %p% attr_key_nodes(orig_data),
+                       all = all_pairs)
+    pair_data <- pair_data[order(pair_data[["ID_ORIG"]],
+                                 pair_data[["ID_DEST"]]),]
 
-    return(pair_data[unique(c(2,1,seq_along(pair_data)))])
+    return(pair_data)
 })
 
 #' @importFrom data.table key

@@ -74,10 +74,11 @@ moment_empirical_var <- function(model_matrices,N,n_d,n_o) {
 
 #' @keywords internal
 var_block_alpha <- function(wt,N) {
-  if (is.numeric(wt[1]))
-    return(sum(wt))
 
-  return(N)
+  N_wt <- if (is.null(wt)) N else sum(wt)
+  name <- "(Intercept)"
+  N_wt <- matrix(N_wt, dimnames = list(name,name))
+  return(N_wt)
 }
 
 #' @keywords internal

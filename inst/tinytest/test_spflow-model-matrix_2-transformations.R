@@ -100,8 +100,8 @@ expect_equal({
 
   forumula_parts <- list("norm" = formula_roles,
                          "sdm"  = formula_roles2)
-  lapply(by_source_model_matrix(forumula_parts,data_sources),
-         "sort_columns")
+  lapply(spflow:::by_source_model_matrix(forumula_parts,data_sources),
+         spflow:::sort_columns)
 
   },
   {
@@ -110,7 +110,7 @@ expect_equal({
                              data.frame(y1 = 1, p1 = 1:4, p2 = 5:8)),
          orig = model.matrix(~ log(o1) + o1 + log(o2) +  o2 - 1,
                              data.frame(o1 = 1:4, o2 = 5:8))),
-    "sort_columns")
+    spflow:::sort_columns)
   },
   info = "combine formulas and create a single design matrix by source")
 
@@ -135,8 +135,8 @@ expect_equal({
   forumula_parts <- list("norm" = formula_roles,
                          "sdm"  = formula_roles2,
                          "inst" = formula_roles3)
-  lapply(by_source_model_matrix(forumula_parts,data_sources),
-         sort_columns)
+  lapply(spflow:::by_source_model_matrix(forumula_parts,data_sources),
+         spflow:::sort_columns)
 
   },
   {
@@ -147,6 +147,6 @@ expect_equal({
                              data.frame(o1 = 1:4, o2 = 5:8)),
            dest = model.matrix(~ log(d1) +  log(d2) +  sqrt(d1) - 1,
                                data.frame(d1 = 1:4, d2 = 5:8))),
-      sort_columns)
+      spflow:::sort_columns)
   },
   info = "combine formulas and create a single design matrix by source")

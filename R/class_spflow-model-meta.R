@@ -95,6 +95,7 @@ setMethod(
            model_moments) { # ---- add_details --------------------------------
 
     object@design_matrix <- drop_instruments(model_matrices)
+    object@model_moments <- model_moments
 
     # add parameter names and significance
     coef_names <- parameter_names(
