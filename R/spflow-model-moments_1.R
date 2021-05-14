@@ -43,6 +43,7 @@ compute_spflow_moments <- function(
   HY <- Y_wt %||% model_matrices$Y_
   HY <- lapply(HY, "moment_empirical_covar", model_matrices)
   HY <- Reduce("cbind", x = HY,init = matrix(nrow = nrow(HH),ncol = 0))
+  dimnames(HY) <- list(rownames(HH), names(model_matrices$Y_))
 
   ZY <- HY[Z_index, , drop = FALSE]
 

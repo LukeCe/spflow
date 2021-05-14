@@ -102,9 +102,7 @@ setMethod(
       model_matrices = object@design_matrix,
       model = flow_control$model)
 
-    results_df <- data.frame(results(object),
-                             ".names" = coef_names,
-                             row.names = ".names")
+    results_df <- results(object)
     results_df$"t.stat" <- results_df$est / results_df$sd
     results_df$"p.value" <- 1 - pt(q = abs(results_df$est / results_df$sd),
                                    df =  1)

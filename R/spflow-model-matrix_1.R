@@ -150,8 +150,9 @@ define_flow_constants <- function(const_formula, use_instruments, OW = NULL) {
 #' @keywords internal
 intra_regional_constant <- function(W, use_instruments = FALSE) {
 
-  In <- list("In" =  Diagonal(nrow(W)))
-  attr_inst_status(In$In) <- FALSE
+  In <- Diagonal(nrow(W))
+  attr_inst_status(In) <- FALSE
+  In <- list("(Intra)" = In)
   if (!use_instruments)
     return(In)
 

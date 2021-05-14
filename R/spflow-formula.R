@@ -27,9 +27,10 @@ interpret_flow_formula <- function(
   norm_rhs_split <- compact(split_specials[norm_f])
   norm_lhs <- list("Y_" = pull_lhs(flow_formula))
   sdm_rhs_split  <- sdm_f %|!|%
-    split_with_shortcut(flow_control$sdm_variables, sdm_f,norm_rhs_split)
+    split_with_shortcut(flow_control[["sdm_variables"]],
+                        sdm_f,norm_rhs_split)
   inst_rhs_split <- inst_f %|!|%
-    split_with_shortcut(flow_control$twosls_instrumental_variables,
+    split_with_shortcut(flow_control[["twosls_instrumental_variables"]],
                         inst_f, norm_rhs_split)
 
   ### ---- assemble all formulas with constants set apart

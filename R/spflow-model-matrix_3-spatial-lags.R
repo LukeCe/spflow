@@ -26,6 +26,7 @@ by_role_spatial_lags <- function(
   node_sources <- intersect(c("orig","dest"), names(model_matrices))
   lag_varnames_by_role <- lapply(lag_requirements_by_role, "suffix_sp_lags")
   lag_varnames_by_role <- lapply(lag_varnames_by_role, "unlist")
+  role_prefixes <- list("D_" = "DEST_","O_" = "ORIG_","I_" = "INTRA_")
 
   apply_lags_to_node_source <- function(source_key) {
 
@@ -50,8 +51,11 @@ by_role_spatial_lags <- function(
     inst_status <- lapply(compact(instrument_statu_by_role[role_keys]),
                           "unlist", use.names = FALSE)
 
-    for (i in seq_along(mat_by_role))
+    for (i in seq_along(mat_by_role)) {
       attr_inst_status(mat_by_role[[i]]) <- inst_status[[i]]
+      colnames(mat_by_role[[i]]) <-
+        role_prefixes[names(mat_by_role)[i]] %p% colnames(mat_by_role[[i]])
+    }
     return(mat_by_role)
     }
   node_lags <- flatlist(lapply(node_sources, "apply_lags_to_node_source"))

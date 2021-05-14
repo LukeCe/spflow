@@ -276,6 +276,8 @@ sp_network_pair <- function(
   attr_key_od(pair_data) <- od_key_cols
   pair_data[[od_key_cols[1]]] <- factor_in_order(pair_data[[od_key_cols[1]]])
   pair_data[[od_key_cols[2]]] <- factor_in_order(pair_data[[od_key_cols[2]]])
+  pair_data <- pair_data[order(pair_data[[od_key_cols[1]]],
+                               pair_data[[od_key_cols[2]]]), ]
 
   network_pair@pair_data   <- pair_data
   network_pair@orig_nnodes <- nlevels(pair_data[[od_key_cols[1]]])
