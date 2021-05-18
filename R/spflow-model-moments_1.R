@@ -8,8 +8,8 @@ spflow_model_moments <- function(...) {
     "infinite values!" %p%
     "\nPlease check that all variables are well defined and that all " %p%
     "tranformations are valid (e.g avoid logarithms of 0)."
-  assert(none(is.infinite(moments$ZZ)), error_msg, "explanatory")
-  assert(none(is.infinite(moments$ZY)), error_msg, "response")
+  assert(none(is.infinite(moments[["ZZ"]])), error_msg, "explanatory")
+  assert(none(is.infinite(moments[["ZY"]])), error_msg, "response")
 
   return(moments)
 }
@@ -28,31 +28,31 @@ compute_spflow_moments <- function(
 
 
   ## ---- derive moments from the covariates (Z,H)
-  HH <- moment_empirical_var(model_matrices,N,n_d,n_o)
+  UU <- moment_empirical_var(model_matrices,N,n_d,n_o)
 
   # subset ZZ
   variable_order <- c("constants","D_","O_","I_","G_")
   Z_index <- !rapply(model_matrices[variable_order],f = attr_inst_status)
-  ZZ <- HH[Z_index, Z_index]
+  ZZ <- UU[Z_index, Z_index]
 
 
-  ## ---- derive moments from the response (HY, ZY, TSS)
+  ## ---- derive moments from the response (UY, ZY, TSS)
   # ...weighted Y if required
   Y_wt <- model_matrices$weights %|!|%
     lapply(model_matrices$Y_,"*",model_matrices$weights)
-  HY <- Y_wt %||% model_matrices$Y_
-  HY <- lapply(HY, "moment_empirical_covar", model_matrices)
-  HY <- Reduce("cbind", x = HY,init = matrix(nrow = nrow(HH),ncol = 0))
-  dimnames(HY) <- list(rownames(HH), names(model_matrices$Y_))
+  UY <- Y_wt %||% model_matrices$Y_
+  UY <- lapply(UY, "moment_empirical_covar", model_matrices)
+  UY <- Reduce("cbind", x = UY,init = matrix(nrow = nrow(UU),ncol = 0))
+  dimnames(UY) <- list(rownames(UU), names(model_matrices$Y_))
 
-  ZY <- HY[Z_index, , drop = FALSE]
+  ZY <- UY[Z_index, , drop = FALSE]
 
   # ... TSS (dim = 1, for GMM | dim = rho + 1, for LL)
   # total sum of squares is different for GMM and likelihood based estimators
   # because the lagged flows are considered as endogenous regresses and not
   # as additional dependent variable
-  is_twosls <- estim_control[["estimation_method"]] == "s2sls"
-  y_index <- if (is_twosls) 1L else seq_len(ncol(ZY))
+  is_2sls <- estim_control[["estimation_method"]] == "s2sls"
+  y_index <- if (is_2sls) 1L else seq_len(ncol(ZY))
   TSS <- crossproduct_mat_list(model_matrices$Y_[y_index], Y_wt[y_index])
 
   ## ---- Likelihood moments (trace sequence of the weight matrix)
@@ -69,9 +69,9 @@ compute_spflow_moments <- function(
     "n_d"       = n_d,
     "n_o"       = n_o,
     "N"         = N,
-    "HH"        = HH %T% is_twosls,
+    "UU"        = UU %T% is_2sls,
     "ZZ"        = ZZ,
-    "HY"        = HY %T% is_twosls,
+    "UY"        = UY %T% is_2sls,
     "ZY"        = ZY,
     "TSS"       = TSS,
     "OW_traces" = OW_traces,

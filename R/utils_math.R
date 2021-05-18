@@ -4,10 +4,12 @@ crossproduct_mat_list <- function(mat_l1, mat_l2 = NULL, force_sym = FALSE) {
 
   n_mat1 <- n_mat2 <- length(mat_l1)
   dim_mat1 <- dim_mat2 <- Reduce("rbind", lapply(mat_l1, dim))
+  names1 <- names2 <- names(mat_l1)
 
   if (!is.null(mat_l2)) {
     n_mat2 <- length(mat_l2)
     dim_mat2 <- Reduce("rbind", lapply(mat_l2, dim))
+    names2 <- names(mat_l2)
   }
 
   # symmetry: only possible when n1 = n2 + imposed when no m2
@@ -18,7 +20,8 @@ crossproduct_mat_list <- function(mat_l1, mat_l2 = NULL, force_sym = FALSE) {
   # check that dims match + symmetry only works for square case...
   stopifnot(has_equal_elements(dims[,1]), has_equal_elements(dims[,2]))
 
-  result <- matrix(0, nrow = n_mat1 , ncol = n_mat2)
+  result <- matrix(0, nrow = n_mat1 , ncol = n_mat2,
+                   dimnames = compact(list(names1, names2)))
 
   # loop over rows
   for (row in seq_len(n_mat1)) {

@@ -116,19 +116,19 @@ expect_equal({
                      "ID")
   test_net_pair <- sp_network_pair(
     "net1","net2",
-    data.frame("ID_O" = c("A","B","A","B"),
-               "ID_D" = c("C","C","D","D"),
+    data.frame("ID_O" = c("A","A","B","B"),
+               "ID_D" = c("C","D","C","D"),
                "DIST" = 1:4),
     "ID_O", "ID_D")
   test_multi_net <- sp_multi_network(test_net_pair,test_o_net,test_d_net)
   pair_merge(test_multi_net, "net1_net2")
   },
   {
-    data.frame("ID_O" = factor(c("A","B","A","B")),
-               "ID_D" = factor(c("C","C","D","D")),
-               "DIST" = 1:4,
+    data.frame("ID_O" = factor(c("A","A","B","B")),
+               "ID_D" = factor(c("C","D","C","D")),
                "ORIG_VAL" = "OO",
-               "DEST_VAL" = "DD")
+               "DEST_VAL" = "DD",
+               "DIST" = 1:4)
   },
   info = "merging origin and destination infos to the pairs")
 
@@ -156,11 +156,11 @@ expect_equal({
   },
   {
     data.frame(
-      "ID_O" = factor(c("A", "B", "A", "B")),
-      "ID_D" = factor(c("C", "C", "D", "D")),
-      "DIST" = c(1, NA, NA, 4),
+      "ID_O" = factor(c("A", "A", "B", "B")),
+      "ID_D" = factor(c("C", "D", "C", "D")),
       "ORIG_VAL" = "OO",
-      "DEST_VAL" = "DD"
+      "DEST_VAL" = "DD",
+      "DIST" = c(1, NA, NA, 4)
     )
   },
   info = "merging origin and destination infos to the pairs with expansion")

@@ -12,7 +12,7 @@ expect_equal({
       "lag1" = c("F1" = F, "D3" = F, "X5" = F, "E2" = T, "X6" = T),
       "lag2" = c("F1" = T ,"E2" = T, "D3" = T),
       "lag3" = c("F1" = T, "D3" = T)
-    ),sort_names)
+    ),spflow:::sort_names)
   },
   info = "predict the instrument status of variables")
 
@@ -30,7 +30,7 @@ expect_equal({
     cbind(var_a, var_b,
           var_c + 10 * var_a, var_c + 10 * var_b,
           var_d + 5 * var_b - 5* var_a, var_d - 5 * var_b + 5* var_a)
-  attr_inst_status(mat_with_inst) <-
+  spflow:::attr_inst_status(mat_with_inst) <-
     c(FALSE,FALSE,TRUE,TRUE,TRUE,TRUE)
 
   dim(spflow:::orthoginolize_instruments(mat_with_inst))
@@ -45,7 +45,7 @@ expect_equal({
   var_c <- rnorm(n) # inst
   var_d <- rnorm(n) # inst
   mat_without_inst <- cbind(var_a, var_b,var_c,var_d)
-  attr_inst_status(mat_without_inst) <- c(FALSE,FALSE,FALSE,FALSE)
+  spflow:::attr_inst_status(mat_without_inst) <- c(FALSE,FALSE,FALSE,FALSE)
   spflow:::orthoginolize_instruments(mat_without_inst)
   },
   {
@@ -56,7 +56,7 @@ expect_equal({
     var_c <- rnorm(n) # inst
     var_d <- rnorm(n) # inst
     mat_without_inst <- cbind(var_a, var_b,var_c,var_d)
-    attr_inst_status(mat_without_inst) <- c(FALSE,FALSE,FALSE,FALSE)
+    spflow:::attr_inst_status(mat_without_inst) <- c(FALSE,FALSE,FALSE,FALSE)
     mat_without_inst
   },
   info = "do not tuch explanatory variables")
@@ -186,7 +186,7 @@ expect_equal({
   ctrl <- list("mat_format" = function(x) matrix(x,3,3),
                "model" = "model_9",
                "twosls_reduce_pair_instruments" = TRUE)
-  results <- by_role_spatial_lags(
+  results <- spflow:::by_role_spatial_lags(
     mat_sources, var_roles,
     list("OW" = diag(2,3,3), "DW" = diag(2,3,3)),
     ctrl)

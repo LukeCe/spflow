@@ -124,7 +124,7 @@ expect_equal({
   lapply(intra_const, "is", "Matrix")
 },
   {
-    spflow:::named_list(c("In","W","W'","WW","WW'","V","VV", "WV", "VW'"),
+    spflow:::named_list(c("(Intra)","W","W'","WW","WW'","V","VV", "WV", "VW'"),
                         TRUE)
   },
   info = "define memory efficient constants")

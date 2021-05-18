@@ -52,8 +52,10 @@ expect_equal({
 expect_equal({
     spflow:::interpret_flow_formula(
       y ~ D_(a) + O_(b) + I_(c) + G_(d),
-      list(use_intra = TRUE, estimation_method = "s2sls",
-           sdm_variables = "same", instrumental_variables = "same")
+      list(use_intra = TRUE,
+           estimation_method = "s2sls",
+           sdm_variables = "same",
+           twosls_instrumental_variables = "same")
     )
   },
   {
@@ -73,8 +75,10 @@ expect_equal({
 expect_equal({
     spflow:::interpret_flow_formula(
       y ~ . + log(a + 1)+ log(b + 1) + I_(c) + G_(d) - 1,
-      list(use_intra = TRUE, estimation_method = "s2sls",
-           sdm_variables = "same", instrumental_variables = "same")
+      list(use_intra = TRUE,
+           estimation_method = "s2sls",
+           sdm_variables = "same",
+           twosls_instrumental_variables = "same")
     )
   },
   {

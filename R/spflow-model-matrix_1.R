@@ -85,7 +85,7 @@ pull_neighborhood_data <-  function(sp_multi_network, network_pair_id) {
   neighbor_mats[["OW"]] <-
     neighborhood(sp_multi_network, od_id[1])
   neighbor_mats[["DW"]] <-
-    neighborhood(sp_multi_network, od_id[2]) %T% has_distinct_elements(od_id)
+    neighborhood(sp_multi_network, od_id[2])
 
   return(compact(neighbor_mats))
 

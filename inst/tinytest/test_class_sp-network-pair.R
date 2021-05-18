@@ -17,11 +17,11 @@ expect_equal({
   },
   {
     data.frame(
-      o_key = factor(rep(LETTERS[1:3], times = 3)),
-      d_key = factor(rep(LETTERS[1:3], each = 3)),
-      dist = 1:9)
+      o_key = factor(rep(LETTERS[1:3], each = 3)),
+      d_key = factor(rep(LETTERS[1:3], times = 3)),
+      dist = c(1,4,7,2,5,8,3,6,9))
     },
-  info = "check that data is not changed apart from factor conversions",
+  info = "check that data is ordered correctly and that ids are factors",
   check.attributes = FALSE)
 
 # ids and node counts
@@ -98,16 +98,16 @@ expect_equal({
   info = "Matrix format: dense case")
 
 expect_equal({
-  test_pair_data <- data.frame(o_key = LETTERS[1:3],
-                               d_key = LETTERS[1:3],
-                               dist = 1:3)
+  test_pair_data <- data.frame(o_key = LETTERS[c(1,1:3)],
+                               d_key = LETTERS[c(1:3,3)],
+                               dist = 1:4)
   test_sp_net_pair <- sp_network_pair("net1","net1",test_pair_data,
                                       "o_key","d_key")
   mat_cntrl <- spflow:::matrix_form_control(test_sp_net_pair)
   mat_cntrl$mat_format(test_pair_data$dist)
   },
   {
-    Matrix::sparseMatrix(i = 1:3,j = 1:3,x = 1:3)
+    Matrix::sparseMatrix(i = c(1,1:3),j = c(1:3,3),x = 1:4)
   },
   info = "Matrix format: sparse case")
 
@@ -118,9 +118,13 @@ expect_equal({
   test_sp_net_pair <- sp_network_pair("net1","net1",test_pair_data,
                                       "o_key","d_key")
   mat_cntrl <- spflow:::matrix_form_control(test_sp_net_pair)
-  mat_cntrl$mat_format(test_pair_data$dist)
+  mat_cntrl$mat_format(test_sp_net_pair@pair_data$dist)
   },
   {
-    matrix(c(1,2,0,4,0,3,0,5,6),3,3)
+
+     rbind(c(1,4,0),
+           c(2,0,5),
+           c(0,3,6))
   },
   info = "Matrix format: incomplete (but dense) case")
+

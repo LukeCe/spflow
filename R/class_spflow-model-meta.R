@@ -97,11 +97,7 @@ setMethod(
     object@design_matrix <- drop_instruments(model_matrices)
     object@model_moments <- model_moments
 
-    # add parameter names and significance
-    coef_names <- parameter_names(
-      model_matrices = object@design_matrix,
-      model = flow_control$model)
-
+    # add significance tests
     results_df <- results(object)
     results_df$"t.stat" <- results_df$est / results_df$sd
     results_df$"p.value" <- 1 - pt(q = abs(results_df$est / results_df$sd),

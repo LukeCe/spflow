@@ -1,3 +1,4 @@
+#' @keywords internal
 spflow_ols <- function(ZZ,ZY,TSS,N,flow_control) {
 
   delta <- solve(ZZ,ZY)

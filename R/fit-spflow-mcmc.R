@@ -1,5 +1,3 @@
-#' Moment based estimation procedure for the MCMC estimator
-#'
 #' @keywords internal
 spflow_mcmc <- function(
   ZZ,
