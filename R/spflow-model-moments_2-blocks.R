@@ -141,7 +141,7 @@ var_block_alpha_beta <- function(X, wt_odi) {
 
   scalar_weights <- has_equal_elements(c(rapply(wt_odi, length),1))
   if (scalar_weights) {
-    scaled_col_sums <- Map("*", wt_odi, lapply(X, "col_sums"))
+    scaled_col_sums <- Map("*", wt_odi, lapply(X, "colSums2mat"))
     scaled_col_sums <- Reduce("cbind", scaled_col_sums)
   }
 

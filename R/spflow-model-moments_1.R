@@ -55,27 +55,65 @@ compute_spflow_moments <- function(
   y_index <- if (is_2sls) 1L else seq_len(ncol(ZY))
   TSS <- crossproduct_mat_list(model_matrices$Y_[y_index], Y_wt[y_index])
 
+  ## ---- Range of the eigenvalues for neighborhood matrices
+  is_spatial <- estim_control[["estimation_method"]] != "ols"
+  OW_eigen_range <- DW_eigen_range <- NULL
+  # TODO implement parameter space checks
+  if (is_spatial & FALSE) {
+    real_eigen_range <- function(W) {
+      if (is.null(W))
+        return(NULL)
+
+      max_re <- RSpectra::eigs(W,1,"LR")$values
+      max_re <- abs(max_re) * sign(Re(max_re))
+      min_re <- RSpectra::eigs(W,1,"SR")$values
+      min_re <- abs(min_re) * sign(Re(min_re))
+      range_re <- c(max_re, min_re)
+
+      # check if the largest absolute eigenvalue is complex
+      # no exact tests are possible in this case
+      max_abs <- RSpectra::eigs(W,1,"LM")$values
+      if (Im(max_abs) == 0)
+        return(range_re)
+
+      return("no exact solution")
+      }
+
+    OW_eigen_range <- DW_eigen_range <-
+      real_eigen_range(model_matrices[["OW"]])
+
+    if (!estim_control[["mat_within"]])
+      DW_eigen_range <- real_eigen_range(model_matrices[["DW"]])
+
+    }
+
   ## ---- Likelihood moments (trace sequence of the weight matrix)
   OW_traces <- DW_traces <- NULL
-  approximate_order <- 10
-  if (estim_control[["estimation_method"]] %in% c("mle", "mcmc")) {
-    if (!is.null(model_matrices[["OW"]]))
-      OW_traces <- trace_sequence(model_matrices[["OW"]], approximate_order)
-    if (!is.null(model_matrices[["DW"]]))
-      DW_traces <- trace_sequence(model_matrices[["DW"]], approximate_order)
+  uses_loglik <- estim_control[["estimation_method"]] %in% c("mle", "mcmc")
+
+  if (uses_loglik) {
+    approx_order <- estim_control[["loglik_det_aprox_order"]]
+    OW_traces <- DW_traces <-
+      trace_sequence(model_matrices[["OW"]], approx_order)
+
+    if (!estim_control[["mat_within"]])
+      DW_traces <- trace_sequence(model_matrices[["DW"]],approx_order)
   }
 
   model_moments <- compact(list(
     "n_d"       = n_d,
     "n_o"       = n_o,
     "N"         = N,
-    "UU"        = UU %T% is_2sls,
+    "UU"        = UU %T% is_2sls,   # only for s2sls
     "ZZ"        = ZZ,
-    "UY"        = UY %T% is_2sls,
+    "UY"        = UY %T% is_2sls,   # only for s2sls
     "ZY"        = ZY,
     "TSS"       = TSS,
-    "OW_traces" = OW_traces,
-    "DW_traces" = DW_traces))
+    "DW_eigen_range" = DW_eigen_range, # not for ols
+    "OW_eigen_range" = OW_eigen_range, # not for ols
+    "DW_traces" = DW_traces, # only for mle and mcmc
+    "OW_traces" = OW_traces  # only for mle and mcmc
+    ))
 
   return(model_moments)
 }

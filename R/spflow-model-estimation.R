@@ -37,8 +37,8 @@ spflow_model_estimation <- function(
         N     = model_moments[["N"]],
         n_d   = model_moments[["n_d"]],
         n_o   = model_moments[["n_o"]],
-        OW_traces = model_moments[["OW_traces"]],
         DW_traces = model_moments[["DW_traces"]],
+        OW_traces = model_moments[["OW_traces"]],
         flow_control = estim_control
       )},
     "mcmc" = {spflow_mcmc(
@@ -48,8 +48,8 @@ spflow_model_estimation <- function(
       N   = model_moments[["N"]],
       n_d = model_moments[["n_d"]],
       n_o = model_moments[["n_o"]],
-      OW_traces = model_moments[["OW_traces"]],
       DW_traces = model_moments[["DW_traces"]],
+      OW_traces = model_moments[["OW_traces"]],
       flow_control = estim_control
     )}
   )

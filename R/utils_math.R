@@ -92,3 +92,21 @@ sandwich_prod <- function(w1,mat,w2=w1){
   w_mat_w <- w2 %|!|% as.matrix(tcrossprod(w_mat,w2)) %||% w_mat
   return(w_mat_w)
 }
+
+# ---- combinatorics ----------------------------------------------------------
+
+#' Compute the multinomial coefficient
+#'
+#' @details
+#'   The coefficient is computed for each row in a data.frame where the
+#'   rows correspond to the power and the columns for one element
+#' @keywords internal
+multinom_coef <- function(...) {
+
+  k_args <- flatlist(list(...))
+  t <- Reduce("+",k_args)
+
+  # calculate the denominator
+  chose_k_factorial <- Reduce("*", lapply(k_args , factorial))
+  return(factorial(t)/chose_k_factorial)
+}

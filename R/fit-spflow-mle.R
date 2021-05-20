@@ -1,6 +1,14 @@
 #' @keywords internal
-spflow_mle <- function(ZZ,ZY,TSS,N,n_d,n_o,DW_traces,OW_traces,
-                       flow_control) {
+spflow_mle <- function(
+  ZZ,
+  ZY,
+  TSS,
+  N,
+  n_d,
+  n_o,
+  DW_traces,
+  OW_traces,
+  flow_control) {
 
   model <- flow_control$model
   hessian_method <- flow_control$mle_hessian_method
@@ -10,27 +18,25 @@ spflow_mle <- function(ZZ,ZY,TSS,N,n_d,n_o,DW_traces,OW_traces,
   RSS <- TSS - crossprod(ZY,delta_t)
 
   ## OPTIMIZE the concentrated likelihood ----
+  clalc_log_det <-
+    derive_log_det_calculator(OW_traces, DW_traces,  n_o, n_d, model)
+  optim_part_LL <- function(rho) {
+    tau <- c(1, -rho)
+
+    # invert the signs (minimize the negative)
+    rss_part <- N * log(tau %*% RSS %*% tau) / 2
+    return(rss_part - clalc_log_det(rho))
+    }
 
   # initialization
   nb_rho <- ncol(ZY) - 1
   rho_tmp <- draw_initial_guess(nb_rho)
   optim_results <- structure(rho_tmp,class = "try-error")
-
-  # TODO generalize optim -> all model + asymmetric case
-  W_traces <- OW_traces
-  optim_part_LL <- function(rho) {
-    -partial_spflow_loglik(rho,
-                           RSS = RSS ,
-                           W_traces = W_traces,
-                           n_o = n_o,
-                           n_d = n_d,
-                           model = model)
-    }
-
   optim_count <- 1
-  optim_limit <- 100
-  while (is(optim_results,"try-error") &
-         (optim_count < optim_limit)) {
+  optim_limit <- flow_control[["mle_optim_limit"]]
+
+  while (is(optim_results,"try-error") & (optim_count < optim_limit)) {
+
     optim_results <- try(silent = TRUE, expr = {
       optim(rho_tmp, optim_part_LL, gr = NULL, method = "L-BFGS-B",
             lower = rep(-0.99, nb_rho), upper = rep(0.99, nb_rho),
@@ -40,15 +46,15 @@ spflow_mle <- function(ZZ,ZY,TSS,N,n_d,n_o,DW_traces,OW_traces,
     # new guess for next iteration
     rho_tmp <- draw_initial_guess(nb_rho)
   }
-  if (optim_count == optim_limit) {
-    stop("algorithm to find rho did not converge towards a minimum")
-  }
 
+  assert(optim_count < optim_limit,
+         "Optimization of the likelihood failed to converge within %s tries.",
+         optim_limit)
 
   # coeffcients
-  rho <- optim_results$par
+  rho <- lookup(optim_results$par, define_spatial_lag_params(model))
   tau <- c(1, -rho)
-  delta <- delta_t %*% tau
+  delta <- (delta_t %*% tau)[,1]
 
   # inference
   sigma2 <-  as.numeric(1 / N * (tau %*% RSS %*% tau))

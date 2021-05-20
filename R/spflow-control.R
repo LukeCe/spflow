@@ -37,8 +37,15 @@
 #' @param parameter_space
 #'   A character indicating how to define the limits of the parameter space.
 #'   The only available option is `c("approx")`.
+#' @param loglik_det_aprox_order
+#'   A numeric indicating the order of the Taylor expansion used to approximate
+#'   the value of the log-determinant term.
 #' @param mle_hessian_method
 #'   A character which indicates the method for Hessian calculation
+#' @param mle_optim_limit
+#'   A numeric indicating the number of trails given to the optimizer of the
+#'   likelihood function. If the optimizer does not converge after the
+#'   indicated number of trails an error will be thrown after this limit.
 #' @param twosls_instrumental_variables
 #'   Either a formula or a character; the formula can be used to explicitly
 #'   declare the variables that should be used as instruments during S2SLS
@@ -59,6 +66,7 @@
 #' @param mcmc_resampling_limit
 #'   A numeric indicating the maximal number of trials during rejection
 #'   sampling of the autoregressive parameters
+#'
 #' @seealso [spflow()]
 #' @references \insertAllCited{}
 #' @return A list of control parameters for estimation via [spflow()]
@@ -88,7 +96,9 @@ spflow_control <- function(
   sdm_variables = "same",
   weight_variable = NULL,
   parameter_space = "approx",
+  loglik_det_aprox_order = 10,
   mle_hessian_method = "mixed",
+  mle_optim_limit = 100,
   twosls_instrumental_variables = "same",
   twosls_decorrelate_instruments = FALSE,
   twosls_reduce_pair_instruments = TRUE,
@@ -124,6 +134,7 @@ spflow_control <- function(
   assert(is_single_character(weight_variable) || is.null(weight_variable),
          "The weight_variable must be a character of length one!")
 
+  # control parameter used in all cases
   general_control <- list(
     "estimation_method" = estimation_method,
     "model" = model,
@@ -135,22 +146,14 @@ spflow_control <- function(
   if (estimation_method == "ols")
     return(general_control)
 
+  # control parameters used for all spatial models
   ps_methods <- c("approx")
   assert(parameter_space %in% ps_methods,
          'The parameter_space must be a one string among c("%s")!',
          paste0(ps_methods, collapse = ", "))
+
   general_control <-
     c(general_control, list("parameter_space" = parameter_space))
-
-  if (estimation_method == "mle") {
-    available_hessians <- c("mixed","f2")
-    assert(mle_hessian_method %in% available_hessians,
-           'The parameter_space must be a one string among c("%s")!',
-           paste0(available_hessians, collapse = ", "))
-
-    mle_control <- list("mle_hessian_method" = mle_hessian_method)
-    return(c(general_control,mle_control))
-  }
 
   if (estimation_method == "s2sls") {
     assert_is_single_x(twosls_decorrelate_instruments, "logical")
@@ -166,6 +169,31 @@ spflow_control <- function(
     )
     return(c(general_control,twosls_control))
   }
+
+  # control parameters for the likelihood evaluation
+  assert_is_single_x(loglik_det_aprox_order, "numeric")
+  assert(loglik_det_aprox_order >= 2,
+         "The loglik_det_aprox_order must be two or larger!")
+  general_control <-
+    c(general_control,
+      list("loglik_det_aprox_order" = as.integer(loglik_det_aprox_order)))
+
+  if (estimation_method == "mle") {
+
+    assert_is_single_x(mle_optim_limit, "numeric")
+    assert(mle_optim_limit > 0, "The mle_optim_limit must be positive!")
+
+    available_hessians <- c("mixed","f2")
+    assert(mle_hessian_method %in% available_hessians,
+           'The parameter_space must be a one string among c("%s")!',
+           paste0(available_hessians, collapse = ", "))
+
+    mle_control <- list("mle_hessian_method" = mle_hessian_method,
+                        "mle_optim_limit" = mle_optim_limit)
+    return(c(general_control,mle_control))
+  }
+
+
 
   if (estimation_method == "mcmc") {
 

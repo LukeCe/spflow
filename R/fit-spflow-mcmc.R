@@ -6,8 +6,8 @@ spflow_mcmc <- function(
   N,
   n_d,
   n_o,
-  OW_traces,
   DW_traces,
+  OW_traces,
   flow_control = flow_control,
   nb_draw = 5500,
   nb_burn_in = 2500
@@ -26,9 +26,15 @@ spflow_mcmc <- function(
   ## create collectors for each parameter
   size_delta <- ncol(ZZ)
 
-  collect_delta  <- matrix(0, nrow = nb_draw + 1, ncol = size_delta)
-  collect_sigma2 <- matrix(0, nrow = nb_draw + 1, ncol = 1)
-  collect_rho    <- matrix(0, nrow = nb_draw + 1, ncol = nb_rho)
+  collect_delta  <- matrix(
+    0, nrow = nb_draw + 1, ncol = size_delta,
+    dimnames = list(NULL, colnames(ZZ)))
+  collect_sigma2 <- matrix(
+    0, nrow = nb_draw + 1, ncol = 1,
+    dimnames = list(NULL, "sigma2"))
+  collect_rho    <- matrix(
+    0, nrow = nb_draw + 1, ncol = nb_rho,
+    dimnames = list(NULL, define_spatial_lag_params(model)))
 
   # the first draws are equal to uninformative prior distributions
   collect_delta[1,] <- 0
@@ -54,7 +60,9 @@ spflow_mcmc <- function(
 
   # we also calculate an initial log-determinant value ...
   #... and pass it to the mcmc variable
-  previous_log_det <- spflow_logdet(pre_rho,OW_traces, n_o, n_d,model)
+  clalc_log_det <-
+    derive_log_det_calculator(OW_traces, DW_traces,  n_o, n_d, model)
+  previous_log_det <- clalc_log_det(pre_rho)
 
   ## begin MCMC sampling ----
   for (i_mcmc in 1:nb_draw) {
@@ -125,7 +133,7 @@ spflow_mcmc <- function(
       # updated RSS and log-determinant
       RSS_candidate <- tau_candidate %*% RSS_t %*% tau_candidate
       RSS_diff <- (RSS_candidate - RSS_mean) / (2*sigma2_updated)
-      candidate_log_det <- spflow_logdet(updated_rho,OW_traces,n_o, n_d, model)
+      candidate_log_det <- clalc_log_det(updated_rho)
       proba_ratio <- exp(candidate_log_det - previous_log_det - RSS_diff)
 
       accept[j] <- (proba_ratio > accept_hurdle[j])
@@ -150,12 +158,9 @@ spflow_mcmc <- function(
   }
 
 
-  mcmc_results <- cbind(collect_rho[-(1:nb_burn_in),],
-                        collect_delta[-(1:nb_burn_in),],
-                        collect_sigma2[-(1:nb_burn_in),])
-
+  mcmc_results <- cbind(collect_rho,collect_delta,collect_sigma2)
   results_df <- data.frame(
-    est = colMeans(mcmc_results),
+    est = colMeans(mcmc_results[-seq_len(nb_burn_in),]),
     sd = apply(mcmc_results, 2, sd),
     quant_025 = apply(mcmc_results, 2, quantile, 0.025),
     quant_975 = apply(mcmc_results, 2, quantile, 0.975)

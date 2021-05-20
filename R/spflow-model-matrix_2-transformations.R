@@ -70,5 +70,6 @@ validate_source_formulas <- function(source_formula, data_source,
 flow_conform_model_matrix <- function(formula,data) {
   terms_obj <- terms(formula, data = data)
   attr(terms_obj,"intercept") <- formula_expands_factors(formula,data) * 1
-  mat <- cols_drop(model.matrix(terms_obj,data), cols_drop = "(Intercept)")
+  mat <- model.matrix(terms_obj,data)
+  mat[,colnames(mat) != "(Intercept)", drop = FALSE]
 }

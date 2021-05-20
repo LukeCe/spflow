@@ -53,10 +53,7 @@ Collate:
     'spflow-model-moments_2-blocks.R'
     'spflow-simulations.R'
     'spflow.R'
-    'utils-columns.R'
-    'utils-indexing.R'
-    'utils-math.R'
-    'utils-vector.R'
+    'utils.R'
     'utils_error.R'
     'utils_formula.R'
     'utils_fp.R'
@@ -82,3 +79,4 @@ Language: en-US
 Depends: 
     R (>= 3.5.0)
 VignetteBuilder: knitr
+ByteCompile: true

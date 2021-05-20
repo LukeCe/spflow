@@ -20,11 +20,11 @@ rbind_fill_left <- function(..., fill = NA){
 #' @keywords internal
 trace_sequence <- function(W, max_power = 10 ) {
 
-  W_traces <- vector(mode = "list", length = max_power + 1)
+  W_traces <- vector(mode = "list", length = max_power)
   W_pow <- W
   W_traces[[1]] <- sum(diag(W_pow))
 
-  for (pow in seq_len(max_power)) {
+  for (pow in seq_len(max_power - 1)) {
     W_pow <- W %*% W_pow
     W_traces[[pow + 1]] <-  sum(diag(W_pow))
   }
@@ -46,10 +46,15 @@ sort_columns <- function(mat) {
 #' @keywords  internal
 stack_columns <- function(mat ,rows = "row", cols = "col", value = "value") {
   vec_form <- cbind(
-    expand.grid(row = factor_in_order(rownames(mat)),
-                col = factor_in_order(colnames(mat))),
+    expand.grid(col = factor_in_order(colnames(mat)),
+                row = factor_in_order(rownames(mat))),
     value = as.vector(mat))
-  names(vec_form) <- c(rows,cols,value)
+  names(vec_form) <- c(cols,rows,value)
   vec_form
+}
+
+#' @keywords internal
+colSums2mat <- function(x) {
+  matrix(colSums(x),nrow = 1)
 }
 

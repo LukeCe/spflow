@@ -254,7 +254,7 @@ drop_instruments <- function(model_matrices) {
     "intra" = filter_inst(model_matrices$constants$intra))
 
   # ... from site attributes
-  filter_inst_col <- function(x) cols_drop(x,attr_inst_status(x))
+  filter_inst_col <- function(mat) mat[,!attr_inst_status(mat), drop = FALSE]
   vector_treatment <- c("D","O","I") %p% "_"
   matrices_X <- lapply(compact(model_matrices[vector_treatment]),
                        "filter_inst_col")
