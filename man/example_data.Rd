@@ -13,11 +13,11 @@
 \format{
 An object of class \code{sp_multi_network} of length 1.
 
-An object of class \code{SpatialPolygonsDataFrame} with 16 rows and 2 columns.
+An object of class \code{sf} (inherits from \code{data.frame}) with 16 rows and 3 columns.
 
 An object of class \code{sp_network_nodes} of length 1.
 
-An object of class \code{SpatialPolygonsDataFrame} with 51 rows and 2 columns.
+An object of class \code{sf} (inherits from \code{data.frame}) with 51 rows and 3 columns.
 
 An object of class \code{sp_network_nodes} of length 1.
 

@@ -2,10 +2,15 @@
 % Please edit documentation in R/class_0_generics-and-maybe-classes.R
 \name{varcov}
 \alias{varcov}
-\title{Access variance-covariance matrix in a \code{\link[=spflow_model-class]{spflow_model-class()}}}
+\title{Generic for accessing the variance-covariance matrix of the
+parameters inside a \code{\link[=spflow_model-class]{spflow_model-class()}}.}
 \arguments{
 \item{object}{A \code{\link[=spflow_model-class]{spflow_model-class()}}}
 }
 \description{
-For details see the documentation of the corresponding class.
+For details on the methods see the documentation of the
+corresponding classes.
+}
+\seealso{
+\code{\link[=spflow_model-class]{spflow_model-class()}}
 }

@@ -130,7 +130,7 @@
 #' @examples
 #'
 #' # Estimate flows between the states of Germany
-#' spflow(flow_formula = y9 ~ . + G_(log(distance + 1)),
+#' spflow(flow_formula = y9 ~ . + G_(DISTANCE),
 #'        sp_multi_network = multi_net_usa_ge,
 #'        network_pair_id = "ge_ge")
 #'
@@ -138,17 +138,17 @@
 #' # Same as above with explicit declaration of variables...
 #' # ... X is the only variable available
 #' # ... it is used for origins, destination and intra-state flows
-#' spflow(flow_formula = y9 ~ X + G_(log(distance + 1)),
+#' spflow(flow_formula = y9 ~ X + G_(DISTANCE),
 #'        sp_multi_network = multi_net_usa_ge,
 #'        network_pair_id = "ge_ge")
 #'
 #' # Same as above
-#' spflow(flow_formula = y9 ~ O_(.) + D_(.) + I_(.) + G_(log(distance + 1)),
+#' spflow(flow_formula = y9 ~ O_(.) + D_(.) + I_(.) + G_(DISTANCE),
 #'        sp_multi_network = multi_net_usa_ge,
 #'        network_pair_id = "ge_ge")
 #'
 #' # Same as above
-#' spflow(flow_formula = y9 ~ O_(X) + D_(X) + I_(X) + G_(log(distance + 1)),
+#' spflow(flow_formula = y9 ~ O_(X) + D_(X) + I_(X) + G_(DISTANCE),
 #'        sp_multi_network = multi_net_usa_ge,
 #'        network_pair_id = "ge_ge")
 #' }
@@ -160,66 +160,65 @@
 spflow <- function(
   flow_formula,
   sp_multi_network,
-  network_pair_id = id(sp_multi_network,"network_pairs")[[1]]["pair"],
+  network_pair_id = id(sp_multi_network)[["network_pairs"]][[1]],
   flow_control = spflow_control()
 ) {
 
-  ## ... check for abusive inputs
-  assert(is(flow_formula,"formula"),
-         "A valid formula is required!")
+  ## check for abusive inputs and correct ids
+  assert_is(flow_formula,"formula")
+  assert_is(sp_multi_network,"sp_multi_network")
 
-  assert(is(sp_multi_network,"sp_multi_network"),
-         "The data must be a network data object!")
-
-  ## ... check correct types of ids
-  assert(is_single_character(network_pair_id),
+  pair_ids <- id(sp_multi_network)[["network_pairs"]]
+  assert(valid_network_pair_id(network_pair_id),
          "The network_pair_id must be a character of length 1!")
+  assert(network_pair_id %in% pair_ids,
+         'The the network pair id "%s" is not available!',
+         network_pair_id)
 
-  network_ids <- id(sp_multi_network)[["network_pairs"]][[network_pair_id]]
-  assert(!is.null(network_ids),
-         sprintf("The the network pair id [%s] is not available!",
-                 network_pair_id))
+  ## validate (by calling again) then enrich control parameters
+  flow_control <- do.call("spflow_control", flow_control)
+  estim_control <- c(
+    flow_control,
+    list("model_type" = sp_model_type(flow_control)),
+    matrix_form_control(pull_member(sp_multi_network, network_pair_id)))
 
-
-  ## ... test the arguments provided to control by calling it again
-  assert(is.null(flow_control$weight_variable),warn = TRUE,
+  # below cases should become available in future versions of the package
+  assert(is.null(estim_control$weight_variable), warn = TRUE,
          "Weighting of observations is not yet possible and will be ignored.")
-
-  flow_control <- do.call(spflow_control, flow_control)
-  # TODO validate and enrich flow control
-  # TODO check completeness information and add to estimation control
-  ## ... identify the flow type
-  flow_control$flow_type <- ifelse(network_ids["orig"] == network_ids["dest"],
-                                   yes = "within", no = "between")
-  nb_od_pairs <- npairs(pull_pairs(sp_multi_network, network_pair_id))
-  nb_od_optins <- prod(nnodes(pull_pairs(sp_multi_network, network_pair_id)))
-  flow_control$flow_completeness <- nb_od_pairs / nb_od_optins
-  flow_control$sp_model_type <- sp_model_type(flow_control)
-
-
-  # TODO generalize for the case of sparse flows and multiple networks
-  assert(flow_control$flow_completeness == 1,
-         "Estimation are for only possible if the number of pairs is " %p%
+  assert(estim_control$mat_complet == 1,
+         "Estimation is (for now) only possible if the number of pairs is " %p%
          "excatly the number of origins multiplied by the number of " %p%
          "destinations!")
-
-  assert(flow_control$flow_type == "within",
+  assert(estim_control$mat_within,
          "Estimation of flows between two diffrent networks are " %p%
          "not yet available!")
 
-  ## ... create the design matrix/matrices
-  model_matrices <- spflow_model_matrix(
-    sp_multi_network,
-    network_pair_id,
+  formula_parts <- interpret_flow_formula(
     flow_formula,
     flow_control)
 
-  # ... fit the model and add complementary information to the results
-  estimation_results <- spflow_model_estimation(model_matrices,flow_control)
+  model_matrices <- spflow_model_matrix(
+    sp_multi_network,
+    network_pair_id,
+    formula_parts,
+    estim_control)
+
+  model_moments <- spflow_model_moments(
+    model_matrices = model_matrices,
+    estim_control = estim_control)
+
+  estimation_results <- spflow_model_estimation(
+    model_moments,
+    estim_control)
+
+  estimation_results <- add_details(
+    estimation_results,
+    model_matrices = model_matrices,
+    flow_control = flow_control,
+    model_moments = model_moments)
 
   return(estimation_results)
 }
-
 
 
 #' @keywords internal
@@ -227,13 +226,13 @@ parameter_names <- function(
   model_matrices,
   model) {
 
-  names_rho <- identify_auto_regressive_parameters(model)
-  names_const <- c("Constant", "Constant_intra")
+  names_rho <- define_spatial_lag_params(model)
+  names_const <- c("(Intercept)", "(Intra)")
   use_const <- c(model_matrices$constants$global == 1,
                  !is.null(model_matrices$constants$intra$In))
   names_const <- names_const[use_const]
 
-  x_prefs <- list("D_" = "Dest_","O_" = "Orig_","I_" = "Intra_")
+  x_prefs <- list("D_" = "DEST_","O_" = "ORIG_","I_" = "INTRA_")
   names_X <- lapply(compact(model_matrices[names(x_prefs)]), "colnames")
   names_X <- Map("%p%", x_prefs[names(names_X)], names_X)
   names_X <- unlist(names_X, use.names = FALSE)
@@ -249,13 +248,13 @@ parameter_names <- function(
 drop_instruments <- function(model_matrices) {
 
   # ... from constants
-  filter_inst <- function(x) lfilter(x, function(x) !get_instrument_status(x))
+  filter_inst <- function(x) Filter(function(x) !attr_inst_status(x), x)
   constants <- list(
     "global" = model_matrices$constants$global,
     "intra" = filter_inst(model_matrices$constants$intra))
 
   # ... from site attributes
-  filter_inst_col <- function(x) cols_drop(x,get_instrument_status(x))
+  filter_inst_col <- function(mat) mat[,!attr_inst_status(mat), drop = FALSE]
   vector_treatment <- c("D","O","I") %p% "_"
   matrices_X <- lapply(compact(model_matrices[vector_treatment]),
                        "filter_inst_col")
@@ -273,4 +272,17 @@ drop_instruments <- function(model_matrices) {
   )
 
   return(matrices_and_spatial_weights)
+}
+
+#' @keywords internal
+sp_model_type <- function(cntrl) {
+  has_lagged_x <- cntrl$sdm_variables != "none"
+
+  if (cntrl$model == "model_1")
+    model_type <- ifelse(has_lagged_x,"SLX","OLM")
+
+  if (cntrl$model != "model_1")
+    model_type <- ifelse(has_lagged_x,"SDM","LAG")
+
+  return(model_type)
 }

@@ -1,74 +1,51 @@
+#' @keywords internal
 spflow_model_estimation <- function(
-  model_matrices,
-  flow_control) {
+  model_moments,
+  estim_control) {
 
-  estimator <- flow_control$estimation_method
-
-  ## ... derive the model moments
-  model_moments <- spflow_model_moments(
-    model_matrices = model_matrices,
-    estimator = estimator)
-
-  na_error_template <-
-    "The estimation is aborted because the %s variables contain " %p%
-    "NA values!" %p%
-    "\nPlease check that all variables are well defined."
-
-  assert(all(!is.na(model_moments$ZZ)),
-         sprintf(na_error_template, "explanatory"))
-
-  assert(all(!is.na(model_moments$ZY)),
-         sprintf(na_error_template, "response"))
-
-
-  estimation_results <- switch(estimator,
+  estimation_results <- switch(estim_control$estimation_method,
     "ols" = {
       spflow_ols(
-        ZZ  = model_moments$ZZ,
-        ZY  = model_moments$ZY,
-        TSS = model_moments$TSS,
-        N   = model_moments$N,
-        flow_control = flow_control
+        ZZ  = model_moments[["ZZ"]],
+        ZY  = model_moments[["ZY"]],
+        TSS = model_moments[["TSS"]],
+        N   = model_moments[["N"]],
+        flow_control = estim_control
       )},
     "s2sls" = {
       spflow_s2sls(
-        HH  = model_moments$HH,
-        HY  = model_moments$HY,
-        ZZ  = model_moments$ZZ,
-        ZY  = model_moments$ZY,
-        TSS = model_moments$TSS,
-        N   = model_moments$N,
-        flow_control = flow_control
+        UU  = model_moments[["UU"]],
+        UY  = model_moments[["UY"]],
+        ZZ  = model_moments[["ZZ"]],
+        ZY  = model_moments[["ZY"]],
+        TSS = model_moments[["TSS"]],
+        N   = model_moments[["N"]],
+        flow_control = estim_control
       )},
     "mle" = {
       spflow_mle(
-        ZZ    = model_moments$ZZ,
-        ZY    = model_moments$ZY,
-        TSS   = model_moments$TSS,
-        N     = model_moments$N,
-        n_d   = model_moments$n_d,
-        n_o   = model_moments$n_o,
-        OW_traces = model_moments$OW_traces,
-        DW_traces = model_moments$DW_traces,
-        flow_control = flow_control
+        ZZ    = model_moments[["ZZ"]],
+        ZY    = model_moments[["ZY"]],
+        TSS   = model_moments[["TSS"]],
+        N     = model_moments[["N"]],
+        n_d   = model_moments[["n_d"]],
+        n_o   = model_moments[["n_o"]],
+        DW_traces = model_moments[["DW_traces"]],
+        OW_traces = model_moments[["OW_traces"]],
+        flow_control = estim_control
       )},
     "mcmc" = {spflow_mcmc(
-      ZZ = model_moments$ZZ,
-      ZY = model_moments$ZY,
-      TSS = model_moments$TSS,
-      N = model_moments$N,
-      n_d = model_moments$n_d,
-      n_o = model_moments$n_o,
-      OW_traces = model_moments$OW_traces,
-      DW_traces = model_moments$DW_traces,
-      flow_control = flow_control
+      ZZ  = model_moments[["ZZ"]],
+      ZY  = model_moments[["ZY"]],
+      TSS = model_moments[["TSS"]],
+      N   = model_moments[["N"]],
+      n_d = model_moments[["n_d"]],
+      n_o = model_moments[["n_o"]],
+      DW_traces = model_moments[["DW_traces"]],
+      OW_traces = model_moments[["OW_traces"]],
+      flow_control = estim_control
     )}
   )
-
-  estimation_results <- add_details(estimation_results,
-                                    model_matrices = model_matrices,
-                                    flow_control = flow_control)
-
 
   return(estimation_results)
 

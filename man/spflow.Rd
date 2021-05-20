@@ -7,7 +7,7 @@
 spflow(
   flow_formula,
   sp_multi_network,
-  network_pair_id = id(sp_multi_network, "network_pairs")[[1]]["pair"],
+  network_pair_id = id(sp_multi_network)[["network_pairs"]][[1]],
   flow_control = spflow_control()
 )
 }
@@ -154,7 +154,7 @@ two equivalent options below illustrate.
 \examples{
 
 # Estimate flows between the states of Germany
-spflow(flow_formula = y9 ~ . + G_(log(distance + 1)),
+spflow(flow_formula = y9 ~ . + G_(DISTANCE),
        sp_multi_network = multi_net_usa_ge,
        network_pair_id = "ge_ge")
 
@@ -162,17 +162,17 @@ spflow(flow_formula = y9 ~ . + G_(log(distance + 1)),
 # Same as above with explicit declaration of variables...
 # ... X is the only variable available
 # ... it is used for origins, destination and intra-state flows
-spflow(flow_formula = y9 ~ X + G_(log(distance + 1)),
+spflow(flow_formula = y9 ~ X + G_(DISTANCE),
        sp_multi_network = multi_net_usa_ge,
        network_pair_id = "ge_ge")
 
 # Same as above
-spflow(flow_formula = y9 ~ O_(.) + D_(.) + I_(.) + G_(log(distance + 1)),
+spflow(flow_formula = y9 ~ O_(.) + D_(.) + I_(.) + G_(DISTANCE),
        sp_multi_network = multi_net_usa_ge,
        network_pair_id = "ge_ge")
 
 # Same as above
-spflow(flow_formula = y9 ~ O_(X) + D_(X) + I_(X) + G_(log(distance + 1)),
+spflow(flow_formula = y9 ~ O_(X) + D_(X) + I_(X) + G_(DISTANCE),
        sp_multi_network = multi_net_usa_ge,
        network_pair_id = "ge_ge")
 }

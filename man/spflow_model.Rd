@@ -14,7 +14,8 @@ spflow_model(
   resid = NULL,
   fitted = NULL,
   spatial_filter_matrix = NULL,
-  design_matrix = NULL
+  design_matrix = NULL,
+  model_moments = NULL
 )
 }
 \arguments{

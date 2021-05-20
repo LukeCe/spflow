@@ -2,10 +2,17 @@
 % Please edit documentation in R/class_0_generics-and-maybe-classes.R
 \name{sd_error}
 \alias{sd_error}
-\title{Extract the standard deviation from a \code{\link[=spflow_model-class]{spflow_model-class()}}}
+\title{Generic for accessing the standard deviation of the residual inside
+a \code{\link[=spflow_model-class]{spflow_model-class()}}.}
 \arguments{
 \item{object}{A \code{\link[=spflow_model-class]{spflow_model-class()}}}
 }
 \description{
+For details on the methods see the documentation of the
+corresponding classes.
+
 For details see the documentation of the corresponding class.
+}
+\seealso{
+\code{\link[=spflow_model-class]{spflow_model-class()}}
 }

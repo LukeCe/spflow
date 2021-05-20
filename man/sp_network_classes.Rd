@@ -2,7 +2,7 @@
 % Please edit documentation in R/class_sp-network-meta.R
 \name{sp_network_classes}
 \alias{sp_network_classes}
-\title{spflow network objects}
+\title{spflow network classes}
 \description{
 The spflow packages provides three additional classes to the R environment
 that allow to handle origin-destination flow data efficiently.
@@ -20,22 +20,21 @@ nodes at the origin and destination.
 }
 \examples{
 
-### An example use case for the spflow network objects and model estimation
+### An example use case for the spflow network classes and model estimation
 \dontrun{
 # load example data
-example_data_sets <- c("paris10km_nodes",
-                       "paris10km_mat_nb",
-                       "paris10km_node_pairs")
-data(list = example_data_sets)
+data("paris10km_municipalities")
+data("paris10km_neighborhood")
+data("paris10km_commuteflows")
 
 # define the sp_network_nodes...
 # ... they are used as origins and destinations
 # ... their neighborhood is based on contiguity
 paris10km_net <- sp_network_nodes(
   network_id = "paris10km",
-  node_neighborhood = paris10km_mat_nb$by_border,
-  node_data = sf::st_drop_geometry(paris10km_nodes),
-  node_id_column = "ID")
+  node_neighborhood = paris10km_neighborhood$by_border,
+  node_data = sf::st_drop_geometry(paris10km_municipalities),
+  node_key_column = "ID_MUN")
 
 # define the sp_network_pair...
 # ... contains pairwise data (flows and distances)
@@ -43,9 +42,9 @@ paris10km_net <- sp_network_nodes(
 paris10km_net_pairs <- sp_network_pair(
   orig_net_id = "paris10km",
   dest_net_id = "paris10km",
-  pair_data = paris10km_node_pairs,
-  orig_key_column = "ORIG_ID",
-  dest_key_column = "DEST_ID")
+  pair_data = paris10km_commuteflows,
+  orig_key_column = "ID_ORIG",
+  dest_key_column = "ID_DEST")
 
 
 # define the sp_network_pair...
@@ -62,8 +61,7 @@ clog <- function(x) {
 # ... O_() contains origin variables
 # ... D_() contains intra-regional variables (when origin == destination)
 # ... G_() contains pair variables (distances)
-model_formula <- formula_1 <-
-  flow_formula <-
+flow_formula <-
   log(COMMUTE_FLOW + 1) ~
   D_(clog(NB_COMPANY + 1) + clog(MED_INCOME + 1)) +
   O_(clog(POPULATION + 1) + clog(NB_COMPANY + 1) + clog(MED_INCOME + 1)) +
@@ -72,20 +70,27 @@ model_formula <- formula_1 <-
 
 # define what variables to use in an SDM specification
 # ... if not given all will be used
-sdm_formula <- ~
-  D_(clog(NB_COMPANY + 1) + clog(MED_INCOME + 1))
+sdm_formula <-
+ ~ D_(clog(NB_COMPANY + 1) + clog(MED_INCOME + 1))
 
 # define the list of control parameters
 flow_control <- spflow_control(sdm_variables = sdm_formula)
+
+
+# Estimate the model
+spflow(flow_formula, paris10km_multi_net, flow_control = flow_control)
 }
 }
 \seealso{
-Other spflow network objects: 
+Other \link[=sp_network_classes]{spflow network classes}: 
 \code{\link{sp_multi_network-class}},
-\code{\link{sp_multi_network}},
 \code{\link{sp_network_nodes-class}},
+\code{\link{sp_network_pair-class}}
+
+Other Constructors for \link[=sp_network_classes]{spflow network classes}: 
+\code{\link{sp_multi_network}},
 \code{\link{sp_network_nodes}},
-\code{\link{sp_network_pair-class}},
 \code{\link{sp_network_pair}}
 }
-\concept{spflow network objects}
+\concept{Constructors for \link[=sp_network_classes]{spflow network classes}}
+\concept{\link[=sp_network_classes]{spflow network classes}}

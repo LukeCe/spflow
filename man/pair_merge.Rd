@@ -4,17 +4,24 @@
 \name{pair_merge}
 \alias{pair_merge}
 \alias{pair_merge,sp_multi_network-method}
-\title{Merge the all information on origins and destinations to the node
-pairs.}
+\title{Generic for merging information on origins and destination to node
+pairs inside \link[=sp_network_classes]{spflow network classes}}
 \usage{
-\S4method{pair_merge}{sp_multi_network}(object, network_pair_id)
+\S4method{pair_merge}{sp_multi_network}(object, network_pair_id, all_pairs = FALSE)
 }
 \arguments{
 \item{object}{A \code{\link[=sp_multi_network-class]{sp_multi_network-class()}}}
 
 \item{network_pair_id}{A character indicating the id of a \code{\link[=sp_network_pair-class]{sp_network_pair-class()}}}
+
+\item{all_pairs}{A logical, when set to \code{TRUE} the resulting data.frame contains all
+possible pairs of origins and destination, even if the data in the
+\code{\link[=sp_network_pair-class]{sp_network_pair-class()}} does not have them.}
 }
 \description{
+For details on the methods see the documentation of the
+corresponding classes.
+
 The method merges all available information on origins and destinations to
 the data.frame describing the pairs.
 }
@@ -24,4 +31,7 @@ pair_merge(multi_net_usa_ge,"ge_ge")
 
 # long form data for flows from Germany to USA
 pair_merge(multi_net_usa_ge,"ge_usa")
+}
+\seealso{
+\code{\link[=sp_multi_network-class]{sp_multi_network-class()}}
 }

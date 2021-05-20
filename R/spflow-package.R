@@ -1,3 +1,5 @@
+# ---- pkg_doc ----------------------------------------------------------------
+
 #' @title Spatial econometric interaction models in R
 #'
 #' @description
@@ -40,11 +42,37 @@
 #' @references \insertAllCited{}
 "_PACKAGE"
 
+# ---- pkg_deprected ----------------------------------------------------------
+
+#' @title Deprecated functions in package \pkg{spflow}.
+#' @description The functions listed below are deprecated and will be defunct in
+#'   the near future. When possible, alternative functions with similar
+#'   functionality are also mentioned. Help pages for deprecated functions are
+#'   available at \code{help("<function>-deprecated")}.
+#' @name spflow-deprecated
+#' @keywords internal
+NULL
+
+# ---- pkg_defunct ------------------------------------------------------------
+
+#' @title Defunct functions in package \pkg{spflow}.
+#' @description The functions listed below are defunct. When possible,
+#'   alternative functions with similar functionality are also mentioned. Help
+#'   pages for deprecated functions are available at
+#'   \code{help("<function>-defunct")}.
+#' @name spflow-deprecated
+#' @keywords internal
+NULL
+
+# ---- other ------------------------------------------------------------------
+
 # The following block is used by usethis to automatically manage
 # roxygen namespace tags. Modify with care!
 ## usethis namespace: start
 ## usethis namespace: end
 NULL
+
+
 
 # A trick to use the x %>% fun(.) notation without R CMD Note
 utils::globalVariables(c(".","ORIG_ID","DEST_ID","ID"))

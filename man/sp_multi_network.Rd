@@ -4,14 +4,10 @@
 \alias{sp_multi_network}
 \title{Create an S4 class that contains \code{\link[=sp_network_nodes]{sp_network_nodes()}} and \code{\link[=sp_network_pair]{sp_network_pair()}} for one or multiple networks}
 \usage{
-sp_multi_network(..., level_node_ids = TRUE)
+sp_multi_network(...)
 }
 \arguments{
 \item{...}{objects of of type \code{\link[=sp_network_nodes]{sp_network_nodes()}} and \code{\link[=sp_network_pair]{sp_network_pair()}}}
-
-\item{level_node_ids}{A logical to activate re-levelling of the id columns.
-If \code{TRUE} the origin and destination nodes in \code{\link[=sp_network_pair]{sp_network_pair()}} are set
-to match the levels of the nodes in the \code{\link[=sp_network_nodes]{sp_network_nodes()}}.}
 }
 \value{
 A S4 network data object
@@ -24,12 +20,9 @@ sp_multi_network() # empty
 sp_multi_network(germany_net,usa_net) # two networks, no pairs
 }
 \seealso{
-Other spflow network objects: 
-\code{\link{sp_multi_network-class}},
+Other Constructors for \link[=sp_network_classes]{spflow network classes}: 
 \code{\link{sp_network_classes}},
-\code{\link{sp_network_nodes-class}},
 \code{\link{sp_network_nodes}},
-\code{\link{sp_network_pair-class}},
 \code{\link{sp_network_pair}}
 }
-\concept{spflow network objects}
+\concept{Constructors for \link[=sp_network_classes]{spflow network classes}}

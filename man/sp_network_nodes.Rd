@@ -8,7 +8,7 @@ sp_network_nodes(
   network_id,
   node_neighborhood = NULL,
   node_data = NULL,
-  node_id_column = NULL
+  node_key_column
 )
 }
 \arguments{
@@ -18,10 +18,10 @@ sp_network_nodes(
 
 \item{node_data}{A data.frame that contains all information describing the nodes}
 
-\item{node_id_column}{A character indicating the column containing identifiers for the nodes}
+\item{node_key_column}{A character indicating the column containing identifiers for the nodes}
 }
 \value{
-The S4 class sp_network_nodes
+The S4 class \code{\link[=sp_network_nodes-class]{sp_network_nodes-class()}}
 }
 \description{
 Create a \code{\link[=sp_network_nodes-class]{sp_network_nodes-class()}}
@@ -30,15 +30,12 @@ Create a \code{\link[=sp_network_nodes-class]{sp_network_nodes-class()}}
 sp_network_nodes("germany",
                  spdep::nb2mat(spdep::poly2nb(germany_grid)),
                  as.data.frame(germany_grid),
-                 "NOM")
+                 "ID_STATE")
 }
 \seealso{
-Other spflow network objects: 
-\code{\link{sp_multi_network-class}},
+Other Constructors for \link[=sp_network_classes]{spflow network classes}: 
 \code{\link{sp_multi_network}},
 \code{\link{sp_network_classes}},
-\code{\link{sp_network_nodes-class}},
-\code{\link{sp_network_pair-class}},
 \code{\link{sp_network_pair}}
 }
-\concept{spflow network objects}
+\concept{Constructors for \link[=sp_network_classes]{spflow network classes}}

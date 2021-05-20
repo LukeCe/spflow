@@ -1,33 +1,16 @@
-#' Create an inverted spatial filter that can be used for simulations
-#'
-#' @param weight_matrices A list of neighborhood matrices
-#' @param autoreg_parameters A vector of parameters
-#'
-#' @family spflow simulation functions
-#' @return A matrix representing the inverted spatial filter
-#' @keywords internal
-invert_spatial_filter <- function(
-  weight_matrices,
-  autoreg_parameters
-) {
-
-  combined_weight_matrices <-
-    Map("*", safely_to_list(weight_matrices),autoreg_parameters)
-  combined_weight_matrices <-
-    as.matrix(Reduce("+", combined_weight_matrices))
-
-  N <- nrow(combined_weight_matrices)
-
-  return(solve(diag(N) - combined_weight_matrices))
-}
-
 #' Simulate spatial interactions
 #'
-#' @param exogenous_variables A matrix of exogenous variables
-#' @param model_coefficients A numeric vector of coefficients
-#' @param inverted_filter A matrix that represents an inverted spatial filter matrix (see [invert_spatial_filter()])
-#' @param noise_sd A numeric which indicates the desired standard deviation of the simulated noise
-#' @param verbose A logical whether signal to noise ration should be printed
+#' @param exogenous_variables
+#'   A matrix of exogenous variables
+#' @param model_coefficients
+#'   A numeric vector of coefficients
+#' @param inverted_filter
+#'   A matrix that represents an inverted spatial filter matrix
+#'   (see [spatial_filter()])
+#' @param noise_sd
+#'   A numeric which indicates the desired standard deviation of the simulated noise
+#' @param verbose
+#'   A logical whether signal to noise ration should be printed
 #'
 #' @family spflow simulation functions
 #' @return A vector of simulated flows
@@ -126,16 +109,13 @@ expand_flow_neighborhood <- function(
 #' @param weight_matrices List of flow neighborhood matrices
 #' @param autoreg_parameters A numeric containing values for the
 #'     auto-regressive parameters
-#' @param invert A logical indicating whether the results should be inverted
 #'
 #' @family spflow simulation functions
 #' @importFrom Matrix Diagonal Matrix
 #' @keywords internal
 spatial_filter <- function(
   weight_matrices,
-  autoreg_parameters,
-  invert = FALSE
-) {
+  autoreg_parameters) {
 
   combined_weight_matrices <-
     Map("*", safely_to_list(weight_matrices),autoreg_parameters)
@@ -144,8 +124,6 @@ spatial_filter <- function(
 
   N <- nrow(combined_weight_matrices)
   A <- Diagonal(N) - combined_weight_matrices
-  A <- if (invert) solve(A) else A
-
   return(A)
 }
 

@@ -2,11 +2,15 @@
 % Please edit documentation in R/class_0_generics-and-maybe-classes.R
 \name{nnodes}
 \alias{nnodes}
-\title{Access the node count of a \code{\link[=sp_network_nodes-class]{sp_network_nodes-class()}} or a
-\code{\link[=sp_network_pair-class]{sp_network_pair-class()}}}
+\title{Generic for accessing the node count of
+\link[=sp_network_classes]{spflow network classes}}
 \arguments{
 \item{object}{One of \code{\link[=sp_network_nodes-class]{sp_network_nodes-class()}}, \code{\link[=sp_network_pair-class]{sp_network_pair-class()}}}
 }
 \description{
-For details see the documentation of the corresponding classes.
+For details on the methods see the documentation of the
+corresponding classes.
+}
+\seealso{
+\code{\link[=sp_network_nodes-class]{sp_network_nodes-class()}} \code{\link[=sp_network_pair-class]{sp_network_pair-class()}}
 }

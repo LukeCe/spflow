@@ -4,12 +4,19 @@
 \alias{id}
 \alias{id-set}
 \alias{id<-}
-\title{Access the id of \link[=sp_network_classes]{spflow network objects}}
+\title{Generic for accessing the ids of
+\link[=sp_network_classes]{spflow network classes}}
 \arguments{
-\item{object}{A \link[=sp_network_classes]{spflow network object}}
+\item{object}{A \link[=sp_network_classes]{spflow network class}}
 
 \item{value}{A character replacing the existing id}
 }
 \description{
+For details on the methods see the documentation of the
+corresponding classes.
+
 For details see the documentation of the corresponding classes.
+}
+\seealso{
+\code{\link[=sp_network_classes]{sp_network_classes()}}
 }

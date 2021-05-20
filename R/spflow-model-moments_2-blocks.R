@@ -45,6 +45,8 @@ moment_empirical_var <- function(model_matrices,N,n_d,n_o) {
     var_block_alpha_beta(X,wt_odi),
     var_block_alpha_gamma(G_wt %||% model_matrices$G_)
     ))
+  if (!is.null(alpha_blocks))
+    rownames(alpha_blocks) <- "(Intercept)"
 
   # [alpha_I] blocks (7/10)
   alpha_I_blocks <- const_intra %|!|% Reduce("cbind",list(
@@ -53,19 +55,28 @@ moment_empirical_var <- function(model_matrices,N,n_d,n_o) {
     var_block_alpha_I_gamma(const_intra_wt %||% const_intra,
                             model_matrices$G)
     ))
+  if (!is.null(alpha_I_blocks))
+    rownames(alpha_I_blocks) <- names(const_intra)
+
 
   # [beta] blocks (9/10)
   beta_blocks <- X %|!|% Reduce("cbind",list(
     var_block_beta(X,wt_odi,wt),
     var_block_beta_gamma(X, G_wt %||% model_matrices$G)
     ))
+  if (!is.null(beta_blocks))
+    rownames(beta_blocks) <- ulapply(X,"colnames")
+
 
   # [gamma] block (10/10)
   gamma_block <- model_matrices$G %|!|% var_block_gamma(model_matrices$G, G_wt)
+  if (!is.null(gamma_block))
+    rownames(gamma_block) <- names(model_matrices$G)
 
   combined_blocks <- list(alpha_blocks,alpha_I_blocks,beta_blocks,gamma_block)
   combined_blocks <- rbind_fill_left(compact(combined_blocks))
-  combined_blocks <- as.matrix(forceSymmetric(combined_blocks, "U"))
+  combined_blocks <- make_symmetric(combined_blocks)
+  colnames(combined_blocks) <- rownames(combined_blocks)
 
   return(combined_blocks)
 }
@@ -74,10 +85,7 @@ moment_empirical_var <- function(model_matrices,N,n_d,n_o) {
 
 #' @keywords internal
 var_block_alpha <- function(wt,N) {
-  if (is.numeric(wt[1]))
-    return(sum(wt))
-
-  return(N)
+  if (is.null(wt)) N else sum(wt)
 }
 
 #' @keywords internal
@@ -133,7 +141,7 @@ var_block_alpha_beta <- function(X, wt_odi) {
 
   scalar_weights <- has_equal_elements(c(rapply(wt_odi, length),1))
   if (scalar_weights) {
-    scaled_col_sums <- Map("*", wt_odi, lapply(X, "col_sums"))
+    scaled_col_sums <- Map("*", wt_odi, lapply(X, "colSums2mat"))
     scaled_col_sums <- Reduce("cbind", scaled_col_sums)
   }
 

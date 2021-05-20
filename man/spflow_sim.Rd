@@ -17,7 +17,8 @@ spflow_sim(
 
 \item{model_coefficients}{A numeric vector of coefficients}
 
-\item{inverted_filter}{A matrix that represents an inverted spatial filter matrix (see \code{\link[=invert_spatial_filter]{invert_spatial_filter()}})}
+\item{inverted_filter}{A matrix that represents an inverted spatial filter matrix
+(see \code{\link[=spatial_filter]{spatial_filter()}})}
 
 \item{noise_sd}{A numeric which indicates the desired standard deviation of the simulated noise}
 
@@ -32,7 +33,6 @@ Simulate spatial interactions
 \seealso{
 Other spflow simulation functions: 
 \code{\link{expand_flow_neighborhood}()},
-\code{\link{invert_spatial_filter}()},
 \code{\link{spatial_filter}()}
 }
 \concept{spflow simulation functions}

@@ -18,7 +18,8 @@
 #' @slot node_neighborhood
 #'   A matrix that describes the neighborhood relations of the nodes
 #'
-#' @family spflow network objects
+#' @importClassesFrom Matrix Matrix
+#' @family [spflow network classes][sp_network_classes()]
 #' @name sp_network_nodes-class
 #' @export
 setClass("sp_network_nodes",
@@ -48,19 +49,12 @@ setMethod(
 setReplaceMethod(
   f = "dat",
   signature = "sp_network_nodes",
-  function(object, value) { # ---- dat <- -------------------------------------
+  function(object, value) { # ---- dat <- -------------
+
     object@node_data <- value
-
-    # dimensions match ...
-    no_confilcts <- is.null(value) || nrow(value) == object@nnodes
-    if (no_confilcts && validObject(object))
-      return(object)
-
-    # dimensions don not match ...
-    object@nnodes <- nrow(value)
-    object@node_neighborhood <- NULL
-    if (validObject(object))
-      return(object)
+    object@nnodes <- nrow(value) %||% object@nnodes
+    validObject(object)
+    return(object)
     })
 
 #' @export
@@ -84,9 +78,9 @@ setReplaceMethod(
   f = "id",
   signature = "sp_network_nodes",
   function(object, value) { # ---- id <- --------------------------------------
+    assert(valid_network_id(value), "The network id is invalid!")
     object@network_id <- value
-    if (validObject(object))
-      return(object)
+    return(object)
   })
 
 #' @rdname sp_network_nodes-class
@@ -108,18 +102,10 @@ setReplaceMethod(
   f = "neighborhood",
   signature = "sp_network_nodes",
   function(object,value) { # ---- neighborhood <- -----------------------------
-    object@node_neighborhood <- value %|!|% as(value,"Matrix")
 
-    # dimensions match ...
-    no_confilcts <- is.null(value) || nrow(value) == object@nnodes
-    if (no_confilcts && validObject(object))
-      return(object)
-
-    # dimensions don not match ...
-    object@nnodes <- nrow(value)
-    object@node_data <- NULL
-    if (validObject(object))
-      return(object)
+    object@node_neighborhood <- value %|!|% try_coercion(value,"Matrix")
+    validObject(object)
+    return(object)
   })
 
 #' @rdname sp_network_nodes-class
@@ -177,27 +163,33 @@ setValidity(
   function(object) { # ---- validity ------------------------------------------
 
     # check the id
-    if (!is_single_character(id(object))) {
-      error_msg <- "The network id is invalid!"
+    if (!valid_network_id(id(object))) {
+      error_msg <- "The network id must contain only alphanumeric characters!"
       return(error_msg)
     }
 
     # check dimensions of nb matrix
     dim_nb <- dim(neighborhood(object))
-    consitent <- has_equal_elements(dim_nb)
-    if (!consitent) {
+    if (!has_equal_elements(dim_nb)) {
       error_msg <- "The neighborhood matrix must be a square matrix!"
+      return(error_msg)
+    }
+
+    # check content of nb matrix
+    if (!is.null(neighborhood(object))
+        && any(diag(neighborhood(object)) != 0)) {
+      error_msg <-
+        "The neighborhood matrix must have zeros on the main diagonal!"
       return(error_msg)
     }
 
     # check dimensions of data and matrix
     nr_dat <- nrow(dat(object))
     nnodes <- nnodes(object)
-    consitent <- has_equal_elements(c(nr_dat,dim_nb,nnodes))
-    if (!consitent) {
+    if (!has_equal_elements(c(nr_dat,dim_nb,nnodes))) {
       error_msg <-
-        "The row number of node_data does not match the dimensions of" %p%
-        "the neighborhood matrix!"
+        "The row number of the node_data does not match the dimensions " %p%
+        "of the neighborhood matrix!"
       return(error_msg)
     }
 
@@ -205,18 +197,19 @@ setValidity(
     if (is.null(dat(object)))
       return(TRUE)
 
-
-    data_id_col <- key(dat(object)) # TODO remove data.table dependency
-    if (is.null(data_id_col)) {
-      error_msg <- "The data musst have an id column!"
+    node_id_col <- attr_key_nodes(dat(object))
+    if (is.null(node_id_col)) {
+      error_msg <- "The data musst have a key column!"
       return(error_msg)
     }
 
-    node_ids <- dat(object)[[data_id_col]]
+    node_ids <- dat(object)[[node_id_col]]
     duplicated_ids <- length(unique(node_ids)) != nr_dat
     wrong_id_type <- !is.factor(node_ids)
     if (duplicated_ids | wrong_id_type ) {
-      error_msg <- "The nodes are not correctly identifyed!"
+      error_msg <-
+        "The nodes are not correctly identifyed.\n Please ensure " %p%
+        "that all entries in column " %p% node_id_col %p% " are unique!"
       return(error_msg)
     }
 
@@ -234,32 +227,34 @@ setValidity(
 #'   A data.frame that contains all information describing the nodes
 #' @param node_neighborhood
 #'   A matrix that describes the neighborhood of the nodes
-#' @param node_id_column
+#' @param node_key_column
 #'   A character indicating the column containing identifiers for the nodes
 #'
-#' @family spflow network objects
-#' @importFrom data.table := as.data.table setkey setnames
-#'
-#' @return The S4 class sp_network_nodes
+#' @family Constructors for [spflow network classes][sp_network_classes()]
+#' @importClassesFrom Matrix Matrix
+#' @return The S4 class [sp_network_nodes-class()]
 #' @export
 #' @examples
 #' sp_network_nodes("germany",
 #'                  spdep::nb2mat(spdep::poly2nb(germany_grid)),
 #'                  as.data.frame(germany_grid),
-#'                  "NOM")
+#'                  "ID_STATE")
 sp_network_nodes <- function(
   network_id,
   node_neighborhood = NULL,
   node_data = NULL,
-  node_id_column = NULL
+  node_key_column
 ) {
+
+
+  # checks for validity of dimensions are done before the return
+  node_neighborhood <- node_neighborhood %|!|%
+    try_coercion(node_neighborhood,"Matrix")
 
   dim_neighborhood <- dim(node_neighborhood)
   dim_node_data <- dim(node_data)
   nnodes <- c(dim_node_data[1],dim_neighborhood)
   nnodes <- unique(nnodes)[[1]]
-  node_neighborhood <- node_neighborhood %|!|%
-    try_coercion(node_neighborhood,"Matrix")
 
   nodes <- new(
     "sp_network_nodes",
@@ -271,24 +266,36 @@ sp_network_nodes <- function(
   if (is.null(node_data))
     return(nodes)
 
-  # determine the key used for sorting and merging
-  assert_is_one_of(node_data, c("matrix", "data.frame","data.table", "Matrix"))
-  node_data <- as.data.table(node_data)
+  # Add the key column to the node_data
+  assert_inherits(node_data, "data.frame")
 
-  # Create the ID column and make it a key
-  data_needs_key <- is.null(node_id_column)
+  if (missing(node_key_column)) node_key_column <- attr_key_nodes(node_data)
+  assert_is_single_x(node_key_column,"character")
+  assert(node_key_column %in% names(node_data),
+         "The node_key_column is not found in the node_data!")
 
-  # TODO remove data.table
-  if (data_needs_key) {
-    node_keys <- network_id %p% "_" %p% seq_len(nrow(node_data))
-    node_data[, ID := factor_in_order(node_keys)]
-  }
-  if (!data_needs_key) {
-    data.table::setnames(node_data, node_id_column, "ID")
-    node_data[, ID := factor_in_order(ID)]
-  }
-  nodes@node_data <- setkey(node_data, ID)
+  attr_key_nodes(node_data) <- node_key_column
+  node_data[[node_key_column]] <- factor_in_order(node_data[[node_key_column]])
+  nodes@node_data <- node_data
 
-  if (validObject(nodes))
-    return(nodes)
+  validObject(nodes)
+  return(nodes)
+}
+
+# ---- Helpers ----------------------------------------------------------------
+
+#' @keywords internal
+attr_key_nodes <- function(df) {
+  attr(df, "node_key_column")
+}
+
+#' @keywords internal
+`attr_key_nodes<-` <- function(df, value) {
+  attr(df, "node_key_column") <- value
+  df
+}
+
+#' @keywords internal
+valid_network_id <- function(key) {
+  is_single_character(key) && grepl("^[[:alnum:]]+$",key)
 }

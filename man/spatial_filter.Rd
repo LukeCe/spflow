@@ -4,15 +4,13 @@
 \alias{spatial_filter}
 \title{Derive the spatial filter of an interaction model}
 \usage{
-spatial_filter(weight_matrices, autoreg_parameters, invert = FALSE)
+spatial_filter(weight_matrices, autoreg_parameters)
 }
 \arguments{
 \item{weight_matrices}{List of flow neighborhood matrices}
 
 \item{autoreg_parameters}{A numeric containing values for the
 auto-regressive parameters}
-
-\item{invert}{A logical indicating whether the results should be inverted}
 }
 \description{
 Use the neighborhood matrices of origins and destinations to derive the
@@ -21,7 +19,6 @@ three neighborhood matrices of the origin-destination flows.
 \seealso{
 Other spflow simulation functions: 
 \code{\link{expand_flow_neighborhood}()},
-\code{\link{invert_spatial_filter}()},
 \code{\link{spflow_sim}()}
 }
 \concept{spflow simulation functions}

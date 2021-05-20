@@ -8,13 +8,18 @@ spflow_control(
   estimation_method = "mle",
   model = "model_9",
   use_intra = TRUE,
-  use_sdm = TRUE,
   sdm_variables = "same",
-  instrumental_variables = "same",
   weight_variable = NULL,
-  decorrelate_instruments = FALSE,
-  reduce_pair_instruments = TRUE,
-  hessian_method = "mixed"
+  parameter_space = "approx",
+  loglik_det_aprox_order = 10,
+  mle_hessian_method = "mixed",
+  mle_optim_limit = 100,
+  twosls_instrumental_variables = "same",
+  twosls_decorrelate_instruments = FALSE,
+  twosls_reduce_pair_instruments = TRUE,
+  mcmc_iterations = 5500,
+  mcmc_burn_in = 2500,
+  mcmc_resampling_limit = 100
 )
 }
 \arguments{
@@ -28,32 +33,44 @@ dependence structures (see documentation for details), should be one of
 \item{use_intra}{A logical which activates the option to use a separate set of parameters
 for intra-regional flows (origin == destination)}
 
-\item{use_sdm}{A logical which adds spatial lags of origin and destination attributes as
-explanatory variables to the model.}
-
 \item{sdm_variables}{Either a formula or a character; the formula can be used to explicitly
 declare the variables in SDM specification, the character should be one of
 \code{c("same", "all")} which are short cuts for using all available variables
 or the same as used in the main formula provided to \code{\link[=spflow]{spflow()}}}
 
-\item{instrumental_variables}{Either a formula or a character; the formula can be used to explicitly
+\item{weight_variable}{A character indicating the name of one column in the node pair data.}
+
+\item{parameter_space}{A character indicating how to define the limits of the parameter space.
+The only available option is \code{c("approx")}.}
+
+\item{loglik_det_aprox_order}{A numeric indicating the order of the Taylor expansion used to approximate
+the value of the log-determinant term.}
+
+\item{mle_hessian_method}{A character which indicates the method for Hessian calculation}
+
+\item{mle_optim_limit}{A numeric indicating the number of trails given to the optimizer of the
+likelihood function. If the optimizer does not converge after the
+indicated number of trails an error will be thrown after this limit.}
+
+\item{twosls_instrumental_variables}{Either a formula or a character; the formula can be used to explicitly
 declare the variables that should be used as instruments during S2SLS
 estimation, the character should be one of \code{c("same", "all")} which
 are short cuts for using all available variables or the same as used in
 the main formula provided to \code{\link[=spflow]{spflow()}}}
 
-\item{weight_variable}{A character indicating the name of a variable that should be used to
-weight the origin-destination pairs}
-
-\item{decorrelate_instruments}{A logical whether to perform a PCA to remove (linear) correlation from the
+\item{twosls_decorrelate_instruments}{A logical whether to perform a PCA to remove (linear) correlation from the
 instruments generated for the S2SLS estimator}
 
-\item{reduce_pair_instruments}{A logical that indicates whether the number of instruments that are
+\item{twosls_reduce_pair_instruments}{A logical that indicates whether the number of instruments that are
 derived from pair attributes should be reduced or not (default is TRUE
-because constructing these instruments is often the most demanding part of
-the estimation.)}
+because constructing these instruments is often the most demanding part of}
 
-\item{hessian_method}{A character which indicates the method for hessian calculation}
+\item{mcmc_iterations}{A numeric indicating the number of iteration}
+
+\item{mcmc_burn_in}{A numeric indicating the length of the burn in period}
+
+\item{mcmc_resampling_limit}{A numeric indicating the maximal number of trials during rejection
+sampling of the autoregressive parameters}
 }
 \value{
 A list of control parameters for estimation via \code{\link[=spflow]{spflow()}}
@@ -92,7 +109,6 @@ custom_control <-
   spflow_control(sdm_variables = ~ O_(v1 + v2) + D_(v2 + v3) + I_(v1 + v4))
 
 # deactivate the intra-regional coefficients and SDM variables
-custom_control <- spflow_control(use_intra = FALSE, use_sdm = FALSE)
 custom_control <- spflow_control(use_intra = FALSE, sdm_variables = "none")
 }
 \references{

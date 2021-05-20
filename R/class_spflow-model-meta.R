@@ -35,7 +35,7 @@
 #' @seealso [spflow()], [sp_network_classes()]
 #' @examples
 #'
-#' spflow_results <- spflow(y9 ~ . + G_(log(distance + 1)),multi_net_usa_ge)
+#' spflow_results <- spflow(y9 ~ . + G_(DISTANCE),multi_net_usa_ge)
 #'
 #' # General methods
 #' results(spflow_results) # data.frame of main results
@@ -66,8 +66,9 @@ setClass("spflow_model",
            R2_corr = "maybe_numeric",
            resid = "maybe_numeric",
            fitted = "maybe_numeric",
-           spatial_filter_matrix = "maybe_matrix",
-           design_matrix = "ANY"))
+           spatial_filter_matrix = "maybe_any_matrix",
+           design_matrix = "maybe_list",
+           model_moments = "maybe_list"))
 
 # ---- Methods ----------------------------------------------------------------
 
@@ -82,23 +83,22 @@ setClass("spflow_model",
 #' @param object A [spflow_model-class()]
 #' @param model_matrices A list as returned by [spflow_model_matrix()]
 #' @param flow_control A list as returned by [spflow_control()]
+#' @param model_moments A list as returned by [spflow_model_moments()]
 #' @name add_details
 #' @keywords  internal
 setMethod(
   f = "add_details",
   signature = "spflow_model",
-  function(object, model_matrices, flow_control) { # ---- add_details ---------------------------------------
+  function(object,
+           model_matrices,
+           flow_control,
+           model_moments) { # ---- add_details --------------------------------
 
     object@design_matrix <- drop_instruments(model_matrices)
+    object@model_moments <- model_moments
 
-    # add parameter names and significance
-    coef_names <- parameter_names(
-      model_matrices = object@design_matrix,
-      model = flow_control$model)
-
-    results_df <- data.frame(results(object),
-                             ".names" = coef_names,
-                             row.names = ".names")
+    # add significance tests
+    results_df <- results(object)
     results_df$"t.stat" <- results_df$est / results_df$sd
     results_df$"p.value" <- 1 - pt(q = abs(results_df$est / results_df$sd),
                                    df =  1)
@@ -297,7 +297,7 @@ setMethod(
   signature = "spflow_model",
   function(object,
            res_info = c("est","sd"),
-           cntrol_info = c("estimation_method")){ # ---- results_flat -----------------
+           cntrol_info = c("estimation_method")){ # ---- results_flat ---------
 
     res <- results(object)
     flat_results <- lapply(res_info, function(.col) {
@@ -377,7 +377,8 @@ spflow_model <- function(
   resid = NULL,
   fitted = NULL,
   spatial_filter_matrix = NULL,
-  design_matrix = NULL) {
+  design_matrix = NULL,
+  model_moments = NULL) {
 
   est <- estimation_control$estimation_method
   model_class <- "spflow_model_" %p% est

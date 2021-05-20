@@ -1,3 +1,10 @@
+#' @title Internal functions to generate model matrices
+#' @details
+#'   Sources describe the data.frames holding the original information on
+#'   the nodes and the node pairs. There are three possible source data.frame
+#'   which are referred to as "pair", "orig", or "dest".
+#'   All formulas (normal, sdm, and instrument) are combined to generate an
+#'   overall model matrix which is only expanded once for each source.
 #' @keywords internal
 by_source_model_matrix <- function(
   formula_parts,
@@ -15,9 +22,10 @@ by_source_model_matrix <- function(
       source_type = names(data_sources))
 
   # Generate model matrices by data source
-  source_model_matrices <-
-    Map("flow_conform_model_matrix",
-        formula = source_formulas, data = data_sources)
+  source_model_matrices <- Map(
+    "flow_conform_model_matrix",
+    formula = source_formulas,
+    data = data_sources)
 
   return(c(source_model_matrices))
 }
@@ -33,7 +41,7 @@ combine_formulas_by_source <- function(sources, formulas) {
 
   formula_by_source <-
     lapply(compact(sources_to_formula_part), function(.part) {
-      fpt <- formulas[.part] %>% compact()
+      fpt <- compact(formulas[.part])
       fpt %|!|% combine_rhs_formulas(fpt) })
 
   return(compact(formula_by_source))
@@ -61,6 +69,7 @@ validate_source_formulas <- function(source_formula, data_source,
 #' @keywords internal
 flow_conform_model_matrix <- function(formula,data) {
   terms_obj <- terms(formula, data = data)
-  attr(terms_obj,"intercept") <- 1 - formula_expands_factors(formula,data)
-  mat <- cols_drop(model.matrix(terms_obj,data), cols_drop = "(Intercept)")
+  attr(terms_obj,"intercept") <- formula_expands_factors(formula,data) * 1
+  mat <- model.matrix(terms_obj,data)
+  mat[,colnames(mat) != "(Intercept)", drop = FALSE]
 }

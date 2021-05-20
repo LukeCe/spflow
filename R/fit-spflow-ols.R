@@ -1,3 +1,4 @@
+#' @keywords internal
 spflow_ols <- function(ZZ,ZY,TSS,N,flow_control) {
 
   delta <- solve(ZZ,ZY)
@@ -12,7 +13,7 @@ spflow_ols <- function(ZZ,ZY,TSS,N,flow_control) {
   sd_delta <- sqrt(diag(varcov))
 
   results_df <- data.frame(
-    "est" = delta,
+    "est" = as.vector(delta),
     "sd" = sd_delta)
 
   estimation_results <- spflow_model(

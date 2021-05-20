@@ -3,32 +3,32 @@
 \docType{data}
 \name{paris_data}
 \alias{paris_data}
-\alias{paris10km_nodes}
-\alias{paris10km_node_pairs}
-\alias{paris10km_mat_nb}
+\alias{paris10km_municipalities}
+\alias{paris10km_commuteflows}
+\alias{paris10km_neighborhood}
 \title{Example data for commuting flows of paris}
 \format{
-An object of class \code{sf} (inherits from \code{data.table}, \code{data.frame}) with 71 rows and 6 columns.
+An object of class \code{sf} (inherits from \code{data.frame}) with 71 rows and 6 columns.
 
-An object of class \code{data.table} (inherits from \code{data.frame}) with 5041 rows and 4 columns.
+An object of class \code{data.frame} with 5041 rows and 4 columns.
 
 An object of class \code{list} of length 3.
 }
 \source{
-The data combine different public sources:
+The data combine different public sources (last accessed 2021-05-05):
 \itemize{
-\item \href{https://public.opendatasoft.com/explore/dataset/code-postal-code-insee-2015/table/?flg=fr}{Population, area, shape, ...}
-\item \href{https://www.insee.fr/fr/statistiques/2021271}{Number of companies in each municipality}
-\item \href{https://www.data.gouv.fr/fr/datasets/prix-moyen-au-m2-des-ventes-de-maisons-et-dappartements-par-commune-en-2019/}{Average price of housing}
-\item \href{https://www.insee.fr/fr/statistiques/3560121}{Average Income}
+\item \href{https://www.insee.fr/fr/statistiques/fichier/3566477/base-texte-flux-mobilite-domicile-lieu-travail-2015.zip}{Commute flows}
+\item \href{https://www.insee.fr/fr/statistiques/2021271}{Number of companies}
+\item \href{https://www.insee.fr/fr/statistiques/3560121}{Median income}
+\item \href{https://public.opendatasoft.com/explore/dataset/code-postal-code-insee-2015/export/?flg=fr&location=2,18.52839,-2.98471&basemap=jawg.streets}{Geographies, population and area}
 }
 }
 \usage{
-paris10km_nodes
+paris10km_municipalities
 
-paris10km_node_pairs
+paris10km_commuteflows
 
-paris10km_mat_nb
+paris10km_neighborhood
 }
 \description{
 The package includes an example data set that contains home-to-work
@@ -37,15 +37,17 @@ The data for the example is stored in three objects
 }
 \details{
 \enumerate{
-\item \code{paris10km_nodes} contains information on the municipalities.
-It contains some socioeconomic variable, the identifier of the municipality
+\item \code{paris10km_municipalities} contains information on the municipalities.
+It contains some socio-economic variable, the identifier of the municipality
 and a geometry column.
 The geometry is a MULTIPOLYGON that describes the shape of the region.
-\item \code{paris10km_node_pairs} contains information on pairs of municipalities.
-It is a data.table with origin and destination identifiers and contains
+\item \code{paris10km_commuteflows} contains information on pairs of municipalities.
+It is a data.frame with origin and destination identifiers and contains
 the information on the size of the flow and the distance.
-\item \code{paris10km_mat_nb} contains three sparse matrices that correspond to
+\item \code{paris10km_neighborhood} contains three sparse matrices that represent
 alternative definitions of the neighborhood of the municipalities.
+The first is based on contiguity, the second one on distance and the third
+one is based on the three nearest neighbours.
 }
 }
 \keyword{datasets}

@@ -21,13 +21,14 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.1
 RdMacros: Rdpack
 Imports: 
-    data.table,
+    coda,
+    Matrix,
     methods,
-    magrittr,
-    Matrix
+    RSpectra,
+    utils
 Collate: 
     'spflow-package.R'
-    'utils-OO.R'
+    'utils_classes.R'
     'class_0_generics-and-maybe-classes.R'
     'class_sp-network-pair.R'
     'class_sp-network-nodes.R'
@@ -53,35 +54,25 @@ Collate:
     'spflow-model-moments_2-blocks.R'
     'spflow-simulations.R'
     'spflow.R'
-    'utils-FP.R'
-    'utils-columns.R'
-    'utils-error.R'
-    'utils-formula.R'
-    'utils-indexing.R'
-    'utils-lin-alg.R'
-    'utils-list.R'
-    'utils-math.R'
-    'utils-matrix.R'
-    'utils-naming.R'
-    'utils-pipe.R'
-    'utils-print.R'
-    'utils-vector.R'
+    'utils.R'
+    'utils_error.R'
+    'utils_formula.R'
+    'utils_fp.R'
+    'utils_math.R'
+    'utils_matrix.R'
+    'utils_strings.R'
 URL: https://github.com/LukeCe/spflow
 BugReports: https://github.com/LukeCe/spflow/issues
-Suggests:
+Suggests: 
     covr,
+    knitr,
+    Rdpack,
+    sf,
     sp,
     spdep,
-    mockery,
-    rprojroot,
-    Rdpack,
-    usethis,
-    testthat,
-    remotes,
-    knitr,
-    rmarkdown,
-    sf
+    tinytest
 Language: en-US
 Depends: 
     R (>= 3.5.0)
 VignetteBuilder: knitr
+ByteCompile: true

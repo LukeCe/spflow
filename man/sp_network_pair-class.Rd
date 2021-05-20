@@ -15,18 +15,18 @@
 
 \S4method{dat}{sp_network_pair}(object) <- value
 
-\S4method{id}{sp_network_pair}(object, what = cases)
+\S4method{id}{sp_network_pair}(object)
 
 \S4method{id}{sp_network_pair}(object) <- value
 
 \S4method{npairs}{sp_network_pair}(object)
 
-\S4method{nnodes}{sp_network_pair}(object, what = cases)
+\S4method{nnodes}{sp_network_pair}(object)
 }
 \arguments{
-\item{what}{A character to indicate what to count; should be in c("orig","dest").}
-
 \item{...}{more arguments passed to the constructor \code{\link[=sp_network_pair]{sp_network_pair()}}}
+
+\item{what}{A character to indicate what to count; should be in c("orig","dest").}
 }
 \description{
 An S4 class which holds information on origin-destination pairs.
@@ -45,34 +45,34 @@ enables to represent origin-destination pairs within the same network.
 
 \item{\code{dest_net_id}}{A character that serves as identifier for the destination network}
 
+\item{\code{dest_nnodes}}{A numeric that represents the number of nodes in the destination network}
+
 \item{\code{network_pair_id}}{A character identifying the pair of networks}
 
-\item{\code{pair_data}}{A data.table containing information on origin-destination pairs}
+\item{\code{pair_data}}{A data.frame containing information on origin-destination pairs}
 
 \item{\code{npairs}}{A numeric indicating the number of origin-destination pairs}
-
-\item{\code{dest_nnodes}}{A numeric that represents the number of nodes in the destination network}
 }}
 
 \examples{
 ## access the data describing the node pairs
 
-net_pair_ge_ge <- pull_pairs(multi_net_usa_ge,"ge_ge")
+net_pair_ge_ge <- pull_member(multi_net_usa_ge,"ge_ge")
 dat(net_pair_ge_ge)
 
 ## access the id of a network pair
 
-net_pair_ge_ge <- pull_pairs(multi_net_usa_ge,"ge_ge")
+net_pair_ge_ge <- pull_member(multi_net_usa_ge,"ge_ge")
 id(net_pair_ge_ge)
 id(net_pair_ge_ge) <- "Germany_Germany"
 
 ## access the number of node pairs in a network pair
 
-net_pair_ge_ge <- pull_pairs(multi_net_usa_ge,"ge_ge")
+net_pair_ge_ge <- pull_member(multi_net_usa_ge,"ge_ge")
 npairs(net_pair_ge_ge)
 
 ## access the number of origin and destination nodes in a network pair
-net_pair_ge_ge <- pull_pairs(multi_net_usa_ge,"ge_ge")
+net_pair_ge_ge <- pull_member(multi_net_usa_ge,"ge_ge")
 nnodes(net_pair_ge_ge)
 nnodes(net_pair_ge_ge)["orig"]
 nnodes(net_pair_ge_ge)["dest"]
@@ -80,13 +80,10 @@ prod(nnodes(net_pair_ge_ge) == npairs(net_pair_ge_ge))
 
 }
 \seealso{
-Other spflow network objects: 
+Other \link[=sp_network_classes]{spflow network classes}: 
 \code{\link{sp_multi_network-class}},
-\code{\link{sp_multi_network}},
 \code{\link{sp_network_classes}},
-\code{\link{sp_network_nodes-class}},
-\code{\link{sp_network_nodes}},
-\code{\link{sp_network_pair}}
+\code{\link{sp_network_nodes-class}}
 }
-\concept{spflow network objects}
+\concept{\link[=sp_network_classes]{spflow network classes}}
 \keyword{internal}

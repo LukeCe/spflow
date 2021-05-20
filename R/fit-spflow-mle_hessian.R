@@ -50,16 +50,14 @@ spflow_f2_hessian <- function(
   ZZ,
   ZY,
   TSS,
-  W_traces,
-  n_o,
-  n_d,
+  N,
   rho,
   delta,
   delta_t,
   sigma2,
-  model) {
+  calc_log_det) {
 
-  N <- n_o * n_d
+  # TODO update f2 Hessian
   params <- c(rho,delta,sigma2)
   p <- length(params)
 
@@ -85,8 +83,7 @@ spflow_f2_hessian <- function(
     # evaluate the RSS and log-determinant and the rest of the LL
     new_tau <- c(1, -new_rho)
     new_RSS <- update_RSS(TSS,ZZ,ZY,new_delta,new_tau)
-    det_value <- spflow_logdet(rho = new_rho, W_traces = W_traces,
-                               n_o = n_o, n_d = n_d, model = model)
+    det_value <- calc_log_det(new_rho)
     ll_rest <- reminder_spflow_loglik(N, new_sigma2, new_RSS)
 
     return(det_value + ll_rest)

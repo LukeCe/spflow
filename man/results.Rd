@@ -2,10 +2,16 @@
 % Please edit documentation in R/class_0_generics-and-maybe-classes.R
 \name{results}
 \alias{results}
-\title{Access results of a \code{\link[=spflow_model-class]{spflow_model-class()}}}
+\title{Generic for accessing the results of a \code{\link[=spflow_model-class]{spflow_model-class()}}.}
 \arguments{
 \item{object}{A \code{\link[=spflow_model-class]{spflow_model-class()}}}
 }
 \description{
+For details on the methods see the documentation of the
+corresponding classes.
+
 For details see the documentation of the corresponding class.
+}
+\seealso{
+\code{\link[=spflow_model-class]{spflow_model-class()}}
 }
