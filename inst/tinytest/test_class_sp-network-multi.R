@@ -133,37 +133,40 @@ expect_equal({
   info = "merging origin and destination infos to the pairs")
 
 expect_equal({
+  # invert order of ids for pairs
   test_o_net <-
-    sp_network_nodes("net1", NULL, data.frame("ID" = c("A", "B"),
+    sp_network_nodes("net1", NULL, data.frame("ID" = c("B","A"),
                                               "VAL" = "OO"),
                      "ID")
   test_d_net <-
-    sp_network_nodes("net2", NULL, data.frame("ID" = c("C", "D"),
+    sp_network_nodes("net2", NULL, data.frame("ID" = c("D","C"),
                                               "VAL" = "DD"),
                      "ID")
-  test_net_pair <- sp_network_pair("net1",
-                                   "net2",
-                                   data.frame(
-                                     "ID_O" = c("A", "B"),
-                                     "ID_D" = c("C", "D"),
-                                     "DIST" = c(1, 4)
-                                   ),
-                                   "ID_O",
-                                   "ID_D")
+  test_net_pair <- sp_network_pair(
+    "net1",
+    "net2",
+    data.frame(
+      "ID_O" = c("A", "B"),
+      "ID_D" = c("C", "D"),
+      "DIST" = c(1, 4)
+    ),
+    "ID_O",
+    "ID_D")
   test_multi_net <-
-    sp_multi_network(test_net_pair, test_o_net, test_d_net)
+    suppressWarnings(sp_multi_network(test_net_pair, test_o_net, test_d_net))
   pair_merge(test_multi_net, "net1_net2", TRUE)
   },
   {
     data.frame(
-      "ID_O" = factor(c("A", "A", "B", "B")),
-      "ID_D" = factor(c("C", "D", "C", "D")),
+      "ID_O" = factor(c("B", "B","A", "A"),levels = c("B","A")),
+      "ID_D" = factor(c("D", "C", "D", "C"),levels = c("D","C")),
       "ORIG_VAL" = "OO",
       "DEST_VAL" = "DD",
-      "DIST" = c(1, NA, NA, 4)
+      "DIST" = c(4, NA, NA, 1)
     )
   },
-  info = "merging origin and destination infos to the pairs with expansion")
+  info = "merging origin and destination infos to the pairs
+          test expansion of missing pairs and correct ordering")
 
 # ---- show method ------------------------------------------------------------
 expect_stdout({

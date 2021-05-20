@@ -82,27 +82,6 @@ expect_equal({
   },
   info = "neigborhood matrices of origins and destinations as list")
 
-expect_equal({
-  test_o_net <- sp_network_nodes(
-    "net1",
-    matrix(c(0,1,1,0),2,2),
-    data.frame("ID" = c("A", "B"),"VAL" = "OO"),
-    "ID")
-
-  test_d_net <- sp_network_nodes(
-    "net2",
-    matrix(c(0,1,1,0),2,2),
-    data.frame("ID" = c("C", "D"), "VAL" = "DD"),
-    "ID")
-  test_mult_net <- sp_multi_network(test_o_net,test_d_net)
-  spflow:::pull_neighborhood_data(test_mult_net,"net1_net1")
-  },
-  {
-    spflow:::named_list(c("OW"),Matrix(c(0,1,1,0),2,2))
-  },
-  info = "destinations matrix is ignored for (orig == dest)")
-
-
 # ---- define_flow_constants --------------------------------------------------
 expect_equal({
   spflow:::define_flow_constants(

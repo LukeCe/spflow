@@ -52,13 +52,13 @@ mid_points <- suppressWarnings({
     st_point_on_surface(st_geometry(paris10km_municipalities))})
 
 paris10km_nb <- list(
-  "by_border" = spdep::poly2nb(paris10km_municipalities),
+  "by_contiguity" = spdep::poly2nb(paris10km_municipalities),
   "by_distance" = spdep::dnearneigh(mid_points,d1 = 0, d2 = 5),
   "by_knn" = spdep::knn2nb(knearneigh(mid_points,3))
 )
 
 plot(st_geometry(paris10km_municipalities))
-plot(paris10km_nb$by_border, mid_points, add = T, col = rgb(0,0,0,alpha=0.5))
+plot(paris10km_nb$by_contiguity, mid_points, add = T, col = rgb(0,0,0,alpha=0.5))
 title("Contiguity") 
 
 plot(st_geometry(paris10km_municipalities))
@@ -96,7 +96,7 @@ To describe the nodes of the network we then use the `sp_network_nodes` object w
 paris10km_net <- 
   sp_network_nodes(
     network_id = "paris10km",
-    node_neighborhood = nb2mat(paris10km_nb$by_border),
+    node_neighborhood = nb2mat(paris10km_nb$by_contiguity),
     node_data = st_drop_geometry(paris10km_municipalities),
     node_key_column = "ID_MUN")
 

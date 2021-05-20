@@ -204,7 +204,13 @@ setValidity("sp_network_pair", function(object) { # ---- validity -------------
   data_keys <- attr_key_od(dat(object))
   keys_exist <- all(data_keys %in% names(dat(object)))
 
-  data_keys <- unique(dat(object)[,data_keys, drop = FALSE])
+  if (is(dat(object),"data.table")) {
+    data_keys <- unique(dat(object)[,..data_keys])
+  } else {
+    data_keys <- unique(dat(object)[,data_keys, drop = FALSE])
+
+  }
+
   unique_identification <- nrow(data_keys) == nrow(dat(object))
 
   if (!all(keys_exist, unique_identification)) {

@@ -49,6 +49,7 @@ pair_variables <- lapply(pair_ids, function(.id) {
   .dat
   })
 
+
 pair_variables[1:2] <- lapply(pair_variables[1:2], function(.dat) {
   .dat[["(Intra)"]] <- as.integer(.dat[["ID_ORIG"]] == .dat[["ID_DEST"]])
   .dat[["INTRA_X"]] <- .dat[["(Intra)"]] * .dat[["ORIG_X"]]
@@ -75,6 +76,7 @@ invers_model_filters <- lapply(pair_neighborhoods, function(.nbs) {
        "y1" = Matrix::Diagonal(nrow(.nbs[["Wd"]])))})
 
 # simulate for all models
+set.seed(123)
 flows <- mapply(function(filters,variables) {
   sim_one <- function(.filt) { spflow:::spflow_sim(
     exogenous_variables = variables,

@@ -20,8 +20,8 @@ library("spflow")
 library("Matrix")
 data("multi_net_usa_ge")
 data("simulation_params")
-test_dir <- "tests/integration/" # uncomment for interactive check
-# test_dir <- ""
+# test_dir <- "tests/integration/" # uncomment for interactive check
+test_dir <- ""
 ge_ge_vec_data <-
   readRDS(paste0(test_dir,"vec_data_usa_ge.Rds"))[["ge_ge"]]
 ge_ge_pairnb <-
@@ -153,12 +153,18 @@ sigma9_s2sls <- as.vector(sqrt(sigma9_s2sls)/n)
 
 # all results
 target_results <- list(
+  # ols
   "delta1_ols" = delta1_ols,
   "sigma1_ols" = sigma1_ols,
+  # s2sls
   "mu2_s2sls" = mu2_s2sls,
   "sigma2_s2sls" = sigma2_s2sls,
   "mu9_s2sls" = mu9_s2sls,
-  "sigma9_s2sls" = sigma9_s2sls
+  "sigma9_s2sls" = sigma9_s2sls,
+  # ground truth
+  "mu2_input" = c(simulation_params$rho["rho_d"], simulation_params$delta),
+  "mu9_input" = c(simulation_params$rho, simulation_params$delta),
+  "sigma_input" = simulation_params$sd_error
 )
 
 # ==== [+++ Run tests +++] ====================================================
@@ -267,15 +273,134 @@ res_model_2_mle <- spflow(
   y2 ~ . + G_(DISTANCE), multi_net_usa_ge, "ge_ge",
   spflow_control(estimation_method = "mle", model = "model_2"))
 
+# test results
+expect_inherits(res_model_2_mle, "spflow_model_mle")
+expect_equal(names(target_results$mu2_input),
+             names(coef(res_model_2_mle)))
+expect_equal(target_results$mu2_input / coef(res_model_2_mle),
+             rep(1,10), tolerance = 0.3, check.names = FALSE)
+expect_equal(target_results$sigma_input / sd_error(res_model_2_mle),
+             rep(1,1), tolerance = 0.1, check.names = FALSE)
+
+# test moments
+actual_moments <- res_model_2_mle@model_moments
+expect_equal(target_moments[["ZZ"]],   actual_moments[["ZZ"]])
+expect_equal(target_moments[["ZY2"]],  actual_moments[["ZY"]])
+expect_equal(target_moments[["TSS2"]], actual_moments[["TSS"]])
+
+# test model matrices
+actual_matrices <- res_model_2_mle@design_matrix
+expect_equal(target_matrices[["OW"]], actual_matrices[["OW"]])
+expect_equal(target_matrices[["D_"]], actual_matrices[["D_"]],
+             check.attributes = FALSE)
+expect_equal(target_matrices[["O_"]], actual_matrices[["O_"]],
+             check.attributes = FALSE)
+expect_equal(target_matrices[["I_"]], actual_matrices[["I_"]],
+             check.attributes = FALSE)
+expect_equal(target_matrices[["G_"]], actual_matrices[["G_"]],
+             check.attributes = FALSE)
+expect_equal(target_matrices[["Y2_"]], actual_matrices[["Y_"]],
+             check.attributes = FALSE)
+rm(res_model_2_mle)
+
 # ---- mle - model 9 ----------------------------------------------------------
 res_model_9_mle <- spflow(
   y9 ~ . + G_(DISTANCE), multi_net_usa_ge, "ge_ge",
   spflow_control(estimation_method = "mle", model = "model_9"))
+
+# test results
+expect_inherits(res_model_9_mle, "spflow_model_mle")
+expect_equal(names(target_results$mu9_input), names(coef(res_model_9_mle)))
+expect_equal(target_results$mu9_input / coef(res_model_9_mle),
+             rep(1,12), tolerance = 0.3, check.names = FALSE)
+expect_equal(target_results$sigma_input / sd_error(res_model_9_mle),
+             rep(1,1), tolerance = 0.1, check.names = FALSE)
+
+# test moments
+actual_moments <- res_model_9_mle@model_moments
+expect_equal(target_moments[["ZZ"]],   actual_moments[["ZZ"]])
+expect_equal(target_moments[["ZY9"]],  actual_moments[["ZY"]])
+expect_equal(target_moments[["TSS9"]], actual_moments[["TSS"]])
+
+# test model matrices
+actual_matrices <- res_model_9_mle@design_matrix
+expect_equal(target_matrices[["OW"]], actual_matrices[["OW"]])
+expect_equal(target_matrices[["D_"]], actual_matrices[["D_"]],
+             check.attributes = FALSE)
+expect_equal(target_matrices[["O_"]], actual_matrices[["O_"]],
+             check.attributes = FALSE)
+expect_equal(target_matrices[["I_"]], actual_matrices[["I_"]],
+             check.attributes = FALSE)
+expect_equal(target_matrices[["G_"]], actual_matrices[["G_"]],
+             check.attributes = FALSE)
+expect_equal(target_matrices[["Y9_"]], actual_matrices[["Y_"]],
+             check.attributes = FALSE)
+rm(res_model_9_mle)
+
 # ---- mcmc - model 2 ---------------------------------------------------------
 res_model_2_mcmc <- spflow(
   y2 ~ . + G_(DISTANCE), multi_net_usa_ge, "ge_ge",
   spflow_control(estimation_method = "mcmc", model = "model_2"))
+
+# test results
+expect_inherits(res_model_2_mcmc, "spflow_model_mcmc")
+expect_equal(names(target_results$mu2_input), names(coef(res_model_2_mcmc)))
+expect_equal(target_results$mu2_input / coef(res_model_2_mcmc),
+             rep(1,10), tolerance = 0.3, check.names = FALSE)
+expect_equal(target_results$sigma_input / sd_error(res_model_2_mcmc),
+             rep(1,1), tolerance = 0.1, check.names = FALSE)
+
+# test moments
+actual_moments <- res_model_2_mcmc@model_moments
+expect_equal(target_moments[["ZZ"]],   actual_moments[["ZZ"]])
+expect_equal(target_moments[["ZY2"]],  actual_moments[["ZY"]])
+expect_equal(target_moments[["TSS2"]], actual_moments[["TSS"]])
+
+# test model matrices
+actual_matrices <- res_model_2_mcmc@design_matrix
+expect_equal(target_matrices[["OW"]], actual_matrices[["OW"]])
+expect_equal(target_matrices[["D_"]], actual_matrices[["D_"]],
+             check.attributes = FALSE)
+expect_equal(target_matrices[["O_"]], actual_matrices[["O_"]],
+             check.attributes = FALSE)
+expect_equal(target_matrices[["I_"]], actual_matrices[["I_"]],
+             check.attributes = FALSE)
+expect_equal(target_matrices[["G_"]], actual_matrices[["G_"]],
+             check.attributes = FALSE)
+expect_equal(target_matrices[["Y2_"]], actual_matrices[["Y_"]],
+             check.attributes = FALSE)
+rm(res_model_2_mcmc)
+
 # ---- mcmc - model 9 ---------------------------------------------------------
 res_model_9_mcmc <- spflow(
   y9 ~ . + G_(DISTANCE), multi_net_usa_ge, "ge_ge",
   spflow_control(estimation_method = "mcmc", model = "model_9"))
+
+# test results
+expect_inherits(res_model_9_mcmc, "spflow_model_mcmc")
+expect_equal(names(target_results$mu9_input), names(coef(res_model_9_mcmc)))
+expect_equal(target_results$mu9_input / coef(res_model_9_mcmc),
+             rep(1,12), tolerance = 0.3, check.names = FALSE)
+expect_equal(target_results$sigma_input / sd_error(res_model_9_mcmc),
+             rep(1,1), tolerance = 0.1, check.names = FALSE)
+
+# test moments
+actual_moments <- res_model_9_mcmc@model_moments
+expect_equal(target_moments[["ZZ"]],   actual_moments[["ZZ"]])
+expect_equal(target_moments[["ZY9"]],  actual_moments[["ZY"]])
+expect_equal(target_moments[["TSS9"]], actual_moments[["TSS"]])
+
+# test model matrices
+actual_matrices <- res_model_9_mcmc@design_matrix
+expect_equal(target_matrices[["OW"]], actual_matrices[["OW"]])
+expect_equal(target_matrices[["D_"]], actual_matrices[["D_"]],
+             check.attributes = FALSE)
+expect_equal(target_matrices[["O_"]], actual_matrices[["O_"]],
+             check.attributes = FALSE)
+expect_equal(target_matrices[["I_"]], actual_matrices[["I_"]],
+             check.attributes = FALSE)
+expect_equal(target_matrices[["G_"]], actual_matrices[["G_"]],
+             check.attributes = FALSE)
+expect_equal(target_matrices[["Y9_"]], actual_matrices[["Y_"]],
+             check.attributes = FALSE)
+rm(res_model_9_mcmc)

@@ -41,19 +41,19 @@ germany_grid <- SpatialPointsDataFrame(
 germany_grid <- st_as_sf(germany_grid)[c(2,1,3)]
 names(germany_grid)[c(1,2)] <-names(germany_data)
 
-germany_contingency <- germany_grid %>%
+germany_contiguity <- germany_grid %>%
   poly2nb() %>%
   nb2listw() %>%
   listw2mat()
 
 germany_net <- sp_network_nodes(
   network_id = "ge",
-  node_neighborhood = germany_contingency,
+  node_neighborhood = germany_contiguity,
   node_data = germany_data,
   node_key_column = "ID_STATE")
 
 germany_inputs <- list("data" = germany_data,
-                       "neighborhood" = germany_contingency,
+                       "neighborhood" = germany_contiguity,
                        "key_column" = "ID_STATE",
                        "net_id" = "ge")
 

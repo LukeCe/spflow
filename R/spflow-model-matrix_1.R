@@ -62,7 +62,9 @@ pull_flow_data <- function(sp_multi_net, pair_id) {
   if (has_equal_elements(od_id))
     source_ids[["dest"]] <- NULL
 
-  flow_data <- lapply(source_ids, function(.id) dat(sp_multi_net, .id))
+  flow_data <- lapply(
+    source_ids,
+    function(.id) as.data.frame(dat(sp_multi_net, .id)))
   for (i in seq_along(flow_data)) {
     if (names(flow_data)[i] == "pair")
       key_cols <- attr_key_od(flow_data[[i]])

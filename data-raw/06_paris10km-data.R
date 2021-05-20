@@ -95,7 +95,7 @@ suppressWarnings({
     st_point_on_surface()
 
   paris10km_neighborhood <- lapply(list(
-    "by_border" = poly2nb(paris10km_municipalities),
+    "by_contiguity" = poly2nb(paris10km_municipalities),
     "by_distance" = dnearneigh(mid_points,d1 = 0, d2 = 5),
     "by_knn" = knn2nb(knearneigh(mid_points,3))),
     function(.nb) Matrix(nb2mat(.nb)))
