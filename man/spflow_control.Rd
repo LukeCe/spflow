@@ -109,7 +109,6 @@ custom_control <-
   spflow_control(sdm_variables = ~ O_(v1 + v2) + D_(v2 + v3) + I_(v1 + v4))
 
 # deactivate the intra-regional coefficients and SDM variables
-custom_control <- spflow_control(use_intra = FALSE, use_sdm = FALSE)
 custom_control <- spflow_control(use_intra = FALSE, sdm_variables = "none")
 }
 \references{

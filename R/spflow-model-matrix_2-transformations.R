@@ -41,7 +41,7 @@ combine_formulas_by_source <- function(sources, formulas) {
 
   formula_by_source <-
     lapply(compact(sources_to_formula_part), function(.part) {
-      fpt <- formulas[.part] %>% compact()
+      fpt <- compact(formulas[.part])
       fpt %|!|% combine_rhs_formulas(fpt) })
 
   return(compact(formula_by_source))

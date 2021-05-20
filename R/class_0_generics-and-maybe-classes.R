@@ -7,7 +7,6 @@
 
 # ---- Maybe Classes ----------------------------------------------------------
 # allow NULL slots during instantiation of classes
-# data.table is not exported -> resort to data.frame
 setClassUnion("maybe_data.frame", c("NULL", "data.frame"))
 setClassUnion("maybe_Matrix"    , c("NULL", "Matrix"))
 setClassUnion("maybe_matrix"    , c("NULL", "matrix"))
@@ -43,19 +42,6 @@ setGenericVerif("dat",  function(object, ...){ # ---- dat ---------------------
 #' @export
 setGenericVerif("dat<-",  function(object, ..., value){ # ---- dat <- ---------
   standardGeneric("dat<-")})
-
-#' @name dat_template
-#' @rdname dat_template
-#' @keywords internal
-setGenericVerif("dat_template", function(object, ...){ # ---- dat_template ----
-  standardGeneric("dat_template")})
-
-#' @name drop_columns
-#' @rdname drop_columns
-#' @keywords internal
-setGenericVerif("drop_columns", function(object, ...){ # ---- drop_columns ----
-  standardGeneric("drop_columns")})
-
 
 #' @title Generic for accessing the ids of
 #'   [spflow network classes][sp_network_classes()]
@@ -155,40 +141,6 @@ setGenericVerif("pull_member",
                 function(object, ...){ # ---- pull_member ---------------------
                   standardGeneric("pull_member")})
 
-
-#' @title Access the neighborhood matrix of the nodes inside a
-#'     [sp_multi_network-class()]
-#' @param object A [sp_multi_network-class()]
-#' @templateVar fun pull_neighborhood
-#' @template template-deprecate_fun
-#' @export
-setGenericVerif("pull_neighborhood",
-                function(object, ...){ # ---- pull_neighborhood ---------------
-                  standardGeneric("pull_neighborhood")})
-
-#' @title Access the one or multiple [sp_network_nodes-class()] in a
-#'   [sp_multi_network-class()]
-#' @param object A [sp_multi_network-class()]
-#' @description For details see the documentation of the corresponding class.
-#' @templateVar fun pull_nodes
-#' @template template-deprecate_fun
-#' @export
-setGenericVerif("pull_nodes",
-                function(object, ...){ # ---- pull_nodes ----------------------
-                  standardGeneric("pull_nodes")})
-
-#' @title Access one or multiple [sp_network_pair()] in a
-#'   [sp_multi_network()]
-#' @param object A [sp_multi_network()]
-#' @description For details see the documentation of the corresponding class.
-#' @templateVar fun pull_pairs
-#' @template template-deprecate_fun
-#' @export
-setGenericVerif("pull_pairs",
-                function(object, ...){ # ---- pull_pairs ----------------------
-                  standardGeneric("pull_pairs")})
-
-
 #' @title Generic for accessing the results of a [spflow_model-class()].
 #' @description For details on the methods see the documentation of the
 #'   corresponding classes.
@@ -230,17 +182,6 @@ setGenericVerif("sd_error", function(object){ # ---- sd_error -----------------
   standardGeneric("sd_error")})
 
 
-#' @title Add columns to the data in a [sp_network_nodes()] or
-#'     [sp_network_pair()]
-#' @details  This function assigns by reference.
-#' @param object One of; [sp_network_nodes()], [sp_network_pair()]
-#' @templateVar fun set_columns
-#' @template template-deprecate_fun
-#' @keywords internal
-setGenericVerif("set_columns", function(object, ...){ # ---- set_columns ------
-  standardGeneric("set_columns")})
-
-
 #' @title Generic for accessing the variance-covariance matrix of the
 #'   parameters inside a [spflow_model-class()].
 #' @description For details on the methods see the documentation of the
@@ -251,19 +192,3 @@ setGenericVerif("set_columns", function(object, ...){ # ---- set_columns ------
 #' @export
 setGenericVerif("varcov",  function(object){ # ---- varcov --------------------
   standardGeneric("varcov")})
-
-
-#' @rdname variable_names
-#' @name variable_names
-#' @keywords internal
-setGenericVerif("variable_names",
-                function(object,...){ # ---- variable_names -------------------
-  standardGeneric("variable_names")})
-
-#' @rdname variable_names
-#' @name variable_names<-
-#' @keywords internal
-setGenericVerif("variable_names<-",
-                function(object,...,value){ # ---- variable_names <- ----------
-  standardGeneric("variable_names<-")})
-

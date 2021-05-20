@@ -28,10 +28,9 @@ The examples employs data to describe the municipalities their neighborhood stru
 
 
 ```{r}
-data(list(
-  "paris10km_municipalities",
-  "paris10km_neighborhood",
-  "paris10km_commuteflows"))
+data("paris10km_municipalities")
+data("paris10km_neighborhood")
+data("paris10km_commuteflows")
 ```
 
 # Data presentation
@@ -39,7 +38,7 @@ data(list(
 Each municipality has a unique identification and additional variables describing it.
 
 ```{r}
-drop_area <- names(paris10km_municipalities != "AREA")
+drop_area <- names(paris10km_municipalities) != "AREA"
 plot(paris10km_municipalities[drop_area])
 ```
 

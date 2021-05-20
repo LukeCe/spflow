@@ -2,17 +2,11 @@
 % Please edit documentation in R/spflow-logdet.R
 \name{multinom_lookup_template}
 \alias{multinom_lookup_template}
-\title{Create a lookup table for the calculation of traces}
+\title{Create a lookup table for the multinomial coefficient}
 \usage{
 multinom_lookup_template(max_power, coef_names)
 }
-\arguments{
-\item{aprox_order}{An integer defining the order of the Taylor series}
-}
-\value{
-A data.table that can serve as a lookup
-}
 \description{
-Create a lookup table for the calculation of traces
+Create a lookup table for the multinomial coefficient
 }
 \keyword{internal}

@@ -21,10 +21,11 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.1
 RdMacros: Rdpack
 Imports: 
-    data.table,
+    coda,
+    Matrix,
     methods,
-    magrittr,
-    Matrix
+    RSpectra,
+    utils
 Collate: 
     'spflow-package.R'
     'utils_classes.R'
@@ -64,17 +65,12 @@ URL: https://github.com/LukeCe/spflow
 BugReports: https://github.com/LukeCe/spflow/issues
 Suggests: 
     covr,
+    knitr,
+    Rdpack,
+    sf,
     sp,
     spdep,
-    mockery,
-    rprojroot,
-    Rdpack,
-    usethis,
-    testthat,
-    remotes,
-    knitr,
-    rmarkdown,
-    sf, tinytest
+    tinytest
 Language: en-US
 Depends: 
     R (>= 3.5.0)

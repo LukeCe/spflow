@@ -1,10 +1,16 @@
 #' Simulate spatial interactions
 #'
-#' @param exogenous_variables A matrix of exogenous variables
-#' @param model_coefficients A numeric vector of coefficients
-#' @param inverted_filter A matrix that represents an inverted spatial filter matrix (see [invert_spatial_filter()])
-#' @param noise_sd A numeric which indicates the desired standard deviation of the simulated noise
-#' @param verbose A logical whether signal to noise ration should be printed
+#' @param exogenous_variables
+#'   A matrix of exogenous variables
+#' @param model_coefficients
+#'   A numeric vector of coefficients
+#' @param inverted_filter
+#'   A matrix that represents an inverted spatial filter matrix
+#'   (see [spatial_filter()])
+#' @param noise_sd
+#'   A numeric which indicates the desired standard deviation of the simulated noise
+#' @param verbose
+#'   A logical whether signal to noise ration should be printed
 #'
 #' @family spflow simulation functions
 #' @return A vector of simulated flows
@@ -103,7 +109,6 @@ expand_flow_neighborhood <- function(
 #' @param weight_matrices List of flow neighborhood matrices
 #' @param autoreg_parameters A numeric containing values for the
 #'     auto-regressive parameters
-#' @param invert A logical indicating whether the results should be inverted
 #'
 #' @family spflow simulation functions
 #' @importFrom Matrix Diagonal Matrix

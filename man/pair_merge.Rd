@@ -13,6 +13,10 @@ pairs inside \link[=sp_network_classes]{spflow network classes}}
 \item{object}{A \code{\link[=sp_multi_network-class]{sp_multi_network-class()}}}
 
 \item{network_pair_id}{A character indicating the id of a \code{\link[=sp_network_pair-class]{sp_network_pair-class()}}}
+
+\item{all_pairs}{A logical, when set to \code{TRUE} the resulting data.frame contains all
+possible pairs of origins and destination, even if the data in the
+\code{\link[=sp_network_pair-class]{sp_network_pair-class()}} does not have them.}
 }
 \description{
 For details on the methods see the documentation of the

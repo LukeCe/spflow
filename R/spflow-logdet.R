@@ -1,9 +1,6 @@
-#' Create a lookup table for the calculation of traces
-#'
-#' @param aprox_order An integer defining the order of the Taylor series
-#'
-#' @return A data.table that can serve as a lookup
+#' Create a lookup table for the multinomial coefficient
 #' @keywords internal
+#' @importFrom utils combn
 multinom_lookup_template <- function(max_power, coef_names) {
 
   nb_coefs <- length(coef_names)
@@ -21,11 +18,7 @@ multinom_lookup_template <- function(max_power, coef_names) {
   return(coef_orders)
 }
 
-#' Fill the lookup table created by [trace_lookup_template()] with values
-#'
-#' @param aprox_order An integer defining the order of the taylor series
-#'
-#' @return A data.table that can serve as a lookup
+#' Fill the lookup table created by [multinom_lookup_template()] with values
 #' @keywords internal
 derive_log_det_calculator <- function(
   OW_traces = NULL,

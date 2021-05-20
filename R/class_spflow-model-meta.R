@@ -35,7 +35,7 @@
 #' @seealso [spflow()], [sp_network_classes()]
 #' @examples
 #'
-#' spflow_results <- spflow(y9 ~ . + G_(log(distance + 1)),multi_net_usa_ge)
+#' spflow_results <- spflow(y9 ~ . + G_(DISTANCE),multi_net_usa_ge)
 #'
 #' # General methods
 #' results(spflow_results) # data.frame of main results
@@ -297,7 +297,7 @@ setMethod(
   signature = "spflow_model",
   function(object,
            res_info = c("est","sd"),
-           cntrol_info = c("estimation_method")){ # ---- results_flat -----------------
+           cntrol_info = c("estimation_method")){ # ---- results_flat ---------
 
     res <- results(object)
     flat_results <- lapply(res_info, function(.col) {

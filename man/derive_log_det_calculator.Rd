@@ -2,17 +2,11 @@
 % Please edit documentation in R/spflow-logdet.R
 \name{derive_log_det_calculator}
 \alias{derive_log_det_calculator}
-\title{Fill the lookup table created by \code{\link[=trace_lookup_template]{trace_lookup_template()}} with values}
+\title{Fill the lookup table created by \code{\link[=multinom_lookup_template]{multinom_lookup_template()}} with values}
 \usage{
 derive_log_det_calculator(OW_traces = NULL, DW_traces = NULL, n_o, n_d, model)
 }
-\arguments{
-\item{aprox_order}{An integer defining the order of the taylor series}
-}
-\value{
-A data.table that can serve as a lookup
-}
 \description{
-Fill the lookup table created by \code{\link[=trace_lookup_template]{trace_lookup_template()}} with values
+Fill the lookup table created by \code{\link[=multinom_lookup_template]{multinom_lookup_template()}} with values
 }
 \keyword{internal}

@@ -10,9 +10,6 @@
 #'
 #' @slot networks A list of [sp_network_nodes-class()] objects
 #' @slot network_pairs A list of [sp_network_pair-class()] objects
-#' @slot completeness
-#'   A data.frame that provides summary information on the matching between
-#'   the nodes and node pairs that are provided to the sp_multi_network class
 #'
 #' @family [spflow network classes][sp_network_classes()]
 #' @name sp_multi_network-class
@@ -158,6 +155,10 @@ setMethod(
 #'   A [sp_multi_network-class()]
 #' @param network_pair_id
 #'   A character indicating the id of a [sp_network_pair-class()]
+#' @param all_pairs
+#'   A logical, when set to `TRUE` the resulting data.frame contains all
+#'   possible pairs of origins and destination, even if the data in the
+#'   [sp_network_pair-class()] does not have them.
 #' @rdname pair_merge
 #' @export
 #' @examples
@@ -219,7 +220,6 @@ setMethod(
     return(pair_data[col_order, name_order])
 })
 
-#' @importFrom data.table key
 setValidity("sp_multi_network", function(object) { # ---- validity ------------
 
   ### check validity of pairs and nodes
@@ -409,7 +409,7 @@ check_pair_completeness <- function(multi_net) {
 pull_od_levels <- function(sp_net_pair, o_vs_d = "orig") {
   get_key <- match.fun("attr_key_" %p% o_vs_d)
   key <- get_key(sp_net_pair)
-  levels(dat(sp_net_pair)[[d_key]])
+  levels(dat(sp_net_pair)[[key]])
 }
 
 #' @keywords internal

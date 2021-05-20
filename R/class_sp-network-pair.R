@@ -22,7 +22,6 @@
 #'   A data.frame containing information on origin-destination pairs
 #' @slot npairs
 #'   A numeric indicating the number of origin-destination pairs
-
 #'
 #' @family [spflow network classes][sp_network_classes()]
 #' @importClassesFrom Matrix Matrix
@@ -44,7 +43,7 @@ setClass("sp_network_pair",
 #' @examples
 #' ## access the data describing the node pairs
 #'
-#' net_pair_ge_ge <- pull_pairs(multi_net_usa_ge,"ge_ge")
+#' net_pair_ge_ge <- pull_member(multi_net_usa_ge,"ge_ge")
 #' dat(net_pair_ge_ge)
 #'
 setMethod(
@@ -72,7 +71,7 @@ setReplaceMethod(
 #' @examples
 #' ## access the id of a network pair
 #'
-#' net_pair_ge_ge <- pull_pairs(multi_net_usa_ge,"ge_ge")
+#' net_pair_ge_ge <- pull_member(multi_net_usa_ge,"ge_ge")
 #' id(net_pair_ge_ge)
 #' id(net_pair_ge_ge) <- "Germany_Germany"
 #'
@@ -112,7 +111,7 @@ setReplaceMethod(
 #' @examples
 #' ## access the number of node pairs in a network pair
 #'
-#' net_pair_ge_ge <- pull_pairs(multi_net_usa_ge,"ge_ge")
+#' net_pair_ge_ge <- pull_member(multi_net_usa_ge,"ge_ge")
 #' npairs(net_pair_ge_ge)
 #'
 setMethod(
@@ -129,7 +128,7 @@ setMethod(
 #' @examples
 #' ## access the number of origin and destination nodes in a network pair
 
-#' net_pair_ge_ge <- pull_pairs(multi_net_usa_ge,"ge_ge")
+#' net_pair_ge_ge <- pull_member(multi_net_usa_ge,"ge_ge")
 #' nnodes(net_pair_ge_ge)
 #' nnodes(net_pair_ge_ge)["orig"]
 #' nnodes(net_pair_ge_ge)["dest"]
@@ -138,7 +137,7 @@ setMethod(
 setMethod(
   f = "nnodes",
   signature = "sp_network_pair",
-  function(object, what = cases) { # ---- nnodes ------------------------------
+  function(object) { # ---- nnodes --------------------------------------------
     return(c(
       "orig" = object@orig_nnodes,
       "dest" = object@dest_nnodes
@@ -205,7 +204,7 @@ setValidity("sp_network_pair", function(object) { # ---- validity -------------
   keys_exist <- all(data_keys %in% names(dat(object)))
 
   if (is(dat(object),"data.table")) {
-    data_keys <- unique(dat(object)[,..data_keys])
+    data_keys <- unique(dat(object)[,data_keys, with = FALSE])
   } else {
     data_keys <- unique(dat(object)[,data_keys, drop = FALSE])
 

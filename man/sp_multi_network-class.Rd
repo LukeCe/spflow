@@ -43,9 +43,6 @@ The class is constructed with the \code{\link[=sp_multi_network]{sp_multi_networ
 \item{\code{networks}}{A list of \code{\link[=sp_network_nodes-class]{sp_network_nodes-class()}} objects}
 
 \item{\code{network_pairs}}{A list of \code{\link[=sp_network_pair-class]{sp_network_pair-class()}} objects}
-
-\item{\code{completeness}}{A data.frame that provides summary information on the matching between
-the nodes and node pairs that are provided to the sp_multi_network class}
 }}
 
 \examples{

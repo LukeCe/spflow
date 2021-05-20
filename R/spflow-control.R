@@ -87,7 +87,6 @@
 #'   spflow_control(sdm_variables = ~ O_(v1 + v2) + D_(v2 + v3) + I_(v1 + v4))
 #'
 #' # deactivate the intra-regional coefficients and SDM variables
-#' custom_control <- spflow_control(use_intra = FALSE, use_sdm = FALSE)
 #' custom_control <- spflow_control(use_intra = FALSE, sdm_variables = "none")
 spflow_control <- function(
   estimation_method = "mle",
@@ -160,7 +159,7 @@ spflow_control <- function(
     assert_is_single_x(twosls_reduce_pair_instruments, "logical")
     assert(is(twosls_instrumental_variables,"formula")
            || twosls_instrumental_variables %in% c("none","same","all"),
-           check_vars_msg)
+           check_formula_msg)
 
     twosls_control <- list(
       "twosls_instrumental_variables"  = twosls_instrumental_variables,

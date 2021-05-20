@@ -18,14 +18,14 @@ spflow_mle <- function(
   RSS <- TSS - crossprod(ZY,delta_t)
 
   ## OPTIMIZE the concentrated likelihood ----
-  clalc_log_det <-
+  calc_log_det <-
     derive_log_det_calculator(OW_traces, DW_traces,  n_o, n_d, model)
   optim_part_LL <- function(rho) {
     tau <- c(1, -rho)
 
     # invert the signs (minimize the negative)
     rss_part <- N * log(tau %*% RSS %*% tau) / 2
-    return(rss_part - clalc_log_det(rho))
+    return(rss_part - calc_log_det(rho))
     }
 
   # initialization
@@ -59,15 +59,15 @@ spflow_mle <- function(
   # inference
   sigma2 <-  as.numeric(1 / N * (tau %*% RSS %*% tau))
 
-  hessian_inputs <- collect(c("ZZ","ZY","TSS","rho","delta","sigma2"))
+  hessian_inputs <- collect(c("ZZ","ZY","TSS","rho","delta","sigma2","N"))
 
   if ( hessian_method == "mixed" ) {
-    mixed_specific <- list("numerical_hess" = -optim_results$hessian, "N" = N)
+    mixed_specific <- list("numerical_hess" = -optim_results$hessian)
     hessian_inputs <- c(hessian_inputs,mixed_specific)
   }
 
   if ( hessian_method == "f2" ) {
-    f2_specific <- collect(c("n_o","n_d","delta_t","W_traces","model"))
+    f2_specific <- list("delta_t" = delta_t, "calc_log_det" = calc_log_det)
     hessian_inputs <- c(hessian_inputs,f2_specific)
   }
 
@@ -95,20 +95,4 @@ spflow_mle <- function(
     N = N)
 
   return(estimation_results)
-}
-
-#' @keywords internal
-partial_spflow_loglik <- function(rho,RSS,W_traces,n_o,n_d,model) {
-
-  ## the relevant part of the likelihood is composed of ...
-
-  # ... the log determinant of the filter
-  det_part <- spflow_logdet(rho,W_traces,n_o,n_d,model)
-
-  # ... and the RSS term
-  tau <- c(1, -rho)
-  N <- n_o * n_d
-  rss_part <- -N * log(tau %*% RSS %*% tau) / 2
-
-  return(det_part + rss_part)
 }

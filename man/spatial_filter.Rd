@@ -11,8 +11,6 @@ spatial_filter(weight_matrices, autoreg_parameters)
 
 \item{autoreg_parameters}{A numeric containing values for the
 auto-regressive parameters}
-
-\item{invert}{A logical indicating whether the results should be inverted}
 }
 \description{
 Use the neighborhood matrices of origins and destinations to derive the

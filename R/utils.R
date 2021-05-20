@@ -9,3 +9,8 @@ sequentialize_index <- function(index_list) {
   shift <- cumsum(c(0,len))[1:length(index_list)]
   mapply("+", index_list, as.list(shift),SIMPLIFY = FALSE)
 }
+
+#' @keywords internal
+suffix_columns <- function(obj,suffix){
+  `colnames<-`(obj, colnames(obj) %p% suffix)
+}

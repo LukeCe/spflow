@@ -111,7 +111,7 @@ the parameter value is 0.
 
 \examples{
 
-spflow_results <- spflow(y9 ~ . + G_(log(distance + 1)),multi_net_usa_ge)
+spflow_results <- spflow(y9 ~ . + G_(DISTANCE),multi_net_usa_ge)
 
 # General methods
 results(spflow_results) # data.frame of main results

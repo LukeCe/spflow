@@ -1,3 +1,4 @@
+#' @title Compute the principal moments for a spatial flow model
 #' @keywords internal
 spflow_model_moments <- function(...) {
 
@@ -5,11 +6,13 @@ spflow_model_moments <- function(...) {
 
   error_msg <-
     "The estimation is aborted because the %s variables contain " %p%
-    "infinite values!" %p%
+    "infinite values or NA's!" %p%
     "\nPlease check that all variables are well defined and that all " %p%
     "tranformations are valid (e.g avoid logarithms of 0)."
-  assert(none(is.infinite(moments[["ZZ"]])), error_msg, "explanatory")
-  assert(none(is.infinite(moments[["ZY"]])), error_msg, "response")
+  assert(none(is.infinite(moments[["ZZ"]])) & none(is.na(moments[["ZZ"]])),
+         error_msg, "explanatory")
+  assert(none(is.infinite(moments[["ZY"]])) & none(is.na(moments[["ZY"]])),
+         error_msg, "response")
 
   return(moments)
 }

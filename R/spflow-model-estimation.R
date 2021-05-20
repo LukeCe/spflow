@@ -3,13 +3,6 @@ spflow_model_estimation <- function(
   model_moments,
   estim_control) {
 
-  na_error_template <-
-    "The estimation is aborted because the %s variables contain NA values!" %p%
-    "\nPlease ensure that all variables in the network objects are well " %p%
-    "defined."
-  assert(all(!is.na(model_moments[["ZZ"]])), na_error_template, "explanatory")
-  assert(all(!is.na(model_moments[["ZY"]])), na_error_template, "response")
-
   estimation_results <- switch(estim_control$estimation_method,
     "ols" = {
       spflow_ols(
