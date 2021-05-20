@@ -13,11 +13,11 @@ library("profvis")
 data("multi_net_usa_ge")
 
 
-profile_method <- "mcmc"
+profile_method <- "mle"
 profvis::profvis({
 res9_s2sls <-
   spflow(
-    y9 ~ X + G_(log(distance + 1)),
+    y9 ~ X + G_(DISTANCE),
     sp_multi_network = multi_net_usa_ge,
     network_pair_id = "usa_usa",
     flow_control = spflow_control(model = "model_9",

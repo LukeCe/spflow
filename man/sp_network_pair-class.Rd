@@ -15,7 +15,7 @@
 
 \S4method{dat}{sp_network_pair}(object) <- value
 
-\S4method{id}{sp_network_pair}(object, what = cases)
+\S4method{id}{sp_network_pair}(object)
 
 \S4method{id}{sp_network_pair}(object) <- value
 
@@ -45,13 +45,13 @@ enables to represent origin-destination pairs within the same network.
 
 \item{\code{dest_net_id}}{A character that serves as identifier for the destination network}
 
+\item{\code{dest_nnodes}}{A numeric that represents the number of nodes in the destination network}
+
 \item{\code{network_pair_id}}{A character identifying the pair of networks}
 
-\item{\code{pair_data}}{A data.table containing information on origin-destination pairs}
+\item{\code{pair_data}}{A data.frame containing information on origin-destination pairs}
 
 \item{\code{npairs}}{A numeric indicating the number of origin-destination pairs}
-
-\item{\code{dest_nnodes}}{A numeric that represents the number of nodes in the destination network}
 }}
 
 \examples{

@@ -4,14 +4,10 @@
 \alias{sp_multi_network}
 \title{Create an S4 class that contains \code{\link[=sp_network_nodes]{sp_network_nodes()}} and \code{\link[=sp_network_pair]{sp_network_pair()}} for one or multiple networks}
 \usage{
-sp_multi_network(..., level_node_ids = TRUE)
+sp_multi_network(...)
 }
 \arguments{
 \item{...}{objects of of type \code{\link[=sp_network_nodes]{sp_network_nodes()}} and \code{\link[=sp_network_pair]{sp_network_pair()}}}
-
-\item{level_node_ids}{A logical to activate re-levelling of the id columns.
-If \code{TRUE} the origin and destination nodes in \code{\link[=sp_network_pair]{sp_network_pair()}} are set
-to match the levels of the nodes in the \code{\link[=sp_network_nodes]{sp_network_nodes()}}.}
 }
 \value{
 A S4 network data object

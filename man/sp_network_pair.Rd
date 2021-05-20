@@ -17,11 +17,12 @@ sp_network_pair(
 
 \item{dest_net_id}{A character that serves as identifier for the destination network}
 
-\item{pair_data}{A data.frame containing information to describe the origin-destination pairs}
+\item{pair_data}{A data.frame containing information on the origin-destination pairs}
 
 \item{orig_key_column}{A character indicating the column containing identifiers for the origins}
 
-\item{dest_key_column}{A character indicating the column containing identifiers for the destinations}
+\item{dest_key_column}{A character indicating the column containing identifiers for the
+destinations}
 }
 \value{
 An S4 class of type \code{\link[=sp_network_pair]{sp_network_pair()}}
@@ -30,9 +31,10 @@ An S4 class of type \code{\link[=sp_network_pair]{sp_network_pair()}}
 Create an S4 object that contains information on origin-destination pairs
 }
 \examples{
-pair_frame <- data.table::CJ(origins = germany_grid$NOM,
-                             destinations = germany_grid$NOM)
-sp_network_pair("ge","ge",pair_frame,"origins","destinations")
+pair_frame <- data.frame(
+  ORIG_ID_STATE = rep(germany_grid$ID_STATE, times = 16),
+  DEST_ID_STATE = rep(germany_grid$ID_STATE, each = 16))
+sp_network_pair("ge","ge",pair_frame,"ORIG_ID_STATE","DEST_ID_STATE")
 }
 \seealso{
 Other Constructors for \link[=sp_network_classes]{spflow network classes}: 

@@ -7,7 +7,7 @@
 \title{Generic for merging information on origins and destination to node
 pairs inside \link[=sp_network_classes]{spflow network classes}}
 \usage{
-\S4method{pair_merge}{sp_multi_network}(object, network_pair_id)
+\S4method{pair_merge}{sp_multi_network}(object, network_pair_id, all_pairs = FALSE)
 }
 \arguments{
 \item{object}{A \code{\link[=sp_multi_network-class]{sp_multi_network-class()}}}

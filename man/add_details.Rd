@@ -5,7 +5,7 @@
 \alias{add_details}
 \title{Internal method to add details to a \code{\link[=spflow_model-class]{spflow_model-class()}}}
 \usage{
-\S4method{add_details}{spflow_model}(object, model_matrices, flow_control)
+\S4method{add_details}{spflow_model}(object, model_matrices, flow_control, model_moments)
 }
 \arguments{
 \item{object}{A \code{\link[=spflow_model-class]{spflow_model-class()}}}
@@ -13,6 +13,8 @@
 \item{model_matrices}{A list as returned by \code{\link[=spflow_model_matrix]{spflow_model_matrix()}}}
 
 \item{flow_control}{A list as returned by \code{\link[=spflow_control]{spflow_control()}}}
+
+\item{model_moments}{A list as returned by \code{\link[=spflow_model_moments]{spflow_model_moments()}}}
 }
 \description{
 Internal method to add details to a \code{\link[=spflow_model-class]{spflow_model-class()}}

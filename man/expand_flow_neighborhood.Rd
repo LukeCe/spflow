@@ -31,7 +31,6 @@ formulations of the model.
 }
 \seealso{
 Other spflow simulation functions: 
-\code{\link{invert_spatial_filter}()},
 \code{\link{spatial_filter}()},
 \code{\link{spflow_sim}()}
 }

@@ -32,7 +32,6 @@ Simulate spatial interactions
 \seealso{
 Other spflow simulation functions: 
 \code{\link{expand_flow_neighborhood}()},
-\code{\link{invert_spatial_filter}()},
 \code{\link{spatial_filter}()}
 }
 \concept{spflow simulation functions}

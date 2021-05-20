@@ -30,7 +30,7 @@ Create a \code{\link[=sp_network_nodes-class]{sp_network_nodes-class()}}
 sp_network_nodes("germany",
                  spdep::nb2mat(spdep::poly2nb(germany_grid)),
                  as.data.frame(germany_grid),
-                 "NOM")
+                 "ID_STATE")
 }
 \seealso{
 Other Constructors for \link[=sp_network_classes]{spflow network classes}: 

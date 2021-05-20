@@ -7,7 +7,7 @@
 spflow(
   flow_formula,
   sp_multi_network,
-  network_pair_id = id(sp_multi_network, "network_pairs")[[1]]["pair"],
+  network_pair_id = id(sp_multi_network)[["network_pairs"]][[1]],
   flow_control = spflow_control()
 )
 }
