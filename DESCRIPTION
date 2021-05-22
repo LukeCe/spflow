@@ -25,6 +25,7 @@ Imports:
     Matrix,
     methods,
     RSpectra,
+    Rdpack,
     utils
 Collate: 
     'spflow-package.R'
@@ -66,11 +67,11 @@ BugReports: https://github.com/LukeCe/spflow/issues
 Suggests: 
     covr,
     knitr,
-    Rdpack,
     sf,
     sp,
     spdep,
-    tinytest
+    tinytest,
+    rmarkdown
 Language: en-US
 Depends: 
     R (>= 3.5.0)
