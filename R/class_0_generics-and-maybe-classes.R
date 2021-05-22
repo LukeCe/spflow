@@ -13,6 +13,8 @@ setClassUnion("maybe_matrix"    , c("NULL", "matrix"))
 setClassUnion("maybe_any_matrix", c("NULL", "matrix", "Matrix"))
 setClassUnion("maybe_list"      , c("NULL", "list"))
 setClassUnion("maybe_numeric"   , c("NULL", "numeric"))
+setOldClass("mcmc")
+setClassUnion("maybe_mcmc"      , c("NULL", "mcmc"))
 
 
 # ---- New Generics -----------------------------------------------------------

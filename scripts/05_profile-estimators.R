@@ -13,7 +13,7 @@ library("profvis")
 data("multi_net_usa_ge")
 
 
-profile_method <- "mle"
+profile_method <- "mcmc"
 profvis::profvis({
 res9_s2sls <-
   spflow(

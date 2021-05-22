@@ -1,3 +1,4 @@
+#' @importFrom coda as.mcmc
 #' @keywords internal
 spflow_mcmc <- function(
   ZZ,
@@ -169,7 +170,7 @@ spflow_mcmc <- function(
   N <- n_o * n_d
   id_sd <- nrow(results_df)
   estimation_results <- spflow_model(
-    mcmc_results = mcmc_results,
+    mcmc_results = as.mcmc(mcmc_results),
     estimation_results = results_df[-id_sd, ],
     estimation_control = flow_control,
     sd_error = sqrt(results_df$est[id_sd]),

@@ -38,6 +38,7 @@
 #'   slot validObject
 #' @importFrom stats as.formula contrasts cor formula model.matrix optim predict pt
 #'   quantile reformulate rgamma rnorm runif sd terms terms.formula
+#' @importFrom Rdpack reprompt
 #' @keywords internal
 #' @references \insertAllCited{}
 "_PACKAGE"

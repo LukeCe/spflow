@@ -48,7 +48,7 @@ setClass("spflow_model_s2sls",
 #' @export
 setClass("spflow_model_mcmc",
          slots = c(
-           mcmc_results = "maybe_matrix"),
+           mcmc_results = "maybe_mcmc"),
          contains = "spflow_model")
 
 # ---- Virtual classes --------------------------------------------------------
