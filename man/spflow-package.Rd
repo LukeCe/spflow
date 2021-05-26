@@ -50,7 +50,14 @@ Useful links:
 
 Authors:
 \itemize{
-  \item Thibault Laurent \email{thibault.laurent@tse-fr.eu}
+  \item Thibault Laurent \email{thibault.laurent@tse-fr.eu} (\href{https://orcid.org/0000-0001-7487-7671}{ORCID})
+}
+
+Other contributors:
+\itemize{
+  \item Christine Thomas \email{christine.thomas@tse-fr.eu} [thesis advisor]
+  \item Gabriel Watkinson [contributor]
+  \item Roger Bivand [contributor]
 }
 
 }

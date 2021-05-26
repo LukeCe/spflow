@@ -1,19 +1,21 @@
 Package: spflow
-Title: Spatial Econometric Interaction Models in R
+Title: Spatial Econometric Interaction Models
 Version: 0.0.0.9011
 Authors@R: c(
-    person(given = "Lukas",
-           family = "Dargel",
-           role = c("aut", "cre"),
+    person("Lukas", "Dargel", role = c("aut", "cre"),
            email = "lukas.dargel@mailbox.org",
            comment = c(ORCID = "0000-0002-4839-506X")),
-    person(given = "Thibault",
-           family =  "Laurent",
+    person("Thibault", "Laurent", role = "aut",
            email = "thibault.laurent@tse-fr.eu",
-           role = c("aut")))
+           comment = c(ORCID = "0000-0001-7487-7671")),
+    person("Christine", "Thomas", role = "ths",
+           email = "christine.thomas@tse-fr.eu"),
+    person("Gabriel", "Watkinson", role = "ctb"),
+    person("Roger", "Bivand", role = "ctb"))
 Description: 
-    Efficient estimation of models for origin-destiantion flows which account
-    for spatial-autocorrelation in the dependent variable.
+    Efficient estimation of spatial econometric models of origin-destiantion 
+    flows, which may exhibit spatial autocorrelation in the dependent variable,
+    the explanatory variables or both.
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
