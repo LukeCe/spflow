@@ -1,6 +1,6 @@
 Package: spflow
 Title: Spatial Econometric Interaction Models
-Version: 0.0.0.9011
+Version: 0.0.0.9012
 Authors@R: c(
     person("Lukas", "Dargel", role = c("aut", "cre"),
            email = "lukas.dargel@mailbox.org",
