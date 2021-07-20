@@ -7,13 +7,13 @@
 
 # ---- Maybe Classes ----------------------------------------------------------
 # allow NULL slots during instantiation of classes
+setOldClass("mcmc")
 setClassUnion("maybe_data.frame", c("NULL", "data.frame"))
 setClassUnion("maybe_Matrix"    , c("NULL", "Matrix"))
 setClassUnion("maybe_matrix"    , c("NULL", "matrix"))
 setClassUnion("maybe_any_matrix", c("NULL", "matrix", "Matrix"))
 setClassUnion("maybe_list"      , c("NULL", "list"))
 setClassUnion("maybe_numeric"   , c("NULL", "numeric"))
-setOldClass("mcmc")
 setClassUnion("maybe_mcmc"      , c("NULL", "mcmc"))
 
 

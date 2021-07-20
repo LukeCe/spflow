@@ -1,8 +1,10 @@
 ---
 title: "Home-to-work commuting flows within the municipalities around Paris"
-output: rmarkdown::html_vignette
+output: 
+  rmarkdown::html_vignette:
+    df_print: "tibble"
 vignette: >
-  %\VignetteIndexEntry{Commuting_in_Paris}
+  %\VignetteIndexEntry{Home-to-work commuting flows within the municipalities around Paris}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

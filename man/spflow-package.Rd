@@ -56,6 +56,7 @@ Authors:
 Other contributors:
 \itemize{
   \item Christine Thomas \email{christine.thomas@tse-fr.eu} [thesis advisor]
+  \item Paula Margaretic [contributor]
   \item Gabriel Watkinson [contributor]
   \item Roger Bivand [contributor]
 }

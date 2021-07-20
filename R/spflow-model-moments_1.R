@@ -50,36 +50,30 @@ compute_spflow_moments <- function(
 
   ZY <- UY[Z_index, , drop = FALSE]
 
-  # ... TSS (dim = 1, for GMM | dim = rho + 1, for LL)
-  # total sum of squares is different for GMM and likelihood based estimators
-  # because the lagged flows are considered as endogenous regresses and not
-  # as additional dependent variable
-  is_2sls <- estim_control[["estimation_method"]] == "s2sls"
-  y_index <- if (is_2sls) 1L else seq_len(ncol(ZY))
-  TSS <- crossproduct_mat_list(model_matrices$Y_[y_index], Y_wt[y_index])
+  TSS <- crossproduct_mat_list(model_matrices$Y_, Y_wt)
 
   ## ---- Range of the eigenvalues for neighborhood matrices
   is_spatial <- estim_control[["estimation_method"]] != "ols"
   OW_eigen_range <- DW_eigen_range <- NULL
-  # TODO implement parameter space checks
-  if (is_spatial & FALSE) {
+
+  if (is_spatial) {
     real_eigen_range <- function(W) {
       if (is.null(W))
         return(NULL)
 
-      max_re <- RSpectra::eigs(W,1,"LR")$values
-      max_re <- abs(max_re) * sign(Re(max_re))
-      min_re <- RSpectra::eigs(W,1,"SR")$values
-      min_re <- abs(min_re) * sign(Re(min_re))
-      range_re <- c(max_re, min_re)
-
-      # check if the largest absolute eigenvalue is complex
-      # no exact tests are possible in this case
       max_abs <- RSpectra::eigs(W,1,"LM")$values
-      if (Im(max_abs) == 0)
-        return(range_re)
 
-      return("no exact solution")
+      if (Re(max_abs) > 0) {
+        max_re <- max_abs
+        min_re <- RSpectra::eigs(W,1,"SR")$values
+      }
+
+      if (Re(max_abs) < 0) {
+        min_re <- max_abs
+        max_re <- RSpectra::eigs(W,1,"LR")$values
+      }
+
+      return(c(min_re, max_re))
       }
 
     OW_eigen_range <- DW_eigen_range <-
@@ -103,6 +97,7 @@ compute_spflow_moments <- function(
       DW_traces <- trace_sequence(model_matrices[["DW"]],approx_order)
   }
 
+  is_2sls <- estim_control[["estimation_method"]] == "s2sls"
   model_moments <- compact(list(
     "n_d"       = n_d,
     "n_o"       = n_o,

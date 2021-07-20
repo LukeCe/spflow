@@ -20,8 +20,8 @@ spflow_s2sls <- function(UU,UY,ZZ,ZY,TSS,N,flow_control) {
   # fill four blocks of the second stage variance moment
   UL <- UY[,-1]
   ZL <- ZY[,-1]
-  LL <- crossprod(UL,solve(UU,UL))
-  stage2_ZZ[index_rho,index_rho] <- LL
+  LL_hat <- crossprod(UL,solve(UU,UL))
+  stage2_ZZ[index_rho,index_rho] <- LL_hat
   stage2_ZZ[index_rho,index_delta] <- t(ZL)
   stage2_ZZ[index_delta,index_rho] <- ZL
   stage2_ZZ[index_delta,index_delta] <- ZZ
@@ -33,9 +33,13 @@ spflow_s2sls <- function(UU,UY,ZZ,ZY,TSS,N,flow_control) {
   # parameters
   mu <- solve(stage2_ZZ,stage2_ZY)
 
-  # standard errors
-  ESS <- crossprod(stage2_ZY, mu)
-  RSS <- TSS - ESS
+  # standard errors (stage 3)
+  stage3_ZZ <- stage2_ZZ
+  stage3_ZY <- stage2_ZY
+  stage3_ZZ[index_rho,index_rho] <- TSS[index_rho + 1,index_rho + 1]
+  stage3_ZY[index_rho] <-  TSS[1, index_rho + 1]
+
+  RSS <- TSS[1,1] - 2*stage3_ZY %*% mu + mu %*% stage3_ZZ %*% mu
   sigma2 <- sum(RSS)/N
 
   # variance covariance matrix of the parameters
