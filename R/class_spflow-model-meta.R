@@ -331,9 +331,9 @@ setMethod(
     cntrl <- object@estimation_control
     cat(print_line(50))
     cat("\nSpatial interaction model estimated by:",
-        cntrl$estimation_method ,collapse = " ")
-    cat("\nAuto-correlation structure:",
-        cntrl$model, ifelse(cntrl$use_sdm, "(SDM)", "(SLM)"),
+        toupper(cntrl$estimation_method) ,collapse = " ")
+    cat("\nAutocorrelation structure:",
+        cntrl$model, paste0("(",cntrl$model_type,")"),
         collapse = " ")
     cat("\nObservations:", nobs(object), collapse = " ")
 
@@ -466,3 +466,40 @@ compute_signal <- function(model_matrices, delta) {
   return(signal)
 
 }
+
+#' @keywords internal
+derive_param_space_validator <- function(
+  OW_eigen_range,
+  DW_eigen_range,
+  model,
+  est) {
+
+
+  DWmax <- DW_eigen_range[1]
+  DWmin <- DW_eigen_range[2]
+  OWmax <- OW_eigen_range[1]
+  OWmin <- OW_eigen_range[2]
+
+
+  # TODO finish the parameter space...
+  # ...  check that at least one of rho_o and rho_d is not complex
+  mod_params <-
+    switch (model, "model_5" = "model_7", "model_6" = "model_9", model)
+  rho_names <- define_spatial_lag_params(mod_params)
+  WF_eigen_part <- rbind(
+    "max_max" = c("rho_d" = DWmax, "rho_o" = OWmax, "rho_w" =  OWmax*DWmax),
+    "max_min" = c("rho_d" = DWmax, "rho_o" = OWmin, "rho_w" =  OWmin*DWmax),
+    "min_max" = c("rho_d" = DWmin, "rho_o" = OWmax, "rho_w" =  OWmax*DWmin),
+    "min_min" = c("rho_d" = DWmin, "rho_o" = OWmin, "rho_w" =  OWmin*DWmin)
+    )[,rho_names]
+
+
+  validate_fun <- function(rho){
+    rho_zero[rho_names] <- rho
+    WF_eigen_range <- range(rowSums(WF_eigen_part[,names] %*% diag(rho)))
+    WF_eigen_range[2] < 1 & (WF_eigen_range[1] > -1 | est == "s2sls")
+  }
+
+  return(validate_fun)
+}
+
