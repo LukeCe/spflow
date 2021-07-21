@@ -2,7 +2,6 @@
 title: "Home-to-work commuting flows within the municipalities around Paris"
 output: 
   rmarkdown::html_vignette:
-    df_print: "tibble"
 vignette: >
   %\VignetteIndexEntry{Home-to-work commuting flows within the municipalities around Paris}
   %\VignetteEngine{knitr::rmarkdown}
@@ -10,6 +9,7 @@ vignette: >
 ---
 
 ```{r, include = FALSE}
+options(max.print = 200)
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
