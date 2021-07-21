@@ -9,12 +9,13 @@ spflow_mcmc <- function(
   n_o,
   DW_traces,
   OW_traces,
-  flow_control = flow_control,
-  nb_draw = 5500,
-  nb_burn_in = 2500
-) {
+  flow_control = flow_control) {
 
   model <- flow_control$model
+  nb_draw <- flow_control$mcmc_iterations
+  nb_burn_in <- flow_control$mcmc_burn_in
+  resampling_limit <- flow_control$mcmc_resampling_limit
+
   ## initialize rho for M-H sampling
   nb_rho <- ncol(ZY) - 1
   pre_rho <- draw_initial_guess(nb_rho)
@@ -99,8 +100,7 @@ spflow_mcmc <- function(
     # ... non-zero log-determinant (-> A non-singular): not applied
     valid_candidates <- FALSE
     count_draws <- 1
-    maximal_draw <- 100
-    while (!valid_candidates & count_draws < maximal_draw) {
+    while (!valid_candidates & count_draws <= resampling_limit) {
 
       candidate_rho <- collect_rho[i_mcmc ,] + rnorm(nb_rho) * tune_rw
 
@@ -113,7 +113,7 @@ spflow_mcmc <- function(
       )
       count_draws <- count_draws + 1
       count_failed_candidates <-
-        count_failed_candidates + (count_draws >= maximal_draw)
+        count_failed_candidates + (count_draws >= resampling_limit)
     }
 
     # 3.2) Metropolis Hastings step
