@@ -13,3 +13,5 @@
 ^graphics$
 ^depricated$
 ^man-roxygen$
+^\.github$
+^README\.Rmd$
