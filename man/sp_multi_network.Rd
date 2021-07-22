@@ -20,9 +20,9 @@ sp_multi_network() # empty
 sp_multi_network(germany_net,usa_net) # two networks, no pairs
 }
 \seealso{
-Other Constructors for \link[=sp_network_classes]{spflow network classes}: 
+Other Constructors for spflow network classes: 
 \code{\link{sp_network_classes}},
 \code{\link{sp_network_nodes}},
 \code{\link{sp_network_pair}}
 }
-\concept{Constructors for \link[=sp_network_classes]{spflow network classes}}
+\concept{Constructors for spflow network classes}

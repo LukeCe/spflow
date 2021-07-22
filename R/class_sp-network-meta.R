@@ -18,8 +18,8 @@
 #'
 #' @include class_sp-network-nodes.R class_sp-network-pair.R
 #' @name sp_network_classes
-#' @family [spflow network classes][sp_network_classes()]
-#' @family Constructors for [spflow network classes][sp_network_classes()]
+#' @family spflow network classes
+#' @family Constructors for spflow network classes
 #' @examples
 #'
 #' ### An example use case for the spflow network classes and model estimation

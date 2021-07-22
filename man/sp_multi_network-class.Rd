@@ -64,10 +64,10 @@ pull_member(multi_net_usa_ge,"ge_ge")
 
 }
 \seealso{
-Other \link[=sp_network_classes]{spflow network classes}: 
+Other spflow network classes: 
 \code{\link{sp_network_classes}},
 \code{\link{sp_network_nodes-class}},
 \code{\link{sp_network_pair-class}}
 }
-\concept{\link[=sp_network_classes]{spflow network classes}}
+\concept{spflow network classes}
 \keyword{internal}

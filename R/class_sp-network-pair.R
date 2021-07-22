@@ -23,7 +23,7 @@
 #' @slot npairs
 #'   A numeric indicating the number of origin-destination pairs
 #'
-#' @family [spflow network classes][sp_network_classes()]
+#' @family spflow network classes
 #' @importClassesFrom Matrix Matrix
 #' @name sp_network_pair-class
 #' @export
@@ -239,7 +239,7 @@ setValidity("sp_network_pair", function(object) { # ---- validity -------------
 #'   destinations
 #'
 #' @return An S4 class of type [sp_network_pair()]
-#' @family Constructors for [spflow network classes][sp_network_classes()]
+#' @family Constructors for spflow network classes
 #' @export
 #' @examples
 #' pair_frame <- data.frame(

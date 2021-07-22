@@ -33,9 +33,9 @@ sp_network_nodes("germany",
                  "ID_STATE")
 }
 \seealso{
-Other Constructors for \link[=sp_network_classes]{spflow network classes}: 
+Other Constructors for spflow network classes: 
 \code{\link{sp_multi_network}},
 \code{\link{sp_network_classes}},
 \code{\link{sp_network_pair}}
 }
-\concept{Constructors for \link[=sp_network_classes]{spflow network classes}}
+\concept{Constructors for spflow network classes}

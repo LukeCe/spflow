@@ -82,15 +82,15 @@ spflow(flow_formula, paris10km_multi_net, flow_control = flow_control)
 }
 }
 \seealso{
-Other \link[=sp_network_classes]{spflow network classes}: 
+Other spflow network classes: 
 \code{\link{sp_multi_network-class}},
 \code{\link{sp_network_nodes-class}},
 \code{\link{sp_network_pair-class}}
 
-Other Constructors for \link[=sp_network_classes]{spflow network classes}: 
+Other Constructors for spflow network classes: 
 \code{\link{sp_multi_network}},
 \code{\link{sp_network_nodes}},
 \code{\link{sp_network_pair}}
 }
-\concept{Constructors for \link[=sp_network_classes]{spflow network classes}}
-\concept{\link[=sp_network_classes]{spflow network classes}}
+\concept{Constructors for spflow network classes}
+\concept{spflow network classes}

@@ -80,10 +80,10 @@ prod(nnodes(net_pair_ge_ge) == npairs(net_pair_ge_ge))
 
 }
 \seealso{
-Other \link[=sp_network_classes]{spflow network classes}: 
+Other spflow network classes: 
 \code{\link{sp_multi_network-class}},
 \code{\link{sp_network_classes}},
 \code{\link{sp_network_nodes-class}}
 }
-\concept{\link[=sp_network_classes]{spflow network classes}}
+\concept{spflow network classes}
 \keyword{internal}

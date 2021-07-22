@@ -11,7 +11,7 @@
 #' @slot networks A list of [sp_network_nodes-class()] objects
 #' @slot network_pairs A list of [sp_network_pair-class()] objects
 #'
-#' @family [spflow network classes][sp_network_classes()]
+#' @family spflow network classes
 #' @name sp_multi_network-class
 #' @export
 setClass("sp_multi_network",
@@ -291,7 +291,7 @@ setValidity("sp_multi_network", function(object) { # ---- validity ------------
 #' @param ... objects of of type [sp_network_nodes()] and [sp_network_pair()]
 #'
 #' @return A S4 network data object
-#' @family Constructors for [spflow network classes][sp_network_classes()]
+#' @family Constructors for spflow network classes
 #' @export
 #' @examples
 #' sp_multi_network() # empty

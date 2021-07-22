@@ -37,9 +37,9 @@ pair_frame <- data.frame(
 sp_network_pair("ge","ge",pair_frame,"ORIG_ID_STATE","DEST_ID_STATE")
 }
 \seealso{
-Other Constructors for \link[=sp_network_classes]{spflow network classes}: 
+Other Constructors for spflow network classes: 
 \code{\link{sp_multi_network}},
 \code{\link{sp_network_classes}},
 \code{\link{sp_network_nodes}}
 }
-\concept{Constructors for \link[=sp_network_classes]{spflow network classes}}
+\concept{Constructors for spflow network classes}
