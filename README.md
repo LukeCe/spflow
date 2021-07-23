@@ -33,7 +33,7 @@ with:
 devtools::install_github("LukeCe/spflow")
 ```
 
-## Liecense
+## License
 
 -   **Code :** [GPL 3](https://www.r-project.org/Licenses/GPL-3)  
 -   **Text and figures :** [CC BY-SA
