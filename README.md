@@ -20,13 +20,9 @@ of flow data, reducing the computational burden and memory requirements.
 ## Installation
 
 <!-- You can install the released version of spflow from [CRAN](https://CRAN.R-project.org) with: -->
-
 <!-- ``` r -->
-
 <!-- install.packages("spflow") -->
-
 <!-- ``` -->
-
 <!-- And the  -->
 
 You can install development version from [GitHub](https://github.com/)
@@ -36,3 +32,14 @@ with:
 # install.packages("devtools")
 devtools::install_github("LukeCe/spflow")
 ```
+
+## Liecense
+
+-   **Code :** [GPL 3](https://www.r-project.org/Licenses/GPL-3)  
+-   **Text and figures :** [CC BY-SA
+    4.0](https://www.r-project.org/Licenses/CC-BY-SA-4.0)  
+-   **Data :** [CC BY-SA
+    4.0](https://www.r-project.org/Licenses/CC-BY-SA-4.0) all data
+    provided by the package and not mentioned in [LICENSE](LICENSE).
+    Some information is derived from third party data for which
+    licensing information is given in the file [LICENSE](LICENSE).
