@@ -345,6 +345,10 @@ setMethod(
           quote = FALSE)
 
     cat("\n")
+    cat(print_line(50))
+    cat("\nR2_corr:", object@R2_corr, collapse = " ")
+
+
     invisible(object)
   })
 

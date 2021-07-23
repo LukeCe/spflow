@@ -134,9 +134,9 @@ setMethod(
     if (length(pair_ids) > 0) {
       cat("\n\nAvailability of origin-destination pair information:\n")
       od_pair_info <- check_pair_completeness(object)
-      od_pair_info$COMPLETENESS <-
-        format_percent(od_pair_info$COMPLETENESS) %||%
-        print(od_pair_info)
+      od_pair_info$COMPLETENESS <- format_percent(od_pair_info$COMPLETENESS)
+
+      print(od_pair_info)
     }
 
 

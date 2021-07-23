@@ -15,13 +15,18 @@ An object of class \code{data.frame} with 5041 rows and 4 columns.
 An object of class \code{list} of length 3.
 }
 \source{
-The data combine different public sources (last accessed 2021-05-05):
+The data combines different public sources (last accessed 2021-05-05).
+
+Three data sets are provided by INSEE.
+More information on the rights to use and diffuse this data is provided \href{https://www.insee.fr/fr/information/2008466}{here}.
 \itemize{
-\item \href{https://www.insee.fr/fr/statistiques/fichier/3566477/base-texte-flux-mobilite-domicile-lieu-travail-2015.zip}{Commute flows}
-\item \href{https://www.insee.fr/fr/statistiques/2021271}{Number of companies}
-\item \href{https://www.insee.fr/fr/statistiques/3560121}{Median income}
-\item \href{https://public.opendatasoft.com/explore/dataset/code-postal-code-insee-2015/export/?flg=fr&location=2,18.52839,-2.98471&basemap=jawg.streets}{Geographies, population and area}
+\item Commute flows (https://www.insee.fr/fr/statistiques/fichier/3566477/base-texte-flux-mobilite-domicile-lieu-travail-2015.zip)
+\item Number of companies (https://www.insee.fr/fr/statistiques/2021271)
+\item Median income (https://www.insee.fr/fr/statistiques/3560121)
 }
+
+The geographies, population, and area of the municipalities come from \href{https://public.opendatasoft.com/explore/?sort=modified}{OpenDataSoft} and are available \href{https://public.opendatasoft.com/explore/dataset/code-postal-code-insee-2015/export/?flg=fr&location=2,18.52839,-2.98471&basemap=jawg.streets}{here}.
+This data is published under an \href{https://www.etalab.gouv.fr/wp-content/uploads/2014/05/Licence_Ouverte.pdf}{OPEN LICENCE}.
 }
 \usage{
 paris10km_municipalities

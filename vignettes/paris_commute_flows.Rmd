@@ -25,8 +25,8 @@ library("spdep")
 
 # Introduction
 
-This article illustrates the use of the `spflow` package for spatial interaction modelling, using the example of home-to-work commuting flows within 71 municipalities that are no further than 10km away from the center of Paris.
-The examples employs data to describe the municipalities their neighborhood structure additional data on the size of the commuting flow and the distance between all possible origin-destination pairs is also available.
+This article illustrates the use of the **spflow** package for modeling spatial interactions using the example of home-to-work commuting flows within 71 municipalities located no more than 10km from the center of Paris.
+The examples use data describing the municipalities and their neighborhood structure. Additional data on the size of the commuter flow and the distance between all possible origin-destination pairs are also available.
 
 
 ```{r}
@@ -45,7 +45,7 @@ plot(paris10km_municipalities[drop_area])
 ```
 
 
-Additionally there are three different neighborhood matrices that can be used to describe the connectivity between the municipalities.
+Additionally, there are three different neighborhood matrices that can be used to describe the connectivity between the municipalities.
 
 ```{r}
 par(mfrow = c(1, 3), mar = c(0,0,1,0))
@@ -71,7 +71,7 @@ plot(paris10km_nb$by_knn, mid_points, add = T, col = rgb(0,0,0,alpha=0.5))
 title("3 Nearest Neighbors") 
 ```
 
-Finally there is data on the size of the commuting flows between pairs of origins and destinations
+Finally, there is data on the size of the commuting flows between pairs of origins and destinations.
 
 ```{r}
 paris10km_commuteflows 
@@ -80,18 +80,17 @@ paris10km_commuteflows
 
 # Modeling Spatial interactions
 
-The `spflow` package build on the idea that any type of flow corresponds to pair-wise interactions between the nodes of an origin network with the nodes of a destination network.
+The **spflow** package builds on the idea that each type of flow corresponds to a pairwise interaction between the nodes of an origin network with the nodes of a destination network.
 
-In our example the origin and destination networks are the same since each of the municipalities is at the same time the origin and the destination of home-to-work commuting flows.
+In our example, the origin and destination networks are the same because every municipality is both an origin and destination of a flow.
 
+To estimate the model efficiently, the **spflow** package uses moment-based estimation methods, that exploit a matrix formulation of the model.
+This avoids duplication caused by each community being both the origin and destination of many flows.
 
-For efficient estimation of the model the `spflow` package employs a moment based estimation method.
-This avoids duplication which arises due to the fact that every municipality is at the origin and the destination of many flows.
-Using moment based estimator reduces the size of the data for most parts of the estimation to $n$ while the traditional method will create information for all origin-destination pairs $N = n^2$. 
 
 ## The network objects 
 
-To describe the nodes of the network we then use the `sp_network_nodes` object which combines attributes of the nodes with the chosen network structure.
+To describe the nodes of the network the package provides `sp_network_nodes-class` that combines attributes of the nodes with the chosen network structure.
 
 ```{r}
 paris10km_net <- 
@@ -104,7 +103,7 @@ paris10km_net <-
 paris10km_net
 ```
 
-The `sp_network_pairs` object contains all information to describe the pairs of the origin and destination networks.
+The `sp_network_pair-class` contains all information to describe the pairs of the origin and destination networks.
 
 ```{r}
 paris10km_net_pairs <- sp_network_pair(
@@ -117,51 +116,82 @@ paris10km_net_pairs <- sp_network_pair(
 paris10km_net_pairs
 ```
 
-The `sp_multi_network` object is than used to gather and ensure consistency of information between the information on the single nodes and the information on the node pairs.
-It contains all information on origins destinations and origin-destination pairs and no further data needs to be passed to the main modeling function.
+The `sp_multi_network-class` is than combines information on the nodes and the node-pairs and ensures also ensures that both data sources are consistent.
+For example, if some of the origins in the `sp_network_pair-class` are not identified with the nodes in the `sp_network_nodes-class` an error will be shown.
 
 ```{r}
 paris10km_multi_net <- sp_multi_network(paris10km_net,paris10km_net_pairs)
 paris10km_multi_net
-
 ```
 
-## Estimating with default values
+## Estimation
 
-Estimation with default settings requires two arguments: a `sp_multi_inetwork` which contains all the required data and a `flow_formula`.
+The core function of the package is `spflow()`, which provides an interface to four different estimators of the spatial econometric interaction model.
+
+### Estimating with default values
+
+Estimation with default settings requires two arguments: an `sp_multi_network-class` and a `flow_formula`.
 The `flow_formula` specifies the model we want to estimate.
-In this example the dependent variable is a transformation of the commuting flows and we use the dot-shortcut to indicate that all available variables should be included in the model.
-lead by default to the most comprehensive spatial interaction model that the package allows to estimate.
+In this example, the dependent variable is a transformation of commuting flows and we use the dot shortcut to indicate that all available variables should be included in the model.
+Using the defaults leads to the most comprehensive spatial interaction model, which includes spatial lags of the dependent variable, the exogenous variables and additional attributes for intra-regional observations.
 
 ```{r}
-sim_fit_default <- spflow(
+results_default <- spflow(
   flow_formula = log(1 + COMMUTE_FLOW) ~ . + G_(log( 1 + DISTANCE)),
   sp_multi_network = paris10km_multi_net)
 
-
-sim_fit_default
+results_default
 ```
 
-## Adjusting the formula
+### Adjusting the formula
 
-In the previous example we used the default estimation leads to a spatial interaction model which uses all the available variables.
+We can adjust how the exogenous variables are to be used by wrapping them into the `D_()`, `O_()`, `I_()` and `G_()` functions.
+The variables in `G_()` are used as OD pair features and those in `D_()`, `O_()` and `I_()` are used as destination, origin and intra-regional features.
+We can take advantage of the formula interface to specify transformations and expand factor variables to dummies.
 
 
 ```{r}
-formula_1 <- 
-  log(1 + COMMUTE_FLOW) ~ 
-  AREA + MED_INCOME + log(POPULATION + 1 ) + log(NB_COMPANY + 1) + 
-  G_( log(DISTANCE + 1) )
+clog <- function(x) {
+  log_x <- log(x)
+  log_x - mean(log_x)
+}
 
-control_1 <- spflow_control(use_intra = FALSE)
+flow_formula  <- 
+  log(COMMUTE_FLOW + 1) ~
+  D_(log(NB_COMPANY) + clog(MED_INCOME)) +
+  O_(log(POPULATION) + clog(MED_INCOME)) +
+  I_(log(POPULATION)) +
+  G_(log(DISTANCE + 1))
 
-sim_fit_1 <- 
-  spflow(flow_formula = formula_1,
-         sp_multi_network = paris10km_multi_net,
-         flow_control = control_1)
-
-sim_fit_1
+results_mle  <- spflow(
+  flow_formula,
+  paris10km_multi_net)
+results_mle
 ```
 
 
+### Adjustment through `spflow_control()`
+
+More fine-grained adjustments are possible via the `spflow_control()` argument.
+Here we change the estimation method and the way we want to model the spatial autoregression in the flows.
+To use spatial lags only for certain variables, we need to specify them as a second formula. 
+
+
+```{r}
+sdm_formula <- ~
+  O_(log(POPULATION) + clog(MED_INCOME)) +
+  D_(log(NB_COMPANY) + clog(MED_INCOME))
+
+cntrl <- spflow_control(
+  estimation_method = "mcmc",
+  sdm_variables = sdm_formula,
+  model = "model_7") # restricts \rho_w = 0
+
+results_mcmc  <- spflow(
+  flow_formula,
+  paris10km_multi_net,
+  flow_control = cntrl)
+
+results_mcmc
+```
 

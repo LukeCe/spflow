@@ -162,9 +162,9 @@ spflow_mcmc <- function(
   mcmc_results <- cbind(collect_rho,collect_delta,collect_sigma2)
   results_df <- data.frame(
     est = colMeans(mcmc_results[-seq_len(nb_burn_in),]),
-    sd = apply(mcmc_results, 2, sd),
     quant_025 = apply(mcmc_results, 2, quantile, 0.025),
-    quant_975 = apply(mcmc_results, 2, quantile, 0.975)
+    quant_975 = apply(mcmc_results, 2, quantile, 0.975),
+    sd = apply(mcmc_results, 2, sd)
   )
 
   N <- n_o * n_d
