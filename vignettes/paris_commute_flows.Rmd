@@ -117,7 +117,7 @@ paris10km_net_pairs
 ```
 
 The `sp_multi_network-class` is than combines information on the nodes and the node-pairs and ensures also ensures that both data sources are consistent.
-For example, if some of the origins in the `sp_network_pair-class` are not identified with the nodes in the `sp_network_nodes-class` an error will be shown.
+For example, if some of the origins in the `sp_network_pair-class` are not identified with the nodes in the `sp_network_nodes-class` an error will be raised.
 
 ```{r}
 paris10km_multi_net <- sp_multi_network(paris10km_net,paris10km_net_pairs)
