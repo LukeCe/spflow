@@ -9,10 +9,12 @@
 \usage{
 dat(object, ...)
 
-dat(object, ...) <- value
+dat(object) <- value
 }
 \arguments{
 \item{object}{A \link[=sp_network_classes]{spflow network classes}}
+
+\item{...}{Arguments to be passed to methods}
 
 \item{value}{A data.frame to replace existing data}
 }

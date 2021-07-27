@@ -14,6 +14,8 @@ pair_merge(object, ...)
 \arguments{
 \item{object}{A \code{\link[=sp_multi_network-class]{sp_multi_network-class()}}}
 
+\item{...}{Arguments to be passed to methods}
+
 \item{network_pair_id}{A character indicating the id of a \code{\link[=sp_network_pair-class]{sp_network_pair-class()}}}
 
 \item{all_pairs}{A logical, when set to \code{TRUE} the resulting data.frame contains all

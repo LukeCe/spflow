@@ -4,6 +4,7 @@
 \name{sp_network_pair-class}
 \alias{sp_network_pair-class}
 \alias{dat,sp_network_pair-method}
+\alias{dat<-,sp_network_pair-method}
 \alias{id,sp_network_pair-method}
 \alias{id<-,sp_network_pair-method}
 \alias{npairs,sp_network_pair-method}
@@ -11,6 +12,8 @@
 \title{sp_network_pair Class}
 \usage{
 \S4method{dat}{sp_network_pair}(object)
+
+\S4method{dat}{sp_network_pair}(object) <- value
 
 \S4method{id}{sp_network_pair}(object)
 
@@ -21,7 +24,9 @@
 \S4method{nnodes}{sp_network_pair}(object)
 }
 \arguments{
-\item{what}{A character to indicate what to count; should be in c("orig","dest").}
+\item{object}{A sp_network_pair-class}
+
+\item{value}{An object to replace the existing id/data}
 }
 \description{
 An S4 class which holds information on origin-destination pairs.

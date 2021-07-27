@@ -5,7 +5,7 @@
 \title{Generic for accessing the variance-covariance matrix of the
 parameters inside a \code{\link[=spflow_model-class]{spflow_model-class()}}.}
 \usage{
-varcov(object, ...)
+varcov(object)
 }
 \arguments{
 \item{object}{A \code{\link[=spflow_model-class]{spflow_model-class()}}}

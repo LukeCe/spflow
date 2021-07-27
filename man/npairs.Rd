@@ -5,7 +5,7 @@
 \title{Generic for accessing the node pair count of a
 \code{\link[=sp_network_pair-class]{sp_network_pair-class()}}}
 \usage{
-npairs(object, ...)
+npairs(object)
 }
 \arguments{
 \item{object}{A \code{\link[=sp_network_pair-class]{sp_network_pair-class()}}}

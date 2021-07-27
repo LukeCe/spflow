@@ -23,6 +23,8 @@
 #' @slot npairs
 #'   A numeric indicating the number of origin-destination pairs
 #'
+#' @param object A sp_network_pair-class
+#' @param value An object to replace the existing id/data
 #' @family spflow network classes
 #' @importClassesFrom Matrix Matrix
 #' @name sp_network_pair-class
@@ -53,7 +55,7 @@ setMethod(
     return(object@pair_data)
     })
 
-#' @keywords internal
+#' @rdname sp_network_pair-class
 setReplaceMethod(
   f = "dat",
   signature = "sp_network_pair", function(object, value) {  # ---- dat <- -----
@@ -119,8 +121,6 @@ setMethod(
     return(object@npairs)
   })
 
-#' @param what
-#'    A character to indicate what to count; should be in c("orig","dest").
 #' @rdname sp_network_pair-class
 #' @export
 #' @examples

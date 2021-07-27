@@ -9,6 +9,8 @@ nnodes(object, ...)
 }
 \arguments{
 \item{object}{One of \code{\link[=sp_network_nodes-class]{sp_network_nodes-class()}}, \code{\link[=sp_network_pair-class]{sp_network_pair-class()}}}
+
+\item{...}{Arguments to be passed to methods}
 }
 \description{
 For details on the methods see the documentation of the

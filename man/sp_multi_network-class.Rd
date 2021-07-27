@@ -13,24 +13,15 @@
 
 \S4method{dat}{sp_multi_network}(object, .id)
 
-\S4method{neighborhood}{sp_multi_network}(object, network_id = 1)
+\S4method{neighborhood}{sp_multi_network}(object, .id = 1)
 
 \S4method{pull_member}{sp_multi_network}(object, .id)
 }
 \arguments{
-\item{.id}{A single character id of a \code{\link[=sp_network_nodes-class]{sp_network_nodes-class()}} or a
+\item{object}{sp_multi_network-class}
+
+\item{.id}{A character indicating the id of a \code{\link[=sp_network_nodes-class]{sp_network_nodes-class()}} or a
 \code{\link[=sp_network_pair-class]{sp_network_pair-class()}} inside the \code{\link[=sp_multi_network-class]{sp_multi_network-class()}}.}
-
-\item{what}{A character to indicating if ids of the single networks or the
-network pairs should be retrieved; should be in
-\code{c("networks","network_pairs")}.}
-
-\item{from}{A single character; must be one of
-\code{c("networks","network_pairs")}}
-
-\item{network_ids}{A character vector indicating the ids of the
-\code{\link[=sp_network_nodes]{sp_network_nodes()}} objects to extract from the
-\code{\link[=sp_multi_network-class]{sp_multi_network-class()}}}
 }
 \description{
 A S4 class that gathers information on one or multiple networks

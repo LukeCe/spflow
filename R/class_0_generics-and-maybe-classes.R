@@ -27,12 +27,12 @@ setGeneric(
   def = function(object, ...) standardGeneric("add_details"))
 
 
-
 #' @title Generic for accessing the data inside
 #'   [spflow network classes][sp_network_classes()]
 #' @description For details on the methods see the documentation of the
 #'   corresponding classes.
 #' @param object A [spflow network classes][sp_network_classes()]
+#' @param ... Arguments to be passed to methods
 #' @name dat
 #' @aliases dat-set
 #' @seealso [sp_network_classes()]
@@ -48,7 +48,7 @@ setGeneric(
 #' @export
 setGeneric(
   name = "dat<-", # ---- ... dat<- --------------------------------------------
-  def = function(object, ...) standardGeneric("dat<-"))
+  def = function(object, value) standardGeneric("dat<-"))
 
 
 #' @title Generic for accessing the ids of
@@ -58,6 +58,7 @@ setGeneric(
 #' @title Access the id of [spflow network classes][sp_network_classes()]
 #' @description For details see the documentation of the corresponding classes.
 #' @param object A [spflow network class][sp_network_classes()]
+#' @param ... Arguments to be passed to methods
 #' @name id
 #' @aliases id-set
 #' @seealso [sp_network_classes()]
@@ -73,7 +74,7 @@ setGeneric(
 #' @export
 setGeneric(
   name = "id<-", # ---- ... id<- ----------------------------------------------
-  def = function(object, ...) standardGeneric("id<-"))
+  def = function(object, ..., value) standardGeneric("id<-"))
 
 
 #' @title Access the sampling results of a [spflow_model_mcmc-class()]
@@ -84,7 +85,7 @@ setGeneric(
 #' @export
 setGeneric(
   name = "mcmc_results", # ---- ... mcmc_results ------------------------------
-  def = function(object, ...) standardGeneric("mcmc_results"))
+  def = function(object) standardGeneric("mcmc_results"))
 
 
 #' @title Generic for accessing the neighborhood matrix inside
@@ -92,6 +93,7 @@ setGeneric(
 #' @description For details on the methods see the documentation of the
 #'   corresponding classes.
 #' @param object One of [sp_network_nodes-class()], [sp_multi_network-class()]
+#' @param ... Arguments to be passed to methods
 #' @name neighborhood
 #' @seealso [sp_network_nodes-class()] [sp_multi_network-class()]
 #'
@@ -107,7 +109,7 @@ setGeneric(
 #' @export
 setGeneric(
   name = "neighborhood<-", # ---- ... neighborhood<- --------------------------
-  def = function(object, ...) standardGeneric("neighborhood<-"))
+  def = function(object, value) standardGeneric("neighborhood<-"))
 
 
 #' @title Generic for accessing the node count of
@@ -115,6 +117,7 @@ setGeneric(
 #' @description For details on the methods see the documentation of the
 #'   corresponding classes.
 #' @param object One of [sp_network_nodes-class()], [sp_network_pair-class()]
+#' @param ... Arguments to be passed to methods
 #' @rdname nnodes
 #' @name nnodes
 #' @seealso [sp_network_nodes-class()] [sp_network_pair-class()]
@@ -134,7 +137,7 @@ setGeneric(
 #' @export
 setGeneric(
   name = "npairs", # ---- ... npairs ------------------------------------------
-  def = function(object, ...) standardGeneric("npairs"))
+  def = function(object) standardGeneric("npairs"))
 
 
 #' @title Generic for merging information on origins and destination to node
@@ -144,6 +147,7 @@ setGeneric(
 #' @rdname pair_merge
 #' @name pair_merge
 #' @param object A [sp_multi_network-class()]
+#' @param ... Arguments to be passed to methods
 #' @seealso [sp_multi_network-class()]
 #' @export
 setGeneric(
@@ -157,6 +161,7 @@ setGeneric(
 #' @description For details on the method see the documentation of the
 #'   corresponding class.
 #' @param object A [sp_multi_network-class()]
+#' @param ... Arguments to be passed to methods
 #' @seealso [sp_multi_network-class()]
 #' @name pull_member
 #' @export
@@ -175,7 +180,7 @@ setGeneric(
 #' @export
 setGeneric(
   name = "results", # ---- ... results ----------------------------------------
-  def = function(object, ...) standardGeneric("results"))
+  def = function(object) standardGeneric("results"))
 
 
 #' @title Replacement method for internal purposes
@@ -185,11 +190,12 @@ setGeneric(
 #' @keywords internal
 setGeneric(
   name = "results<-", # ---- ... results<- ------------------------------------
-  def = function(object, ...) standardGeneric("results<-"))
+  def = function(object, value) standardGeneric("results<-"))
 
 
 #' @title Access results of a [spflow_model()] as a one row data.frame
 #' @param object spflow_model_meta
+#' @param ... Arguments to be passed to methods
 #' @name results_flat
 #' @rdname results_flat
 #' @keywords internal
@@ -209,7 +215,7 @@ setGeneric(
 #' @name sd_error
 setGeneric(
   name = "sd_error", # ---- ... sd_error --------------------------------------
-  def = function(object, ...) standardGeneric("sd_error"))
+  def = function(object) standardGeneric("sd_error"))
 
 
 
@@ -223,5 +229,5 @@ setGeneric(
 #' @export
 setGeneric(
   name = "varcov", # ---- ... varcov ------------------------------------------
-  def = function(object, ...) standardGeneric("varcov"))
+  def = function(object) standardGeneric("varcov"))
 

@@ -11,6 +11,7 @@
 #' @slot networks A list of [sp_network_nodes-class()] objects
 #' @slot network_pairs A list of [sp_network_pair-class()] objects
 #'
+#' @param object sp_multi_network-class
 #' @family spflow network classes
 #' @name sp_multi_network-class
 #' @export
@@ -22,9 +23,6 @@ setClass("sp_multi_network",
 # ---- Methods ----------------------------------------------------------------
 
 #' @rdname sp_multi_network-class
-#' @param what A character to indicating if ids of the single networks or the
-#'   network pairs should be retrieved; should be in
-#'   `c("networks","network_pairs")`.
 #' @export
 #' @examples
 #' ## access the id of a networks or network_pairs inside a multi network
@@ -44,10 +42,8 @@ setMethod(
 
 
 #' @rdname sp_multi_network-class
-#' @param .id A single character id of a [sp_network_nodes-class()] or a
+#' @param .id A character indicating the id of a [sp_network_nodes-class()] or a
 #'   [sp_network_pair-class()] inside the [sp_multi_network-class()].
-#' @param from A single character; must be one of
-#'   `c("networks","network_pairs")`
 #' @export
 #' @examples
 #' ## access the data of a network or a network_pair inside a multi_network
@@ -71,23 +67,17 @@ setMethod(
 
 
 #' @rdname sp_multi_network-class
-#' @param network_ids A single character vector indicating the id of a
-#'   [sp_network_nodes-class()] objects to extract from the
-#'   [sp_multi_network-class()]
 setMethod(
   f = "neighborhood",
   signature = "sp_multi_network",
-  function(object, network_id = 1) { # ---- neighborhood ----------------------
-    assert(network_id %in% id(object)[["networks"]],
+  function(object, .id = 1) { # ---- neighborhood ----------------------
+    assert(.id %in% id(object)[["networks"]],
            "The provided id does not correspond to any sp_network_nodes.")
-    sp_net <- slot(object, "networks")[[network_id]]
+    sp_net <- slot(object, "networks")[[.id]]
     return(sp_net %|!|% neighborhood(sp_net))
   })
 
 #' @rdname sp_multi_network-class
-#' @param network_ids A character vector indicating the ids of the
-#'     [sp_network_nodes()] objects to extract from the
-#'     [sp_multi_network-class()]
 #' @export
 #' @examples
 #' ## access sp_network_nodes or sp_network_pair inside a sp_multi_network

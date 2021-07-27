@@ -154,7 +154,7 @@
 #'
 #'
 #' @references \insertAllCited{}
-#' @seealso [spflow_control()] [spflow_model_classes()]
+#' @seealso [spflow_control()] [sp_network_classes()]
 #' @export
 spflow <- function(
   flow_formula,

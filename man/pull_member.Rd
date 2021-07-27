@@ -9,6 +9,8 @@ pull_member(object, ...)
 }
 \arguments{
 \item{object}{A \code{\link[=sp_multi_network-class]{sp_multi_network-class()}}}
+
+\item{...}{Arguments to be passed to methods}
 }
 \description{
 For details on the method see the documentation of the

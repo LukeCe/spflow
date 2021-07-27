@@ -16,6 +16,8 @@ results_flat(object, ...)
 }
 \arguments{
 \item{object}{spflow_model_meta}
+
+\item{...}{Arguments to be passed to methods}
 }
 \description{
 Access results of a \code{\link[=spflow_model]{spflow_model()}} as a one row data.frame

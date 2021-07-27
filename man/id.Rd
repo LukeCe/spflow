@@ -14,6 +14,8 @@ id(object, ...) <- value
 \arguments{
 \item{object}{A \link[=sp_network_classes]{spflow network class}}
 
+\item{...}{Arguments to be passed to methods}
+
 \item{value}{A character replacing the existing id}
 }
 \description{

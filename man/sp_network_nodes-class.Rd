@@ -4,13 +4,17 @@
 \name{sp_network_nodes-class}
 \alias{sp_network_nodes-class}
 \alias{dat,sp_network_nodes-method}
+\alias{dat<-,sp_network_nodes-method}
 \alias{id,sp_network_nodes-method}
 \alias{id<-,sp_network_nodes-method}
 \alias{neighborhood,sp_network_nodes-method}
+\alias{neighborhood<-,sp_network_nodes-method}
 \alias{nnodes,sp_network_nodes-method}
 \title{sp_network_nodes Class}
 \usage{
 \S4method{dat}{sp_network_nodes}(object)
+
+\S4method{dat}{sp_network_nodes}(object) <- value
 
 \S4method{id}{sp_network_nodes}(object)
 
@@ -18,7 +22,14 @@
 
 \S4method{neighborhood}{sp_network_nodes}(object)
 
+\S4method{neighborhood}{sp_network_nodes}(object) <- value
+
 \S4method{nnodes}{sp_network_nodes}(object)
+}
+\arguments{
+\item{object}{A sp_network_nodes-class}
+
+\item{value}{An object to replace the existing id/data/neighborhood}
 }
 \description{
 An S4 class that contains all information on a single network.
@@ -43,7 +54,7 @@ The class is constructed by the \code{\link[=sp_network_nodes]{sp_network_nodes(
 
 \examples{
 ## access the data describing the nodes
-dat(germany_net)
+new_dat <- dat(germany_net)
 
 # access the id of the network
 germany_net2 <- germany_net

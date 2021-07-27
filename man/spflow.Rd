@@ -182,5 +182,5 @@ spflow(flow_formula = y9 ~ O_(X) + D_(X) + I_(X) + G_(DISTANCE),
 \insertAllCited{}
 }
 \seealso{
-\code{\link[=spflow_control]{spflow_control()}} \code{\link[=spflow_model_classes]{spflow_model_classes()}}
+\code{\link[=spflow_control]{spflow_control()}} \code{\link[=sp_network_classes]{sp_network_classes()}}
 }

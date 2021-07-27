@@ -5,7 +5,7 @@
 \title{Generic for accessing the standard deviation of the residual inside
 a \code{\link[=spflow_model-class]{spflow_model-class()}}.}
 \usage{
-sd_error(object, ...)
+sd_error(object)
 }
 \arguments{
 \item{object}{A \code{\link[=spflow_model-class]{spflow_model-class()}}}

@@ -18,6 +18,8 @@
 #' @slot node_neighborhood
 #'   A matrix that describes the neighborhood relations of the nodes
 #'
+#' @param object A sp_network_nodes-class
+#' @param value An object to replace the existing id/data/neighborhood
 #' @importClassesFrom Matrix Matrix
 #' @family spflow network classes
 #' @name sp_network_nodes-class
@@ -35,7 +37,7 @@ setClass("sp_network_nodes",
 #' @export
 #' @examples
 #' ## access the data describing the nodes
-#' dat(germany_net)
+#' new_dat <- dat(germany_net)
 #'
 setMethod(
   f = "dat",
@@ -44,7 +46,7 @@ setMethod(
     return(object@node_data)
     })
 
-#' @keywords internal
+#' @rdname sp_network_nodes-class
 setReplaceMethod(
   f = "dat",
   signature = "sp_network_nodes", function(object, value) { # ---- dat <- -----
@@ -55,7 +57,6 @@ setReplaceMethod(
     return(object)
     })
 
-#' @export
 #' @rdname sp_network_nodes-class
 #' @examples
 #' # access the id of the network
@@ -94,7 +95,7 @@ setMethod(
     return(object@node_neighborhood)
   })
 
-#' @keywords internal
+#' @rdname sp_network_nodes-class
 setReplaceMethod(
   f = "neighborhood",
   signature = "sp_network_nodes",
