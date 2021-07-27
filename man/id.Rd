@@ -6,6 +6,11 @@
 \alias{id<-}
 \title{Generic for accessing the ids of
 \link[=sp_network_classes]{spflow network classes}}
+\usage{
+id(object, ...)
+
+id(object, ...) <- value
+}
 \arguments{
 \item{object}{A \link[=sp_network_classes]{spflow network class}}
 

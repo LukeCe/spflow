@@ -5,6 +5,11 @@
 \alias{neighborhood<-}
 \title{Generic for accessing the neighborhood matrix inside
 \link[=sp_network_classes]{spflow network classes}}
+\usage{
+neighborhood(object, ...)
+
+neighborhood(object, ...) <- value
+}
 \arguments{
 \item{object}{One of \code{\link[=sp_network_nodes-class]{sp_network_nodes-class()}}, \code{\link[=sp_multi_network-class]{sp_multi_network-class()}}}
 

@@ -6,6 +6,8 @@
 \alias{results_flat,spflow_model-method}
 \title{Access results of a \code{\link[=spflow_model]{spflow_model()}} as a one row data.frame}
 \usage{
+results_flat(object, ...)
+
 \S4method{results_flat}{spflow_model}(
   object,
   res_info = c("est", "sd"),

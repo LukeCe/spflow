@@ -6,6 +6,11 @@
 \alias{dat<-}
 \title{Generic for accessing the data inside
 \link[=sp_network_classes]{spflow network classes}}
+\usage{
+dat(object, ...)
+
+dat(object, ...) <- value
+}
 \arguments{
 \item{object}{A \link[=sp_network_classes]{spflow network classes}}
 

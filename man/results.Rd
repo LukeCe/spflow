@@ -3,6 +3,9 @@
 \name{results}
 \alias{results}
 \title{Generic for accessing the results of a \code{\link[=spflow_model-class]{spflow_model-class()}}.}
+\usage{
+results(object, ...)
+}
 \arguments{
 \item{object}{A \code{\link[=spflow_model-class]{spflow_model-class()}}}
 }

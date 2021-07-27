@@ -4,6 +4,9 @@
 \alias{nnodes}
 \title{Generic for accessing the node count of
 \link[=sp_network_classes]{spflow network classes}}
+\usage{
+nnodes(object, ...)
+}
 \arguments{
 \item{object}{One of \code{\link[=sp_network_nodes-class]{sp_network_nodes-class()}}, \code{\link[=sp_network_pair-class]{sp_network_pair-class()}}}
 }

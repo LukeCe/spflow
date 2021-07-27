@@ -3,6 +3,9 @@
 \name{mcmc_results}
 \alias{mcmc_results}
 \title{Access the sampling results of a \code{\link[=spflow_model_mcmc-class]{spflow_model_mcmc-class()}}}
+\usage{
+mcmc_results(object, ...)
+}
 \arguments{
 \item{object}{A \code{\link[=spflow_model_mcmc-class]{spflow_model_mcmc-class()}}}
 }

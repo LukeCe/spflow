@@ -4,6 +4,9 @@
 \alias{pull_member}
 \title{Generic for accessing a \code{\link[=sp_network_pair-class]{sp_network_pair-class()}} or a
 \code{\link[=sp_network_nodes-class]{sp_network_nodes-class()}} inside a \code{\link[=sp_multi_network-class]{sp_multi_network-class()}}}
+\usage{
+pull_member(object, ...)
+}
 \arguments{
 \item{object}{A \code{\link[=sp_multi_network-class]{sp_multi_network-class()}}}
 }

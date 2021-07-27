@@ -22,8 +22,10 @@ setClassUnion("maybe_mcmc"      , c("NULL", "mcmc"))
 #' @name add_details
 #' @rdname add_details
 #' @keywords internal
-setGenericVerif("add_details",function(object, ...){ # ---- add_details -------
-  standardGeneric("add_details")})
+setGeneric(
+  name = "add_details", # ---- ... add_details --------------------------------
+  def = function(object, ...) standardGeneric("add_details"))
+
 
 
 #' @title Generic for accessing the data inside
@@ -35,15 +37,19 @@ setGenericVerif("add_details",function(object, ...){ # ---- add_details -------
 #' @aliases dat-set
 #' @seealso [sp_network_classes()]
 #' @export
-setGenericVerif("dat",  function(object, ...){ # ---- dat ---------------------
-  standardGeneric("dat")})
+setGeneric(
+  name = "dat", # ---- ... dat ------------------------------------------------
+  def = function(object, ...) standardGeneric("dat"))
+
 
 #' @param value A data.frame to replace existing data
 #' @rdname dat
 #' @name dat<-
 #' @export
-setGenericVerif("dat<-",  function(object, ..., value){ # ---- dat <- ---------
-  standardGeneric("dat<-")})
+setGeneric(
+  name = "dat<-", # ---- ... dat<- --------------------------------------------
+  def = function(object, ...) standardGeneric("dat<-"))
+
 
 #' @title Generic for accessing the ids of
 #'   [spflow network classes][sp_network_classes()]
@@ -56,15 +62,19 @@ setGenericVerif("dat<-",  function(object, ..., value){ # ---- dat <- ---------
 #' @aliases id-set
 #' @seealso [sp_network_classes()]
 #' @export
-setGenericVerif("id", function(object, ...){ # ---- id ------------------------
-  standardGeneric("id")})
+setGeneric(
+  name = "id", # ---- ... id --------------------------------------------------
+  def = function(object, ...) standardGeneric("id"))
+
 
 #' @param value A character replacing the existing id
 #' @rdname id
 #' @name id<-
 #' @export
-setGenericVerif("id<-",function(object,...,value){ # ---- id <- ---------------
-  standardGeneric("id<-")})
+setGeneric(
+  name = "id<-", # ---- ... id<- ----------------------------------------------
+  def = function(object, ...) standardGeneric("id<-"))
+
 
 #' @title Access the sampling results of a [spflow_model_mcmc-class()]
 #' @description For details see the documentation of the corresponding class.
@@ -72,8 +82,10 @@ setGenericVerif("id<-",function(object,...,value){ # ---- id <- ---------------
 #' @param object A [spflow_model_mcmc-class()]
 #' @seealso [spflow_model_mcmc-class()]
 #' @export
-setGenericVerif("mcmc_results", function(object){ # ---- mcmc_results ---------
-  standardGeneric("mcmc_results")})
+setGeneric(
+  name = "mcmc_results", # ---- ... mcmc_results ------------------------------
+  def = function(object, ...) standardGeneric("mcmc_results"))
+
 
 #' @title Generic for accessing the neighborhood matrix inside
 #'   [spflow network classes][sp_network_classes()]
@@ -84,16 +96,19 @@ setGenericVerif("mcmc_results", function(object){ # ---- mcmc_results ---------
 #' @seealso [sp_network_nodes-class()] [sp_multi_network-class()]
 #'
 #' @export
-setGenericVerif("neighborhood", function(object, ...){ # ---- neighborhood ----
-  standardGeneric("neighborhood")})
+setGeneric(
+  name = "neighborhood", # ---- ... neighborhood ------------------------------
+  def = function(object, ...) standardGeneric("neighborhood"))
+
 
 #' @rdname neighborhood
 #' @param value A neighborhood matrix to replace the existing one
 #' @name neighborhood<-
 #' @export
-setGenericVerif("neighborhood<-",
-                function(object, value){ # ---- neighborhood <- ---------------
-  standardGeneric("neighborhood<-")})
+setGeneric(
+  name = "neighborhood<-", # ---- ... neighborhood<- --------------------------
+  def = function(object, ...) standardGeneric("neighborhood<-"))
+
 
 #' @title Generic for accessing the node count of
 #'   [spflow network classes][sp_network_classes()]
@@ -104,8 +119,10 @@ setGenericVerif("neighborhood<-",
 #' @name nnodes
 #' @seealso [sp_network_nodes-class()] [sp_network_pair-class()]
 #' @export
-setGenericVerif("nnodes",function(object, ...){ # ---- nnodes -----------------
-  standardGeneric("nnodes")})
+setGeneric(
+  name = "nnodes", # ---- ... nnodes ------------------------------------------
+  def = function(object, ...) standardGeneric("nnodes"))
+
 
 #' @title Generic for accessing the node pair count of a
 #'   [sp_network_pair-class()]
@@ -115,8 +132,10 @@ setGenericVerif("nnodes",function(object, ...){ # ---- nnodes -----------------
 #' @name npairs
 #' @seealso [sp_network_pair-class()]
 #' @export
-setGenericVerif("npairs",function(object){ # ---- npairs ----------------------
-  standardGeneric("npairs")})
+setGeneric(
+  name = "npairs", # ---- ... npairs ------------------------------------------
+  def = function(object, ...) standardGeneric("npairs"))
+
 
 #' @title Generic for merging information on origins and destination to node
 #'   pairs inside [spflow network classes][sp_network_classes()]
@@ -127,8 +146,10 @@ setGenericVerif("npairs",function(object){ # ---- npairs ----------------------
 #' @param object A [sp_multi_network-class()]
 #' @seealso [sp_multi_network-class()]
 #' @export
-setGenericVerif("pair_merge", function(object, ...){ # ---- pair_merge --------
-  standardGeneric("pair_merge")})
+setGeneric(
+  name = "pair_merge", # ---- ... pair_merge ----------------------------------
+  def = function(object, ...) standardGeneric("pair_merge"))
+
 
 
 #' @title Generic for accessing a [sp_network_pair-class()] or a
@@ -139,9 +160,10 @@ setGenericVerif("pair_merge", function(object, ...){ # ---- pair_merge --------
 #' @seealso [sp_multi_network-class()]
 #' @name pull_member
 #' @export
-setGenericVerif("pull_member",
-                function(object, ...){ # ---- pull_member ---------------------
-                  standardGeneric("pull_member")})
+setGeneric(
+  name = "pull_member", # ---- ... pull_member --------------------------------
+  def = function(object, ...) standardGeneric("pull_member"))
+
 
 #' @title Generic for accessing the results of a [spflow_model-class()].
 #' @description For details on the methods see the documentation of the
@@ -151,25 +173,30 @@ setGenericVerif("pull_member",
 #' @param object A [spflow_model-class()]
 #' @seealso [spflow_model-class()]
 #' @export
-setGenericVerif("results",  function(object){ # ---- results -------------
-  standardGeneric("results")})
+setGeneric(
+  name = "results", # ---- ... results ----------------------------------------
+  def = function(object, ...) standardGeneric("results"))
+
 
 #' @title Replacement method for internal purposes
 #' @param object A [spflow_model()]
 #' @param value A data.frame of results
 #' @name results<-
 #' @keywords internal
-setGenericVerif("results<-",  function(object, value){ # ---- results <- ------
-  standardGeneric("results<-")})
+setGeneric(
+  name = "results<-", # ---- ... results<- ------------------------------------
+  def = function(object, ...) standardGeneric("results<-"))
+
 
 #' @title Access results of a [spflow_model()] as a one row data.frame
 #' @param object spflow_model_meta
 #' @name results_flat
 #' @rdname results_flat
 #' @keywords internal
-setGenericVerif("results_flat",
-                function(object, ...){ # ---- results_flat --------------------
-  standardGeneric("results_flat")})
+setGeneric(
+  name = "results_flat", # ---- ... results_flat ------------------------------
+  def = function(object, ...) standardGeneric("results_flat"))
+
 
 #' @title Generic for accessing the standard deviation of the residual inside
 #'   a [spflow_model-class()].
@@ -180,8 +207,10 @@ setGenericVerif("results_flat",
 #' @param object A [spflow_model-class()]
 #' @seealso [spflow_model-class()]
 #' @name sd_error
-setGenericVerif("sd_error", function(object){ # ---- sd_error -----------------
-  standardGeneric("sd_error")})
+setGeneric(
+  name = "sd_error", # ---- ... sd_error --------------------------------------
+  def = function(object, ...) standardGeneric("sd_error"))
+
 
 
 #' @title Generic for accessing the variance-covariance matrix of the
@@ -192,5 +221,7 @@ setGenericVerif("sd_error", function(object){ # ---- sd_error -----------------
 #' @name varcov
 #' @seealso [spflow_model-class()]
 #' @export
-setGenericVerif("varcov",  function(object){ # ---- varcov --------------------
-  standardGeneric("varcov")})
+setGeneric(
+  name = "varcov", # ---- ... varcov ------------------------------------------
+  def = function(object, ...) standardGeneric("varcov"))
+

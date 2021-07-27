@@ -3,6 +3,9 @@
 \name{results<-}
 \alias{results<-}
 \title{Replacement method for internal purposes}
+\usage{
+results(object, ...) <- value
+}
 \arguments{
 \item{object}{A \code{\link[=spflow_model]{spflow_model()}}}
 
