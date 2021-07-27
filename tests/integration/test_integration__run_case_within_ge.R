@@ -135,7 +135,10 @@ Z2_hat <- cbind(L2_hat,Z)
 ZZ2 <- crossprod(Z2_hat)
 ZY2_hat <- as.vector(crossprod(Z2_hat,ge_ge_vec_data[,"y2",drop = FALSE]))
 mu2_s2sls <- solve(as.matrix(ZZ2),ZY2_hat)
-sigma2_s2sls <- crossprod(ge_ge_vec_data[,"y2"]) - crossprod(ZY2_hat,mu2_s2sls)
+
+ZY2_tilde <- cbind(Y_t2[,-1], Z)
+e2 <- ge_ge_vec_data[,"y2"] - ZY2_tilde %*%  mu2_s2sls
+sigma2_s2sls <- crossprod(e2)
 sigma2_s2sls <- as.vector(sqrt(sigma2_s2sls)/n)
 
 
@@ -148,7 +151,10 @@ Z9_hat <- cbind(L9_hat,Z)
 ZZ9 <- crossprod(Z9_hat)
 ZY9_hat <- as.vector(crossprod(Z9_hat,ge_ge_vec_data[,"y9",drop = FALSE]))
 mu9_s2sls <- solve(as.matrix(ZZ9),ZY9_hat)
-sigma9_s2sls <- crossprod(ge_ge_vec_data[,"y9"]) - crossprod(ZY9_hat,mu9_s2sls)
+
+ZY9_tilde <- cbind(Y_t9[,-1], Z)
+e9 <- ge_ge_vec_data[,"y9"] - ZY9_tilde %*%  mu9_s2sls
+sigma9_s2sls <- crossprod(e9)
 sigma9_s2sls <- as.vector(sqrt(sigma9_s2sls)/n)
 
 # all results
@@ -216,8 +222,7 @@ expect_equal(target_moments[["ZZ"]], actual_moments[["ZZ"]])
 expect_equal(target_moments[["UU"]], actual_moments[["UU"]])
 expect_equal(target_moments[["ZY2"]], actual_moments[["ZY"]])
 expect_equal(target_moments[["UY2"]], actual_moments[["UY"]])
-expect_equal(target_moments[["TSS2"]][1,1,drop = FALSE],
-             actual_moments[["TSS"]])
+expect_equal(target_moments[["TSS2"]], actual_moments[["TSS"]])
 
 # test model matrices
 actual_matrices <- res_model_2_s2sls@design_matrix
@@ -250,8 +255,7 @@ expect_equal(target_moments[["ZZ"]], actual_moments[["ZZ"]])
 expect_equal(target_moments[["UU"]], actual_moments[["UU"]])
 expect_equal(target_moments[["ZY9"]], actual_moments[["ZY"]])
 expect_equal(target_moments[["UY9"]], actual_moments[["UY"]])
-expect_equal(target_moments[["TSS9"]][1,1,drop = FALSE],
-             actual_moments[["TSS"]])
+expect_equal(target_moments[["TSS9"]], actual_moments[["TSS"]])
 
 # test model matrices
 actual_matrices <- res_model_9_s2sls@design_matrix

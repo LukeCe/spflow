@@ -44,5 +44,5 @@ jobs:
         shell: Rscript {0}
 
       - name: Test coverage
-        run: covr::codecov()
+        run: covr::codecov(code = 'tinytest::run_test_dir("tests/integration/")')
         shell: Rscript {0}
