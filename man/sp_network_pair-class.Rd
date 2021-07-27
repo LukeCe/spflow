@@ -4,7 +4,6 @@
 \name{sp_network_pair-class}
 \alias{sp_network_pair-class}
 \alias{dat,sp_network_pair-method}
-\alias{dat<-,sp_network_pair-method}
 \alias{id,sp_network_pair-method}
 \alias{id<-,sp_network_pair-method}
 \alias{npairs,sp_network_pair-method}
@@ -12,8 +11,6 @@
 \title{sp_network_pair Class}
 \usage{
 \S4method{dat}{sp_network_pair}(object)
-
-\S4method{dat}{sp_network_pair}(object) <- value
 
 \S4method{id}{sp_network_pair}(object)
 
@@ -24,8 +21,6 @@
 \S4method{nnodes}{sp_network_pair}(object)
 }
 \arguments{
-\item{...}{more arguments passed to the constructor \code{\link[=sp_network_pair]{sp_network_pair()}}}
-
 \item{what}{A character to indicate what to count; should be in c("orig","dest").}
 }
 \description{
@@ -86,4 +81,3 @@ Other spflow network classes:
 \code{\link{sp_network_nodes-class}}
 }
 \concept{spflow network classes}
-\keyword{internal}

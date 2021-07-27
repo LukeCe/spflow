@@ -70,4 +70,3 @@ Other spflow network classes:
 \code{\link{sp_network_pair-class}}
 }
 \concept{spflow network classes}
-\keyword{internal}

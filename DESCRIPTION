@@ -1,6 +1,6 @@
 Package: spflow
 Title: Spatial Econometric Interaction Models
-Version: 0.0.0.9012
+Version: 0.1.0
 Authors@R: c(
     person("Lukas", "Dargel", role = c("aut", "cre"),
            email = "lukas.dargel@mailbox.org",
@@ -14,10 +14,8 @@ Authors@R: c(
     person("Gabriel", "Watkinson", role = "ctb"),
     person("Roger", "Bivand", role = "ctb"))
 Description: 
-    Efficient estimation of spatial econometric models of origin-destiantion 
-    flows, which may exhibit spatial autocorrelation in the dependent variable,
-    the explanatory variables or both.
-    This model was first proposed by LeSage and Pace (2008) <doi:10.1111/j.1467-9787.2008.00573.x>, who develop a matrix formulation that exploits the relational structure of flow data.
+    Efficient estimation of spatial econometric models of origin-destiantion flows, which may exhibit spatial autocorrelation in the dependent variable, the explanatory variables or both.
+    The model is the one proposed by LeSage and Pace (2008) <doi:10.1111/j.1467-9787.2008.00573.x>, who develop a matrix formulation that exploits the relational structure of flow data.
     The estimation procedures follow most closely those outlined by Dargel (2021) (preprint available at https://www.tse-fr.eu/fr/publications/revisiting-estimation-methods-spatial-econometric-interaction-models).
 License: GPL (>= 3) + file LICENSE
 Encoding: UTF-8

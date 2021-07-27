@@ -4,25 +4,19 @@
 \name{sp_network_nodes-class}
 \alias{sp_network_nodes-class}
 \alias{dat,sp_network_nodes-method}
-\alias{dat<-,sp_network_nodes-method}
 \alias{id,sp_network_nodes-method}
 \alias{id<-,sp_network_nodes-method}
 \alias{neighborhood,sp_network_nodes-method}
-\alias{neighborhood<-,sp_network_nodes-method}
 \alias{nnodes,sp_network_nodes-method}
 \title{sp_network_nodes Class}
 \usage{
 \S4method{dat}{sp_network_nodes}(object)
-
-\S4method{dat}{sp_network_nodes}(object) <- value
 
 \S4method{id}{sp_network_nodes}(object)
 
 \S4method{id}{sp_network_nodes}(object) <- value
 
 \S4method{neighborhood}{sp_network_nodes}(object)
-
-\S4method{neighborhood}{sp_network_nodes}(object) <- value
 
 \S4method{nnodes}{sp_network_nodes}(object)
 }
@@ -70,4 +64,3 @@ Other spflow network classes:
 \code{\link{sp_network_pair-class}}
 }
 \concept{spflow network classes}
-\keyword{internal}

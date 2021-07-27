@@ -45,9 +45,8 @@ which gives fine grained control over the estimation.
 
 Our estimation procedures make use of the matrix formulation introduced by
 \insertCite{LeSage2008;textual}{spflow} and further developed by
-\insertCite{Dargel2021;textual}{spflow} to reduce the computational effort and memory
-requirements considerably.
-See (#Dargel2020Sim) for an exhaustive simulation study.
+\insertCite{Dargel2021;textual}{spflow} to reduce the computational
+effort and memory requirements.
 The estimation procedure can be adjusted through the \code{estimation_method}
 argument in \code{\link[=spflow_control]{spflow_control()}}.
 \subsection{Maximum likelihood estimation (MLE):}{
@@ -73,7 +72,7 @@ using the input \code{spflow_control(estimation_method = "s2sls")}.
 
 The MCMC estimator is based on the ideas of
 \insertCite{LeSage2009;textual}{spflow} and incorporates the improvements
-proposed in (#Dargel2020Improve).
+proposed in \insertCite{Dargel2021;textual}{spflow}.
 The estimation is based on a tuned Metropolis-Hastings sampler for the
 auto-regressive parameters, and for the remaining parameters it uses Gibbs
 sampling.
@@ -183,5 +182,5 @@ spflow(flow_formula = y9 ~ O_(X) + D_(X) + I_(X) + G_(DISTANCE),
 \insertAllCited{}
 }
 \seealso{
-\code{\link[=spflow_control]{spflow_control()}}
+\code{\link[=spflow_control]{spflow_control()}} \code{\link[=spflow_model_classes]{spflow_model_classes()}}
 }

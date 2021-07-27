@@ -74,7 +74,6 @@ setMethod(
 #' @param network_ids A single character vector indicating the id of a
 #'   [sp_network_nodes-class()] objects to extract from the
 #'   [sp_multi_network-class()]
-#' @keywords internal
 setMethod(
   f = "neighborhood",
   signature = "sp_multi_network",

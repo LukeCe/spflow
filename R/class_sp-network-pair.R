@@ -39,7 +39,6 @@ setClass("sp_network_pair",
 # ---- Methods ----------------------------------------------------------------
 
 
-# ---- ... dat -----------------------------------------------
 #' @rdname sp_network_pair-class
 #' @export
 #' @examples
@@ -50,11 +49,10 @@ setClass("sp_network_pair",
 #'
 setMethod(
   f = "dat",
-  signature = "sp_network_pair",
-  definition = function(object) return(object@pair_data))
+  signature = "sp_network_pair", function(object) {  # ---- dat ---------------
+    return(object@pair_data)
+    })
 
-#' @param ... more arguments passed to the constructor [sp_network_pair()]
-#' @rdname sp_network_pair-class
 #' @keywords internal
 setReplaceMethod(
   f = "dat",

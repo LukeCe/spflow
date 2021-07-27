@@ -34,9 +34,8 @@
 #' @section Details:
 #' Our estimation procedures make use of the matrix formulation introduced by
 #' \insertCite{LeSage2008;textual}{spflow} and further developed by
-#' \insertCite{Dargel2021;textual}{spflow} to reduce the computational effort and memory
-#' requirements considerably.
-#' See (#Dargel2020Sim) for an exhaustive simulation study.
+#' \insertCite{Dargel2021;textual}{spflow} to reduce the computational
+#' effort and memory requirements.
 #' The estimation procedure can be adjusted through the `estimation_method`
 #' argument in [spflow_control()].
 #'
@@ -58,7 +57,7 @@
 #' ## Bayesian Markov Chain Monte Carlo (MCMC):
 #' The MCMC estimator is based on the ideas of
 #' \insertCite{LeSage2009;textual}{spflow} and incorporates the improvements
-#' proposed in (#Dargel2020Improve).
+#' proposed in \insertCite{Dargel2021;textual}{spflow}.
 #' The estimation is based on a tuned Metropolis-Hastings sampler for the
 #' auto-regressive parameters, and for the remaining parameters it uses Gibbs
 #' sampling.
@@ -155,7 +154,7 @@
 #'
 #'
 #' @references \insertAllCited{}
-#' @seealso [spflow_control()]
+#' @seealso [spflow_control()] [spflow_model_classes()]
 #' @export
 spflow <- function(
   flow_formula,

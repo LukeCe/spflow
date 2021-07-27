@@ -44,12 +44,10 @@ setMethod(
     return(object@node_data)
     })
 
-#' @rdname sp_network_nodes-class
 #' @keywords internal
 setReplaceMethod(
   f = "dat",
-  signature = "sp_network_nodes",
-  function(object, value) { # ---- dat <- -------------
+  signature = "sp_network_nodes", function(object, value) { # ---- dat <- -----
 
     object@node_data <- value
     object@nnodes <- nrow(value) %||% object@nnodes
@@ -96,7 +94,6 @@ setMethod(
     return(object@node_neighborhood)
   })
 
-#' @rdname sp_network_nodes-class
 #' @keywords internal
 setReplaceMethod(
   f = "neighborhood",
