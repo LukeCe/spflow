@@ -24,7 +24,7 @@ knitr::opts_chunk$set(
 <!-- badges: end -->
 
 
-The **spflow** packages allows to estimate spatial econometric interaction models.
+The [**spflow**](https://lukece.github.io/spflow/) package allows to estimate spatial econometric interaction models.
 It is designed to exploit the relational structure of flow data, reducing the computational burden and memory requirements.
 
 ## Installation

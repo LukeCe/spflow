@@ -13,9 +13,10 @@ status](https://www.r-pkg.org/badges/version/spflow)](https://CRAN.R-project.org
 [![Downloads](http://cranlogs.r-pkg.org/badges/spflow?color=brightgreen)](http://www.r-pkg.org/pkg/spflow)
 <!-- badges: end -->
 
-The **spflow** packages allows to estimate spatial econometric
-interaction models. It is designed to exploit the relational structure
-of flow data, reducing the computational burden and memory requirements.
+The [**spflow**](https://lukece.github.io/spflow/) package allows to
+estimate spatial econometric interaction models. It is designed to
+exploit the relational structure of flow data, reducing the
+computational burden and memory requirements.
 
 ## Installation
 
@@ -33,7 +34,7 @@ with:
 devtools::install_github("LukeCe/spflow")
 ```
 
-## License
+## Liecense
 
 -   **Code :** [GPL 3](https://www.r-project.org/Licenses/GPL-3)  
 -   **Text and figures :** [CC BY-SA
