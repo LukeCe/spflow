@@ -5,14 +5,14 @@
 \alias{dat-set}
 \alias{dat<-}
 \title{Generic for accessing the data inside
-\link[=sp_network_classes]{spflow network classes}}
+\link[=spflow_network_classes]{spflow network classes}}
 \usage{
 dat(object, ...)
 
 dat(object) <- value
 }
 \arguments{
-\item{object}{A \link[=sp_network_classes]{spflow network classes}}
+\item{object}{An object belonging to the \link[=spflow_network_classes]{spflow network classes}}
 
 \item{...}{Arguments to be passed to methods}
 
@@ -23,5 +23,5 @@ For details on the methods see the documentation of the
 corresponding classes.
 }
 \seealso{
-\code{\link[=sp_network_classes]{sp_network_classes()}}
+\code{\link[=spflow_network_classes]{spflow_network_classes()}}
 }

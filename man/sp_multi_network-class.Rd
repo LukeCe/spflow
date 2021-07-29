@@ -7,7 +7,7 @@
 \alias{dat,sp_multi_network-method}
 \alias{neighborhood,sp_multi_network-method}
 \alias{pull_member,sp_multi_network-method}
-\title{sp_multi_network Class}
+\title{Class sp_multi_network}
 \usage{
 \S4method{id}{sp_multi_network}(object)
 
@@ -56,8 +56,8 @@ pull_member(multi_net_usa_ge,"ge_ge")
 }
 \seealso{
 Other spflow network classes: 
-\code{\link{sp_network_classes}},
 \code{\link{sp_network_nodes-class}},
-\code{\link{sp_network_pair-class}}
+\code{\link{sp_network_pair-class}},
+\code{\link{spflow_network_classes}}
 }
 \concept{spflow network classes}

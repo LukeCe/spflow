@@ -33,7 +33,7 @@
 }
 \description{
 An S4 class that contains all information on a single network.
-In this representation a network is composed of nodes which are must be
+In this representation a network is composed of nodes which must be
 identified uniquely by and ID.
 Each node is described by variables stored in a data.frame.
 The node neighborhood matrix describes strength of links between the nodes
@@ -43,7 +43,7 @@ The class is constructed by the \code{\link[=sp_network_nodes]{sp_network_nodes(
 \section{Slots}{
 
 \describe{
-\item{\code{network_id}}{A character that serves as identifier for the network}
+\item{\code{network_id}}{A character that serves as an identifier for the network}
 
 \item{\code{nnodes}}{A numeric that indicates the number of nodes in the network}
 
@@ -71,7 +71,7 @@ nnodes(germany_net)
 \seealso{
 Other spflow network classes: 
 \code{\link{sp_multi_network-class}},
-\code{\link{sp_network_classes}},
-\code{\link{sp_network_pair-class}}
+\code{\link{sp_network_pair-class}},
+\code{\link{spflow_network_classes}}
 }
 \concept{spflow network classes}

@@ -4,7 +4,7 @@
 \alias{neighborhood}
 \alias{neighborhood<-}
 \title{Generic for accessing the neighborhood matrix inside
-\link[=sp_network_classes]{spflow network classes}}
+\link[=spflow_network_classes]{spflow network classes}}
 \usage{
 neighborhood(object, ...)
 

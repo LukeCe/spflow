@@ -18,7 +18,7 @@
 \alias{logLik,spflow_model_mle-method}
 \alias{varcov,spflow_model_mle_s2sls_ols-method}
 \alias{mcmc_results,spflow_model_mcmc-method}
-\title{spflow_model Class}
+\title{Class spflow_model}
 \usage{
 \S4method{coef}{spflow_model}(object)
 
@@ -48,13 +48,13 @@
 \item{type}{A character declaring the type of prediction (for now only "BP")}
 }
 \description{
-A S4 class that contains the estimation results of spatial econometric
+An S4 class that contains the estimation results of spatial econometric
 interaction models estimated by the \code{\link[=spflow]{spflow()}} function.
 
 There are four subclasses that are specific to the chosen estimation method
 (OLS, MLE, Bayesian MCMC or S2SLS).
 They contain some additional information specific to the corresponding
-method but most behaviours and data is identical among them.
+method but most behaviours and data are identical among them.
 }
 \section{Slots}{
 
@@ -97,7 +97,7 @@ MCMC sampling procedure}
 \section{Main results}{
 
 The main results are accessed with the \code{results()} method.
-They are given in form of a data frame with the following columns;
+They are given in the form of a data frame with the following columns;
 \itemize{
 \item \code{est}: value of the estimated parameter
 \item \code{sd}: value of the standard deviation of the parameter
@@ -135,5 +135,5 @@ mcmc_results(spflow_results) # parameter values during the mcmc sampling
 
 }
 \seealso{
-\code{\link[=spflow]{spflow()}}, \code{\link[=sp_network_classes]{sp_network_classes()}}
+\code{\link[=spflow]{spflow()}}, \code{\link[=spflow_network_classes]{spflow_network_classes()}}
 }

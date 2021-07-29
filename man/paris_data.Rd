@@ -6,7 +6,7 @@
 \alias{paris10km_municipalities}
 \alias{paris10km_commuteflows}
 \alias{paris10km_neighborhood}
-\title{Example data for commuting flows of paris}
+\title{Example data for commuting flows within Paris}
 \format{
 An object of class \code{sf} (inherits from \code{data.frame}) with 71 rows and 6 columns.
 
@@ -20,13 +20,13 @@ The data combines different public sources (last accessed 2021-05-05).
 Three data sets are provided by INSEE.
 More information on the rights to use and diffuse this data is provided \href{https://www.insee.fr/fr/information/2008466}{here}.
 \itemize{
-\item Commute flows (https://www.insee.fr/fr/statistiques/fichier/3566477/base-texte-flux-mobilite-domicile-lieu-travail-2015.zip)
+\item Commuting flows (https://www.insee.fr/fr/statistiques/fichier/3566477/base-texte-flux-mobilite-domicile-lieu-travail-2015.zip)
 \item Number of companies (https://www.insee.fr/fr/statistiques/2021271)
 \item Median income (https://www.insee.fr/fr/statistiques/3560121)
 }
 
 The geographies, population, and area of the municipalities come from \href{https://public.opendatasoft.com/explore/?sort=modified}{OpenDataSoft} and are available \href{https://public.opendatasoft.com/explore/dataset/code-postal-code-insee-2015/export/?flg=fr&location=2,18.52839,-2.98471&basemap=jawg.streets}{here}.
-This data is published under an \href{https://www.etalab.gouv.fr/wp-content/uploads/2014/05/Licence_Ouverte.pdf}{OPEN LICENCE}.
+This data  set is published under an \href{https://www.etalab.gouv.fr/wp-content/uploads/2014/05/Licence_Ouverte.pdf}{OPEN LICENCE}.
 }
 \usage{
 paris10km_municipalities
@@ -37,18 +37,18 @@ paris10km_neighborhood
 }
 \description{
 The package includes an example data set that contains home-to-work
-commuting flows for 71 municipalities around the centrer of Paris.
+commuting flows for 71 municipalities around the center of Paris.
 The data for the example is stored in three objects
 }
 \details{
 \enumerate{
 \item \code{paris10km_municipalities} contains information on the municipalities.
-It contains some socio-economic variable, the identifier of the municipality
-and a geometry column.
+It contains some socio-economic variables, the identifier of the
+municipality and a geometry column.
 The geometry is a MULTIPOLYGON that describes the shape of the region.
 \item \code{paris10km_commuteflows} contains information on pairs of municipalities.
 It is a data.frame with origin and destination identifiers and contains
-the information on the size of the flow and the distance.
+the information on the size of the commuting flows and the distance.
 \item \code{paris10km_neighborhood} contains three sparse matrices that represent
 alternative definitions of the neighborhood of the municipalities.
 The first is based on contiguity, the second one on distance and the third

@@ -12,13 +12,13 @@ sp_network_nodes(
 )
 }
 \arguments{
-\item{network_id}{A character that serves as identifier for the network}
+\item{network_id}{A character that serves as an identifier for the network}
 
 \item{node_neighborhood}{A matrix that describes the neighborhood of the nodes}
 
 \item{node_data}{A data.frame that contains all information describing the nodes}
 
-\item{node_key_column}{A character indicating the column containing identifiers for the nodes}
+\item{node_key_column}{A character indicating the column containing the identifiers for the nodes}
 }
 \value{
 The S4 class \code{\link[=sp_network_nodes-class]{sp_network_nodes-class()}}
@@ -35,7 +35,7 @@ sp_network_nodes("germany",
 \seealso{
 Other Constructors for spflow network classes: 
 \code{\link{sp_multi_network}},
-\code{\link{sp_network_classes}},
-\code{\link{sp_network_pair}}
+\code{\link{sp_network_pair}},
+\code{\link{spflow_network_classes}}
 }
 \concept{Constructors for spflow network classes}

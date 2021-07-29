@@ -1,11 +1,11 @@
 #' @title spflow network classes
 #'
 #' @description
-#' The spflow packages provides three additional classes to the R environment
+#' The spflow package provides three additional classes to the R environment
 #' that allow to handle origin-destination flow data efficiently.
 #'
-#' The main idea is to exploit the relational structure or origin-destination
-#' data which reduces the memory requirements.
+#' The main idea is to exploit the relational structure of origin-destination
+#' data to reduce the memory requirements.
 #' Data on origins and destinations are stored in the
 #' [sp_network_nodes-class()] and data on the origin-destination pairs are
 #' stored in an [sp_network_pair-class()].
@@ -17,7 +17,7 @@
 #'
 #'
 #' @include class_sp-network-nodes.R class_sp-network-pair.R
-#' @name sp_network_classes
+#' @name spflow_network_classes
 #' @family spflow network classes
 #' @family Constructors for spflow network classes
 #' @examples
@@ -65,15 +65,15 @@
 #' # ... G_() contains pair variables (distances)
 #' flow_formula <-
 #'   log(COMMUTE_FLOW + 1) ~
-#'   D_(clog(NB_COMPANY + 1) + clog(MED_INCOME + 1)) +
-#'   O_(clog(POPULATION + 1) + clog(NB_COMPANY + 1) + clog(MED_INCOME + 1)) +
-#'   I_(clog(NB_COMPANY + 1) + clog(POPULATION + 1)) +
+#'   D_(log(NB_COMPANY) + clog(MED_INCOME)) +
+#'   O_(log(POPULATION) + log(NB_COMPANY) + clog(MED_INCOME)) +
+#'   I_(log(NB_COMPANY) + log(POPULATION)) +
 #'   G_(log(DISTANCE + 1))
 #'
 #' # define what variables to use in an SDM specification
 #' # ... if not given all will be used
 #' sdm_formula <-
-#'  ~ D_(clog(NB_COMPANY + 1) + clog(MED_INCOME + 1))
+#'  ~ D_(log(NB_COMPANY) + clog(MED_INCOME))
 #'
 #' # define the list of control parameters
 #' flow_control <- spflow_control(sdm_variables = sdm_formula)

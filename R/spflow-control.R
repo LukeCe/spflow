@@ -8,14 +8,30 @@
 #' control over the use of the explanatory variables.
 #' The user can also adjust the form of autocorrelation to be considered.
 #'
-#' @section Adjusting the form of autocorrelation:
+#' @section Details:
+#'
+#' ## Adjusting the form of autocorrelation
 #'
 #' The option `model` allows to declare one of nine different forms of
 #' autocorrelation that follow the naming convention of
 #' \insertCite{LeSage2008;textual}{spflow}.
-#' The most general specification is "model_9" and all other correspond to
-#' special cases of this one.
-#' The different sub models are summarized in this table.
+#' The most general specification is "model_9", leading to the model
+#' \eqn{y = \rho_dW_dy + \rho_o W_oy + \rho_wW_wy + Z\delta + \epsilon}.
+#' All other models special cases of this one.
+#' The constraints that lead to the different sub models are summarized in
+#' this table.
+#'
+#'  | **Model Number** | **Autocorrelation Parameters** | **Constraints** |
+#'  | :--------------: | :----------------------------: | :-------------: |
+#'  | Model 9          | \eqn{\rho_d, \rho_o, \rho_w}   | unconstrained                      |
+#'  | Model 8          | \eqn{\rho_d, \rho_o, \rho_w}   | \eqn{\rho_w = - \rho_d \rho_o}     |
+#'  | Model 7          | \eqn{\rho_d, \rho_o}           | \eqn{\rho_w = 0}                   |
+#'  | Model 6          | \eqn{\rho_{dow}}               | \eqn{\rho_d = \rho_o = \rho_w}     |
+#'  | Model 5          | \eqn{\rho_{do}}                | \eqn{\rho_d = \rho_o, \rho_w = 0}  |
+#'  | Model 4          | \eqn{\rho_w}                   | \eqn{\rho_d = \rho_o = 0}          |
+#'  | Model 3          | \eqn{\rho_o}                   | \eqn{\rho_d = \rho_w = 0}          |
+#'  | Model 2          | \eqn{\rho_d}                   | \eqn{\rho_o = \rho_w = 0}          |
+#'  | Model 1          | none                           | \eqn{\rho_d = \rho_o = \rho_w = 0} |
 #'
 #' @param estimation_method
 #'   A character which indicates the estimation method, should be one of
@@ -43,8 +59,10 @@
 #' @param mle_hessian_method
 #'   A character which indicates the method for Hessian calculation
 #' @param mle_optim_limit
-#'   A numeric indicating the number of trails given to the optimizer of the
-#'   likelihood function. If the optimizer does not converge after the
+#'   A numeric indicating the number of trials given to the optimizer of the
+#'   likelihood function. A trial refers to a new initiation of the
+#'   optimization procedure using different (random) starting values for the
+#'   parameters. If the optimizer does not converge after the
 #'   indicated number of trails an error will be thrown after this limit.
 #' @param twosls_instrumental_variables
 #'   Either a formula or a character; the formula can be used to explicitly
@@ -57,10 +75,11 @@
 #'   instruments generated for the S2SLS estimator
 #' @param twosls_reduce_pair_instruments
 #'   A logical that indicates whether the number of instruments that are
-#'   derived from pair attributes should be reduced or not (default is TRUE
-#'   because constructing these instruments is often the most demanding part of
+#'   derived from pair attributes should be reduced or not. The default is
+#'   `TRUE`, because constructing these instruments is often the most demanding
+#'   part of the estimation \insertCite{Dargel2021}{spflow}.
 #' @param mcmc_iterations
-#'   A numeric indicating the number of iteration
+#'   A numeric indicating the number of iterations
 #' @param mcmc_burn_in
 #'   A numeric indicating the length of the burn in period
 #' @param mcmc_resampling_limit

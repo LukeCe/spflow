@@ -19,10 +19,11 @@ sp_network_pair(
 
 \item{pair_data}{A data.frame containing information on the origin-destination pairs}
 
-\item{orig_key_column}{A character indicating the column containing identifiers for the origins}
+\item{orig_key_column}{A character indicating the name of the column containing the identifiers
+of the origins}
 
-\item{dest_key_column}{A character indicating the column containing identifiers for the
-destinations}
+\item{dest_key_column}{A character indicating the name of the column containing the identifiers
+of the destinations}
 }
 \value{
 An S4 class of type \code{\link[=sp_network_pair]{sp_network_pair()}}
@@ -39,7 +40,7 @@ sp_network_pair("ge","ge",pair_frame,"ORIG_ID_STATE","DEST_ID_STATE")
 \seealso{
 Other Constructors for spflow network classes: 
 \code{\link{sp_multi_network}},
-\code{\link{sp_network_classes}},
-\code{\link{sp_network_nodes}}
+\code{\link{sp_network_nodes}},
+\code{\link{spflow_network_classes}}
 }
 \concept{Constructors for spflow network classes}

@@ -16,7 +16,7 @@
 #'
 #' @section Network data:
 #' The package provides a new class for representing network data.
-#' [These classes][sp_network_classes()] help to exploit the relational
+#' [These classes][spflow_network_classes()] help to exploit the relational
 #' structure of the data and ensure that all origins and destinations are
 #' correctly identified.
 #'

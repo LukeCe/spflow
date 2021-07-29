@@ -2,7 +2,7 @@
 #'
 #' @description
 #' An S4 class that contains all information on a single network.
-#' In this representation a network is composed of nodes which are must be
+#' In this representation a network is composed of nodes which must be
 #' identified uniquely by and ID.
 #' Each node is described by variables stored in a data.frame.
 #' The node neighborhood matrix describes strength of links between the nodes
@@ -10,7 +10,7 @@
 #' The class is constructed by the [sp_network_nodes()] function.
 #'
 #' @slot network_id
-#'   A character that serves as identifier for the network
+#'   A character that serves as an identifier for the network
 #' @slot nnodes
 #'   A numeric that indicates the number of nodes in the network
 #' @slot node_data
@@ -220,13 +220,13 @@ setValidity(
 #' Create a [sp_network_nodes-class()]
 #'
 #' @param network_id
-#'   A character that serves as identifier for the network
+#'   A character that serves as an identifier for the network
 #' @param node_data
 #'   A data.frame that contains all information describing the nodes
 #' @param node_neighborhood
 #'   A matrix that describes the neighborhood of the nodes
 #' @param node_key_column
-#'   A character indicating the column containing identifiers for the nodes
+#'   A character indicating the column containing the identifiers for the nodes
 #'
 #' @family Constructors for spflow network classes
 #' @importClassesFrom Matrix Matrix

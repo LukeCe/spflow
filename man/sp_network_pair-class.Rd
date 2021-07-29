@@ -9,7 +9,7 @@
 \alias{id<-,sp_network_pair-method}
 \alias{npairs,sp_network_pair-method}
 \alias{nnodes,sp_network_pair-method}
-\title{sp_network_pair Class}
+\title{Class sp_network_pair}
 \usage{
 \S4method{dat}{sp_network_pair}(object)
 
@@ -29,12 +29,12 @@
 \item{value}{An object to replace the existing id/data}
 }
 \description{
-An S4 class which holds information on origin-destination pairs.
-Each origin destination pair is composed of two nodes (see \code{\link[=sp_network_nodes]{sp_network_nodes()}}).
-All origins belong to the same (origin-) network and all destination belong to
-the same (destination-) network.
-It is possible to chose the same network for origins and destinations, which
-enables to represent origin-destination pairs within the same network.
+An S4 class which holds information on origin-destination (OD) pairs.
+Each OD pair is composed of two nodes (see \code{\link[=sp_network_nodes-class]{sp_network_nodes-class()}}).
+All origins belong to the same (origin-) network and all destination belong
+to the same (destination-) network. It is possible to choose the same
+network for origins and destinations, which enables to represent OD pairs
+within the same network.
 }
 \section{Slots}{
 
@@ -82,7 +82,7 @@ prod(nnodes(net_pair_ge_ge) == npairs(net_pair_ge_ge))
 \seealso{
 Other spflow network classes: 
 \code{\link{sp_multi_network-class}},
-\code{\link{sp_network_classes}},
-\code{\link{sp_network_nodes-class}}
+\code{\link{sp_network_nodes-class}},
+\code{\link{spflow_network_classes}}
 }
 \concept{spflow network classes}

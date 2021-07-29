@@ -5,14 +5,14 @@
 \alias{id-set}
 \alias{id<-}
 \title{Generic for accessing the ids of
-\link[=sp_network_classes]{spflow network classes}}
+\link[=spflow_network_classes]{spflow network classes}}
 \usage{
 id(object, ...)
 
 id(object, ...) <- value
 }
 \arguments{
-\item{object}{A \link[=sp_network_classes]{spflow network class}}
+\item{object}{A \link[=spflow_network_classes]{spflow network class}}
 
 \item{...}{Arguments to be passed to methods}
 
@@ -25,5 +25,5 @@ corresponding classes.
 For details see the documentation of the corresponding classes.
 }
 \seealso{
-\code{\link[=sp_network_classes]{sp_network_classes()}}
+\code{\link[=spflow_network_classes]{spflow_network_classes()}}
 }

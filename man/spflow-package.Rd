@@ -19,7 +19,7 @@ The estimators are detailed in \insertCite{Dargel2021;textual}{spflow}.
 \section{Network data}{
 
 The package provides a new class for representing network data.
-\link[=sp_network_classes]{These classes} help to exploit the relational
+\link[=spflow_network_classes]{These classes} help to exploit the relational
 structure of the data and ensure that all origins and destinations are
 correctly identified.
 }

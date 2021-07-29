@@ -28,14 +28,14 @@ setGeneric(
 
 
 #' @title Generic for accessing the data inside
-#'   [spflow network classes][sp_network_classes()]
+#'   [spflow network classes][spflow_network_classes()]
 #' @description For details on the methods see the documentation of the
 #'   corresponding classes.
-#' @param object A [spflow network classes][sp_network_classes()]
+#' @param object An object belonging to the [spflow network classes][spflow_network_classes()]
 #' @param ... Arguments to be passed to methods
 #' @name dat
 #' @aliases dat-set
-#' @seealso [sp_network_classes()]
+#' @seealso [spflow_network_classes()]
 #' @export
 setGeneric(
   name = "dat", # ---- ... dat ------------------------------------------------
@@ -52,16 +52,16 @@ setGeneric(
 
 
 #' @title Generic for accessing the ids of
-#'   [spflow network classes][sp_network_classes()]
+#'   [spflow network classes][spflow_network_classes()]
 #' @description For details on the methods see the documentation of the
 #'   corresponding classes.
-#' @title Access the id of [spflow network classes][sp_network_classes()]
+#' @title Access the id of [spflow network classes][spflow_network_classes()]
 #' @description For details see the documentation of the corresponding classes.
-#' @param object A [spflow network class][sp_network_classes()]
+#' @param object A [spflow network class][spflow_network_classes()]
 #' @param ... Arguments to be passed to methods
 #' @name id
 #' @aliases id-set
-#' @seealso [sp_network_classes()]
+#' @seealso [spflow_network_classes()]
 #' @export
 setGeneric(
   name = "id", # ---- ... id --------------------------------------------------
@@ -89,7 +89,7 @@ setGeneric(
 
 
 #' @title Generic for accessing the neighborhood matrix inside
-#'   [spflow network classes][sp_network_classes()]
+#'   [spflow network classes][spflow_network_classes()]
 #' @description For details on the methods see the documentation of the
 #'   corresponding classes.
 #' @param object One of [sp_network_nodes-class()], [sp_multi_network-class()]
@@ -113,7 +113,7 @@ setGeneric(
 
 
 #' @title Generic for accessing the node count of
-#'   [spflow network classes][sp_network_classes()]
+#'   [spflow network classes][spflow_network_classes()]
 #' @description For details on the methods see the documentation of the
 #'   corresponding classes.
 #' @param object One of [sp_network_nodes-class()], [sp_network_pair-class()]
@@ -127,7 +127,7 @@ setGeneric(
   def = function(object, ...) standardGeneric("nnodes"))
 
 
-#' @title Generic for accessing the node pair count of a
+#' @title Generic for accessing the node pairs count of a
 #'   [sp_network_pair-class()]
 #' @description For details on the method see the documentation of the
 #'   corresponding class.
@@ -141,7 +141,7 @@ setGeneric(
 
 
 #' @title Generic for merging information on origins and destination to node
-#'   pairs inside [spflow network classes][sp_network_classes()]
+#'   pairs inside [spflow network classes][spflow_network_classes()]
 #' @description For details on the methods see the documentation of the
 #'   corresponding classes.
 #' @rdname pair_merge

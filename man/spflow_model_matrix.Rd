@@ -15,8 +15,9 @@ spflow_model_matrix(
 \item{sp_multi_network}{A \code{\link[=sp_multi_network]{sp_multi_network()}} object that contains information on the origins,
 and the destinations and their neighborhood structure}
 
-\item{network_pair_id}{A character indicating the id of a \code{\link[=sp_network_pair]{sp_network_pair()}}, defaults to the
-first pair inside the \code{\link[=sp_multi_network]{sp_multi_network()}}}
+\item{network_pair_id}{A character indicating the id of a \code{\link[=sp_network_pair]{sp_network_pair()}} (only relevant if
+the \code{\link[=sp_multi_network]{sp_multi_network()}} contains multiple \code{sp_network_pair}-objects:
+defaults to the of them)}
 }
 \value{
 A list of design matrices for spatial interaction model

@@ -3,7 +3,7 @@
 \name{nnodes}
 \alias{nnodes}
 \title{Generic for accessing the node count of
-\link[=sp_network_classes]{spflow network classes}}
+\link[=spflow_network_classes]{spflow network classes}}
 \usage{
 nnodes(object, ...)
 }

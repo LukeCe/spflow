@@ -48,8 +48,10 @@ the value of the log-determinant term.}
 
 \item{mle_hessian_method}{A character which indicates the method for Hessian calculation}
 
-\item{mle_optim_limit}{A numeric indicating the number of trails given to the optimizer of the
-likelihood function. If the optimizer does not converge after the
+\item{mle_optim_limit}{A numeric indicating the number of trials given to the optimizer of the
+likelihood function. A trial refers to a new initiation of the
+optimization procedure using different (random) starting values for the
+parameters. If the optimizer does not converge after the
 indicated number of trails an error will be thrown after this limit.}
 
 \item{twosls_instrumental_variables}{Either a formula or a character; the formula can be used to explicitly
@@ -62,10 +64,11 @@ the main formula provided to \code{\link[=spflow]{spflow()}}}
 instruments generated for the S2SLS estimator}
 
 \item{twosls_reduce_pair_instruments}{A logical that indicates whether the number of instruments that are
-derived from pair attributes should be reduced or not (default is TRUE
-because constructing these instruments is often the most demanding part of}
+derived from pair attributes should be reduced or not. The default is
+\code{TRUE}, because constructing these instruments is often the most demanding
+part of the estimation \insertCite{Dargel2021}{spflow}.}
 
-\item{mcmc_iterations}{A numeric indicating the number of iteration}
+\item{mcmc_iterations}{A numeric indicating the number of iterations}
 
 \item{mcmc_burn_in}{A numeric indicating the length of the burn in period}
 
@@ -82,15 +85,31 @@ The options allow to adjust the estimation method and give the user full
 control over the use of the explanatory variables.
 The user can also adjust the form of autocorrelation to be considered.
 }
-\section{Adjusting the form of autocorrelation}{
+\section{Details}{
 
+\subsection{Adjusting the form of autocorrelation}{
 
 The option \code{model} allows to declare one of nine different forms of
 autocorrelation that follow the naming convention of
 \insertCite{LeSage2008;textual}{spflow}.
-The most general specification is "model_9" and all other correspond to
-special cases of this one.
-The different sub models are summarized in this table.
+The most general specification is "model_9", leading to the model
+\eqn{y = \rho_dW_dy + \rho_o W_oy + \rho_wW_wy + Z\delta + \epsilon}.
+All other models special cases of this one.
+The constraints that lead to the different sub models are summarized in
+this table.\tabular{ccc}{
+   \strong{Model Number} \tab \strong{Autocorrelation Parameters} \tab \strong{Constraints} \cr
+   Model 9 \tab \eqn{\rho_d, \rho_o, \rho_w} \tab unconstrained \cr
+   Model 8 \tab \eqn{\rho_d, \rho_o, \rho_w} \tab \eqn{\rho_w = - \rho_d \rho_o} \cr
+   Model 7 \tab \eqn{\rho_d, \rho_o} \tab \eqn{\rho_w = 0} \cr
+   Model 6 \tab \eqn{\rho_{dow}} \tab \eqn{\rho_d = \rho_o = \rho_w} \cr
+   Model 5 \tab \eqn{\rho_{do}} \tab \eqn{\rho_d = \rho_o, \rho_w = 0} \cr
+   Model 4 \tab \eqn{\rho_w} \tab \eqn{\rho_d = \rho_o = 0} \cr
+   Model 3 \tab \eqn{\rho_o} \tab \eqn{\rho_d = \rho_w = 0} \cr
+   Model 2 \tab \eqn{\rho_d} \tab \eqn{\rho_o = \rho_w = 0} \cr
+   Model 1 \tab none \tab \eqn{\rho_d = \rho_o = \rho_w = 0} \cr
+}
+
+}
 }
 
 \examples{

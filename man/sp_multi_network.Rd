@@ -7,7 +7,7 @@
 sp_multi_network(...)
 }
 \arguments{
-\item{...}{objects of of type \code{\link[=sp_network_nodes]{sp_network_nodes()}} and \code{\link[=sp_network_pair]{sp_network_pair()}}}
+\item{...}{objects of type \code{\link[=sp_network_nodes]{sp_network_nodes()}} and \code{\link[=sp_network_pair]{sp_network_pair()}}}
 }
 \value{
 A S4 network data object
@@ -21,8 +21,8 @@ sp_multi_network(germany_net,usa_net) # two networks, no pairs
 }
 \seealso{
 Other Constructors for spflow network classes: 
-\code{\link{sp_network_classes}},
 \code{\link{sp_network_nodes}},
-\code{\link{sp_network_pair}}
+\code{\link{sp_network_pair}},
+\code{\link{spflow_network_classes}}
 }
 \concept{Constructors for spflow network classes}

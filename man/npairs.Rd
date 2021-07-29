@@ -2,7 +2,7 @@
 % Please edit documentation in R/class_0_generics-and-maybe-classes.R
 \name{npairs}
 \alias{npairs}
-\title{Generic for accessing the node pair count of a
+\title{Generic for accessing the node pairs count of a
 \code{\link[=sp_network_pair-class]{sp_network_pair-class()}}}
 \usage{
 npairs(object)

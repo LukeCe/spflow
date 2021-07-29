@@ -1,12 +1,13 @@
-#' @title sp_network_pair Class
+#' @title Class sp_network_pair
 #'
 #' @description
-#' An S4 class which holds information on origin-destination pairs.
-#' Each origin destination pair is composed of two nodes (see [sp_network_nodes()]).
-#' All origins belong to the same (origin-) network and all destination belong to
-#' the same (destination-) network.
-#' It is possible to chose the same network for origins and destinations, which
-#' enables to represent origin-destination pairs within the same network.
+#' An S4 class which holds information on origin-destination (OD) pairs.
+#' Each OD pair is composed of two nodes (see [sp_network_nodes-class()]).
+#' All origins belong to the same (origin-) network and all destination belong
+#' to the same (destination-) network. It is possible to choose the same
+#' network for origins and destinations, which enables to represent OD pairs
+#' within the same network.
+#'
 #'
 #' @slot orig_net_id
 #'   A character that serves as identifier for the origin network
@@ -231,10 +232,11 @@ setValidity("sp_network_pair", function(object) { # ---- validity -------------
 #' @param pair_data
 #'   A data.frame containing information on the origin-destination pairs
 #' @param orig_key_column
-#'   A character indicating the column containing identifiers for the origins
+#'   A character indicating the name of the column containing the identifiers
+#'   of the origins
 #' @param dest_key_column
-#'   A character indicating the column containing identifiers for the
-#'   destinations
+#'   A character indicating the name of the column containing the identifiers
+#'   of the destinations
 #'
 #' @return An S4 class of type [sp_network_pair()]
 #' @family Constructors for spflow network classes

@@ -42,14 +42,14 @@ simulation_params
 }
 \description{
 The package uses the same stylized country examples as those presented by
-by \insertCite{Yang2017;textual}{spflow}.
+\insertCite{Yang2017;textual}{spflow}.
 The first example is a stylized version of Germany with 16 states.
 The second example is a stylized version of the USA with 51 states.
 
-We provide the spatial objects which contains the geography of our example
-as well as the prepared \code{\link[=sp_network_nodes]{sp_network_nodes()}} objects.
-Finally there is a multi_network object which contains the two networks and
-four network pairs based on the same examples.
+We provide spatial objects that contain the geography of our example,
+as well as two \code{\link[=sp_network_nodes-class]{sp_network_nodes-class()}} objects.
+Finally, there is an \code{\link[=sp_multi_network-class]{sp_multi_network-class()}} containing the two networks
+and four network pair objects based on the same example.
 
 The simulation parameters are given as \code{rho} for the auto-regressive
 parameter, \code{delta} for the impact of the exogenous variables and \code{sd_error}

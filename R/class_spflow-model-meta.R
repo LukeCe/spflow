@@ -1,13 +1,13 @@
-#' @title spflow_model Class
+#' @title Class spflow_model
 #'
 #' @description
-#' A S4 class that contains the estimation results of spatial econometric
+#' An S4 class that contains the estimation results of spatial econometric
 #' interaction models estimated by the [spflow()] function.
 #'
 #' There are four subclasses that are specific to the chosen estimation method
 #' (OLS, MLE, Bayesian MCMC or S2SLS).
 #' They contain some additional information specific to the corresponding
-#' method but most behaviours and data is identical among them.
+#' method but most behaviours and data are identical among them.
 #'
 #' @slot estimation_results
 #'   A data.frame that contains the main [results()] of the estimation
@@ -32,7 +32,7 @@
 #' @slot design_matrix A matrix (can be sparse) or NULL
 #'
 #' @name spflow_model-class
-#' @seealso [spflow()], [sp_network_classes()]
+#' @seealso [spflow()], [spflow_network_classes()]
 #' @examples
 #'
 #' spflow_results <- spflow(y9 ~ . + G_(DISTANCE),multi_net_usa_ge)
@@ -129,7 +129,7 @@ setMethod(
 
 
 #' @title Extract the coefficient vector from a spatial interaction model
-#' @param object A [spflow_model()]
+#' @param object A [spflow_model-class()]
 #' @rdname spflow_model-class
 #' @export
 setMethod(
@@ -255,7 +255,7 @@ setMethod(
 
 #' @section Main results:
 #' The main results are accessed with the `results()` method.
-#' They are given in form of a data frame with the following columns;
+#' They are given in the form of a data frame with the following columns;
 #'
 #' * `est`: value of the estimated parameter
 #' * `sd`: value of the standard deviation of the parameter

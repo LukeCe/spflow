@@ -5,7 +5,7 @@
 \alias{pair_merge}
 \alias{pair_merge,sp_multi_network-method}
 \title{Generic for merging information on origins and destination to node
-pairs inside \link[=sp_network_classes]{spflow network classes}}
+pairs inside \link[=spflow_network_classes]{spflow network classes}}
 \usage{
 pair_merge(object, ...)
 

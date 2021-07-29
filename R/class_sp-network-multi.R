@@ -1,7 +1,7 @@
 #' @include class_sp-network-nodes.R class_sp-network-pair.R
 
 
-#' @title sp_multi_network Class
+#' @title Class sp_multi_network
 #'
 #' @description
 #' A S4 class that gathers information on one or multiple networks
@@ -277,7 +277,7 @@ setValidity("sp_multi_network", function(object) { # ---- validity ------------
 
 #' Create an S4 class that contains [sp_network_nodes()] and [sp_network_pair()] for one or multiple networks
 #'
-#' @param ... objects of of type [sp_network_nodes()] and [sp_network_pair()]
+#' @param ... objects of type [sp_network_nodes()] and [sp_network_pair()]
 #'
 #' @return A S4 network data object
 #' @family Constructors for spflow network classes
