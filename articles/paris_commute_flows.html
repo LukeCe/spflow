@@ -92,13 +92,7 @@
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="st"><a href="https://github.com/LukeCe/spflow">"spflow"</a></span><span class="op">)</span>
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="st"><a href="https://r-spatial.github.io/sf/">"sf"</a></span><span class="op">)</span>
-<span class="co">#&gt; Linking to GEOS 3.8.1, GDAL 3.2.1, PROJ 7.2.1</span>
-<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="st"><a href="https://github.com/r-spatial/spdep/">"spdep"</a></span><span class="op">)</span>
-<span class="co">#&gt; Loading required package: sp</span>
-<span class="co">#&gt; Loading required package: spData</span>
-<span class="co">#&gt; To access larger datasets in this package, install the spDataLarge</span>
-<span class="co">#&gt; package with: `install.packages('spDataLarge',</span>
-<span class="co">#&gt; repos='https://nowosad.github.io/drat/', type='source')`</span></code></pre></div>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="st"><a href="https://github.com/r-spatial/spdep/">"spdep"</a></span><span class="op">)</span></code></pre></div>
 <div id="introduction" class="section level1">
 <h1 class="hasAnchor">
 <a href="#introduction" class="anchor"></a>Introduction</h1>
@@ -485,23 +479,23 @@
 <span class="co">#&gt; --------------------------------------------------</span>
 <span class="co">#&gt; Coefficients:</span>
 <span class="co">#&gt;                               est  quant_025  quant_975    sd  t.stat  p.value</span>
-<span class="co">#&gt; rho_d                        0.20       0.17       0.22  0.01   14.79     0.02</span>
-<span class="co">#&gt; rho_o                        0.66       0.64       0.68  0.01   48.74     0.01</span>
-<span class="co">#&gt; (Intercept)                 -0.83      -1.40      -0.30  0.28   -2.94     0.10</span>
-<span class="co">#&gt; (Intra)                      6.56       4.76       8.35  0.91    7.20     0.04</span>
-<span class="co">#&gt; DEST_clog(MED_INCOME)       -0.43      -0.53      -0.32  0.05   -7.92     0.04</span>
-<span class="co">#&gt; DEST_log(NB_COMPANY)         0.35       0.32       0.38  0.02   20.03     0.02</span>
-<span class="co">#&gt; DEST_clog(MED_INCOME).lag1   0.66       0.52       0.81  0.08    8.59     0.04</span>
-<span class="co">#&gt; DEST_log(NB_COMPANY).lag1   -0.24      -0.28      -0.21  0.02  -12.87     0.02</span>
-<span class="co">#&gt; ORIG_clog(MED_INCOME)       -0.09      -0.19       0.01  0.05   -1.79     0.16</span>
-<span class="co">#&gt; ORIG_log(POPULATION)         0.78       0.74       0.81  0.02   40.31     0.01</span>
-<span class="co">#&gt; ORIG_clog(MED_INCOME).lag1  -0.03      -0.16       0.10  0.07   -0.47     0.36</span>
-<span class="co">#&gt; ORIG_log(POPULATION).lag1   -0.61      -0.66      -0.57  0.03  -23.67     0.01</span>
-<span class="co">#&gt; INTRA_log(POPULATION)       -0.45      -0.61      -0.28  0.08   -5.37     0.06</span>
-<span class="co">#&gt; log(DISTANCE + 1)           -0.14      -0.18      -0.10  0.02   -6.31     0.05</span>
+<span class="co">#&gt; rho_d                        0.20       0.17       0.23  0.01   13.59     0.02</span>
+<span class="co">#&gt; rho_o                        0.66       0.64       0.68  0.01   50.89     0.01</span>
+<span class="co">#&gt; (Intercept)                 -0.83      -1.39      -0.26  0.29   -2.83     0.11</span>
+<span class="co">#&gt; (Intra)                      6.57       4.84       8.36  0.91    7.22     0.04</span>
+<span class="co">#&gt; DEST_clog(MED_INCOME)       -0.43      -0.53      -0.32  0.05   -8.01     0.04</span>
+<span class="co">#&gt; DEST_log(NB_COMPANY)         0.35       0.32       0.38  0.02   20.64     0.02</span>
+<span class="co">#&gt; DEST_clog(MED_INCOME).lag1   0.66       0.52       0.81  0.08    8.74     0.04</span>
+<span class="co">#&gt; DEST_log(NB_COMPANY).lag1   -0.25      -0.28      -0.21  0.02  -12.45     0.03</span>
+<span class="co">#&gt; ORIG_clog(MED_INCOME)       -0.09      -0.19       0.01  0.05   -1.84     0.16</span>
+<span class="co">#&gt; ORIG_log(POPULATION)         0.77       0.74       0.81  0.02   38.19     0.01</span>
+<span class="co">#&gt; ORIG_clog(MED_INCOME).lag1  -0.03      -0.16       0.10  0.07   -0.42     0.37</span>
+<span class="co">#&gt; ORIG_log(POPULATION).lag1   -0.61      -0.66      -0.56  0.03  -23.55     0.01</span>
+<span class="co">#&gt; INTRA_log(POPULATION)       -0.45      -0.61      -0.29  0.08   -5.40     0.06</span>
+<span class="co">#&gt; log(DISTANCE + 1)           -0.14      -0.18      -0.10  0.02   -6.33     0.05</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; --------------------------------------------------</span>
-<span class="co">#&gt; R2_corr: 0.9189247</span></code></pre></div>
+<span class="co">#&gt; R2_corr: 0.9189248</span></code></pre></div>
 </div>
 </div>
 </div>
