@@ -17,7 +17,7 @@ knitr::opts_chunk$set(
 ```
 
 
-```{r setup}
+```{r setup, echo=TRUE, results=FALSE, message=FALSE}
 library("spflow")
 library("sf")
 library("spdep")

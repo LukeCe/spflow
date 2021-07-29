@@ -43,6 +43,19 @@ You can install development version from [GitHub](https://github.com/) with:
 devtools::install_github("LukeCe/spflow")
 ```
 
+## Example
+
+The data sets describing the origins, the destinations, and the origin-destination pairs are combined in an object of class `sp_multi_network`.
+Once this object is created, we have to specify a model using the formula interface and estimate it with the `spflow()` function. 
+The [package vignette](https://lukece.github.io/spflow/articles/paris_commute_flows.html) contains a more detailed example.
+
+
+```{r, message=FALSE}
+library("spflow")
+spflow(y9 ~ . + G_(DISTANCE), multi_net_usa_ge)
+```
+
+
 ## Liecense
 
   *   **Code :** [GPL 3](https://www.r-project.org/Licenses/GPL-3)  
