@@ -69,10 +69,10 @@ spflow(y9 ~ . + G_(DISTANCE), multi_net_usa_ge)
 #> DISTANCE      -2.80  0.34   -8.25     0.04
 #> 
 #> --------------------------------------------------
-#> R2_corr: 0.9927709
+#> R2_corr: 0.9927708
 ```
 
-## Liecense
+## License
 
 -   **Code :** [GPL 3](https://www.r-project.org/Licenses/GPL-3)  
 -   **Text and figures :** [CC BY-SA

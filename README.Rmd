@@ -56,7 +56,7 @@ spflow(y9 ~ . + G_(DISTANCE), multi_net_usa_ge)
 ```
 
 
-## Liecense
+## License
 
   *   **Code :** [GPL 3](https://www.r-project.org/Licenses/GPL-3)  
   *   **Text and figures :** [CC BY-SA 4.0](https://www.r-project.org/Licenses/CC-BY-SA-4.0)  
