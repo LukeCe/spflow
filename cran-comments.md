@@ -16,11 +16,6 @@
 
 This is a resubmission
 
-* I have changed the link in the README.md to <https://www.r-pkg.org/pkg/spflow>
-
-* Following the suggestion of a CRAN reviewer, I relicensed all derived work to GPL 3
-  According to the site <https://www.gnu.org/licenses/license-compatibility.en.html> this is no problem for CC-BY-SA 4.0, as they say: "Likewise, CC-BY-SA 4.0 explicitly permits relicensing modified versions to GNU GPL version 3, but GPL version 3 does not permit relicensing to CC-BY-SA."
-  I have reviewed the LICENSE information on third party data sources, and they allow derivative works to be published as long as the original source is cited and the date of accession is given.
-  The LICENSE file has been adjusted accordingly.
+* Comments about the LICENSE are moved to the file LICENSE.note and the corresponding field in the DESCRIPTION file changed to GPL (>=3).
   
   
