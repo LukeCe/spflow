@@ -36,11 +36,10 @@ devtools::install_github("LukeCe/spflow")
 
 ## Example
 
-The data sets describing the origins, the destinations, and the
-origin-destination pairs are combined in an object of class
-`sp_multi_network`. Once this object is created, we have to specify a
-model using the formula interface and estimate it with the `spflow()`
-function. The [package
+The package provides a new `sp_multi_network-class` that combines
+information on the origins, the destinations, and the origin-destination
+pairs. Once this object is created, we can estimate an interaction model
+with the `spflow()` function. The [package
 vignette](https://lukece.github.io/spflow/articles/paris_commute_flows.html)
 contains a more detailed example.
 
@@ -69,7 +68,7 @@ spflow(y9 ~ . + G_(DISTANCE), multi_net_usa_ge)
 #> DISTANCE      -2.80  0.34   -8.25     0.04
 #> 
 #> --------------------------------------------------
-#> R2_corr: 0.9927708
+#> R2_corr: 0.9927709
 ```
 
 ## License
