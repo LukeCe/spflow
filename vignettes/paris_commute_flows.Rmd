@@ -25,19 +25,21 @@ library("spdep")
 
 # Introduction
 
-This article illustrates the use of the **spflow** package for modeling spatial interactions using the example of home-to-work commuting flows within 71 municipalities located no more than 10km from the center of Paris.
-The examples use data describing the municipalities and their neighborhood structure. Additional data on the size of the commuter flow and the distance between all possible origin-destination pairs are also available.
+This article illustrates the use of the **spflow** package for modeling spatial interactions using the example of home-to-work commuting flows. 
+For our example we use information on the 71 municipalities that are located closest to the center of Paris.
+This data is contained in the package and was originally diffused by the French National Institutes of Statistics and Economic Studies (INSEE), and of Geographic and Forest Information (IGN).
+(For more information see `help(paris_data)`.)
 
 
 ```{r}
 data("paris10km_municipalities")
-data("paris10km_neighborhood")
 data("paris10km_commuteflows")
 ```
 
 # Data presentation
 
-Each municipality has a unique identification and additional variables describing it.
+Each municipality is identified by a unique id.
+Additionally, we have information on the population, the median income and the number of companies.
 
 ```{r}
 drop_area <- names(paris10km_municipalities) != "AREA"
@@ -45,7 +47,7 @@ plot(paris10km_municipalities[drop_area])
 ```
 
 
-Additionally, there are three different neighborhood matrices that can be used to describe the connectivity between the municipalities.
+There are three different neighborhood matrices that can be used to describe the connectivity between the municipalities.
 
 ```{r}
 par(mfrow = c(1, 3), mar = c(0,0,1,0))
@@ -71,7 +73,7 @@ plot(paris10km_nb$by_knn, mid_points, add = T, col = rgb(0,0,0,alpha=0.5))
 title("3 Nearest Neighbors") 
 ```
 
-Finally, there is data on the size of the commuting flows between pairs of origins and destinations.
+Finally, there is data on the size of the commuting flows and the distance between all pairs of municipalities.
 
 ```{r}
 paris10km_commuteflows 
@@ -80,22 +82,23 @@ paris10km_commuteflows
 
 # Modeling Spatial interactions
 
-The **spflow** package builds on the idea that each type of flow corresponds to a pairwise interaction between the nodes of an origin network with the nodes of a destination network.
+The **spflow** package builds on the idea that flows correspond to pairwise interactions between the nodes of an origin network with the nodes of a destination network.
 
 In our example, the origin and destination networks are the same because every municipality is both an origin and destination of a flow.
 
-To estimate the model efficiently, the **spflow** package uses moment-based estimation methods, that exploit a matrix formulation of the model.
-This avoids duplication caused by each community being both the origin and destination of many flows.
+To estimate the model efficiently, the **spflow** package uses moment-based estimation methods, that exploit the relational structure of flow data.
+This avoids duplication arising from the fact that each municipality is at the origin and destination of many flows.
 
 
 ## The network objects 
 
-To describe the nodes of the network the package provides `sp_network_nodes-class` that combines attributes of the nodes with the chosen network structure.
+To describe the nodes of a network the package provides `sp_network_nodes-class` that combines attributes of the nodes with the chosen network structure.
+For our model we choose the contiguity based neighborhood structure.
 
 ```{r}
 paris10km_net <- 
   sp_network_nodes(
-    network_id = "paris10km",
+    network_id = "paris",
     node_neighborhood = nb2mat(paris10km_nb$by_contiguity),
     node_data = st_drop_geometry(paris10km_municipalities),
     node_key_column = "ID_MUN")
@@ -103,12 +106,12 @@ paris10km_net <-
 paris10km_net
 ```
 
-The `sp_network_pair-class` contains all information to describe the pairs of the origin and destination networks.
+The `sp_network_pair-class` contains all information on the pairs of nodes belonging to the origin and destination networks.
 
 ```{r}
 paris10km_net_pairs <- sp_network_pair(
-  orig_net_id = "paris10km",
-  dest_net_id = "paris10km",
+  orig_net_id = "paris",
+  dest_net_id = "paris",
   pair_data = paris10km_commuteflows,
   orig_key_column = "ID_ORIG",
   dest_key_column = "ID_DEST")
@@ -116,7 +119,7 @@ paris10km_net_pairs <- sp_network_pair(
 paris10km_net_pairs
 ```
 
-The `sp_multi_network-class` is than combines information on the nodes and the node-pairs and ensures also ensures that both data sources are consistent.
+The `sp_multi_network-class` combines information on the nodes and the node-pairs and also ensures that both data sources are consistent.
 For example, if some of the origins in the `sp_network_pair-class` are not identified with the nodes in the `sp_network_nodes-class` an error will be raised.
 
 ```{r}
@@ -170,9 +173,9 @@ results_mle
 ```
 
 
-### Adjustment through `spflow_control()`
+### Adjustment through `spflow_control`
 
-More fine-grained adjustments are possible via the `spflow_control()` argument.
+More fine-grained adjustments are possible via the `spflow_control` argument.
 Here we change the estimation method and the way we want to model the spatial autoregression in the flows.
 To use spatial lags only for certain variables, we need to specify them as a second formula. 
 
