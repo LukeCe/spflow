@@ -103,7 +103,7 @@
 <div id="example" class="section level2">
 <h2 class="hasAnchor">
 <a href="#example" class="anchor"></a>Example</h2>
-<p>The data sets describing the origins, the destinations, and the origin-destination pairs are combined in an object of class <code>sp_multi_network</code>. Once this object is created, we have to specify a model using the formula interface and estimate it with the <code><a href="reference/spflow.html">spflow()</a></code> function. The <a href="https://lukece.github.io/spflow/articles/paris_commute_flows.html">package vignette</a> contains a more detailed example.</p>
+<p>The package provides a new <code>sp_multi_network-class</code> that combines information on the origins, the destinations, and the origin-destination pairs. Once this object is created, we can estimate an interaction model with the <code><a href="reference/spflow.html">spflow()</a></code> function. The <a href="https://lukece.github.io/spflow/articles/paris_commute_flows.html">package vignette</a> contains a more detailed example.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="st"><a href="https://github.com/LukeCe/spflow">"spflow"</a></span><span class="op">)</span>
 <span class="fu"><a href="reference/spflow.html">spflow</a></span><span class="op">(</span><span class="va">y9</span> <span class="op">~</span> <span class="va">.</span> <span class="op">+</span> <span class="fu">G_</span><span class="op">(</span><span class="va">DISTANCE</span><span class="op">)</span>, <span class="va">multi_net_usa_ge</span><span class="op">)</span>
@@ -129,7 +129,7 @@
 <span class="co">#&gt; DISTANCE      -2.80  0.34   -8.25     0.04</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; --------------------------------------------------</span>
-<span class="co">#&gt; R2_corr: 0.9927708</span></code></pre></div>
+<span class="co">#&gt; R2_corr: 0.9927709</span></code></pre></div>
 </div>
 <div id="license" class="section level2">
 <h2 class="hasAnchor">
