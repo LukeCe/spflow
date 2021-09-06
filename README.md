@@ -73,5 +73,4 @@ spflow(y9 ~ . + G_(DISTANCE), multi_net_usa_ge)
 
 ## License
 
-[GPL 3](https://www.r-project.org/Licenses/GPL-3) + file
-[LICENSE](LICENSE)
+[GPL 3](https://www.r-project.org/Licenses/GPL-3)

@@ -10,12 +10,10 @@
 
 0 errors | 0 warnings | 0 notes
 
-* This is a new release.
-
 ## Resubmission
 
 This is a resubmission
 
-* Comments about the LICENSE are moved to the file LICENSE.note and the corresponding field in the DESCRIPTION file changed to GPL (>=3).
+* Invalid links in the README.md removed
   
   
