@@ -168,7 +168,6 @@ nodes at the origin and destination.</p>
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
     <pre class="examples"><div class='input'>
 <span class='co'>### An example use case for the spflow network classes and model estimation</span>
-<span class='kw'>if</span> <span class='op'>(</span><span class='cn'>FALSE</span><span class='op'>)</span> <span class='op'>{</span>
 <span class='co'># load example data</span>
 <span class='fu'><a href='https://rdrr.io/r/utils/data.html'>data</a></span><span class='op'>(</span><span class='st'>"paris10km_municipalities"</span><span class='op'>)</span>
 <span class='fu'><a href='https://rdrr.io/r/utils/data.html'>data</a></span><span class='op'>(</span><span class='st'>"paris10km_neighborhood"</span><span class='op'>)</span>
@@ -179,7 +178,7 @@ nodes at the origin and destination.</p>
 <span class='co'># ... their neighborhood is based on contiguity</span>
 <span class='va'>paris10km_net</span> <span class='op'>&lt;-</span> <span class='fu'><a href='sp_network_nodes.html'>sp_network_nodes</a></span><span class='op'>(</span>
   network_id <span class='op'>=</span> <span class='st'>"paris10km"</span>,
-  node_neighborhood <span class='op'>=</span> <span class='va'>paris10km_neighborhood</span><span class='op'>$</span><span class='va'>by_border</span>,
+  node_neighborhood <span class='op'>=</span> <span class='va'>paris10km_neighborhood</span><span class='op'>$</span><span class='va'>by_contiguity</span>,
   node_data <span class='op'>=</span> <span class='fu'>sf</span><span class='fu'>::</span><span class='fu'><a href='https://r-spatial.github.io/sf/reference/st_geometry.html'>st_drop_geometry</a></span><span class='op'>(</span><span class='va'>paris10km_municipalities</span><span class='op'>)</span>,
   node_key_column <span class='op'>=</span> <span class='st'>"ID_MUN"</span><span class='op'>)</span>
 
@@ -226,8 +225,7 @@ nodes at the origin and destination.</p>
 
 <span class='co'># Estimate the model</span>
 <span class='fu'><a href='spflow.html'>spflow</a></span><span class='op'>(</span><span class='va'>flow_formula</span>, <span class='va'>paris10km_multi_net</span>, flow_control <span class='op'>=</span> <span class='va'>flow_control</span><span class='op'>)</span>
-<span class='op'>}</span>
-</div></pre>
+</div><div class='output co'>#&gt; <span class='error'>Error in clog(MED_INCOME): could not find function "clog"</span></div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">

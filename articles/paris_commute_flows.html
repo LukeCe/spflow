@@ -114,7 +114,8 @@
 <p><img src="paris_commute_flows_files/figure-html/unnamed-chunk-3-1.png" width="700"></p>
 <p>There are three different neighborhood matrices that can be used to describe the connectivity between the municipalities.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/graphics/par.html">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">3</span><span class="op">)</span>, mar <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">0</span>,<span class="fl">1</span>,<span class="fl">0</span><span class="op">)</span><span class="op">)</span>
+<code class="sourceCode R"><span class="va">old_par</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/par.html">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">3</span><span class="op">)</span>, mar <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">0</span>,<span class="fl">1</span>,<span class="fl">0</span><span class="op">)</span><span class="op">)</span>
+
 <span class="va">mid_points</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/warning.html">suppressWarnings</a></span><span class="op">(</span><span class="op">{</span>
     <span class="fu"><a href="https://r-spatial.github.io/sf/reference/geos_unary.html">st_point_on_surface</a></span><span class="op">(</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_geometry.html">st_geometry</a></span><span class="op">(</span><span class="va">paris10km_municipalities</span><span class="op">)</span><span class="op">)</span><span class="op">}</span><span class="op">)</span>
 
@@ -136,8 +137,11 @@
 <span class="fu"><a href="https://r-spatial.github.io/sf/reference/plot.html">plot</a></span><span class="op">(</span><span class="va">paris10km_nb</span><span class="op">$</span><span class="va">by_knn</span>, <span class="va">mid_points</span>, add <span class="op">=</span> <span class="cn">T</span>, col <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grDevices/rgb.html">rgb</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">0</span>,<span class="fl">0</span>,alpha<span class="op">=</span><span class="fl">0.5</span><span class="op">)</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/graphics/title.html">title</a></span><span class="op">(</span><span class="st">"3 Nearest Neighbors"</span><span class="op">)</span> </code></pre></div>
 <p><img src="paris_commute_flows_files/figure-html/unnamed-chunk-4-1.png" width="700"></p>
-<p>Finally, there is data on the size of the commuting flows and the distance between all pairs of municipalities.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R">
+<span class="fu"><a href="https://rdrr.io/r/graphics/par.html">par</a></span><span class="op">(</span><span class="va">old_par</span><span class="op">)</span></code></pre></div>
+<p>Finally, there is data on the size of the commuting flows and the distance between all pairs of municipalities.</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">paris10km_commuteflows</span> 
 <span class="co">#&gt;    ID_ORIG ID_DEST   DISTANCE COMMUTE_FLOW</span>
 <span class="co">#&gt; 1    75101   75101     0.0000  3771.235555</span>
@@ -202,7 +206,7 @@
 <h2 class="hasAnchor">
 <a href="#the-network-objects" class="anchor"></a>The network objects</h2>
 <p>To describe the nodes of a network the package provides <code>sp_network_nodes-class</code> that combines attributes of the nodes with the chosen network structure. For our model we choose the contiguity based neighborhood structure.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">paris10km_net</span> <span class="op">&lt;-</span> 
   <span class="fu"><a href="../reference/sp_network_nodes.html">sp_network_nodes</a></span><span class="op">(</span>
     network_id <span class="op">=</span> <span class="st">"paris"</span>,
@@ -261,7 +265,7 @@
 <span class="co">#&gt; 40  92075      27367   27710.00       1599  156</span>
 <span class="co">#&gt;  [ reached 'max' / getOption("max.print") -- omitted 31 rows ]</span></code></pre></div>
 <p>The <code>sp_network_pair-class</code> contains all information on the pairs of nodes belonging to the origin and destination networks.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">paris10km_net_pairs</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sp_network_pair.html">sp_network_pair</a></span><span class="op">(</span>
   orig_net_id <span class="op">=</span> <span class="st">"paris"</span>,
   dest_net_id <span class="op">=</span> <span class="st">"paris"</span>,
@@ -331,7 +335,7 @@
 <span class="co">#&gt; 50   75101   93048  8211.0625    84.570051</span>
 <span class="co">#&gt;  [ reached 'max' / getOption("max.print") -- omitted 4991 rows ]</span></code></pre></div>
 <p>The <code>sp_multi_network-class</code> combines information on the nodes and the node-pairs and also ensures that both data sources are consistent. For example, if some of the origins in the <code>sp_network_pair-class</code> are not identified with the nodes in the <code>sp_network_nodes-class</code> an error will be raised.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">paris10km_multi_net</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sp_multi_network.html">sp_multi_network</a></span><span class="op">(</span><span class="va">paris10km_net</span>,<span class="va">paris10km_net_pairs</span><span class="op">)</span>
 <span class="va">paris10km_multi_net</span>
 <span class="co">#&gt; Collection of spatial network nodes and pairs</span>
@@ -355,7 +359,7 @@
 <h3 class="hasAnchor">
 <a href="#estimating-with-default-values" class="anchor"></a>Estimating with default values</h3>
 <p>Estimation with default settings requires two arguments: an <code>sp_multi_network-class</code> and a <code>flow_formula</code>. The <code>flow_formula</code> specifies the model we want to estimate. In this example, the dependent variable is a transformation of commuting flows and we use the dot shortcut to indicate that all available variables should be included in the model. Using the defaults leads to the most comprehensive spatial interaction model, which includes spatial lags of the dependent variable, the exogenous variables and additional attributes for intra-regional observations.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">results_default</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/spflow.html">spflow</a></span><span class="op">(</span>
   flow_formula <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html">log</a></span><span class="op">(</span><span class="fl">1</span> <span class="op">+</span> <span class="va">COMMUTE_FLOW</span><span class="op">)</span> <span class="op">~</span> <span class="va">.</span> <span class="op">+</span> <span class="fu">G_</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html">log</a></span><span class="op">(</span> <span class="fl">1</span> <span class="op">+</span> <span class="va">DISTANCE</span><span class="op">)</span><span class="op">)</span>,
   sp_multi_network <span class="op">=</span> <span class="va">paris10km_multi_net</span><span class="op">)</span>
@@ -407,7 +411,7 @@
 <h3 class="hasAnchor">
 <a href="#adjusting-the-formula" class="anchor"></a>Adjusting the formula</h3>
 <p>We can adjust how the exogenous variables are to be used by wrapping them into the <code>D_()</code>, <code>O_()</code>, <code>I_()</code> and <code>G_()</code> functions. The variables in <code>G_()</code> are used as OD pair features and those in <code>D_()</code>, <code>O_()</code> and <code>I_()</code> are used as destination, origin and intra-regional features. We can take advantage of the formula interface to specify transformations and expand factor variables to dummies.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">clog</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span>
   <span class="va">log_x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html">log</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span>
   <span class="va">log_x</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">log_x</span><span class="op">)</span>
@@ -432,9 +436,9 @@
 <span class="co">#&gt; --------------------------------------------------</span>
 <span class="co">#&gt; Coefficients:</span>
 <span class="co">#&gt;                               est    sd  t.stat  p.value</span>
-<span class="co">#&gt; rho_d                        0.21  0.02   10.97     0.03</span>
+<span class="co">#&gt; rho_d                        0.21  0.02   10.98     0.03</span>
 <span class="co">#&gt; rho_o                        0.67  0.01   60.66     0.01</span>
-<span class="co">#&gt; rho_w                       -0.02  0.02   -0.84     0.28</span>
+<span class="co">#&gt; rho_w                       -0.02  0.02   -0.85     0.28</span>
 <span class="co">#&gt; (Intercept)                 -0.80  0.29   -2.73     0.11</span>
 <span class="co">#&gt; (Intra)                      3.36  1.79    1.88     0.16</span>
 <span class="co">#&gt; DEST_clog(MED_INCOME)       -0.42  0.05   -8.16     0.04</span>
@@ -450,14 +454,14 @@
 <span class="co">#&gt; log(DISTANCE + 1)           -0.14  0.02   -6.80     0.05</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; --------------------------------------------------</span>
-<span class="co">#&gt; R2_corr: 0.9192029</span></code></pre></div>
+<span class="co">#&gt; R2_corr: 0.919203</span></code></pre></div>
 </div>
 <div id="adjustment-through-spflow_control" class="section level3">
 <h3 class="hasAnchor">
 <a href="#adjustment-through-spflow_control" class="anchor"></a>Adjustment through <code>spflow_control</code>
 </h3>
 <p>More fine-grained adjustments are possible via the <code>spflow_control</code> argument. Here we change the estimation method and the way we want to model the spatial autoregression in the flows. To use spatial lags only for certain variables, we need to specify them as a second formula.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">sdm_formula</span> <span class="op">&lt;-</span> <span class="op">~</span>
   <span class="fu">O_</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html">log</a></span><span class="op">(</span><span class="va">POPULATION</span><span class="op">)</span> <span class="op">+</span> <span class="fu">clog</span><span class="op">(</span><span class="va">MED_INCOME</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span>
   <span class="fu">D_</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html">log</a></span><span class="op">(</span><span class="va">NB_COMPANY</span><span class="op">)</span> <span class="op">+</span> <span class="fu">clog</span><span class="op">(</span><span class="va">MED_INCOME</span><span class="op">)</span><span class="op">)</span>
@@ -481,23 +485,23 @@
 <span class="co">#&gt; --------------------------------------------------</span>
 <span class="co">#&gt; Coefficients:</span>
 <span class="co">#&gt;                               est  quant_025  quant_975    sd  t.stat  p.value</span>
-<span class="co">#&gt; rho_d                        0.20       0.17       0.23  0.01   13.87     0.02</span>
-<span class="co">#&gt; rho_o                        0.66       0.64       0.68  0.02   35.50     0.01</span>
-<span class="co">#&gt; (Intercept)                 -0.84      -1.39      -0.28  0.29   -2.94     0.10</span>
-<span class="co">#&gt; (Intra)                      6.58       4.81       8.36  0.92    7.18     0.04</span>
-<span class="co">#&gt; DEST_clog(MED_INCOME)       -0.42      -0.53      -0.32  0.06   -7.45     0.04</span>
-<span class="co">#&gt; DEST_log(NB_COMPANY)         0.35       0.32       0.38  0.02   16.03     0.02</span>
-<span class="co">#&gt; DEST_clog(MED_INCOME).lag1   0.66       0.52       0.81  0.08    8.05     0.04</span>
-<span class="co">#&gt; DEST_log(NB_COMPANY).lag1   -0.24      -0.28      -0.21  0.02  -11.99     0.03</span>
+<span class="co">#&gt; rho_d                        0.20       0.17       0.22  0.01   14.64     0.02</span>
+<span class="co">#&gt; rho_o                        0.66       0.64       0.69  0.01   50.27     0.01</span>
+<span class="co">#&gt; (Intercept)                 -0.83      -1.41      -0.26  0.29   -2.88     0.11</span>
+<span class="co">#&gt; (Intra)                      6.59       4.83       8.39  0.91    7.28     0.04</span>
+<span class="co">#&gt; DEST_clog(MED_INCOME)       -0.42      -0.52      -0.32  0.05   -8.13     0.04</span>
+<span class="co">#&gt; DEST_log(NB_COMPANY)         0.35       0.32       0.38  0.02   20.50     0.02</span>
+<span class="co">#&gt; DEST_clog(MED_INCOME).lag1   0.66       0.52       0.80  0.08    8.79     0.04</span>
+<span class="co">#&gt; DEST_log(NB_COMPANY).lag1   -0.24      -0.28      -0.21  0.02  -12.85     0.02</span>
 <span class="co">#&gt; ORIG_clog(MED_INCOME)       -0.09      -0.19       0.01  0.05   -1.79     0.16</span>
-<span class="co">#&gt; ORIG_log(POPULATION)         0.78       0.74       0.81  0.02   38.57     0.01</span>
-<span class="co">#&gt; ORIG_clog(MED_INCOME).lag1  -0.03      -0.16       0.10  0.07   -0.46     0.36</span>
-<span class="co">#&gt; ORIG_log(POPULATION).lag1   -0.61      -0.65      -0.56  0.03  -21.57     0.01</span>
-<span class="co">#&gt; INTRA_log(POPULATION)       -0.45      -0.61      -0.29  0.08   -5.34     0.06</span>
-<span class="co">#&gt; log(DISTANCE + 1)           -0.14      -0.18      -0.10  0.03   -5.64     0.06</span>
+<span class="co">#&gt; ORIG_log(POPULATION)         0.78       0.74       0.81  0.02   39.45     0.01</span>
+<span class="co">#&gt; ORIG_clog(MED_INCOME).lag1  -0.03      -0.16       0.10  0.07   -0.44     0.37</span>
+<span class="co">#&gt; ORIG_log(POPULATION).lag1   -0.61      -0.66      -0.56  0.03  -24.03     0.01</span>
+<span class="co">#&gt; INTRA_log(POPULATION)       -0.45      -0.61      -0.29  0.08   -5.45     0.06</span>
+<span class="co">#&gt; log(DISTANCE + 1)           -0.14      -0.18      -0.10  0.02   -6.28     0.05</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; --------------------------------------------------</span>
-<span class="co">#&gt; R2_corr: 0.9189423</span></code></pre></div>
+<span class="co">#&gt; R2_corr: 0.9189513</span></code></pre></div>
 </div>
 </div>
 </div>

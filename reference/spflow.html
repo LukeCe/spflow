@@ -193,7 +193,7 @@ over the estimation procedure</p></td>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>A <code><a href='spflow_model.html'>spflow_model()</a></code> object</p>
+    <p>An S4 class of type <code><a href='spflow_model-class.html'>spflow_model-class()</a></code></p>
     <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
 
     
@@ -354,25 +354,89 @@ Springer International Publishing.</p>
 #&gt; 
 #&gt; --------------------------------------------------
 #&gt; R2_corr: 0.9927709  </div><div class='input'>
-<span class='kw'>if</span> <span class='op'>(</span><span class='cn'>FALSE</span><span class='op'>)</span> <span class='op'>{</span>
 <span class='co'># Same as above with explicit declaration of variables...</span>
 <span class='co'># ... X is the only variable available</span>
 <span class='co'># ... it is used for origins, destination and intra-state flows</span>
 <span class='fu'>spflow</span><span class='op'>(</span>flow_formula <span class='op'>=</span> <span class='va'>y9</span> <span class='op'>~</span> <span class='va'>X</span> <span class='op'>+</span> <span class='fu'>G_</span><span class='op'>(</span><span class='va'>DISTANCE</span><span class='op'>)</span>,
        sp_multi_network <span class='op'>=</span> <span class='va'>multi_net_usa_ge</span>,
        network_pair_id <span class='op'>=</span> <span class='st'>"ge_ge"</span><span class='op'>)</span>
-
+</div><div class='output co'>#&gt; --------------------------------------------------
+#&gt; Spatial interaction model estimated by: MLE  
+#&gt; Autocorrelation structure: model_9 (SDM)  
+#&gt; Observations: 256  
+#&gt; 
+#&gt; --------------------------------------------------
+#&gt; Coefficients:
+#&gt;                 est    sd  t.stat  p.value
+#&gt; rho_d          0.48  0.03   15.75     0.02
+#&gt; rho_o          0.36  0.03   10.59     0.03
+#&gt; rho_w         -0.25  0.04   -5.95     0.05
+#&gt; (Intercept)   10.00  1.92    5.21     0.06
+#&gt; (Intra)       11.32  3.07    3.69     0.08
+#&gt; DEST_X         0.94  0.06   14.97     0.02
+#&gt; DEST_X.lag1    0.62  0.11    5.80     0.05
+#&gt; ORIG_X        -0.78  0.04  -21.20     0.02
+#&gt; ORIG_X.lag1   -0.32  0.08   -3.93     0.08
+#&gt; INTRA_X        1.95  0.08   23.98     0.01
+#&gt; INTRA_X.lag1  -0.34  0.19   -1.76     0.16
+#&gt; DISTANCE      -2.80  0.34   -8.25     0.04
+#&gt; 
+#&gt; --------------------------------------------------
+#&gt; R2_corr: 0.9927709  </div><div class='input'>
 <span class='co'># Same as above</span>
 <span class='fu'>spflow</span><span class='op'>(</span>flow_formula <span class='op'>=</span> <span class='va'>y9</span> <span class='op'>~</span> <span class='fu'>O_</span><span class='op'>(</span><span class='va'>.</span><span class='op'>)</span> <span class='op'>+</span> <span class='fu'>D_</span><span class='op'>(</span><span class='va'>.</span><span class='op'>)</span> <span class='op'>+</span> <span class='fu'>I_</span><span class='op'>(</span><span class='va'>.</span><span class='op'>)</span> <span class='op'>+</span> <span class='fu'>G_</span><span class='op'>(</span><span class='va'>DISTANCE</span><span class='op'>)</span>,
        sp_multi_network <span class='op'>=</span> <span class='va'>multi_net_usa_ge</span>,
        network_pair_id <span class='op'>=</span> <span class='st'>"ge_ge"</span><span class='op'>)</span>
-
+</div><div class='output co'>#&gt; --------------------------------------------------
+#&gt; Spatial interaction model estimated by: MLE  
+#&gt; Autocorrelation structure: model_9 (SDM)  
+#&gt; Observations: 256  
+#&gt; 
+#&gt; --------------------------------------------------
+#&gt; Coefficients:
+#&gt;                 est    sd  t.stat  p.value
+#&gt; rho_d          0.48  0.03   15.75     0.02
+#&gt; rho_o          0.36  0.03   10.59     0.03
+#&gt; rho_w         -0.25  0.04   -5.95     0.05
+#&gt; (Intercept)   10.00  1.92    5.21     0.06
+#&gt; (Intra)       11.32  3.07    3.69     0.08
+#&gt; DEST_X         0.94  0.06   14.97     0.02
+#&gt; DEST_X.lag1    0.62  0.11    5.80     0.05
+#&gt; ORIG_X        -0.78  0.04  -21.20     0.02
+#&gt; ORIG_X.lag1   -0.32  0.08   -3.93     0.08
+#&gt; INTRA_X        1.95  0.08   23.98     0.01
+#&gt; INTRA_X.lag1  -0.34  0.19   -1.76     0.16
+#&gt; DISTANCE      -2.80  0.34   -8.25     0.04
+#&gt; 
+#&gt; --------------------------------------------------
+#&gt; R2_corr: 0.9927709  </div><div class='input'>
 <span class='co'># Same as above</span>
 <span class='fu'>spflow</span><span class='op'>(</span>flow_formula <span class='op'>=</span> <span class='va'>y9</span> <span class='op'>~</span> <span class='fu'>O_</span><span class='op'>(</span><span class='va'>X</span><span class='op'>)</span> <span class='op'>+</span> <span class='fu'>D_</span><span class='op'>(</span><span class='va'>X</span><span class='op'>)</span> <span class='op'>+</span> <span class='fu'>I_</span><span class='op'>(</span><span class='va'>X</span><span class='op'>)</span> <span class='op'>+</span> <span class='fu'>G_</span><span class='op'>(</span><span class='va'>DISTANCE</span><span class='op'>)</span>,
        sp_multi_network <span class='op'>=</span> <span class='va'>multi_net_usa_ge</span>,
        network_pair_id <span class='op'>=</span> <span class='st'>"ge_ge"</span><span class='op'>)</span>
-<span class='op'>}</span>
-
+</div><div class='output co'>#&gt; --------------------------------------------------
+#&gt; Spatial interaction model estimated by: MLE  
+#&gt; Autocorrelation structure: model_9 (SDM)  
+#&gt; Observations: 256  
+#&gt; 
+#&gt; --------------------------------------------------
+#&gt; Coefficients:
+#&gt;                 est    sd  t.stat  p.value
+#&gt; rho_d          0.48  0.03   15.75     0.02
+#&gt; rho_o          0.36  0.03   10.59     0.03
+#&gt; rho_w         -0.25  0.04   -5.95     0.05
+#&gt; (Intercept)   10.00  1.92    5.21     0.06
+#&gt; (Intra)       11.32  3.07    3.69     0.08
+#&gt; DEST_X         0.94  0.06   14.97     0.02
+#&gt; DEST_X.lag1    0.62  0.11    5.80     0.05
+#&gt; ORIG_X        -0.78  0.04  -21.20     0.02
+#&gt; ORIG_X.lag1   -0.32  0.08   -3.93     0.08
+#&gt; INTRA_X        1.95  0.08   23.98     0.01
+#&gt; INTRA_X.lag1  -0.34  0.19   -1.76     0.16
+#&gt; DISTANCE      -2.80  0.34   -8.25     0.04
+#&gt; 
+#&gt; --------------------------------------------------
+#&gt; R2_corr: 0.9927709  </div><div class='input'>
 
 </div></pre>
   </div>
