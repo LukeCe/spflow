@@ -10,7 +10,7 @@ mcmc_results(object)
 \item{object}{A \code{\link[=spflow_model_mcmc-class]{spflow_model_mcmc-class()}}}
 }
 \value{
-An mcmc object
+An mcmc object, containing the draws of the sampled parameters
 }
 \description{
 For details see the documentation of the corresponding class.

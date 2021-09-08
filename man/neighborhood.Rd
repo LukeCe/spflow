@@ -18,7 +18,8 @@ neighborhood(object) <- value
 \item{value}{A neighborhood matrix to replace the existing one}
 }
 \value{
-A matrix (can be sparse)
+A matrix (optionally sparse), representing the neighborhood links
+betweem the nodes
 }
 \description{
 For details on the methods see the documentation of the

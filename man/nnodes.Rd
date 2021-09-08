@@ -13,7 +13,7 @@ nnodes(object, ...)
 \item{...}{Arguments to be passed to methods}
 }
 \value{
-A numeric
+A numeric, corresponding to the number of nodes
 }
 \description{
 For details on the methods see the documentation of the

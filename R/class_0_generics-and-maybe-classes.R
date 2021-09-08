@@ -83,7 +83,7 @@ setGeneric(
 #' @description For details see the documentation of the corresponding class.
 #' @name mcmc_results
 #' @param object A [spflow_model_mcmc-class()]
-#' @return An mcmc object
+#' @return An mcmc object, containing the draws of the sampled parameters
 #' @seealso [spflow_model_mcmc-class()]
 #' @export
 setGeneric(
@@ -97,7 +97,9 @@ setGeneric(
 #'   corresponding classes.
 #' @param object One of [sp_network_nodes-class()], [sp_multi_network-class()]
 #' @param ... Arguments to be passed to methods
-#' @return A matrix (can be sparse)
+#' @return
+#'   A matrix (optionally sparse), representing the neighborhood links
+#'   between the nodes
 #' @name neighborhood
 #' @seealso [sp_network_nodes-class()] [sp_multi_network-class()]
 #'
@@ -122,7 +124,7 @@ setGeneric(
 #'   corresponding classes.
 #' @param object One of [sp_network_nodes-class()], [sp_network_pair-class()]
 #' @param ... Arguments to be passed to methods
-#' @return A numeric
+#' @return A numeric, corresponding to the number of nodes
 #' @rdname nnodes
 #' @name nnodes
 #' @seealso [sp_network_nodes-class()] [sp_network_pair-class()]
@@ -137,7 +139,7 @@ setGeneric(
 #' @description For details on the method see the documentation of the
 #'   corresponding class.
 #' @param object A [sp_network_pair-class()]
-#' @return A numeric
+#' @return A numeric, corresponding to the number of node-pairs
 #' @name npairs
 #' @seealso [sp_network_pair-class()]
 #' @export
@@ -183,7 +185,7 @@ setGeneric(
 #' @name results
 #' @description For details see the documentation of the corresponding class.
 #' @param object A [spflow_model-class()]
-#' @return A data.frame summarizing the results of the estimation
+#' @return A data.frame, summarizing the results of the estimation
 #' @seealso [spflow_model-class()]
 #' @export
 setGeneric(

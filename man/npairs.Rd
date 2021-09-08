@@ -11,7 +11,7 @@ npairs(object)
 \item{object}{A \code{\link[=sp_network_pair-class]{sp_network_pair-class()}}}
 }
 \value{
-A numeric
+A numeric, corresponding to the number of node-pairs
 }
 \description{
 For details on the method see the documentation of the
