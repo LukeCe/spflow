@@ -18,6 +18,9 @@ add_details(object, ...)
 
 \item{model_moments}{A list as returned by \code{\link[=spflow_model_moments]{spflow_model_moments()}}}
 }
+\value{
+An object of class spflow_model
+}
 \description{
 Internal method to add details to a \code{\link[=spflow_model-class]{spflow_model-class()}}
 }

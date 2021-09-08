@@ -1,6 +1,7 @@
 # ---- assertions -------------------------------------------------------------
 #' @title A set of functions to create customized error messages
 #' @description The functions are build on top of [sprintf()]
+#' @return Functions called for their side effect, raises warning or error
 #' @keywords internal
 #' @name assert_errors
 #' @rdname assert_errors
@@ -58,6 +59,7 @@ assert_valid_case <- function(argument,cases) {
 # ---- primitives -------------------------------------------------------------
 #' @title A set of primitive functions to test conditions
 #' @keywords internal
+#' @return A logical
 #' @name custom_primitives
 #' @rdname custom_primitives
 #' @author Lukas Dargel

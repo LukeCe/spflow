@@ -18,6 +18,9 @@ dat(object) <- value
 
 \item{value}{A data.frame to replace existing data}
 }
+\value{
+A the data.frame describing the set of nodes or node-pairs
+}
 \description{
 For details on the methods see the documentation of the
 corresponding classes.

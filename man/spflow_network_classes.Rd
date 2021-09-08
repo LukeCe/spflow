@@ -21,7 +21,6 @@ nodes at the origin and destination.
 \examples{
 
 ### An example use case for the spflow network classes and model estimation
-\dontrun{
 # load example data
 data("paris10km_municipalities")
 data("paris10km_neighborhood")
@@ -32,7 +31,7 @@ data("paris10km_commuteflows")
 # ... their neighborhood is based on contiguity
 paris10km_net <- sp_network_nodes(
   network_id = "paris10km",
-  node_neighborhood = paris10km_neighborhood$by_border,
+  node_neighborhood = paris10km_neighborhood$by_contiguity,
   node_data = sf::st_drop_geometry(paris10km_municipalities),
   node_key_column = "ID_MUN")
 
@@ -79,7 +78,6 @@ flow_control <- spflow_control(sdm_variables = sdm_formula)
 
 # Estimate the model
 spflow(flow_formula, paris10km_multi_net, flow_control = flow_control)
-}
 }
 \seealso{
 Other spflow network classes: 

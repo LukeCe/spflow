@@ -98,6 +98,9 @@ pull_neighborhood_data <-  function(sp_multi_network, network_pair_id) {
 #'   The function generates a list for each role `c("Y_","G_","O_","D_","I_")`
 #'   which indicates whether a variable in the design matrix is used as
 #'   `c("norm", "sdm", "inst")`.
+#' @return
+#'   A list of lists, with information on the way variables are used
+#'   in the model. (e.g. origin vs destination and the number of lags)
 #' @keywords internal
 define_variable_roles <- function(formula_parts, data_sources) {
 

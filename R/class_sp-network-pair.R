@@ -238,7 +238,7 @@ setValidity("sp_network_pair", function(object) { # ---- validity -------------
 #'   A character indicating the name of the column containing the identifiers
 #'   of the destinations
 #'
-#' @return An S4 class of type [sp_network_pair()]
+#' @return An S4 class of type [sp_network_pair-class()]
 #' @family Constructors for spflow network classes
 #' @export
 #' @examples

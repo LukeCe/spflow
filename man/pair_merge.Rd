@@ -22,6 +22,9 @@ pair_merge(object, ...)
 possible pairs of origins and destination, even if the data in the
 \code{\link[=sp_network_pair-class]{sp_network_pair-class()}} does not have them.}
 }
+\value{
+A single data.frame, combining all available information on origins, destinations and OD pairs
+}
 \description{
 For details on the methods see the documentation of the
 corresponding classes.

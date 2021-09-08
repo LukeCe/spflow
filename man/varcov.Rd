@@ -10,6 +10,9 @@ varcov(object)
 \arguments{
 \item{object}{A \code{\link[=spflow_model-class]{spflow_model-class()}}}
 }
+\value{
+The variance-covariance matrix of the fitted model parameters
+}
 \description{
 For details on the methods see the documentation of the
 corresponding classes.

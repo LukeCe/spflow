@@ -230,7 +230,7 @@ setValidity(
 #'
 #' @family Constructors for spflow network classes
 #' @importClassesFrom Matrix Matrix
-#' @return The S4 class [sp_network_nodes-class()]
+#' @return An S4 class of type [sp_network_nodes-class()]
 #' @export
 #' @examples
 #' sp_network_nodes("germany",

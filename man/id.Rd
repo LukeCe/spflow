@@ -18,6 +18,9 @@ id(object, ...) <- value
 
 \item{value}{A character replacing the existing id}
 }
+\value{
+A character, corresponding to the id
+}
 \description{
 For details on the methods see the documentation of the
 corresponding classes.

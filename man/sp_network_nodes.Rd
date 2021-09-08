@@ -21,7 +21,7 @@ sp_network_nodes(
 \item{node_key_column}{A character indicating the column containing the identifiers for the nodes}
 }
 \value{
-The S4 class \code{\link[=sp_network_nodes-class]{sp_network_nodes-class()}}
+An S4 class of type \code{\link[=sp_network_nodes-class]{sp_network_nodes-class()}}
 }
 \description{
 Create a \code{\link[=sp_network_nodes-class]{sp_network_nodes-class()}}

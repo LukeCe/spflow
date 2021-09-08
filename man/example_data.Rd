@@ -57,4 +57,7 @@ for standard deviation of the simulated Gaussian noise.
 They are used to simulate two flow vectors \code{y2} and \code{y9} for each network
 pair inside the \code{multi_net_usa_ge}.
 }
+\references{
+\insertAllCited{}
+}
 \keyword{datasets}

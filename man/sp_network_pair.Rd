@@ -26,7 +26,7 @@ of the origins}
 of the destinations}
 }
 \value{
-An S4 class of type \code{\link[=sp_network_pair]{sp_network_pair()}}
+An S4 class of type \code{\link[=sp_network_pair-class]{sp_network_pair-class()}}
 }
 \description{
 Create an S4 object that contains information on origin-destination pairs

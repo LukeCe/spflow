@@ -23,6 +23,7 @@
 #'   https://ialab.it.monash.edu/~dwyer/papers/maptrix.pdf
 #' @rdname example_data
 #' @name example_data
+#' @references \insertAllCited{}
 "multi_net_usa_ge"
 
 #' @rdname example_data

@@ -9,6 +9,9 @@ results(object)
 \arguments{
 \item{object}{A \code{\link[=spflow_model-class]{spflow_model-class()}}}
 }
+\value{
+A data.frame summarizing the results of the estimation
+}
 \description{
 For details on the methods see the documentation of the
 corresponding classes.

@@ -10,6 +10,9 @@ sd_error(object)
 \arguments{
 \item{object}{A \code{\link[=spflow_model-class]{spflow_model-class()}}}
 }
+\value{
+A numeric, representing the estimated standard deviation of the error term
+}
 \description{
 For details on the methods see the documentation of the
 corresponding classes.

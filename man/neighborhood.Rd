@@ -17,6 +17,9 @@ neighborhood(object) <- value
 
 \item{value}{A neighborhood matrix to replace the existing one}
 }
+\value{
+A matrix (can be sparse)
+}
 \description{
 For details on the methods see the documentation of the
 corresponding classes.

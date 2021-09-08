@@ -12,6 +12,9 @@ nnodes(object, ...)
 
 \item{...}{Arguments to be passed to methods}
 }
+\value{
+A numeric
+}
 \description{
 For details on the methods see the documentation of the
 corresponding classes.

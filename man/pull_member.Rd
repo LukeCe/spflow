@@ -12,6 +12,9 @@ pull_member(object, ...)
 
 \item{...}{Arguments to be passed to methods}
 }
+\value{
+A \code{\link[=sp_network_pair-class]{sp_network_pair-class()}} or a \code{\link[=sp_network_nodes-class]{sp_network_nodes-class()}}
+}
 \description{
 For details on the method see the documentation of the
 corresponding class.

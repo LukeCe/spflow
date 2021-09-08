@@ -14,6 +14,9 @@
 
 This is a resubmission
 
-* Invalid links in the README.md removed
+* Added a return value to all exported functions (shown by ls("package:spflow"))
+    Some of the .Rd files contains documentation for non-exported function, which is written for the developer team (and less a bit less rigorous)
+* Removed \dontrun{} environments from examples
+* The vignette is adapted to restore the user options and graphical parameters
   
   

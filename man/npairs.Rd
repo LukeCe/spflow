@@ -10,6 +10,9 @@ npairs(object)
 \arguments{
 \item{object}{A \code{\link[=sp_network_pair-class]{sp_network_pair-class()}}}
 }
+\value{
+A numeric
+}
 \description{
 For details on the method see the documentation of the
 corresponding class.

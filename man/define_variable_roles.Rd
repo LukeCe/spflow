@@ -6,6 +6,10 @@
 \usage{
 define_variable_roles(formula_parts, data_sources)
 }
+\value{
+A list of lists, with information on the way variables are used
+in the model. (e.g. origin vs destination and the number of lags)
+}
 \description{
 Internal functions to generate model matrices
 }

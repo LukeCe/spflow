@@ -26,7 +26,7 @@ defaults to the of them)}
 over the estimation procedure}
 }
 \value{
-A \code{\link[=spflow_model]{spflow_model()}} object
+An S4 class of type \code{\link[=spflow_model-class]{spflow_model-class()}}
 }
 \description{
 We implement three different estimators of spatial econometric interaction
@@ -156,7 +156,6 @@ spflow(flow_formula = y9 ~ . + G_(DISTANCE),
        sp_multi_network = multi_net_usa_ge,
        network_pair_id = "ge_ge")
 
-\dontrun{
 # Same as above with explicit declaration of variables...
 # ... X is the only variable available
 # ... it is used for origins, destination and intra-state flows
@@ -173,7 +172,6 @@ spflow(flow_formula = y9 ~ O_(.) + D_(.) + I_(.) + G_(DISTANCE),
 spflow(flow_formula = y9 ~ O_(X) + D_(X) + I_(X) + G_(DISTANCE),
        sp_multi_network = multi_net_usa_ge,
        network_pair_id = "ge_ge")
-}
 
 
 }

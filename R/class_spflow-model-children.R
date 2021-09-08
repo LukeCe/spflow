@@ -85,7 +85,7 @@ setMethod(
   f = "mcmc_results",
   signature = "spflow_model_mcmc",
   function(object){ # ---- mcmc_results ---------------------------------------
-    return(object@varcov)
+    return(object@mcmc_results)
   })
 
 

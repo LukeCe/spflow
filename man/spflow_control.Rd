@@ -76,7 +76,8 @@ part of the estimation \insertCite{Dargel2021}{spflow}.}
 sampling of the autoregressive parameters}
 }
 \value{
-A list of control parameters for estimation via \code{\link[=spflow]{spflow()}}
+A list of parameters used to control the model estimation with
+\code{\link[=spflow]{spflow()}}
 }
 \description{
 This function creates a list to fine tune the estimation of a spatial

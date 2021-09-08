@@ -9,7 +9,7 @@ vignette: >
 ---
 
 ```{r, include = FALSE}
-options(max.print = 200)
+old_opt <- options(max.print = 200)
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
@@ -50,7 +50,8 @@ plot(paris10km_municipalities[drop_area])
 There are three different neighborhood matrices that can be used to describe the connectivity between the municipalities.
 
 ```{r}
-par(mfrow = c(1, 3), mar = c(0,0,1,0))
+old_par <- par(mfrow = c(1, 3), mar = c(0,0,1,0))
+
 mid_points <- suppressWarnings({
     st_point_on_surface(st_geometry(paris10km_municipalities))})
 
@@ -71,6 +72,8 @@ title("Distance")
 plot(st_geometry(paris10km_municipalities))
 plot(paris10km_nb$by_knn, mid_points, add = T, col = rgb(0,0,0,alpha=0.5))
 title("3 Nearest Neighbors") 
+
+par(old_par)
 ```
 
 Finally, there is data on the size of the commuting flows and the distance between all pairs of municipalities.
@@ -196,5 +199,10 @@ results_mcmc  <- spflow(
   flow_control = cntrl)
 
 results_mcmc
+```
+
+
+```{r "cleanup", include=FALSE}
+options(old_opt)
 ```
 

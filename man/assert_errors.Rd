@@ -22,6 +22,9 @@ assert_is_single_x(obj, x)
 
 assert_valid_case(argument, cases)
 }
+\value{
+Functions called for their side effect, raises warning or error
+}
 \description{
 The functions are build on top of \code{\link[=sprintf]{sprintf()}}
 }

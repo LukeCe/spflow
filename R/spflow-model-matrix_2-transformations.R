@@ -5,6 +5,7 @@
 #'   which are referred to as "pair", "orig", or "dest".
 #'   All formulas (normal, sdm, and instrument) are combined to generate an
 #'   overall model matrix which is only expanded once for each source.
+#' @return A list of matrices
 #' @keywords internal
 by_source_model_matrix <- function(
   formula_parts,

@@ -53,9 +53,13 @@
 #' varcov(spflow_results) # variance covariance matrix of the estimators
 #'
 #' # MCMC methods
-#' \dontrun{
-#' mcmc_results(spflow_results) # parameter values during the mcmc sampling
-#' }
+#' spflow_results_mcmc <- spflow(
+#'   y2 ~ . + G_(DISTANCE),
+#'   multi_net_usa_ge,
+#'   flow_control = spflow_control(estimation_method = "mcmc",
+#'                                 model = "model_2"))
+#' results(spflow_results)
+#' mcmc_results(spflow_results_mcmc) # parameter values during the mcmc sampling
 #'
 setClass("spflow_model",
          slots = c(
@@ -85,6 +89,7 @@ setClass("spflow_model",
 #' @param flow_control A list as returned by [spflow_control()]
 #' @param model_moments A list as returned by [spflow_model_moments()]
 #' @name add_details
+#' @return An object of class spflow_model
 #' @keywords  internal
 setMethod(
   f = "add_details",

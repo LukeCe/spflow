@@ -33,6 +33,7 @@ setGeneric(
 #'   corresponding classes.
 #' @param object An object belonging to the [spflow network classes][spflow_network_classes()]
 #' @param ... Arguments to be passed to methods
+#' @return A the data.frame describing the set of nodes or node-pairs
 #' @name dat
 #' @aliases dat-set
 #' @seealso [spflow_network_classes()]
@@ -59,6 +60,7 @@ setGeneric(
 #' @description For details see the documentation of the corresponding classes.
 #' @param object A [spflow network class][spflow_network_classes()]
 #' @param ... Arguments to be passed to methods
+#' @return A character, corresponding to the id
 #' @name id
 #' @aliases id-set
 #' @seealso [spflow_network_classes()]
@@ -81,6 +83,7 @@ setGeneric(
 #' @description For details see the documentation of the corresponding class.
 #' @name mcmc_results
 #' @param object A [spflow_model_mcmc-class()]
+#' @return An mcmc object
 #' @seealso [spflow_model_mcmc-class()]
 #' @export
 setGeneric(
@@ -94,6 +97,7 @@ setGeneric(
 #'   corresponding classes.
 #' @param object One of [sp_network_nodes-class()], [sp_multi_network-class()]
 #' @param ... Arguments to be passed to methods
+#' @return A matrix (can be sparse)
 #' @name neighborhood
 #' @seealso [sp_network_nodes-class()] [sp_multi_network-class()]
 #'
@@ -118,6 +122,7 @@ setGeneric(
 #'   corresponding classes.
 #' @param object One of [sp_network_nodes-class()], [sp_network_pair-class()]
 #' @param ... Arguments to be passed to methods
+#' @return A numeric
 #' @rdname nnodes
 #' @name nnodes
 #' @seealso [sp_network_nodes-class()] [sp_network_pair-class()]
@@ -132,6 +137,7 @@ setGeneric(
 #' @description For details on the method see the documentation of the
 #'   corresponding class.
 #' @param object A [sp_network_pair-class()]
+#' @return A numeric
 #' @name npairs
 #' @seealso [sp_network_pair-class()]
 #' @export
@@ -162,6 +168,7 @@ setGeneric(
 #'   corresponding class.
 #' @param object A [sp_multi_network-class()]
 #' @param ... Arguments to be passed to methods
+#' @return  A [sp_network_pair-class()] or a [sp_network_nodes-class()]
 #' @seealso [sp_multi_network-class()]
 #' @name pull_member
 #' @export
@@ -176,6 +183,7 @@ setGeneric(
 #' @name results
 #' @description For details see the documentation of the corresponding class.
 #' @param object A [spflow_model-class()]
+#' @return A data.frame summarizing the results of the estimation
 #' @seealso [spflow_model-class()]
 #' @export
 setGeneric(
@@ -211,6 +219,8 @@ setGeneric(
 #' @title Extract the standard deviation from a [spflow_model-class()]
 #' @description For details see the documentation of the corresponding class.
 #' @param object A [spflow_model-class()]
+#' @return
+#'   A numeric, representing the estimated standard deviation of the error term
 #' @seealso [spflow_model-class()]
 #' @name sd_error
 setGeneric(
@@ -224,6 +234,7 @@ setGeneric(
 #' @description For details on the methods see the documentation of the
 #'   corresponding classes.
 #' @param object A [spflow_model-class()]
+#' @return The variance-covariance matrix of the fitted model parameters
 #' @name varcov
 #' @seealso [spflow_model-class()]
 #' @export

@@ -88,7 +88,9 @@
 #'
 #' @seealso [spflow()]
 #' @references \insertAllCited{}
-#' @return A list of control parameters for estimation via [spflow()]
+#' @return
+#'   A list of parameters used to control the model estimation with
+#'   [spflow()]
 #' @export
 #' @examples
 #'

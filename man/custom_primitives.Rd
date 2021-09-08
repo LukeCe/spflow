@@ -25,6 +25,9 @@ has_distinct_elements(obj)
 
 none(x)
 }
+\value{
+A logical
+}
 \description{
 A set of primitive functions to test conditions
 }

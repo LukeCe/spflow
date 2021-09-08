@@ -6,6 +6,9 @@
 \usage{
 by_source_model_matrix(formula_parts, data_sources)
 }
+\value{
+A list of matrices
+}
 \description{
 Internal functions to generate model matrices
 }

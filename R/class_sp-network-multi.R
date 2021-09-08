@@ -148,6 +148,7 @@ setMethod(
 #'   A logical, when set to `TRUE` the resulting data.frame contains all
 #'   possible pairs of origins and destination, even if the data in the
 #'   [sp_network_pair-class()] does not have them.
+#' @return A single data.frame, combining all available information on origins, destinations and OD pairs
 #' @rdname pair_merge
 #' @export
 #' @examples
@@ -279,7 +280,7 @@ setValidity("sp_multi_network", function(object) { # ---- validity ------------
 #'
 #' @param ... objects of type [sp_network_nodes()] and [sp_network_pair()]
 #'
-#' @return A S4 network data object
+#' @return An S4 class of type [sp_multi_network-class()]
 #' @family Constructors for spflow network classes
 #' @export
 #' @examples

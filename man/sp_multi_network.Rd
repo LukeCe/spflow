@@ -10,7 +10,7 @@ sp_multi_network(...)
 \item{...}{objects of type \code{\link[=sp_network_nodes]{sp_network_nodes()}} and \code{\link[=sp_network_pair]{sp_network_pair()}}}
 }
 \value{
-A S4 network data object
+An S4 class of type \code{\link[=sp_multi_network-class]{sp_multi_network-class()}}
 }
 \description{
 Create an S4 class that contains \code{\link[=sp_network_nodes]{sp_network_nodes()}} and \code{\link[=sp_network_pair]{sp_network_pair()}} for one or multiple networks
