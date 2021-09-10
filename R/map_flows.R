@@ -1,13 +1,16 @@
 map_flows <- function(y, index_o, index_d, coords_s, site_s,
                       q4 = sample(colors(), size = nrow(coords_s)),
                       add = F, maxlwd = 1, alpha.q = 0.75, max_bar = 1, 
-                      add.legend = T, round.values = 0) {
+                      x.legend = "none", round.values = 0, 
+                      label_s = F) {
   
   # verification
   # size of the vectors
   stopifnot(length(y) == length(index_o),
             length(index_o) == length(index_d))
  
+  stopifnot(x.legend %in% c("none", "bottomright", "bottom", "bottomleft", 
+            "left", "topleft", "top", "topright", "right", "center"))
   ############### Initialisation   
   # number of flows 
   N <- length(y)
@@ -89,7 +92,7 @@ map_flows <- function(y, index_o, index_d, coords_s, site_s,
   maxlwd <- maxlwd * 7
   max_bar <- max_bar * 1.8
   # width of the flows
-  maxlwd <- maxlwd * y / max(y, na.rm = T)
+  maxlwd_flows <- maxlwd * y / max(y, na.rm = T)
   # vector of colors for the flows
   my_col_flow <- q4[as.numeric(factor(index_o, levels = site_s))] 
   my_col_bar <- q4[as.numeric(factor(O, levels = site_s))]
@@ -134,7 +137,7 @@ map_flows <- function(y, index_o, index_d, coords_s, site_s,
       yB <- B[2]
       my_arc_don <- my_arc(xA, yA, xB, yB)
       lines(my_arc_don[, 1], my_arc_don[, 2], 
-            lwd = maxlwd[i], col = my_col_flow[i])
+            lwd = maxlwd_flows[i], col = my_col_flow[i])
   }
     
   bar_1x <- cbind(xy_origin[,1] - shift_bar, xy_origin[,1] + shift_bar, 
@@ -178,55 +181,75 @@ map_flows <- function(y, index_o, index_d, coords_s, site_s,
                                  my_cum_sum[1]))
    }
     
+  # print labels 
+  if (label_s) {
+   bar_out_S <-  max_bar * outflows / max(c(inflows, outflows), na.rm = T) 
+   bar_in_S <- max_bar * inflows / max(c(inflows, outflows), na.rm = T) 
+   text(coords_s[site_s, 1] , coords_s[site_s, 2] + apply(cbind(bar_out_S, bar_in_S), 1, max), 
+       site_s, adj = c(0.5, 0.), cex = 0.6)
+  }
+  
   # plot the legend
-  if (add.legend) {
+  if (x.legend != "none") {
+    # plot the legend of the flows
+    flows_legend <- round(quantile(y, seq(alpha.q, 1, length.out = 4) ^ c(1, 0.5, 0.5, 0.5)), 
+                                   round.values)
+    xy_leg <- legend(x.legend,
+           legend = flows_legend, 
+           lty = 1,
+           lwd = maxlwd * flows_legend / max(y, na.rm = T),
+           cex = 0.6,
+           title = "Flow size",
+           box.lwd = 0)
+    
+    x_left <- xy_leg$rect$left + xy_leg$rect$w / 4
+    if(x.legend %in% c("left", "topleft", "top", "topright", "right", "center")) {
+      y_bottom <- xy_leg$rect$top - 2 * xy_leg$rect$h
+    } else {
+      y_bottom <- xy_leg$rect$top + xy_leg$rect$h / 4
+    }
     # max of the outflows
-    polygon(cbind(par()$xaxp[1] - shift_bar, 
-                  par()$xaxp[1] + shift_bar, 
-                  par()$xaxp[1] + shift_bar, 
-                  par()$xaxp[1] - shift_bar,
-                  par()$xaxp[1] - shift_bar),
-            cbind(par()$yaxp[1], par()$yaxp[1], 
-                  par()$yaxp[1] + max(bar_out), 
-                  par()$yaxp[1] + max(bar_out),
-                  par()$yaxp[1]))
+    polygon(cbind(x_left - shift_bar, 
+                  x_left + shift_bar, 
+                  x_left + shift_bar, 
+                  x_left - shift_bar,
+                  x_left - shift_bar),
+            cbind(y_bottom, y_bottom, 
+                  y_bottom + max(bar_out, bar_in), 
+                  y_bottom + max(bar_out, bar_in),
+                  y_bottom))
     
     # max of the inflows
-    polygon(cbind(par()$xaxp[1] - shift_bar + diff(range(xy_origin[, 1])) * shift, 
-                  par()$xaxp[1] + shift_bar + diff(range(xy_origin[, 1])) * shift,
-                  par()$xaxp[1] + shift_bar + diff(range(xy_origin[, 1])) * shift, 
-                  par()$xaxp[1] - shift_bar + diff(range(xy_origin[, 1])) * shift,
-                  par()$xaxp[1] - shift_bar + diff(range(xy_origin[, 1])) * shift),
-            cbind(par()$yaxp[1], par()$yaxp[1], 
-                  par()$yaxp[1] + max(bar_in), 
-                  par()$yaxp[1] + max(bar_in),
-                  par()$yaxp[1]))
+    polygon(cbind(x_left - shift_bar + diff(range(xy_origin[, 1])) * shift, 
+                  x_left + shift_bar + diff(range(xy_origin[, 1])) * shift,
+                  x_left + shift_bar + diff(range(xy_origin[, 1])) * shift, 
+                  x_left - shift_bar + diff(range(xy_origin[, 1])) * shift,
+                  x_left - shift_bar + diff(range(xy_origin[, 1])) * shift),
+            cbind(y_bottom, y_bottom, 
+                  y_bottom + max(bar_out, bar_in) / 2, 
+                  y_bottom + max(bar_out, bar_in) / 2,
+                  y_bottom))
     
     # Print out and In
-    text(par()$xaxp[1], par()$yaxp[1], "Out", cex = 0.6, pos = 1)
-    text(par()$xaxp[1] + diff(range(xy_origin[, 1])) * shift, par()$yaxp[1], "In", cex = 0.6, pos = 1)
+    text(x_left, y_bottom + max(bar_out, bar_in), "Out / In", cex = 0.5, pos = 3)
+    # text(x_left + diff(range(xy_origin[, 1])) * shift, y_bottom, "In", cex = 0.5, pos = 1)
     
     # Print the arrows 
-    arrows(par()$xaxp[1] + 2 * diff(range(xy_origin[, 1])) * shift,   
-           par()$yaxp[1], par()$xaxp[1] + 2 * diff(range(xy_origin[, 1])) * shift, 
-           par()$yaxp[1] + max(bar_out, bar_in),
+    arrows(x_left + 2 * diff(range(xy_origin[, 1])) * shift,   
+           y_bottom, x_left + 2 * diff(range(xy_origin[, 1])) * shift, 
+           y_bottom + max(bar_out, bar_in),
            length = 0.1)
     
     # Print the values  
-    text(par()$xaxp[1] + 2.1 * diff(range(xy_origin[, 1])) * shift,
-         par()$yaxp[1], round.values, cex = 0.5, pos = 4)
-    text(par()$xaxp[1] + 2.1 * diff(range(xy_origin[, 1])) * shift, 
-         par()$yaxp[1] + max(bar_out, bar_in), 
+    text(x_left + 2.1 * diff(range(xy_origin[, 1])) * shift,
+         y_bottom, "0", cex = 0.5, pos = 4)
+    text(x_left + 2.1 * diff(range(xy_origin[, 1])) * shift, 
+         y_bottom + max(bar_out, bar_in), 
          round(max(outflows, inflows), round.values), 
          cex = 0.5, pos = 4)
-    text(par()$xaxp[1] + 2.1 * diff(range(xy_origin[, 1])) * shift,
-         par()$yaxp[1] + max(bar_out, bar_in) / 2, 
+    text(x_left + 2.1 * diff(range(xy_origin[, 1])) * shift,
+         y_bottom + max(bar_out, bar_in) / 2, 
          round(max(outflows, inflows) / 2, round.values), 
          cex = 0.5, pos = 4)
-    legend(par()$xaxp[2], par()$yaxp[2],
-           legend = round(quantile(y, c(0.5, 0.95, 0.99, 0.999)), round.values)[-1], 
-           lty = 1,
-           lwd = quantile(maxlwd, c(0.5, 0.95, 0.99, 0.999))[-1],
-           cex = 0.6)
   }
 }
