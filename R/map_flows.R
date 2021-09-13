@@ -1,8 +1,8 @@
-map_flows <- function(y, index_o, index_d, coords_s, site_s,
+map_flows <- function(y, index_o, index_d, coords_s,
                       q4 = sample(colors(), size = nrow(coords_s)),
                       add = F, maxlwd = 1, alpha.q = 0.75, max_bar = 1, 
                       x.legend = "none", round.values = 0, 
-                      label_s = F) {
+                      label_s = F, remove_intra = F) {
   
   # verification
   # size of the vectors
@@ -11,6 +11,7 @@ map_flows <- function(y, index_o, index_d, coords_s, site_s,
  
   stopifnot(x.legend %in% c("none", "bottomright", "bottom", "bottomleft", 
             "left", "topleft", "top", "topright", "right", "center"))
+  
   ############### Initialisation   
   # number of flows 
   N <- length(y)
@@ -23,6 +24,13 @@ map_flows <- function(y, index_o, index_d, coords_s, site_s,
   S <- union(O, D)
   n <- length(S)
  
+  # remove intra or not ?
+  if (remove_intra) {
+    y[index_o == index_d] <- 0
+  }
+  
+  # coords must have rownames corresponding with S
+  site_s <- rownames(coords_s)
   # Check on the spatial coordinates data 
   stopifnot(all(S %in% site_s))
 
