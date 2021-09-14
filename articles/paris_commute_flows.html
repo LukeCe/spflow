@@ -375,7 +375,7 @@
 <span class="co">#&gt; rho_d                   0.44  0.02   28.06     0.01</span>
 <span class="co">#&gt; rho_o                   0.74  0.01   80.74     0.00</span>
 <span class="co">#&gt; rho_w                  -0.35  0.02  -16.86     0.02</span>
-<span class="co">#&gt; (Intercept)             1.27  0.23    5.50     0.06</span>
+<span class="co">#&gt; (Intercept)             1.27  0.23    5.51     0.06</span>
 <span class="co">#&gt; (Intra)                 3.11  0.47    6.62     0.05</span>
 <span class="co">#&gt; DEST_AREA               0.00  0.00    8.04     0.04</span>
 <span class="co">#&gt; DEST_MED_INCOME         0.00  0.00   -3.88     0.08</span>
@@ -401,10 +401,10 @@
 <span class="co">#&gt; INTRA_MED_INCOME.lag1   0.00  0.00   -2.36     0.13</span>
 <span class="co">#&gt; INTRA_NB_COMPANY.lag1   0.00  0.00    2.29     0.13</span>
 <span class="co">#&gt; INTRA_POPULATION.lag1   0.00  0.00   -1.33     0.21</span>
-<span class="co">#&gt; log(1 + DISTANCE)      -0.14  0.02   -6.01     0.05</span>
+<span class="co">#&gt; log(1 + DISTANCE)      -0.14  0.02   -6.02     0.05</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; --------------------------------------------------</span>
-<span class="co">#&gt; R2_corr: 0.9110023</span></code></pre></div>
+<span class="co">#&gt; R2_corr: 0.9110016</span></code></pre></div>
 </div>
 <div id="adjusting-the-formula" class="section level3">
 <h3 class="hasAnchor">
@@ -453,7 +453,7 @@
 <span class="co">#&gt; log(DISTANCE + 1)           -0.14  0.02   -6.80     0.05</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; --------------------------------------------------</span>
-<span class="co">#&gt; R2_corr: 0.9192029</span></code></pre></div>
+<span class="co">#&gt; R2_corr: 0.9192028</span></code></pre></div>
 </div>
 <div id="adjustment-through-spflow_control" class="section level3">
 <h3 class="hasAnchor">
@@ -484,23 +484,23 @@
 <span class="co">#&gt; --------------------------------------------------</span>
 <span class="co">#&gt; Coefficients:</span>
 <span class="co">#&gt;                               est  quant_025  quant_975    sd  t.stat  p.value</span>
-<span class="co">#&gt; rho_d                        0.20       0.17       0.22  0.01   14.26     0.02</span>
-<span class="co">#&gt; rho_o                        0.66       0.64       0.68  0.01   53.46     0.01</span>
-<span class="co">#&gt; (Intercept)                 -0.84      -1.40      -0.27  0.29   -2.87     0.11</span>
-<span class="co">#&gt; (Intra)                      6.57       4.77       8.38  0.91    7.19     0.04</span>
-<span class="co">#&gt; DEST_clog(MED_INCOME)       -0.42      -0.52      -0.32  0.05   -8.02     0.04</span>
-<span class="co">#&gt; DEST_log(NB_COMPANY)         0.35       0.32       0.38  0.02   21.40     0.01</span>
-<span class="co">#&gt; DEST_clog(MED_INCOME).lag1   0.66       0.52       0.80  0.07    8.83     0.04</span>
-<span class="co">#&gt; DEST_log(NB_COMPANY).lag1   -0.24      -0.28      -0.21  0.02  -12.84     0.02</span>
-<span class="co">#&gt; ORIG_clog(MED_INCOME)       -0.09      -0.19       0.01  0.05   -1.82     0.16</span>
-<span class="co">#&gt; ORIG_log(POPULATION)         0.77       0.74       0.81  0.02   39.22     0.01</span>
-<span class="co">#&gt; ORIG_clog(MED_INCOME).lag1  -0.03      -0.16       0.10  0.07   -0.45     0.37</span>
-<span class="co">#&gt; ORIG_log(POPULATION).lag1   -0.61      -0.66      -0.57  0.03  -24.04     0.01</span>
-<span class="co">#&gt; INTRA_log(POPULATION)       -0.45      -0.61      -0.29  0.08   -5.40     0.06</span>
-<span class="co">#&gt; log(DISTANCE + 1)           -0.14      -0.18      -0.10  0.02   -6.24     0.05</span>
+<span class="co">#&gt; rho_d                        0.20       0.17       0.23  0.01   13.53     0.02</span>
+<span class="co">#&gt; rho_o                        0.66       0.64       0.68  0.02   41.47     0.01</span>
+<span class="co">#&gt; (Intercept)                 -0.83      -1.41      -0.28  0.29   -2.92     0.11</span>
+<span class="co">#&gt; (Intra)                      6.57       4.77       8.36  0.92    7.11     0.04</span>
+<span class="co">#&gt; DEST_clog(MED_INCOME)       -0.42      -0.53      -0.32  0.05   -7.81     0.04</span>
+<span class="co">#&gt; DEST_log(NB_COMPANY)         0.35       0.32       0.38  0.02   17.65     0.02</span>
+<span class="co">#&gt; DEST_clog(MED_INCOME).lag1   0.66       0.52       0.80  0.08    8.56     0.04</span>
+<span class="co">#&gt; DEST_log(NB_COMPANY).lag1   -0.24      -0.28      -0.21  0.02  -11.87     0.03</span>
+<span class="co">#&gt; ORIG_clog(MED_INCOME)       -0.09      -0.19       0.01  0.05   -1.76     0.16</span>
+<span class="co">#&gt; ORIG_log(POPULATION)         0.78       0.74       0.81  0.02   38.27     0.01</span>
+<span class="co">#&gt; ORIG_clog(MED_INCOME).lag1  -0.03      -0.17       0.10  0.07   -0.47     0.36</span>
+<span class="co">#&gt; ORIG_log(POPULATION).lag1   -0.61      -0.66      -0.56  0.03  -22.44     0.01</span>
+<span class="co">#&gt; INTRA_log(POPULATION)       -0.45      -0.61      -0.28  0.08   -5.33     0.06</span>
+<span class="co">#&gt; log(DISTANCE + 1)           -0.14      -0.18      -0.10  0.02   -6.41     0.05</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; --------------------------------------------------</span>
-<span class="co">#&gt; R2_corr: 0.9189705</span></code></pre></div>
+<span class="co">#&gt; R2_corr: 0.9189338</span></code></pre></div>
 </div>
 </div>
 </div>
