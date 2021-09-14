@@ -1,7 +1,7 @@
 Package: spflow
 Title: Spatial Econometric Interaction Models
 Version: 0.1.0.9000
-Date: 2021-09-09
+Date: 2021-09-14
 Authors@R: c(
     person("Lukas", "Dargel", role = c("aut", "cre"),
            email = "lukas.dargel@mailbox.org",
@@ -47,6 +47,7 @@ Collate:
     'fit-spflow-mle_hessian.R'
     'fit-spflow-ols.R'
     'fit-spflow-s2sls.R'
+    'map_flows.R'
     'spflow-control.R'
     'spflow-formula.R'
     'spflow-likelihood.R'
