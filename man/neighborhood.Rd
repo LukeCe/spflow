@@ -19,7 +19,7 @@ neighborhood(object) <- value
 }
 \value{
 A matrix (optionally sparse), representing the neighborhood links
-betweem the nodes
+between the nodes
 }
 \description{
 For details on the methods see the documentation of the
