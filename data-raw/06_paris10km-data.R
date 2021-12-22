@@ -7,7 +7,7 @@
 # The example contains commuting flows between all communities that are within
 # a 10km radius of the center of Paris.
 # = = = = = = = = = = = = = = = = = = =
-# Date: Mai 2021
+# Date: December 2021
 
 library("Matrix")
 library("readxl")
@@ -90,9 +90,8 @@ paris10km_commuteflows[
 
 # ---- generate neighborhoods -------------------------------------------------
 suppressWarnings({
-  mid_points <- paris10km_municipalities %>%
-    st_geometry() %>%
-    st_point_on_surface()
+  mid_points <- st_geometry(paris10km_municipalities)
+  mid_points <- st_point_on_surface(mid_points)
 
   paris10km_neighborhood <- lapply(list(
     "by_contiguity" = poly2nb(paris10km_municipalities),

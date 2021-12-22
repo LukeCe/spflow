@@ -11,12 +11,13 @@
 #
 # Our examples come from https://ialab.it.monash.edu/~dwyer/papers/maptrix.pdf
 # - - - - - - - - - - - - - - - - - - -
-# Date: February 2021
+# Date: December 2021
 
 library("magrittr")
 library("sf")
 library("sp")
 library("spdep")
+library("spflow")
 source("data-raw/helpers_sim-data.R")
 
 # generate data for the 16 states of Germany
@@ -34,17 +35,16 @@ state_coordinates <- list(
 
 germany_grid <- SpatialPointsDataFrame(
   coords = Reduce("cbind", state_coordinates),
-  data = data.frame(germany_data, row.names = "ID_STATE")) %>%
-  create_grid(.) %>%
-  st_as_sf()
+  data = data.frame(germany_data, row.names = "ID_STATE"))
+germany_grid <- create_grid(germany_grid)
+germany_grid <- st_as_sf(germany_grid)
 
 germany_grid <- st_as_sf(germany_grid)[c(2,1,3)]
-names(germany_grid)[c(1,2)] <-names(germany_data)
+names(germany_grid)[c(1,2)] <- names(germany_data)
 
-germany_contiguity <- germany_grid %>%
-  poly2nb() %>%
-  nb2listw() %>%
-  listw2mat()
+germany_contiguity <- poly2nb(germany_grid)
+germany_contiguity <- nb2listw(germany_contiguity)
+germany_contiguity <- listw2mat(germany_contiguity)
 
 germany_net <- sp_network_nodes(
   network_id = "ge",
@@ -57,6 +57,6 @@ germany_inputs <- list("data" = germany_data,
                        "key_column" = "ID_STATE",
                        "net_id" = "ge")
 
-save(germany_inputs, file = "data/germany_inputs.rda")
+save(germany_inputs, file = "tests/integration/germany_inputs.rda")
 save(germany_net, file = "data/germany_net.rda")
 save(germany_grid, file = "data/germany_grid.rda")
