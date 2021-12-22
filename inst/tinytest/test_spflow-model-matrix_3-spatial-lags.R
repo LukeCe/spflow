@@ -166,6 +166,22 @@ expect_equal({
   },
   info = "generate a list of lags (model_4)")
 
+expect_equal({
+  Y  <- matrix(c(0,1,1,1),2,2)
+  W <- matrix(1:4,2,2)
+  Y_lags <- spflow:::lag_flow_matrix(Y, model = "model_9", W, W,Y_indicator = Y)
+  lapply(Y_lags, "!=", 0)
+
+  },
+  {
+    # the power is equal the occurrence of w
+    indic_pos <- matrix(c(F,T,T,T),2,2)
+    res_bin <- list("Y" = indic_pos,
+                    "Y.d" = indic_pos,
+                    "Y.o" = indic_pos,
+                    "Y.w" = indic_pos)
+  },
+  info = "generate sparse lags (model_9)")
 
 # ---- by_role_spatial_lags ---------------------------------------------------
 expect_equal({

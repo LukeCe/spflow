@@ -58,3 +58,18 @@ colSums2mat <- function(x) {
   matrix(colSums(x),nrow = 1)
 }
 
+#' @keywords internal
+matrix2binary <- function(mat) {
+
+  if (is(mat, "matrix")) {
+    ind <- matrix(1L, nrow = nrow("mat"), ncol = ncol(mat))
+    ind[mat == 0] <- 0L
+    return(ind)
+  }
+
+  if (is(mat, "Matrix")) {
+    mat@x <- rep(1L, length(mat@x))
+    return(mat)
+  }
+
+}

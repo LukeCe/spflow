@@ -196,9 +196,13 @@ lag_flow_matrix <- function(
   Y,
   model,
   OW,
-  DW = if (type == "within") OW,
+  DW,
   name = "Y",
-  type = "within") {
+  Y_indicator = NULL) {
+
+
+  if (model == "model_1")
+    return(named_list(name, Y))
 
   names_rho <- define_spatial_lag_params(model)
   need_d <- any(names_rho %in% c("rho_d","rho_od","rho_odw"))
@@ -230,6 +234,13 @@ lag_flow_matrix <- function(
                    "2" = list(Y, "d"   = WY),
                    "1" = list(Y))
 
+
+
+  if (!is.null(Y_indicator)) {
+    n_lags <- length(names_rho)
+    pos_lags <- 1 + seq(n_lags)
+    Y_lags[pos_lags] <- lapply(Y_lags[pos_lags], "*", Y_indicator)
+  }
 
   names(Y_lags) <- name %p% c("",rep(".",length(names_rho))) %p% names(Y_lags)
   return(Y_lags)
