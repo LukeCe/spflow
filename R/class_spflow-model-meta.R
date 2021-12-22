@@ -140,9 +140,24 @@ setMethod(
 setMethod(
   f = "coef",
   signature = "spflow_model",
-  function(object) { # ---- coef ----------------------------------------------
+  function(object, which = NULL) { # ---- coef --------------------------------
     results_df <- object@estimation_results
-    return(lookup(results_df$est,rownames(results_df)))
+    coefs <- lookup(results_df$est,rownames(results_df))
+
+    if (is.null(which))
+      return(coefs)
+
+    nb_rho <- spatial_model_order(object@estimation_control$model)
+    res <- NULL
+    if ("rho" %in% which & rho > 0) {
+      res <- c(res,coefs[seq_len(nb_rho)])
+    }
+
+    if ("delta" %in% which) {
+      res <- c(res,coefs[seq(from = 1 + nb_rho, to = length(coefs))])
+    }
+
+    return(res)
   })
 
 
@@ -169,9 +184,12 @@ setMethod(
   })
 
 
+# TODO describe the prediction better
 #' @title Prediction methods for spatial interaction models
 #' @param object A [spflow_model()]
-#' @param type A character declaring the type of prediction (for now only "BP")
+#' @param method A character string indicating which method to use for the
+#'   predictions. Should be one of c("TS", "TC", "BP").
+#' @param new_data An object containing new data (to be revised)
 #' @param ... Further arguments passed to the prediction function
 #'
 #' @importFrom Matrix crossprod diag solve
@@ -180,68 +198,60 @@ setMethod(
 setMethod(
   f = "predict",
   signature = "spflow_model",
-  function(object, ..., type = "BP") { # ---- predict -------------------------
+  function(object, ..., new_data = NULL, type = "TS") { # ---- predict --------
 
 
-    # TODO describe the prediction better
 
-    # information on the model case
+
+
+    # extract coefs and compute the signal
     model <- object@estimation_control$model
-    nb_rho <- spatial_model_order(model)
-    # TODO design early exit for non-spatial: model_1
-    if (model == "model_1") {
-      assert(FALSE,warn = TRUE,
-             "Predictions are not yet implemented for the non-spatial model")
-    }
+    rho <- coef(object, "rho")
+    delta <- coef(object, "delta")
 
-    ## 3 cases for predictions
-    # fitted values -> existing data
-    # prediction -> change of data for existing spatial units
-    # extrapolation -> additional spatial units
-    args <- list(...)
-
-    fitted_values_case <-
-      is.null(args$new_OX) & is.null(args$new_DX) & is.null(args$new_G)
-    if (fitted_values_case) {
-
-      # define the spatial filter of the model
-      OW <- object@design_matrix$OW
-      DW <- object@design_matrix$DW
-      flow_dim <- dim(object@design_matrix$Y_[[1]])
-      n_d <- flow_dim[1]
-      n_o <- flow_dim[2]
-      rho <- coef(object)[seq_len(nb_rho)]
-      A <- expand_flow_neighborhood(DW = DW, OW = OW,
-                                    n_o = n_o, n_d = n_d, model = model)
-      A <- spatial_filter(A, rho)
-
-      # create the signal part of the fitted values
-      delta <- coef(object)[-seq_len(nb_rho)]
+    # fitted values
+    if (is.null(new_data)) {
       signal <- compute_signal(object@design_matrix, delta)
-      fit_signal <- solve(A,signal)
+      if (model == "model_1")
+        return(as.vector(signal))
 
-      # TODO generalize flow extraction to handle vector and matrix formulation
-      # create the noise part of the fitted values
-      observed_flows <- as.vector(object@design_matrix$Y_[[1]])
-      noise <- observed_flows - fit_signal
-      precision_mat <- crossprod(A) / (object@sd_error^2)
-      diag_Q <- diag(precision_mat)
-      Q_ndiag <- precision_mat - diag(diag_Q)
-      fit_noise <- diag((1/diag_Q)) %*% (Q_ndiag %*% noise)
 
-      return(as.vector(fit_signal - fit_noise))
-      }
+      Y_hat <- switch (
+        method,
+        "TC" =  {
+          compute_expectation(
+            signal_matrix = signal,
+            DW = DW,
+            OW = OW,
+            rho = rho,
+            model = model,
+            Y_indicator = NULL,
+            approximate = NULL,
+            max_it =
+          )},
+        "TS" = {
+          trend <- Reduce("+", Map("*", object@design_matrix$Y_[-1], rho))
+          trend + signal
+        },
+        "BP" = {
+          stop("Best Prediction for in sample not yet implemented")
+          # compute_bp_insample(
+          #   signal_matrix = signal,
+          #   DW = DW,
+          #   OW = OW,
+          #   rho = rho,
+          #   model = model,
+          #   Y_indicator = NULL
+          # )
+        }
+      )
 
-    predition_case <-
-      is.null(args$new_OW) & is.null(args$new_DW)
-
-    if (predition_case) {
-      stop("Preditction are not yet implemented")
+      return(as.vector(Y_hat))
     }
 
-    # extrapolation case...
-    stop("Extrapolations are not yet implemented")
-
+    if (!is.null(new_data)) {
+      stop("Predictions for new data are not yet implemented!")
+    }
 
   })
 
@@ -419,62 +429,6 @@ spflow_model <- function(
 
 # ---- Helper functions -------------------------------------------------------
 
-#' @importFrom Matrix Diagonal
-#' @keywords internal
-compute_signal <- function(model_matrices, delta) {
-
-  # index the coefficient vectors according to the model segments
-  sub_index <- list(
-    "const" = model_matrices$constants$global %||% 0,
-    "const_intra" = 1 - is.null(model_matrices$constants$intra),
-    "D_" = seq_len(ncol(model_matrices$D_) %||% 0) %||% 0,
-    "O_" = seq_len(ncol(model_matrices$O_) %||% 0) %||% 0,
-    "I_" = seq_len(ncol(model_matrices$I_) %||% 0) %||% 0,
-    "G_" = seq_len(length(model_matrices$G)) %||% 0)
-  sub_index <- sequentialize_index(sub_index)
-
-  ## Calculate the components of the signal.
-  # Missing components are set to zero and do not affect the final sum.
-  # Number of destinations is required because of recycling.
-  vector_or_null <- function(part_id) {
-    .v <- model_matrices[[part_id]]
-    .v %|!|% as.vector(.v %*% delta[sub_index[[part_id]]])
-  }
-  n_d <- nrow(model_matrices$Y_[[1]])
-
-  # constant
-  const <- delta[sub_index$const]
-
-  # intra constant
-  const_intra <- model_matrices$constants$intra %|!|%
-    Diagonal(delta[sub_index$const_intra], n = n_d)
-  const_intra <- const_intra %||% 0
-
-  # destination part - (vector is recycled)
-  dest <- vector_or_null("D_")
-  dest <- dest %||% 0
-
-  # origin part - vector is not recycled correctly ...
-  orig <- vector_or_null("O_")
-  orig <- orig %|!|% matrix(rep(orig,n_d),nrow = n_d,byrow = TRUE)
-  orig <- orig %||% 0
-
-  # intra part - only for diagonal elements
-  intra <- vector_or_null("I_")
-  intra <- intra %|!|% Diagonal(intra,n = length(intra))
-  intra <- intra %||% 0
-
-  # G part - (origin-destination pair attributes)
-  g_term <- 0
-  if (length(model_matrices$G_) != 0 ) {
-    g_term <- Map("*", model_matrices$G_, delta[sub_index$G_])
-    g_term <- as.matrix(Reduce("+", g_term))
-  }
-
-  signal <- as.vector(const + const_intra + dest + orig + intra + g_term)
-  return(signal)
-
-}
 
 #' @keywords internal
 derive_param_space_validator <- function(
@@ -511,4 +465,8 @@ derive_param_space_validator <- function(
 
   return(validate_fun)
 }
+
+
+
+
 
