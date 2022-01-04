@@ -1,42 +1,3 @@
-#' Simulate spatial interactions
-#'
-#' @param exogenous_variables
-#'   A matrix of exogenous variables
-#' @param model_coefficients
-#'   A numeric vector of coefficients
-#' @param inverted_filter
-#'   A matrix that represents an inverted spatial filter matrix
-#'   (see [spatial_filter()])
-#' @param noise_sd
-#'   A numeric which indicates the desired standard deviation of the simulated noise
-#' @param verbose
-#'   A logical whether signal to noise ration should be printed
-#'
-#' @family spflow simulation functions
-#' @return A vector of simulated flows
-#' @keywords internal
-spflow_sim <- function(
-  exogenous_variables,
-  model_coefficients,
-  inverted_filter,
-  noise_sd,
-  verbose = FALSE
-) {
-
-  # generate the flows
-  signal <- inverted_filter %*% (exogenous_variables %*% model_coefficients)
-  error <- rnorm(nrow(exogenous_variables),
-                 sd = noise_sd)
-  noise <- inverted_filter %*% error
-
-  if (verbose) {
-    cat("sd(noise)/sd(signal):\n")
-    cat(sd(noise)/sd(signal), "\n")
-  }
-
-  return(as.vector(signal + noise))
-}
-
 #' @title Derive the flow neighborhood matrices
 #'
 #' @description
@@ -58,7 +19,7 @@ spflow_sim <- function(
 #' @return A list of at most three (sparse) matrices with names
 #'   given by c("Wd", "Wo", "Ww").
 #' @family spflow simulation functions
-#' @importFrom Matrix Diagonal bdiag
+#' @importFrom Matrix Diagonal bdiag drop0
 #' @export
 expand_flow_neighborhood <- function(
   OW,
@@ -119,10 +80,10 @@ expand_flow_neighborhood <- function(
       orig_weights <- min_cartesian$OW[orig_i,]
       dest_appears <- min_cartesian$flow_indicator[,orig_i]
 
-      result_orig_i <- do.call("cbind", Map("*",diag_template, orig_weights), quote = TRUE)
-      result_orig_i[dest_appears,, drop = FALSE]
+      result_orig_i <- do.call("cbind", Map("*",diag_template, orig_weights))
+      drop0(result_orig_i[dest_appears,, drop = FALSE])
     })
-    return_nbs$Wo <- do.call("rbind", return_nbs$Wo, quote = TRUE)
+    return_nbs$Wo <- do.call("rbind", return_nbs$Wo)
   }
 
   if (require_Ww) {
@@ -139,11 +100,11 @@ expand_flow_neighborhood <- function(
       orig_weights <- min_cartesian$OW[orig_i,]
       dest_appears <- min_cartesian$flow_indicator[,orig_i]
 
-      result_orig_i <- do.call("cbind", Map("*",DW_template, orig_weights), quote = TRUE)
-      result_orig_i[dest_appears,, drop = FALSE]
+      result_orig_i <- do.call("cbind", Map("*",DW_template, orig_weights))
+      drop0(result_orig_i[dest_appears,, drop = FALSE])
 
     })
-    return_nbs$Ww <- do.call("rbind", return_nbs$Ww, quote = TRUE)
+    return_nbs$Ww <- do.call("rbind", return_nbs$Ww)
   }
 
   return(return_nbs)
@@ -221,7 +182,8 @@ drop_superfluent_nodes <- function(OW,DW,flow_indicator) {
 
 }
 
+#' @keywords internal
 get_flow_indicator <- function(sp_net_pair) {
   mfc <- matrix_form_control(sp_net_pair)
-  return(mfc$matrix_format(1))
+  return(mfc$mat_format(1))
 }

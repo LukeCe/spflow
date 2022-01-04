@@ -70,11 +70,10 @@ setMethod(
 setMethod(
   f = "neighborhood",
   signature = "sp_multi_network",
-  function(object, .id = 1) { # ---- neighborhood ----------------------
+  function(object, .id = 1) { # ---- neighborhood -----------------------------
     assert(.id %in% id(object)[["networks"]],
            "The provided id does not correspond to any sp_network_nodes.")
-    sp_net <- slot(object, "networks")[[.id]]
-    return(sp_net %|!|% neighborhood(sp_net))
+    return(neighborhood(object@networks[[.id]]))
   })
 
 #' @rdname sp_multi_network-class
@@ -82,20 +81,24 @@ setMethod(
 #' @examples
 #' ## access sp_network_nodes or sp_network_pair inside a sp_multi_network
 #'
-#' pull_member(multi_net_usa_ge,"ge")
-#' pull_member(multi_net_usa_ge,"usa")
-#' pull_member(multi_net_usa_ge,"ge_ge")
+#' pull_member(multi_net_usa_ge, net_id = "ge")
+#' pull_member(multi_net_usa_ge, net_id = "usa")
+#' pull_member(multi_net_usa_ge, pair_id ="ge_ge")
 #'
 setMethod(
   f = "pull_member",
   signature = "sp_multi_network",
-  function(object, .id) { # ---- pull_member ----------------------------------
+  function(object, net_id = NULL, pair_id = NULL) { # ---- pull_member ----------------------------------
+
+    .id <- c(net_id, pair_id)
+
+    assert(is_single_character(.id),
+           "A single character is required as id, which should be provided " %p%
+           " through one of the arguments net_id or pair_id!")
     assert(.id %in% unlist(id(object)),
            "The provided id does not correspond to any network object.")
-    if (valid_network_id(.id))
-      from <- "networks"
-    if (valid_network_pair_id(.id))
-      from <- "network_pairs"
+
+    from <- ifelse(is.null(pair_id), "networks", "network_pairs")
     return(slot(object,from)[[.id]])
   })
 

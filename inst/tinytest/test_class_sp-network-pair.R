@@ -107,7 +107,7 @@ expect_equal({
   mat_cntrl$mat_format(test_pair_data$dist)
   },
   {
-    Matrix::sparseMatrix(i = c(1,1:3),j = c(1:3,3),x = 1:4)
+    Matrix::sparseMatrix(i = c(1:3,3),j =  c(1,1:3),x = 1:4)
   },
   info = "Matrix format: sparse case")
 
@@ -121,10 +121,7 @@ expect_equal({
   mat_cntrl$mat_format(test_sp_net_pair@pair_data$dist)
   },
   {
-
-     rbind(c(1,4,0),
-           c(2,0,5),
-           c(0,3,6))
+     cbind(c(1,4,0), c(2,0,5), c(0,3,6))
   },
   info = "Matrix format: incomplete (but dense) case")
 
