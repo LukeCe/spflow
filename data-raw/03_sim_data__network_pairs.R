@@ -4,7 +4,7 @@
 # = = = = = = = = = = = = = = = = = = =
 # Description:
 #
-# For the two example networks we simulate trade flows for the the four
+# For the two example networks we simulate trade flows for the four
 # possible pairs of networks. Each network pair is used to cover one of four
 # model types:
 # - ge_ge  : square      + cartesian
