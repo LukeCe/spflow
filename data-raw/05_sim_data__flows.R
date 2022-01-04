@@ -6,7 +6,7 @@
 #
 # For all four network pairs we simulate two types of models.
 # - - - - - - - - - - - - - - - - - - -
-# Date: February 2021
+# Date: Jan 2022
 
 
 library("spflow")
@@ -16,14 +16,16 @@ source("data-raw/03_sim_data__network_pairs.R")
 source("data-raw/04_sim_data__parameters.R")
 
 # default multi-network
-multi_net_usa_ge <- sp_multi_network(
-  germany_net,
-  usa_net,
-  within_ge_pairs,
-  within_usa_pairs,
-  ge_to_usa_pairs,
-  usa_to_ge_pairs
-)
+ suppressWarnings({
+   multi_net_usa_ge <- sp_multi_network(
+     germany_net,
+     usa_net,
+     within_ge_pairs,
+     within_usa_pairs,
+     ge_to_usa_pairs,
+     usa_to_ge_pairs
+   )
+ })
 
 # copy that includes lags...
 # ... for Germany
@@ -66,13 +68,14 @@ pair_neighborhoods <- lapply(spflow:::lookup(pair_ids), function(.id) {
   od_ids <- spflow:::split_pair_id(.id)
   spflow:::expand_flow_neighborhood(
     neighborhood(multi_net_usa_ge_copy,od_ids[1]),
-    neighborhood(multi_net_usa_ge_copy,od_ids[2]))
+    neighborhood(multi_net_usa_ge_copy,od_ids[2]),
+    flow_indicator = get_flow_indicator(pull_member(multi_net_usa_ge_copy, pair_id = .id)))
   })
 
-invers_model_filters <- lapply(pair_neighborhoods, function(.nbs) {
+model_filters <- lapply(pair_neighborhoods, function(.nbs) {
   rho_ <- function(x) rho[paste0("rho_",x)]
-  list("y9" = solve(spflow:::spatial_filter(.nbs, rho_(c("d","o","w")))),
-       "y2" = solve(spflow:::spatial_filter(.nbs["Wd"], rho_("d"))),
+  list("y9" = spflow:::spatial_filter(.nbs, rho_(c("d","o","w"))),
+       "y2" = spflow:::spatial_filter(.nbs["Wd"], rho_("d")),
        "y1" = Matrix::Diagonal(nrow(.nbs[["Wd"]])))})
 
 # simulate for all models
@@ -81,11 +84,11 @@ flows <- mapply(function(filters,variables) {
   sim_one <- function(.filt) { spflow:::spflow_sim(
     exogenous_variables = variables,
     model_coefficients = delta[colnames(variables)],
-    inverted_filter = .filt,
+    filter_matrix = .filt,
     noise_sd = sd_error)}
   data.frame(lapply(filters, "sim_one"))
   },
-  filters = invers_model_filters,
+  filters = model_filters,
   variables = pair_variables_mat,
   SIMPLIFY = FALSE)
 
