@@ -50,10 +50,22 @@
 #'   or the same as used in the main formula provided to [spflow()]
 #' @param weight_variable
 #'   A character indicating the name of one column in the node pair data.
-#' @param parameter_space
-#'   A character indicating how to define the limits of the parameter space.
-#'   The only available option is `c("approx")`.
-#' @param loglik_det_aprox_order
+#' @param approx_parameter_space A logical indicating whether the test for
+#'   the feasible parameter space should be based on an approximation. Note
+#'   that FALSE requires solving a system with a potentially large number
+#'   of equations.
+#' @param fitted_value_method
+#'   A character indicating the method used for computing the fitted values.
+#'   Should be one of c("TS", "TC", "BP").
+#' @param approx_expectation
+#'   A logical indicating whether the expected value of the flows should be
+#'   computed based on a truncated power series.
+#'   Note that FALSE requires solving a system with a potentially large number
+#'   of equations.
+#' @param expectation_approx_order
+#'   A numeric indicating the order of the power series expression used to
+#'   approximate the expected value of the flows.
+#' @param loglik_det_approx_order
 #'   A numeric indicating the order of the Taylor expansion used to approximate
 #'   the value of the log-determinant term.
 #' @param mle_hessian_method
@@ -115,8 +127,11 @@ spflow_control <- function(
   use_intra = TRUE,
   sdm_variables = "same",
   weight_variable = NULL,
-  parameter_space = "approx",
-  loglik_det_aprox_order = 10,
+  approx_parameter_space = TRUE,
+  fitted_value_method = "TS",
+  approx_expectation = TRUE,
+  expectation_approx_order = 10,
+  loglik_det_approx_order = 10,
   mle_hessian_method = "mixed",
   mle_optim_limit = 100,
   twosls_instrumental_variables = "same",
@@ -166,16 +181,25 @@ spflow_control <- function(
   if (estimation_method == "ols")
     return(general_control)
 
+  # ---- spatial models -------------------------------------------------------
   # control parameters used for all spatial models
-  ps_methods <- c("approx")
-  assert(parameter_space %in% ps_methods,
-         'The parameter_space must be a one string among c("%s")!',
-         paste0(ps_methods, collapse = ", "))
+  assert_is_single_x(approx_parameter_space, "logical")
+  assert_is_single_x(approx_expectation, "logical")
+  assert_is_single_x(expectation_approx_order, "numeric")
+  assert_is_single_x(fitted_value_method, "character")
+  assert_valid_case(fitted_value_method, c("TS","TC", "BP"))
+
 
   general_control <-
-    c(general_control, list("parameter_space" = parameter_space))
+    c(general_control,
+      list(
+        "approx_parameter_space" = approx_parameter_space,
+        "approx_expectation" = approx_expectation,
+        "expectation_approx_order" = expectation_approx_order,
+        "fitted_value_method" = fitted_value_method
+      ))
 
-  if (estimation_method == "s2sls") {
+  if (estimation_method == "s2sls") { # s2sls ---------------------------------
     assert_is_single_x(twosls_decorrelate_instruments, "logical")
     assert_is_single_x(twosls_reduce_pair_instruments, "logical")
     assert(is(twosls_instrumental_variables,"formula")
@@ -191,21 +215,21 @@ spflow_control <- function(
   }
 
   # control parameters for the likelihood evaluation
-  assert_is_single_x(loglik_det_aprox_order, "numeric")
-  assert(loglik_det_aprox_order >= 2,
-         "The loglik_det_aprox_order must be two or larger!")
+  assert_is_single_x(loglik_det_approx_order, "numeric")
+  assert(loglik_det_approx_order >= 2,
+         "The loglik_det_approx_order must be two or larger!")
   general_control <-
     c(general_control,
-      list("loglik_det_aprox_order" = as.integer(loglik_det_aprox_order)))
+      list("loglik_det_approx_order" = as.integer(loglik_det_approx_order)))
 
-  if (estimation_method == "mle") {
+  if (estimation_method == "mle") { # mle -------------------------------------
 
     assert_is_single_x(mle_optim_limit, "numeric")
     assert(mle_optim_limit > 0, "The mle_optim_limit must be positive!")
 
     available_hessians <- c("mixed","f2")
     assert(mle_hessian_method %in% available_hessians,
-           'The parameter_space must be a one string among c("%s")!',
+           'The approx_parameter_space must be a one string among c("%s")!',
            paste0(available_hessians, collapse = ", "))
 
     mle_control <- list("mle_hessian_method" = mle_hessian_method,
@@ -215,7 +239,7 @@ spflow_control <- function(
 
 
 
-  if (estimation_method == "mcmc") {
+  if (estimation_method == "mcmc") {  # mcmc ----------------------------------
 
     assert_is_single_x(mcmc_iterations, "numeric")
     assert_is_single_x(mcmc_burn_in, "numeric")

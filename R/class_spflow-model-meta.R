@@ -184,13 +184,13 @@ setMethod(
   })
 
 
-# TODO describe the prediction better
 #' @title Prediction methods for spatial interaction models
 #' @param object A [spflow_model()]
-#' @param method A character string indicating which method to use for the
+#' @param method A character indicating which method to use for computing the
 #'   predictions. Should be one of c("TS", "TC", "BP").
 #' @param new_data An object containing new data (to be revised)
 #' @param ... Further arguments passed to the prediction function
+#' @inheritParams spflow_control
 #'
 #' @importFrom Matrix crossprod diag solve
 #' @rdname spflow_model-class
@@ -198,10 +198,12 @@ setMethod(
 setMethod(
   f = "predict",
   signature = "spflow_model",
-  function(object, ..., new_data = NULL, type = "TS") { # ---- predict --------
-
-
-
+  function(object,
+           ...,
+           new_data = NULL,
+           type = "TS",
+           approx_expectation = TRUE,
+           expectation_approx_order = 10) { # ---- predict --------
 
 
     # extract coefs and compute the signal
@@ -216,18 +218,21 @@ setMethod(
         return(as.vector(signal))
 
 
+
+
+
       Y_hat <- switch (
         method,
         "TC" =  {
           compute_expectation(
             signal_matrix = signal,
-            DW = DW,
-            OW = OW,
+            DW = object@design_matrix$DW,
+            OW = object@design_matrix$OW,
             rho = rho,
             model = model,
-            Y_indicator = NULL,
-            approximate = NULL,
-            max_it =
+            flow_indicator = object@design_matrix$flow_indicator,
+            approximate = approx_expectation,
+            max_it = expectation_approx_order
           )},
         "TS" = {
           trend <- Reduce("+", Map("*", object@design_matrix$Y_[-1], rho))

@@ -51,6 +51,10 @@ compute_signal <- function(model_matrices, delta) {
   }
 
   signal <- const + const_intra + dest + orig + intra + g_term
+  if (!is.null(model_matrices$flow_indicator)) {
+    signal <- signal * model_matrices$flow_indicator
+  }
+
   return(signal)
 }
 

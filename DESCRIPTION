@@ -1,7 +1,7 @@
 Package: spflow
 Title: Spatial Econometric Interaction Models
-Version: 0.1.0.9000
-Date: 2021-09-14
+Version: 0.1.0.9001
+Date: 2022-04-01
 Authors@R: c(
     person("Lukas", "Dargel", role = c("aut", "cre"),
            email = "lukas.dargel@mailbox.org",
@@ -60,6 +60,7 @@ Collate:
     'spflow-model-moments_2-blocks.R'
     'spflow-simulations.R'
     'spflow.R'
+    'spflow_predictors.R'
     'utils.R'
     'utils_error.R'
     'utils_formula.R'
