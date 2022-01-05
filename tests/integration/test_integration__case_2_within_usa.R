@@ -20,8 +20,9 @@ library("spflow")
 library("Matrix")
 data("multi_net_usa_ge")
 data("simulation_params")
-# test_dir <- "tests/integration/" # uncomment for interactive check
+
 test_dir <- ""
+# test_dir <- "tests/integration/" # uncomment for interactive check
 usa_usa_vec_data <-
   readRDS(paste0(test_dir,"vec_data_usa_ge.Rds"))[["usa_usa"]]
 usa_usa_pairnb <-
@@ -138,10 +139,11 @@ target_moments <- list(
 # ---- target results ---------------------------------------------------------
 
 # ols_results
+N_s <- nrow(usa_usa_vec_data)
 delta1_ols <- solve(as.matrix(target_moments[["ZZ"]]),
                     as.vector(target_moments[["ZY1"]]))
 e1 <- usa_usa_vec_data[,"y1"] - (Z %*% delta1_ols)
-sigma1_ols <- as.vector(sqrt(crossprod(e1)/n^2))
+sigma1_ols <- as.vector(sqrt(crossprod(e1)/N_s))
 
 
 # s2sls results for model 2
@@ -156,8 +158,7 @@ mu2_s2sls <- solve(as.matrix(ZZ2),ZY2_hat)
 
 ZY2_tilde <- cbind(Y_t2[,-1], Z)
 e2 <- usa_usa_vec_data[,"y2"] - ZY2_tilde %*%  mu2_s2sls
-sigma2_s2sls <- crossprod(e2)
-sigma2_s2sls <- as.vector(sqrt(sigma2_s2sls)/n)
+sigma2_s2sls <- as.vector(sqrt(crossprod(e2)/N_s))
 
 
 # s2sls results for model 9
@@ -172,8 +173,7 @@ mu9_s2sls <- solve(as.matrix(ZZ9),ZY9_hat)
 
 ZY9_tilde <- cbind(Y_t9[,-1], Z)
 e9 <- usa_usa_vec_data[,"y9"] - ZY9_tilde %*%  mu9_s2sls
-sigma9_s2sls <- crossprod(e9)
-sigma9_s2sls <- as.vector(sqrt(sigma9_s2sls)/n)
+sigma9_s2sls <- as.vector(sqrt(crossprod(e9)/N_s))
 
 # all results
 target_results <- list(

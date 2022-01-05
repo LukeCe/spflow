@@ -20,8 +20,8 @@ library("spflow")
 library("Matrix")
 data("multi_net_usa_ge")
 data("simulation_params")
-# test_dir <- "tests/integration/" # uncomment for interactive check
 test_dir <- ""
+# test_dir <- "tests/integration/" # uncomment for interactive check
 ge_ge_vec_data <-
   readRDS(paste0(test_dir,"vec_data_usa_ge.Rds"))[["ge_ge"]]
 ge_ge_pairnb <-
@@ -282,7 +282,7 @@ expect_inherits(res_model_2_mle, "spflow_model_mle")
 expect_equal(names(target_results$mu2_input),
              names(coef(res_model_2_mle)))
 expect_equal(target_results$mu2_input / coef(res_model_2_mle),
-             rep(1,10), tolerance = 0.3, check.names = FALSE)
+             rep(1,10), tolerance = 0.5, check.names = FALSE)
 expect_equal(target_results$sigma_input / sd_error(res_model_2_mle),
              rep(1,1), tolerance = 0.1, check.names = FALSE)
 
@@ -350,7 +350,7 @@ res_model_2_mcmc <- spflow(
 expect_inherits(res_model_2_mcmc, "spflow_model_mcmc")
 expect_equal(names(target_results$mu2_input), names(coef(res_model_2_mcmc)))
 expect_equal(target_results$mu2_input / coef(res_model_2_mcmc),
-             rep(1,10), tolerance = 0.3, check.names = FALSE)
+             rep(1,10), tolerance = 0.5, check.names = FALSE)
 expect_equal(target_results$sigma_input / sd_error(res_model_2_mcmc),
              rep(1,1), tolerance = 0.1, check.names = FALSE)
 
@@ -408,3 +408,4 @@ expect_equal(target_matrices[["G_"]], actual_matrices[["G_"]],
 expect_equal(target_matrices[["Y9_"]], actual_matrices[["Y_"]],
              check.attributes = FALSE)
 rm(res_model_9_mcmc)
+
