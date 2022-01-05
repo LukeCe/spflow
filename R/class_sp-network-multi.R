@@ -88,17 +88,16 @@ setMethod(
 setMethod(
   f = "pull_member",
   signature = "sp_multi_network",
-  function(object, net_id = NULL, pair_id = NULL) { # ---- pull_member ----------------------------------
+  function(object, .id = NULL) { # ---- pull_member ----------------------------------
 
-    .id <- c(net_id, pair_id)
+    assert_is_single_x(.id, "character")
 
-    assert(is_single_character(.id),
-           "A single character is required as id, which should be provided " %p%
-           " through one of the arguments net_id or pair_id!")
-    assert(.id %in% unlist(id(object)),
-           "The provided id does not correspond to any network object.")
+    .id_type <- sapply(id(object), function(x) .id %in% x)
+    assert(any(.id_type),
+           "The provided id does not correspond to any sp_network_nodes " %p%
+           "or sp_network_pair bject.")
 
-    from <- ifelse(is.null(pair_id), "networks", "network_pairs")
+    from <- names(.id_type[.id_type])
     return(slot(object,from)[[.id]])
   })
 

@@ -65,7 +65,7 @@
 #' @param expectation_approx_order
 #'   A numeric indicating the order of the power series expression used to
 #'   approximate the expected value of the flows.
-#' @param loglik_det_approx_order
+#' @param log_det_approx_order
 #'   A numeric indicating the order of the Taylor expansion used to approximate
 #'   the value of the log-determinant term.
 #' @param mle_hessian_method
@@ -82,6 +82,13 @@
 #'   estimation, the character should be one of `c("same", "all")` which
 #'   are short cuts for using all available variables or the same as used in
 #'   the main formula provided to [spflow()]
+#' @param mcmc_iterations
+#'   A numeric indicating the number of iterations
+#' @param mcmc_burn_in
+#'   A numeric indicating the length of the burn in period
+#' @param mcmc_resampling_limit
+#'   A numeric indicating the maximal number of trials during rejection
+#'   sampling of the autoregressive parameters
 #' @param twosls_decorrelate_instruments
 #'   A logical whether to perform a PCA to remove (linear) correlation from the
 #'   instruments generated for the S2SLS estimator
@@ -90,13 +97,6 @@
 #'   derived from pair attributes should be reduced or not. The default is
 #'   `TRUE`, because constructing these instruments is often the most demanding
 #'   part of the estimation \insertCite{Dargel2021}{spflow}.
-#' @param mcmc_iterations
-#'   A numeric indicating the number of iterations
-#' @param mcmc_burn_in
-#'   A numeric indicating the length of the burn in period
-#' @param mcmc_resampling_limit
-#'   A numeric indicating the maximal number of trials during rejection
-#'   sampling of the autoregressive parameters
 #'
 #' @seealso [spflow()]
 #' @references \insertAllCited{}
@@ -131,15 +131,15 @@ spflow_control <- function(
   fitted_value_method = "TS",
   approx_expectation = TRUE,
   expectation_approx_order = 10,
-  loglik_det_approx_order = 10,
+  log_det_approx_order = 10,
   mle_hessian_method = "mixed",
   mle_optim_limit = 100,
-  twosls_instrumental_variables = "same",
-  twosls_decorrelate_instruments = FALSE,
-  twosls_reduce_pair_instruments = TRUE,
   mcmc_iterations = 5500,
   mcmc_burn_in = 2500,
-  mcmc_resampling_limit = 100) {
+  mcmc_resampling_limit = 100,
+  twosls_instrumental_variables = "same",
+  twosls_decorrelate_instruments = FALSE,
+  twosls_reduce_pair_instruments = TRUE) {
 
 
   available_estimators <- c("s2sls", "mle","mcmc","ols")
@@ -215,12 +215,12 @@ spflow_control <- function(
   }
 
   # control parameters for the likelihood evaluation
-  assert_is_single_x(loglik_det_approx_order, "numeric")
-  assert(loglik_det_approx_order >= 2,
-         "The loglik_det_approx_order must be two or larger!")
-  general_control <-
-    c(general_control,
-      list("loglik_det_approx_order" = as.integer(loglik_det_approx_order)))
+  assert_is_single_x(log_det_approx_order, "numeric")
+  assert(log_det_approx_order >= 2,
+         "The log_det_approx_order must be two or larger!")
+  general_control <- c(
+    general_control,
+    list("log_det_approx_order" = as.integer(log_det_approx_order)))
 
   if (estimation_method == "mle") { # mle -------------------------------------
 

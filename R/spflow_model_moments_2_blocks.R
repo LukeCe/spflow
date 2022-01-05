@@ -18,11 +18,10 @@ moment_empirical_var <- function(model_matrices,N,n_d,n_o) {
 
   ## ---- prepare weighting of the model matrices
   wt <- model_matrices$wt
-  weight_as_indicator <- is.logical(wt[1])
-  if (weight_as_indicator) wt <- wt*1
+  if (is.null(wt))
+    wt <- model_matrices$flow_indicator
 
   # prepare weighted neighborhood matrices
-  # and derivatives that serve as instruments
   const_global <- model_matrices$constants$global
   const_intra <- model_matrices$constants$intra
   const_intra_wt <- wt %|!|% lapply(const_intra, "*", wt)
@@ -197,6 +196,9 @@ moment_empirical_covar <- function(Y, model_matrices) {
 
   order_keys <- c("D","O","I") %p% "_"
   X <- compact(model_matrices[order_keys])
+  if (!is.null(model_matrices$weights))
+    Y <- Y * model_matrices$weights
+
   result <- Reduce("c", c(
     cov_moment_alpha(Y) %T% (1 == model_matrices$constants$global),
     cov_moment_alpha_I(Y, model_matrices$constants$intra),

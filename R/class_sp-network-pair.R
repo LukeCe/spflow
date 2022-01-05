@@ -305,40 +305,18 @@ matrix_form_control <- function(sp_net_pair) {
     "mat_npairs" = npairs(sp_net_pair),
     "mat_nrows" = nnodes(sp_net_pair)["dest"],
     "mat_ncols" = nnodes(sp_net_pair)["orig"],
-    "mat_format" = NULL)
+    "mat_format" = function(vec) {
 
-  if (matrix_arguments[["mat_complet"]] == 1) {
-    matrix_arguments[["mat_format"]] <- function(vec) {
-      matrix(vec,
-             nrow = matrix_arguments[["mat_nrows"]],
-             ncol = matrix_arguments[["mat_ncols"]])
-    }
-  }
+      od_keys <- attr_key_od(dat(sp_net_pair))
+      matrix_format_d_o(
+        values = vec,
+        dest_index = as.integer(dat(sp_net_pair)[[od_keys[2]]]),
+        orig_index = as.integer(dat(sp_net_pair)[[od_keys[1]]]),
+        num_dest = nnodes(sp_net_pair)["dest"],
+        num_orig = nnodes(sp_net_pair)["orig"],
+        assume_ordered = TRUE)
 
-  if (matrix_arguments[["mat_complet"]] < 1) {
-    od_keys <- attr_key_od(dat(sp_net_pair))
-    mat_i_rows <- as.integer(dat(sp_net_pair)[[od_keys[2]]])
-    mat_j_cols <- as.integer(dat(sp_net_pair)[[od_keys[1]]])
-    matrix_arguments[["mat_format"]] <- function(vec) {
-      mat <- matrix(0,
-                    nrow = matrix_arguments[["mat_nrows"]],
-                    ncol = matrix_arguments[["mat_ncols"]])
-      mat[cbind(mat_i_rows, mat_j_cols)] <- vec
-      mat
-
-    }
-  }
-
-  if (matrix_arguments[["mat_complet"]] < .5) {
-    od_keys <- attr_key_od(dat(sp_net_pair))
-    matrix_arguments[["mat_format"]] <- function(vec) {
-      sparseMatrix(i = mat_i_rows,
-                   j = mat_j_cols,
-                   x = vec,
-                   dims = c(matrix_arguments[["mat_nrows"]],
-                            matrix_arguments[["mat_ncols"]]))
-    }
-  }
+    })
 
   return(matrix_arguments)
 }

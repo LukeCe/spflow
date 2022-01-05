@@ -115,20 +115,21 @@ setMethod(
     rho <- mu[seq_len(nb_rho)]
     delta <- mu[!names(mu) %in% names(rho)]
 
-    fit_trend <- nb_rho
-    if (nb_rho > 0) {
-      fit_trend <- mapply(FUN = "*", model_matrices$Y[-1],rho,SIMPLIFY = FALSE)
-      fit_trend <- as.vector(Reduce("+", x = fit_trend ))
-    }
 
-    fit_signal <- compute_signal(model_matrices = object@design_matrix,
-                                 delta = delta)
+    object@fitted <- predict(
+      object,
+      type = flow_control$fitted_value_method,
+      approx_expectation = flow_control$approx_expectation,
+      expectation_approx_order = flow_control$approx_expectation,
+      keep_matrix_form = FALSE)
 
-    object@fitted <- fit_trend + fit_signal
-    y_vec <- as.vector(object@design_matrix$Y_[[1]])
-    object@resid <- y_vec - fitted(object)
-    object@R2_corr <- cor(fitted(object),y_vec)^2
+    true_vals <- as.vector(object@design_matrix$Y_[[1]])
+    flow_indicators <- as.vector(object@design_matrix$flow_indicator)
+    if (!is.null(flow_indicators))
+      true_vals <- true_vals[flow_indicators]
 
+    object@resid <- object@fitted - true_vals
+    object@R2_corr <- cor(object@fitted, true_vals)^2
     return(object)
   })
 
@@ -141,6 +142,7 @@ setMethod(
   f = "coef",
   signature = "spflow_model",
   function(object, which = NULL) { # ---- coef --------------------------------
+
     results_df <- object@estimation_results
     coefs <- lookup(results_df$est,rownames(results_df))
 
@@ -149,7 +151,7 @@ setMethod(
 
     nb_rho <- spatial_model_order(object@estimation_control$model)
     res <- NULL
-    if ("rho" %in% which & rho > 0) {
+    if ("rho" %in% which & nb_rho > 0) {
       res <- c(res,coefs[seq_len(nb_rho)])
     }
 
@@ -203,26 +205,26 @@ setMethod(
            new_data = NULL,
            type = "TS",
            approx_expectation = TRUE,
-           expectation_approx_order = 10) { # ---- predict --------
+           expectation_approx_order = 10,
+           keep_matrix_form = FALSE) { # ---- predict -------------------------
 
 
-    # extract coefs and compute the signal
+    # extract coefficients and compute the signal
     model <- object@estimation_control$model
     rho <- coef(object, "rho")
     delta <- coef(object, "delta")
 
-    # fitted values
+    # compute fitted values
     if (is.null(new_data)) {
+
       signal <- compute_signal(object@design_matrix, delta)
+
       if (model == "model_1")
-        return(as.vector(signal))
+        type <- "LIN"
 
-
-
-
-
-      Y_hat <- switch (
-        method,
+      Y_hat <- switch(
+        type,
+        "LIN" = signal,
         "TC" =  {
           compute_expectation(
             signal_matrix = signal,
@@ -250,13 +252,22 @@ setMethod(
           # )
         }
       )
-
-      return(as.vector(Y_hat))
     }
 
+    # compute predictions
     if (!is.null(new_data)) {
       stop("Predictions for new data are not yet implemented!")
     }
+
+
+    if (keep_matrix_form)
+      return(Y_hat)
+
+    flow_indicators <- as.vector(object@design_matrix$flow_indicator)
+    if (is.null(flow_indicators))
+      return(as.vector(Y_hat))
+
+    return(as.vector(Y_hat)[flow_indicators])
 
   })
 

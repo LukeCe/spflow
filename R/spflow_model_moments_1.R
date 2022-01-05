@@ -89,7 +89,7 @@ compute_spflow_moments <- function(
   uses_loglik <- estim_control[["estimation_method"]] %in% c("mle", "mcmc")
 
   if (uses_loglik) {
-    approx_order <- estim_control[["loglik_det_aprox_order"]]
+    approx_order <- estim_control[["log_det_approx_order"]]
     OW_traces <- DW_traces <-
       trace_sequence(model_matrices[["OW"]], approx_order)
 

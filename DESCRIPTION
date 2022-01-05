@@ -22,7 +22,7 @@ License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.1.1
+RoxygenNote: 7.1.2
 RdMacros: Rdpack
 Imports: 
     coda,
@@ -39,8 +39,8 @@ Collate:
     'class_sp-network-nodes.R'
     'class_sp-network-meta.R'
     'class_sp-network-multi.R'
-    'class_spflow-model-meta.R'
-    'class_spflow-model-children.R'
+    'class_spflow_model_meta.R'
+    'class_spflow_model_children.R'
     'example_data.R'
     'fit-spflow-mcmc.R'
     'fit-spflow-mle.R'
@@ -56,9 +56,9 @@ Collate:
     'spflow-model-matrix_1.R'
     'spflow-model-matrix_2-transformations.R'
     'spflow-model-matrix_3-spatial-lags.R'
-    'spflow-model-moments_1.R'
-    'spflow-model-moments_2-blocks.R'
     'spflow.R'
+    'spflow_model_moments_1.R'
+    'spflow_model_moments_2_blocks.R'
     'spflow_neighborhood.R'
     'spflow_predictors.R'
     'spflow_simulations.R'

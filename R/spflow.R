@@ -181,10 +181,6 @@ spflow <- function(
   # below cases should become available in future versions of the package
   assert(is.null(estim_control$weight_variable), warn = TRUE,
          "Weighting of observations is not yet possible and will be ignored.")
-  assert(estim_control$mat_complet == 1,
-         "Estimation is (for now) only possible if the number of pairs is " %p%
-         "excatly the number of origins multiplied by the number of " %p%
-         "destinations!")
   assert(estim_control$mat_within,
          "Estimation of flows between two diffrent networks are " %p%
          "not yet available!")
