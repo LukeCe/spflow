@@ -71,5 +71,66 @@ matrix2binary <- function(mat) {
     mat@x <- rep(1L, length(mat@x))
     return(mat)
   }
+}
+
+
+#' @importFrom Matrix sparseMatrix
+#' @keywords internal
+matrix_format_d_o <- function(
+  values,
+  dest_index,
+  orig_index,
+  num_dest = max(dest_index),
+  num_orig = max(orig_index),
+  assume_ordered = TRUE) {
+
+  Ns <- length(values)
+  N <- num_dest * num_orig
+
+  fill_ratio <- Ns/N
+  assert(fill_ratio <= 1,
+         "The number of supplied values is to large for the dimension of the matrix representation!")
+
+  if (fill_ratio == 1 & assume_ordered)
+    return(matrix(values,nrow = num_dest, ncol = num_orig))
+
+
+  if (fill_ratio < .5) {
+    return(sparseMatrix(
+      i = dest_index,
+      j = orig_index,
+      x = values,
+      dims = c(num_dest, num_orig)))
+  }
+
+  if (fill_ratio <= 1) {
+    result_mat <- matrix(0, nrow = num_dest, ncol = num_orig)
+    result_mat[cbind(dest_index, orig_index)] <- values
+    return(result_mat)
+  }
+
+  stop("No result could be obtained." %p%
+       "Please check that our indexes are integer vectors!")
 
 }
+
+
+#' @keywords internal
+matrix_format_o_d <- function(
+  values,
+  dest_index,
+  orig_index,
+  num_dest = max(dest_index),
+  num_orig = max(orig_index),
+  assume_ordered = TRUE) {
+
+  matrix_format_d_o(
+    values = values,
+    dest_index = orig_index,
+    orig_index = dest_index,
+    num_dest = num_orig,
+    num_orig = num_dest,
+    assume_ordered = assume_ordered)
+
+}
+
