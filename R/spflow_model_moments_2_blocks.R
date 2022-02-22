@@ -240,7 +240,7 @@ cov_moment_beta <- function(Y, X) {
 
 #' @keywords internal
 cov_moment_gamma <- function(Y, G) {
-  G %|!|% unlist(lapply(G,hadamard_sum,Y))
+  G %|!|% unlist(lapply(G, hadamard_sum, Y))
 }
 
 
@@ -258,7 +258,7 @@ derive_weights_ODI <- function(wt,n_o,n_d) {
 #' @keywords internal
 matrix_prod_ODI <- function(mat,X) {
 
-  if (is.null(X) || is.null(mat))
+  if (is.null(X) | is.null(mat))
     return(NULL)
 
   result <- list(

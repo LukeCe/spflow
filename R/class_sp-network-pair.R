@@ -308,12 +308,17 @@ matrix_form_control <- function(sp_net_pair) {
     "mat_format" = function(vec) {
 
       od_keys <- attr_key_od(dat(sp_net_pair))
+      dest_index <- as.integer(dat(sp_net_pair)[[od_keys[2]]])
+      orig_index <- as.integer(dat(sp_net_pair)[[od_keys[1]]])
+      num_dest <- nnodes(sp_net_pair)["dest"]
+      num_orig <- nnodes(sp_net_pair)["orig"]
+
       matrix_format_d_o(
         values = vec,
-        dest_index = as.integer(dat(sp_net_pair)[[od_keys[2]]]),
-        orig_index = as.integer(dat(sp_net_pair)[[od_keys[1]]]),
-        num_dest = nnodes(sp_net_pair)["dest"],
-        num_orig = nnodes(sp_net_pair)["orig"],
+        dest_index = dest_index,
+        orig_index = orig_index,
+        num_dest = num_dest,
+        num_orig = num_orig,
         assume_ordered = TRUE)
 
     })

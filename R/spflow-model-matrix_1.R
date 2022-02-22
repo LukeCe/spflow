@@ -41,11 +41,11 @@ spflow_model_matrix <- function(
 
   # weights matter if they are specified or if the flows are not complete
   flow_indicator <- NULL
+  weights <- estim_control[["weight_var"]]
   if (estim_control[["mat_complet"]] < 1)
     flow_indicator <- estim_control$mat_format(1)
 
-  weights <- estim_control[["weight_var"]]
-  if (!is.null(weights))
+  if (!is.null(estim_control[["weight_var"]]))
     weights <- estim_control$mat_format(data_sources$pair[[weights]])
 
 

@@ -15,21 +15,24 @@
 # = = = = = = = = = = = = = = = = = = =
 # Date: Jan 2022
 
-# ==== [+++ Setup test cases +++] =============================================
+
+# cran packages
 library("spflow")
 library("Matrix")
+
+# data
 data("multi_net_usa_ge")
 data("simulation_params")
 
 test_dir <- ""
-# test_dir <- "tests/integration/" # uncomment for interactive check
+test_dir <- "tests/integration/" # uncomment for interactive check
 usa_usa_vec_data <-
   readRDS(paste0(test_dir,"vec_data_usa_ge.Rds"))[["usa_usa"]]
 usa_usa_pairnb <-
   readRDS(paste0(test_dir,"pair_neighborhoods_usa_ge.Rds"))[["usa_usa"]]
 
 
-# ---- target model matrices --------------------------------------------------
+# ---- define target model matrices -------------------------------------------
 W <- neighborhood(multi_net_usa_ge, "usa")
 OX <- dat(multi_net_usa_ge, "usa")[,"X", drop = FALSE]
 OX[["X_lag.1"]] <- as.vector(W %*% OX$X)
@@ -37,12 +40,20 @@ n <- nrow(W)
 
 
 od_dat <- dat(multi_net_usa_ge, "usa_usa")
+o_index <- as.integer(od_dat[["ID_ORIG"]])
+d_index <- as.integer(od_dat[["ID_DEST"]])
 sparse_matrix_form <- function(vec) {
-  sparseMatrix(i = as.integer(od_dat[["ID_DEST"]]),
-               j = as.integer(od_dat[["ID_ORIG"]]),
+  sparseMatrix(i = d_index,
+               j = o_index,
                x = vec,
                dims = c(n,n))
 }
+dense_matrix_form <- function(vec) {
+  mat <- matrix(0, n,n)
+  mat[cbind(d_index, o_index)] <- vec
+  return(mat)
+}
+
 
 
 
@@ -52,8 +63,10 @@ target_matrices <- list(
   "O_" = as.matrix(OX),
   "I_" = as.matrix(OX),
   "OW" = W,
-  "G_"  = list("DISTANCE" = sparse_matrix_form(usa_usa_vec_data[,"DISTANCE"])),
-  "Y1_" = list("y1" = sparse_matrix_form(usa_usa_vec_data[,"y1"])),
+  "G_"  = list(
+    "DISTANCE" = dense_matrix_form(od_dat[,"DISTANCE"])),
+  "Y1_" = list(
+    "y1" = sparse_matrix_form(usa_usa_vec_data[,"y1"])),
   "Y2_" = list(
     "y2" = sparse_matrix_form(usa_usa_vec_data[,"y2"]),
     "y2.d" = flow_indicator * (W %*% sparse_matrix_form(usa_usa_vec_data[,"y2"]))),
@@ -65,8 +78,7 @@ target_matrices <- list(
   "flow_indicator" = flow_indicator
   )
 
-
-# ---- target moments ---------------------------------------------------------
+# ---- define target moments --------------------------------------------------
 dep_vars <- paste0("y", c(9,2,1))
 Z <- usa_usa_vec_data[,!colnames(usa_usa_vec_data) %in% dep_vars]
 
@@ -136,12 +148,13 @@ target_moments <- list(
   "UY9"  = as.matrix(crossprod(U,Y_t9)),
   "TSS9" = as.matrix(crossprod(Y_t9)))
 
-# ---- target results ---------------------------------------------------------
+# ---- define target results --------------------------------------------------
 
 # ols_results
 N_s <- nrow(usa_usa_vec_data)
-delta1_ols <- solve(as.matrix(target_moments[["ZZ"]]),
-                    as.vector(target_moments[["ZY1"]]))
+delta1_ols <- solve(
+  as.matrix(target_moments[["ZZ"]]),
+  as.vector(target_moments[["ZY1"]]))
 e1 <- usa_usa_vec_data[,"y1"] - (Z %*% delta1_ols)
 sigma1_ols <- as.vector(sqrt(crossprod(e1)/N_s))
 
@@ -191,7 +204,8 @@ target_results <- list(
   "sigma_input" = simulation_params$sd_error
 )
 
-# ==== [+++ Run tests +++] ====================================================
+# ---- __ run tests __  -------------------------------------------------------
+expect_zero_diff <- function(y,x) expect_equal(max(abs(x - y)), 0)
 
 # ---- ols - model 1 ----------------------------------------------------------
 res_model_1_ols <- spflow(
@@ -205,23 +219,18 @@ expect_equal(target_results$sigma1_ols, sd_error(res_model_1_ols))
 
 # test moments
 actual_moments <- res_model_1_ols@model_moments
-expect_equal(target_moments[["ZZ"]], actual_moments[["ZZ"]])
-expect_equal(target_moments[["ZY1"]], actual_moments[["ZY"]])
-expect_equal(target_moments[["TSS1"]], actual_moments[["TSS"]])
+expect_zero_diff(target_moments[["ZZ"]], actual_moments[["ZZ"]])
+expect_zero_diff(target_moments[["ZY1"]], actual_moments[["ZY"]])
+expect_zero_diff(target_moments[["TSS1"]], actual_moments[["TSS"]])
 
 # test model matrices
 actual_matrices <- res_model_1_ols@design_matrix
-expect_equal(target_matrices[["OW"]], actual_matrices[["OW"]])
-expect_equal(target_matrices[["D_"]], actual_matrices[["D_"]],
-             check.attributes = FALSE)
-expect_equal(target_matrices[["O_"]], actual_matrices[["O_"]],
-             check.attributes = FALSE)
-expect_equal(target_matrices[["I_"]], actual_matrices[["I_"]],
-             check.attributes = FALSE)
-expect_equal(target_matrices[["G_"]], actual_matrices[["G_"]],
-             check.attributes = FALSE)
-expect_equal(target_matrices[["Y1_"]], actual_matrices[["Y_"]],
-             check.attributes = FALSE)
+expect_zero_diff(target_matrices[["OW"]], actual_matrices[["OW"]])
+expect_zero_diff(target_matrices[["D_"]], actual_matrices[["D_"]])
+expect_zero_diff(target_matrices[["O_"]], actual_matrices[["O_"]])
+expect_zero_diff(target_matrices[["I_"]], actual_matrices[["I_"]])
+expect_zero_diff(target_matrices[["G_"]][[1]], actual_matrices[["G_"]][[1]])
+expect_zero_diff(target_matrices[["Y1_"]][[1]], actual_matrices[["Y_"]][[1]])
 rm(res_model_1_ols)
 
 # ---- s2sls - model 2 --------------------------------------------------------
@@ -244,17 +253,14 @@ expect_equal(target_moments[["TSS2"]], actual_moments[["TSS"]])
 
 # test model matrices
 actual_matrices <- res_model_2_s2sls@design_matrix
-expect_equal(target_matrices[["OW"]], actual_matrices[["OW"]])
-expect_equal(target_matrices[["D_"]], actual_matrices[["D_"]],
-             check.attributes = FALSE)
-expect_equal(target_matrices[["O_"]], actual_matrices[["O_"]],
-             check.attributes = FALSE)
-expect_equal(target_matrices[["I_"]], actual_matrices[["I_"]],
-             check.attributes = FALSE)
-expect_equal(target_matrices[["G_"]], actual_matrices[["G_"]],
-             check.attributes = FALSE)
-expect_equal(target_matrices[["Y2_"]], actual_matrices[["Y_"]],
-             check.attributes = FALSE)
+
+expect_zero_diff(target_matrices[["OW"]], actual_matrices[["OW"]])
+expect_zero_diff(target_matrices[["D_"]], actual_matrices[["D_"]])
+expect_zero_diff(target_matrices[["O_"]], actual_matrices[["O_"]])
+expect_zero_diff(target_matrices[["I_"]], actual_matrices[["I_"]])
+expect_zero_diff(target_matrices[["G_"]][[1]], actual_matrices[["G_"]][[1]])
+expect_zero_diff(target_matrices[["Y2_"]][[1]], actual_matrices[["Y_"]][[1]])
+expect_zero_diff(target_matrices[["Y2_"]][[2]], actual_matrices[["Y_"]][[2]])
 rm(res_model_2_s2sls)
 
 # ---- s2sls - model 9 --------------------------------------------------------
@@ -277,17 +283,16 @@ expect_equal(target_moments[["TSS9"]], actual_moments[["TSS"]])
 
 # test model matrices
 actual_matrices <- res_model_9_s2sls@design_matrix
-expect_equal(target_matrices[["OW"]], actual_matrices[["OW"]])
-expect_equal(target_matrices[["D_"]], actual_matrices[["D_"]],
-             check.attributes = FALSE)
-expect_equal(target_matrices[["O_"]], actual_matrices[["O_"]],
-             check.attributes = FALSE)
-expect_equal(target_matrices[["I_"]], actual_matrices[["I_"]],
-             check.attributes = FALSE)
-expect_equal(target_matrices[["G_"]], actual_matrices[["G_"]],
-             check.attributes = FALSE)
-expect_equal(target_matrices[["Y9_"]], actual_matrices[["Y_"]],
-             check.attributes = FALSE)
+
+expect_zero_diff(target_matrices[["OW"]], actual_matrices[["OW"]])
+expect_zero_diff(target_matrices[["D_"]], actual_matrices[["D_"]])
+expect_zero_diff(target_matrices[["O_"]], actual_matrices[["O_"]])
+expect_zero_diff(target_matrices[["I_"]], actual_matrices[["I_"]])
+expect_zero_diff(target_matrices[["G_"]][[1]], actual_matrices[["G_"]][[1]])
+expect_zero_diff(target_matrices[["Y9_"]][[1]], actual_matrices[["Y_"]][[1]])
+expect_zero_diff(target_matrices[["Y9_"]][[2]], actual_matrices[["Y_"]][[2]])
+expect_zero_diff(target_matrices[["Y9_"]][[3]], actual_matrices[["Y_"]][[3]])
+expect_zero_diff(target_matrices[["Y9_"]][[4]], actual_matrices[["Y_"]][[4]])
 rm(res_model_9_s2sls)
 
 # ---- mle - model 2 ----------------------------------------------------------
@@ -312,17 +317,14 @@ expect_equal(target_moments[["TSS2"]], actual_moments[["TSS"]])
 
 # test model matrices
 actual_matrices <- res_model_2_mle@design_matrix
-expect_equal(target_matrices[["OW"]], actual_matrices[["OW"]])
-expect_equal(target_matrices[["D_"]], actual_matrices[["D_"]],
-             check.attributes = FALSE)
-expect_equal(target_matrices[["O_"]], actual_matrices[["O_"]],
-             check.attributes = FALSE)
-expect_equal(target_matrices[["I_"]], actual_matrices[["I_"]],
-             check.attributes = FALSE)
-expect_equal(target_matrices[["G_"]], actual_matrices[["G_"]],
-             check.attributes = FALSE)
-expect_equal(target_matrices[["Y2_"]], actual_matrices[["Y_"]],
-             check.attributes = FALSE)
+
+expect_zero_diff(target_matrices[["OW"]], actual_matrices[["OW"]])
+expect_zero_diff(target_matrices[["D_"]], actual_matrices[["D_"]])
+expect_zero_diff(target_matrices[["O_"]], actual_matrices[["O_"]])
+expect_zero_diff(target_matrices[["I_"]], actual_matrices[["I_"]])
+expect_zero_diff(target_matrices[["G_"]][[1]], actual_matrices[["G_"]][[1]])
+expect_zero_diff(target_matrices[["Y2_"]][[1]], actual_matrices[["Y_"]][[1]])
+expect_zero_diff(target_matrices[["Y2_"]][[2]], actual_matrices[["Y_"]][[2]])
 rm(res_model_2_mle)
 
 # ---- mle - model 9 ----------------------------------------------------------
@@ -346,17 +348,15 @@ expect_equal(target_moments[["TSS9"]], actual_moments[["TSS"]])
 
 # test model matrices
 actual_matrices <- res_model_9_mle@design_matrix
-expect_equal(target_matrices[["OW"]], actual_matrices[["OW"]])
-expect_equal(target_matrices[["D_"]], actual_matrices[["D_"]],
-             check.attributes = FALSE)
-expect_equal(target_matrices[["O_"]], actual_matrices[["O_"]],
-             check.attributes = FALSE)
-expect_equal(target_matrices[["I_"]], actual_matrices[["I_"]],
-             check.attributes = FALSE)
-expect_equal(target_matrices[["G_"]], actual_matrices[["G_"]],
-             check.attributes = FALSE)
-expect_equal(target_matrices[["Y9_"]], actual_matrices[["Y_"]],
-             check.attributes = FALSE)
+expect_zero_diff(target_matrices[["OW"]], actual_matrices[["OW"]])
+expect_zero_diff(target_matrices[["D_"]], actual_matrices[["D_"]])
+expect_zero_diff(target_matrices[["O_"]], actual_matrices[["O_"]])
+expect_zero_diff(target_matrices[["I_"]], actual_matrices[["I_"]])
+expect_zero_diff(target_matrices[["G_"]][[1]], actual_matrices[["G_"]][[1]])
+expect_zero_diff(target_matrices[["Y9_"]][[1]], actual_matrices[["Y_"]][[1]])
+expect_zero_diff(target_matrices[["Y9_"]][[2]], actual_matrices[["Y_"]][[2]])
+expect_zero_diff(target_matrices[["Y9_"]][[3]], actual_matrices[["Y_"]][[3]])
+expect_zero_diff(target_matrices[["Y9_"]][[4]], actual_matrices[["Y_"]][[4]])
 rm(res_model_9_mle)
 
 # ---- mcmc - model 2 ---------------------------------------------------------

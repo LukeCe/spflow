@@ -291,43 +291,55 @@ setValidity("sp_multi_network", function(object) { # ---- validity ------------
 sp_multi_network <- function(...) {
 
   input_nets <- unlist(list(...)) %||% list()
-  is_net <- ulapply(input_nets, is, class2 = "sp_network_nodes")
-  is_pair <- ulapply(input_nets, is, class2 = "sp_network_pair")
 
-  assert(all(is_net | is_pair),warn = TRUE,
-         "All supplied objects which are not of class sp_network or " %p%
-         "sp_network_pair are discarded!")
+
+  warn_template <- "
+  All supplied objects which are not of class
+  sp_network or sp_network_pair are discarded!"
+  is_net <- unlist(lapply(input_nets, is, class2 = "sp_network_nodes"))
+  is_pair <- unlist(lapply(input_nets, is, class2 = "sp_network_pair"))
+  assert(all(is_net | is_pair), warn_template, warn = TRUE)
   sp_networks <- input_nets[is_net]
   sp_network_pairs <- input_nets[is_pair]
 
-  names(sp_networks) <- ulapply(sp_networks, "id")
-  pair_ids <- lapply(sp_network_pairs, "id")
-  names(sp_network_pairs) <- ulapply(pair_ids, "[", "pair", use.names = FALSE)
 
-  # check if the node identification between networks and pairs are consistent
-  # error & warning template for origins and destinations
-  err_msg <-
-    "Some of the %ss in the network pair object are not be identifyed " %p%
-    "with the nodes in the %s network."
-  warn <-
-    "The %ss in the network pair object were reordered to match the " %p%
-    "order of the nodes in the %s network."
+  pair_ids <- lapply(sp_network_pairs, "id")
+  pair_ids <- unlist(lapply(pair_ids, "[", "pair", use.names = FALSE))
+  net_ids <- unlist(lapply(sp_networks, "id"))
+  names(sp_networks) <- net_ids
+  names(sp_network_pairs) <- pair_ids
+
+
+  # check for orig and dest keys if the identification
+  # between networks and pairs are consistent
+  error_template <- "
+  Some of the %ss in the network pair object are not identifyed
+  with the nodes in the %s network."
+  warn_template <- "
+  The %ss in the network pair object were reordered to match the
+  order of the nodes in the %s network."
+
   for (i in seq_along(pair_ids)) {
     this_pair <- pair_ids[[i]]["pair"]
-
     this_orig <- pair_ids[[i]]["orig"]
+    this_dest <- pair_ids[[i]]["dest"]
+
+    original_o_key_levels <- NULL
+    original_d_key_levels <- NULL
     if (this_orig %in% names(sp_networks)) {
-      o_key <-
-        attr_key_orig(dat(sp_network_pairs[[this_pair]]))
-      o_key_levels <-
-        levels(dat(sp_network_pairs[[this_pair]])[[o_key]])
-      o_key_target <-
-        attr_key_nodes(dat(sp_networks[[this_orig]]))
-      o_key_target_levels <-
-        levels(dat(sp_networks[[this_orig]])[[o_key_target]])
+
+      check_key_in_net <- function(pair_id, node_id) {
+
+        key_col_node <-
+      }
+
+      o_key <- attr_key_orig(dat(sp_network_pairs[[this_pair]]))
+      o_key_levels <- levels(dat(sp_network_pairs[[this_pair]])[[o_key]])
+      o_key_target <- attr_key_nodes(dat(sp_networks[[this_orig]]))
+      o_key_target_levels <- levels(dat(sp_networks[[this_orig]])[[o_key_target]])
 
       assert(all(o_key_levels %in% o_key_target_levels),
-             err_msg, "origin", "origin")
+             error_template, "origin", "origin")
 
       if (!all(o_key_levels == o_key_target_levels)) {
         warning(sprintf(warn, "origin", "origin"))
@@ -337,7 +349,6 @@ sp_multi_network <- function(...) {
       }
     }
 
-    this_dest <- pair_ids[[i]]["dest"]
     if (this_dest %in% names(sp_networks)) {
       d_key <-
         attr_key_dest(dat(sp_network_pairs[[this_pair]]))
@@ -349,7 +360,7 @@ sp_multi_network <- function(...) {
         levels(dat(sp_networks[[this_dest]])[[d_key_target]])
 
       assert(all(d_key_levels %in% d_key_target_levels),
-             err_msg, "destination", "destination")
+             error_template, "destination", "destination")
 
       if (!all(d_key_levels == d_key_target_levels)) {
         warning(sprintf(warn,"destination", "destination"))
