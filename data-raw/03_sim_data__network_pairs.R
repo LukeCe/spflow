@@ -53,8 +53,8 @@ subsample_pairs <- function(pair_df) {
   n <- nrow(pair_df)
   n_keep <- ceiling(n * .3)
 
-  keep_probs <- 1 / (pair_df[["DISTANCE"]]^2 + 1)
-  keep_index <- sort(sample(seq(n),n_keep,prob = 1 / keep_probs))
+  keep_probs <- 1 / (pair_df[["DISTANCE"]]^2 + sqrt(2))
+  keep_index <- sort(sample(seq(n),n_keep,prob = keep_probs))
 
   return(pair_df[keep_index,])
 }

@@ -69,7 +69,7 @@ pair_neighborhoods <- lapply(spflow:::lookup(pair_ids), function(.id) {
   spflow:::expand_flow_neighborhood(
     neighborhood(multi_net_usa_ge_copy,od_ids[1]),
     neighborhood(multi_net_usa_ge_copy,od_ids[2]),
-    flow_indicator = get_flow_indicator(pull_member(multi_net_usa_ge_copy, pair_id = .id)))
+    flow_indicator = spflow:::get_flow_indicator(pull_member(multi_net_usa_ge_copy, .id)))
   })
 
 model_filters <- lapply(pair_neighborhoods, function(.nbs) {
@@ -79,7 +79,7 @@ model_filters <- lapply(pair_neighborhoods, function(.nbs) {
        "y1" = Matrix::Diagonal(nrow(.nbs[["Wd"]])))})
 
 # simulate for all models
-set.seed(123)
+set.seed(1234)
 flows <- mapply(function(filters,variables) {
   sim_one <- function(.filt) { spflow:::spflow_sim(
     exogenous_variables = variables,

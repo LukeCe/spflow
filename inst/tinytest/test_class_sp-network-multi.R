@@ -92,14 +92,14 @@ expect_error({
 
 expect_equal({
   test_multi_net <- sp_multi_network(sp_network_pair("net1","net1"))
-  pull_member(test_multi_net, pair_id ="net1_net1")
+  pull_member(test_multi_net, "net1_net1")
   },
   sp_network_pair("net1","net1"),
   info = "pull existing pair")
 
 expect_error({
   test_multi_net <- sp_multi_network(sp_network_pair("net1","net1"))
-  pull_member(test_multi_net, pair_id = "net2_net2")
+  pull_member(test_multi_net, "net2_net2")
   },
   info = "pull non-existing pair")
 
