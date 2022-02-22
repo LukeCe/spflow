@@ -179,7 +179,6 @@ drop_superfluent_nodes <- function(OW,DW,flow_indicator) {
   return(list(OW = DW %|!|% OW[true_origs,true_origs],
               DW = DW %|!|% DW[true_dests,true_dests],
               flow_indicator = flow_indicator[true_dests, true_origs]))
-
 }
 
 #' @keywords internal

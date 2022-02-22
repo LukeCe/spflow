@@ -124,6 +124,29 @@ setMethod(
     return(object@npairs)
   })
 
+
+#' @rdname sp_network_pair-class
+#' @export
+#' @examples
+#' ## access the two columns identifying the origin-destination pairs
+#'
+#'
+#' net_pair_ge_ge <- pull_member(multi_net_usa_ge,"ge_ge")
+#' get_keys(net_pair_ge_ge)
+#'
+setMethod(
+  f = "get_keys",
+  signature = "sp_network_pair",
+  function(object) { # ---- get_keys ------------------------------------------
+
+    if (is.null(object@pair_data))
+      return(NULL)
+
+    od_key_cols <- attr_key_od(object@pair_data)
+    od_key_cols <- object@pair_data[,od_key_cols]
+    return(od_key_cols)
+  })
+
 #' @rdname sp_network_pair-class
 #' @export
 #' @examples
@@ -273,11 +296,9 @@ sp_network_pair <- function(
   # when the data is provided there must be valid key columns...
   assert_inherits(pair_data, "data.frame")
   od_key_cols <- c(orig_key_column, dest_key_column)
-  has_orig_key <- orig_key_column %in% colnames(pair_data)
-  has_dest_key <-
-  assert(all(od_key_cols %in% colnames(pair_data)),
-         "The origin and destination key columns are not found in " %p%
-         "the pair data!")
+  assert(all(od_key_cols %in% colnames(pair_data)), "
+         The origin and destination key columns are
+         not found in the pair data!")
 
   # convert to factor
   attr_key_od(pair_data) <- od_key_cols
@@ -356,7 +377,6 @@ attr_key_dest <- function(df) {
   attr(df, "dest_key_column") <- value
   df
 }
-
 
 #' @keywords internal
 attr_key_od <- function(df) {

@@ -78,6 +78,15 @@ setGeneric(
   name = "id<-", # ---- ... id<- ----------------------------------------------
   def = function(object, ..., value) standardGeneric("id<-"))
 
+#' @title Get the keys for identifying origins, destinations, or od-pairs
+#' @param value A character replacing the existing id
+#' @param object One of [sp_network_nodes-class()], [sp_network_pair-class()]
+#' @seealso
+#' @export
+setGeneric(
+  name = "get_keys", # ---- ... get_keys --------------------------------------
+  def = function(object) standardGeneric("get_keys"))
+
 
 #' @title Access the sampling results of a [spflow_model_mcmc-class()]
 #' @description For details see the documentation of the corresponding class.

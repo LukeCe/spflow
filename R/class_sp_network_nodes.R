@@ -86,6 +86,26 @@ setReplaceMethod(
 
 #' @rdname sp_network_nodes-class
 #' @export
+#' ## access the column that identifies the nodes of the network
+#'
+#' net_ge <- pull_member(multi_net_usa_ge,"ge")
+#' get_keys(net_ge)
+#'
+setMethod(
+  f = "get_keys",
+  signature = "sp_network_nodes",
+  function(object) { # ---- get_keys -----------------------------------
+
+    if (is.null(object@node_data))
+      return(NULL)
+
+    key_col <- attr_key_nodes(object@node_data)
+    key_col <- object@node_data[,key_col, drop = FALSE]
+    return(key_col)
+  })
+
+#' @rdname sp_network_nodes-class
+#' @export
 #' @examples
 #' # access the neighborhood matrix of the nodes
 #' neighborhood(germany_net)

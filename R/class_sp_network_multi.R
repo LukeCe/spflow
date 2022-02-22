@@ -304,7 +304,7 @@ sp_multi_network <- function(...) {
 
 
   pair_ids <- lapply(sp_network_pairs, "id")
-  pair_ids <- unlist(lapply(pair_ids, "[", "pair", use.names = FALSE))
+  pair_ids <- unlist(lapply(pair_ids, "[", "pair"),use.names = FALSE)
   net_ids <- unlist(lapply(sp_networks, "id"))
   names(sp_networks) <- net_ids
   names(sp_network_pairs) <- pair_ids
@@ -317,56 +317,49 @@ sp_multi_network <- function(...) {
   Some of the %ss in the network pair object are not identifyed
   with the nodes in the %s network."
   warn_template <- "
-  The %ss in the network pair object were reordered to match the
-  order of the nodes in the %s network."
+  The od-pairs in the network pair object [%s] were reordered to match the
+  order of the nodes in the networks."
 
   pair_ids <- lapply(sp_network_pairs, "id")
 
   for (i in seq_along(pair_ids)) {
+
     net_pair <- pair_ids[[i]]["pair"]
+    pair_keys <- get_keys(sp_network_pairs[[net_pair]])
+    wrong_od_order <- FALSE
+
+    # check for origins
     orig_net <- pair_ids[[i]]["orig"]
-    dest_net <- pair_ids[[i]]["dest"]
-
+    orig_keys <- orig_keys_od <- unique(pair_keys[[1]])
     if (orig_net %in% names(sp_networks)) {
-
-
-      o_key <- attr_key_orig(dat(sp_network_pairs[[this_pair]]))
-      o_key_levels <- levels(dat(sp_network_pairs[[this_pair]])[[o_key]])
-      o_key_target <- attr_key_nodes(dat(sp_networks[[this_orig]]))
-      o_key_target_levels <- levels(dat(sp_networks[[this_orig]])[[o_key_target]])
-
-      assert(all(o_key_levels %in% o_key_target_levels),
+      orig_keys <- get_keys(sp_networks[[orig_net]])[[1]]
+      assert(all(as.character(orig_keys_od) %in% as.character(orig_keys)),
              error_template, "origin", "origin")
-
-      if (!all(o_key_levels == o_key_target_levels)) {
-        warning(sprintf(warn, "origin", "origin"))
-        sp_network_pairs[[this_pair]]@pair_data[[o_key]] <-
-          factor(sp_network_pairs[[this_pair]]@pair_data[[o_key]],
-                 o_key_target_levels)
-      }
+      wrong_od_order <- any(levels(orig_keys_od) != levels(orig_keys))
     }
 
-    if (this_dest %in% names(sp_networks)) {
-      d_key <-
-        attr_key_dest(dat(sp_network_pairs[[this_pair]]))
-      d_key_levels <-
-        levels(dat(sp_network_pairs[[this_pair]])[[d_key]])
-      d_key_target <-
-        attr_key_nodes(dat(sp_networks[[this_dest]]))
-      d_key_target_levels <-
-        levels(dat(sp_networks[[this_dest]])[[d_key_target]])
-
-      assert(all(d_key_levels %in% d_key_target_levels),
+    dest_net <- pair_ids[[i]]["dest"]
+    dest_keys <- dest_keys_od <- unique(pair_keys[[2]])
+    if (dest_net %in% names(sp_networks)) {
+      dest_keys <- get_keys(sp_networks[[dest_net]])[[1]]
+      assert(all(as.character(dest_keys_od) %in% as.character(dest_keys)),
              error_template, "destination", "destination")
-
-      if (!all(d_key_levels == d_key_target_levels)) {
-        warning(sprintf(warn,"destination", "destination"))
-        sp_network_pairs[[this_pair]]@pair_data[[d_key]] <-
-          factor(sp_network_pairs[[this_pair]]@pair_data[[d_key]],
-                 d_key_target_levels)
+      wrong_od_order <- any(c(wrong_od_order,
+                              levels(dest_keys_od) != levels(dest_keys)))
       }
+
+    if (wrong_od_order) {
+      warning(sprintf(warn_template, net_pair))
+      pair_keys[[1]] <- factor(pair_keys[[1]], levels(orig_keys))
+      pair_keys[[2]] <- factor(pair_keys[[2]], levels(dest_keys))
+      od_key_cols <- names(pair_keys)
+      od_order <- order(pair_keys[[1]], pair_keys[[2]])
+      sp_network_pairs[[net_pair]]@pair_data[od_key_cols] <- pair_keys
+      sp_network_pairs[[net_pair]]@pair_data[od_key_cols] <-
+        sp_network_pairs[[net_pair]]@pair_data[od_order,]
     }
   }
+
 
   return(new("sp_multi_network",
              networks = sp_networks,
