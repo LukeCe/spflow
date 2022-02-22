@@ -1,4 +1,4 @@
-#' @include class_sp-network-nodes.R class_sp-network-pair.R
+#' @include class_generics_and_maybes.R class_sp_network_nodes.R class_sp_network_pair.R
 
 
 #' @title Class sp_multi_network
@@ -310,8 +310,9 @@ sp_multi_network <- function(...) {
   names(sp_network_pairs) <- pair_ids
 
 
-  # check for orig and dest keys if the identification
-  # between networks and pairs are consistent
+  ## The class contains relational data for origins, dests, and od-pairs
+  # 1. we have to ensure that the identification is correct
+  # 2. the order of observations is important for calculations
   error_template <- "
   Some of the %ss in the network pair object are not identifyed
   with the nodes in the %s network."
@@ -319,19 +320,15 @@ sp_multi_network <- function(...) {
   The %ss in the network pair object were reordered to match the
   order of the nodes in the %s network."
 
+  pair_ids <- lapply(sp_network_pairs, "id")
+
   for (i in seq_along(pair_ids)) {
-    this_pair <- pair_ids[[i]]["pair"]
-    this_orig <- pair_ids[[i]]["orig"]
-    this_dest <- pair_ids[[i]]["dest"]
+    net_pair <- pair_ids[[i]]["pair"]
+    orig_net <- pair_ids[[i]]["orig"]
+    dest_net <- pair_ids[[i]]["dest"]
 
-    original_o_key_levels <- NULL
-    original_d_key_levels <- NULL
-    if (this_orig %in% names(sp_networks)) {
+    if (orig_net %in% names(sp_networks)) {
 
-      check_key_in_net <- function(pair_id, node_id) {
-
-        key_col_node <-
-      }
 
       o_key <- attr_key_orig(dat(sp_network_pairs[[this_pair]]))
       o_key_levels <- levels(dat(sp_network_pairs[[this_pair]])[[o_key]])
@@ -405,6 +402,18 @@ check_pair_completeness <- function(multi_net) {
         row.names = NULL)})
 
   Reduce("rbind", pair_meta_data)
+
+}
+
+#' @keywords internal
+validate_od_keys <- function(o_keys, d_keys, od_keys) {
+
+  error_template <- "The %s must be unique!"
+  assert(has_distinct_elements(o_keys),
+         "The %s keys must be unique!", "origin")
+  assert(has_distinct_elements(d_keys),
+         "The %s keys must be unique!", "destination")
+
 
 }
 

@@ -1,3 +1,5 @@
+#' @include class_generics_and_maybes.R
+
 #' @title spflow network classes
 #'
 #' @description
@@ -16,7 +18,6 @@
 #' nodes at the origin and destination.
 #'
 #'
-#' @include class_sp-network-nodes.R class_sp-network-pair.R
 #' @name spflow_network_classes
 #' @family spflow network classes
 #' @family Constructors for spflow network classes

@@ -1,4 +1,4 @@
-#' @include class_spflow_model_meta.R
+#' @include class_spflow_model_meta.R class_generics_and_maybes.R
 
 # ---- OLS class --------------------------------------------------------------
 

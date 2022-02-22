@@ -1,3 +1,6 @@
+#' @include class_generics_and_maybes.R
+
+
 #' @title Class spflow_model
 #'
 #' @description

@@ -1,3 +1,5 @@
+#' @include class_generics_and_maybes.R
+
 #' @title sp_network_nodes Class
 #'
 #' @description
