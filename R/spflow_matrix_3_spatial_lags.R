@@ -3,7 +3,8 @@ by_role_spatial_lags <- function(
   model_matrices,
   variable_roles,
   neighborhoods,
-  estim_control){
+  estim_control,
+  flow_indicator){
 
   ### 0) Define requirements
   instrument_statu_by_role <-
@@ -18,9 +19,9 @@ by_role_spatial_lags <- function(
     lapply(result, "unique")
   }
   sources <- intersect(c("pair", "orig", "dest"), names(model_matrices))
+  sources <- lookup(sources)
   role_lookup <- sources_to_roles(!"dest" %in% sources)
-  lag_requirements_by_source <-
-    lapply(lookup(sources), "summarize_lags_by_source")
+  lag_requirements_by_source <- lapply(sources, "summarize_lags_by_source")
 
   ### 1) Lag data for nodes
   node_sources <- intersect(c("orig","dest"), names(model_matrices))
@@ -75,7 +76,10 @@ by_role_spatial_lags <- function(
     "lag_flow_matrix",
     Y = flow_matrices,
     name = response_variables,
-    MoreArgs = c(estim_control["model"],neighborhoods))
+    MoreArgs = c(
+      estim_control["model"],
+      neighborhoods, # OW and DW
+      list("flow_indicator" = flow_indicator)))
 
   # ... G_ lags
   pair_covariates <-
@@ -198,7 +202,7 @@ lag_flow_matrix <- function(
   OW,
   DW,
   name = "Y",
-  Y_indicator = NULL) {
+  flow_indicator = NULL) {
 
 
   if (model == "model_1")
@@ -224,25 +228,20 @@ lag_flow_matrix <- function(
   }
 
   Y_lags <- switch(substr(model, 7, 7),   # (8.15) in LeSage book
-                   "9" = list(Y, "d" = WY, "o" = YW, "w" = WYW),
-                   "8" = list(Y, "d" = WY, "o" = YW, "w" = WYW),
-                   "7" = list(Y, "d" = WY, "o" = YW),
-                   "6" = list(Y, "odw" = (WY + YW + WYW)/3),
-                   "5" = list(Y, "od"  = (WY + YW)/2),
-                   "4" = list(Y, "w"   = WYW),
-                   "3" = list(Y, "o"   = YW),
-                   "2" = list(Y, "d"   = WY),
-                   "1" = list(Y))
+                   "9" = list(" " = Y, ".d"   = WY, ".o" = YW, ".w" = WYW),
+                   "8" = list(" " = Y, ".d"   = WY, ".o" = YW, ".w" = WYW),
+                   "7" = list(" " = Y, ".d"   = WY, ".o" = YW),
+                   "6" = list(" " = Y, ".odw" = (WY + YW + WYW)/3),
+                   "5" = list(" " = Y, ".od"  = (WY + YW)/2),
+                   "4" = list(" " = Y, ".w"   = WYW),
+                   "3" = list(" " = Y, ".o"   = YW),
+                   "2" = list(" " = Y, ".d"   = WY),
+                   "1" = list(" " = Y))
+  names(Y_lags) <- strwrap(paste0(name, names(Y_lags)))
+  if (!is.null(flow_indicator) & length(Y_lags) > 1)
+    Y_lags[-1] <- lapply(Y_lags[-1], "*", flow_indicator)
 
 
-
-  if (!is.null(Y_indicator)) {
-    n_lags <- length(names_rho)
-    pos_lags <- 1 + seq(n_lags)
-    Y_lags[pos_lags] <- lapply(Y_lags[pos_lags], "*", Y_indicator)
-  }
-
-  names(Y_lags) <- name %p% c("",rep(".",length(names_rho))) %p% names(Y_lags)
   return(Y_lags)
 }
 
@@ -268,7 +267,8 @@ derive_pair_instruments <- function(
   OW,
   DW,
   name = "G",
-  full_inst = FALSE) {
+  full_inst = FALSE,
+  flow_indicator = NULL) {
 
   if (is.null(G))
     return(NULL)
@@ -279,34 +279,36 @@ derive_pair_instruments <- function(
   if (is.null(OW) | is.null(DW))
     full_inst <- TRUE
 
-  # destination lags
-  d <- TRUE %T% (!is.null(DW))
-  g_lags <- c("wG","wwG") %T% d
-  wG <- d %|!|% (DW %*% G)
-  wwG <- d %|!|% (DW %*% wG)
+  include_index <-
+    if (!is.null(flow_indicator)) do_nothing else function(x) x * flow_indicator
 
-  # origin lags
-  # (not needed when working with reduced instruments and d is given)
-  o <- (TRUE %T% !is.null(OW)) %T% full_inst
-  g_lags <- c(g_lags, c("Gw","Gww") %T% o)
-  Gw <- o %|!|% tcrossprod(G, OW)
-  Gww <- o %|!|% tcrossprod(Gw, OW)
 
-  # o-d lags
-  od <- TRUE %T% (!is.null(OW) & !is.null(DW))
-  g_lags <- c(g_lags, c("wGw","wwGw","wGww","wwGww") %T% od)
-  wGw <- od %|!|% tcrossprod(wG,OW)
-  wwGw <- od %|!|% tcrossprod(wwG,OW)
-  wGww <- od %|!|% ((DW %*% Gww) %T% o)
-  wwGww <- od %|!|% tcrossprod(wwGw, OW)
+  lag_left <- lag_right <- lag_double <- !is.null(OW) & !is.null(DW)
+  lag_left <- !is.null(DW) & full_inst
+  lag_right <- !is.null(OW) & full_inst
 
-  # collect and name matrices
-  if (!full_inst & isTRUE(od))
-    g_lags <- c("wGw","wwGww")
+  lags_o1 <- named_list(c("wG", "Gw", "wGw"))
+  lags_o1[["wG"]]  <- (DW %*% G) %T% lag_left
+  lags_o1[["Gw"]]  <- tcrossprod(G, OW) %T% lag_right
+  lags_o1[["wGw"]] <- tcrossprod((DW %*% G), OW) %T% lag_double
+  lags_o1 <- compact(lags_o1)
+  if (!is.null(flow_indicator))
+    lags_o1 <- lapply(lags_o1, "*", flow_indicator)
 
-  G_mats <- collect(c("G",g_lags))
-  names(G_mats) <- name %p% c("", "." %p% g_lags)
-  return(G_mats)
+  lags_o2 <- named_list(c("wwG", "Gww", "wwGww", "wwGw", "wGww"))
+  lags_o2[["wwG"]]   <- (DW %*% lags_o1[["wG"]]) %T% lag_left
+  lags_o2[["Gww"]]   <- tcrossprod(lags_o1[["wG"]], OW) %T% lag_right
+  lags_o2[["wwGww"]] <- tcrossprod((DW %*% lags_o1[["wGw"]]), OW) %T% lag_double
+  lags_o2[["wwGw"]]  <- (DW %*% lags_o1[["wGw"]]) %T% lag_left
+  lags_o2[["wGww"]]  <- tcrossprod(lags_o1[["wGw"]], OW) %T% lag_right
+  if (!is.null(flow_indicator))
+    lags_o2 <- lapply(lags_o2, "*", flow_indicator)
+
+
+  lag_suffixes <- c("", paste0(".", c(names(lags_o1),names(lags_o2))))
+  all_g <- c(named_list(name, G), lags_o1, lags_o2)
+  names(all_g) <- paste0(name, lag_suffixes)
+  return(all_g)
 }
 
 

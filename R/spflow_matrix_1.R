@@ -22,6 +22,10 @@ spflow_model_matrix <- function(
   data_sources <- pull_flow_data(sp_multi_network, network_pair_id)
   model_matrices <- by_source_model_matrix(formula_parts, data_sources)
 
+  flow_indicator <- NULL
+  if (estim_control[["mat_complet"]] < 1)
+    flow_indicator <- estim_control$mat_format(NULL)
+
   # generate the required lags and split the variables according to their
   # roles (O_ vs D_ vs I_ ...)
   variable_roles <- define_variable_roles(formula_parts, data_sources)
@@ -30,7 +34,8 @@ spflow_model_matrix <- function(
     model_matrices = model_matrices,
     variable_roles = variable_roles,
     neighborhoods = neighborhoods,
-    estim_control)
+    estim_control = estim_control,
+    flow_indicator = flow_indicator)
 
   # Extract weights and constants if they are defined
   constants <- define_flow_constants(
@@ -40,11 +45,7 @@ spflow_model_matrix <- function(
 
 
   # weights matter if they are specified or if the flows are not complete
-  flow_indicator <- NULL
   weights <- estim_control[["weight_var"]]
-  if (estim_control[["mat_complet"]] < 1)
-    flow_indicator <- estim_control$mat_format(1)
-
   if (!is.null(estim_control[["weight_var"]]))
     weights <- estim_control$mat_format(data_sources$pair[[weights]])
 
@@ -157,9 +158,15 @@ define_flow_constants <- function(const_formula, use_instruments, OW = NULL) {
 
 #' @importFrom Matrix Diagonal tcrossprod t
 #' @keywords internal
-intra_regional_constant <- function(W, use_instruments = FALSE) {
+intra_regional_constant <- function(
+    W,
+    use_instruments = FALSE,
+    flow_indicator = NULL) {
 
   In <- Diagonal(nrow(W))
+  if (!is.null(flow_indicator))
+    In <- In %*% flow_indicator
+
   attr_inst_status(In) <- FALSE
   In <- list("(Intra)" = In)
   if (!use_instruments)
@@ -178,6 +185,8 @@ intra_regional_constant <- function(W, use_instruments = FALSE) {
     "WV"  = WV,
     "VW'" = t(WV)
   )
+  if (!is.null(flow_indicator))
+    w_int <- lapply(w_int, "*", flow_indicator)
   w_int <- lapply(w_int, "attr_inst_status<-",TRUE)
 
   return(c(In,w_int))

@@ -1,15 +1,15 @@
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-# Project: spflow - integration test case 2
+# Project: spflow - integration test case 3
 # Author: Lukas Dargel
 # = = = = = = = = = = = = = = = = = = =
 # Description:
 #
 # The script tests the integration of the package functions based on the
-# simulated flows within the stylized states of the USA.
+# simulated flows within the stylized states of Germany to those of the USA.
 # The test case covers:
 # - "model_1" and "model_2" and "model_9"
-# - "non-Cartesian" flows: only a subset of all possible OD pairs are used
-# - "Square" flows:  within the same network
+# - "Cartesian" flows: all possible OD pairs are used
+# - "Rectangular" flows:  connecting two different networks
 # - estimators: "ols" and "twosls" (exact tests)
 # - estimators: "mle" and "mcmc"   (approximate tests)
 # = = = = = = = = = = = = = = = = = = =
@@ -26,119 +26,104 @@ data("simulation_params")
 
 test_dir <- ""
 test_dir <- "tests/integration/" # uncomment for interactive check
-usa_usa_vec_data <-
-  readRDS(paste0(test_dir,"vec_data_usa_ge.Rds"))[["usa_usa"]]
-usa_usa_pairnb <-
-  readRDS(paste0(test_dir,"pair_neighborhoods_usa_ge.Rds"))[["usa_usa"]]
+net_pair <- "ge_usa"
+ge_usa_vec_data <-
+  readRDS(paste0(test_dir,"vec_data_usa_ge.Rds"))[[net_pair]]
+ge_usa_pairnb <-
+  readRDS(paste0(test_dir,"pair_neighborhoods_usa_ge.Rds"))[[net_pair]]
 
 # ---- define target objects --------------------------------------------------
 # ---- ... model matrices -----------------------------------------------------
-W <- neighborhood(multi_net_usa_ge, "usa")
-OX <- dat(multi_net_usa_ge, "usa")[,"X", drop = FALSE]
-OX[["X_lag.1"]] <- as.vector(W %*% OX$X)
-n <- nrow(W)
+OW <- neighborhood(multi_net_usa_ge, "ge")
+DW <- neighborhood(multi_net_usa_ge, "usa")
+n_o <- nrow(OW)
+n_d <- nrow(DW)
 
+OX <- dat(multi_net_usa_ge, "ge")[,"X", drop = FALSE]
+OX[["X_lag.1"]] <- as.vector(OW %*% OX$X)
+DX <- dat(multi_net_usa_ge, "usa")[,"X", drop = FALSE]
+DX[["X_lag.1"]] <- as.vector(DW %*% DX$X)
 
-od_dat <- dat(multi_net_usa_ge, "usa_usa")
+od_dat <- dat(multi_net_usa_ge, net_pair)
 o_index <- as.integer(od_dat[["ID_ORIG"]])
 d_index <- as.integer(od_dat[["ID_DEST"]])
 sparse_matrix_form <- function(vec) {
   sparseMatrix(i = d_index,
                j = o_index,
                x = vec,
-               dims = c(n,n))
+               dims = c(n_d,n_o))
 }
 dense_matrix_form <- function(vec) {
-  mat <- matrix(0, n,n)
+  mat <- matrix(0, n_d,n_o)
   mat[cbind(d_index, o_index)] <- vec
   return(mat)
 }
 
-
-
-
-flow_indicator <- sparse_matrix_form(1L)
+flow_indicator <- dense_matrix_form(1)
 target_matrices <- list(
-  "D_" = as.matrix(OX),
+  "D_" = as.matrix(DX),
   "O_" = as.matrix(OX),
-  "I_" = as.matrix(OX),
-  "OW" = W,
+  "OW" = OW,
+  "DW" = DW,
   "G_"  = list(
-    "DISTANCE" = sparse_matrix_form(usa_usa_vec_data[,"DISTANCE"])),
+    "DISTANCE" = dense_matrix_form(ge_usa_vec_data[,"DISTANCE"])),
   "Y1_" = list(
-    "y1" = sparse_matrix_form(usa_usa_vec_data[,"y1"])),
+    "y1" = dense_matrix_form(ge_usa_vec_data[,"y1"])),
   "Y2_" = list(
-    "y2" = sparse_matrix_form(usa_usa_vec_data[,"y2"]),
-    "y2.d" = flow_indicator * (W %*% sparse_matrix_form(usa_usa_vec_data[,"y2"]))),
+    "y2" = dense_matrix_form(ge_usa_vec_data[,"y2"]),
+    "y2.d" = flow_indicator * (DW %*% dense_matrix_form(ge_usa_vec_data[,"y2"]))),
   "Y9_" = list(
-    "y9" = sparse_matrix_form(usa_usa_vec_data[,"y9"]),
-    "y9.d" = flow_indicator * (W %*% sparse_matrix_form(usa_usa_vec_data[,"y9"])),
-    "y9.o" = flow_indicator * tcrossprod(sparse_matrix_form(usa_usa_vec_data[,"y9"]),W),
-    "y9.w" = flow_indicator * tcrossprod(W %*% sparse_matrix_form(usa_usa_vec_data[,"y9"]),W)),
-  "flow_indicator" = flow_indicator
-  )
+    "y9" = dense_matrix_form(ge_usa_vec_data[,"y9"]),
+    "y9.d" = flow_indicator * (DW %*% dense_matrix_form(ge_usa_vec_data[,"y9"])),
+    "y9.o" = flow_indicator * tcrossprod(dense_matrix_form(ge_usa_vec_data[,"y9"]),OW),
+    "y9.w" = flow_indicator * tcrossprod(DW %*% dense_matrix_form(ge_usa_vec_data[,"y9"]),OW)))
+
 
 # ---- ... moments ------------------------------------------------------------
 dep_vars <- paste0("y", c(9,2,1))
-Z <- usa_usa_vec_data[,!colnames(usa_usa_vec_data) %in% dep_vars]
+Z <- ge_usa_vec_data[,!colnames(ge_usa_vec_data) %in% dep_vars]
 
 ## derive lags
 od_indicator <- as.logical(as.vector(flow_indicator))
-W_o <- W %x% diag(n)
+W_o <- OW %x% diag(n_d)
 W_o <- W_o[od_indicator,od_indicator]
-W_d <- diag(n) %x% W
+W_d <- diag(n_o) %x% DW
 W_d <- W_d[od_indicator,od_indicator]
-W_w <- W %x% W
+W_w <- OW %x% DW
 W_w <- W_w[od_indicator,od_indicator]
 
 # lags of flows
-Y_t2 <- usa_usa_vec_data[,"y2", drop = FALSE]
+Y_t2 <- ge_usa_vec_data[,"y2", drop = FALSE]
 Y_t2 <- cbind(
   Y_t2,
   "y2.d"= as.vector(W_d %*% Y_t2))
-Y_t9 <- usa_usa_vec_data[,"y9", drop = FALSE]
+Y_t9 <- ge_usa_vec_data[,"y9", drop = FALSE]
 Y_t9 <- cbind(
   Y_t9,
   "y9.d" = as.vector(W_d %*% Y_t9),
   "y9.o" = as.vector(W_o %*% Y_t9),
   "y9.w" = as.vector(W_w %*% Y_t9))
 
-# lags as instruments
-consts <- c("(Intercept)","(Intra)")
-iota_I <- usa_usa_vec_data[,"(Intra)"]
-U_alpha <- cbind(
-  usa_usa_vec_data[,consts, drop = FALSE],
-  "W"   = as.vector(W_d %*% iota_I),
-  "W'"  = as.vector(W_o %*% iota_I),
-  "WW"  = as.vector(W_d %*% W_d %*% iota_I),
-  "WW'" = as.vector(W_o %*% W_o %*% iota_I),
-  "V"   = as.vector(W_w %*% iota_I),
-  "VV"  = as.vector(W_w %*% W_w %*% iota_I),
-  "WV"  = as.vector(W_d %*% W_w %*% iota_I),
-  "VW'" = as.vector(W_o %*% W_w %*% iota_I))
-
 lag_names <- c("", paste0(".lag",1:3))
-U_beta_d <- usa_usa_vec_data[,c("DEST_X","DEST_X.lag1")]
+U_beta_d <- ge_usa_vec_data[,c("DEST_X","DEST_X.lag1")]
 U_beta_d <- cbind(U_beta_d,W_d %*% W_d %*% U_beta_d)
 colnames(U_beta_d) <- paste0("DEST_X", lag_names)
-U_beta_o <- usa_usa_vec_data[,c("ORIG_X","ORIG_X.lag1")]
+U_beta_o <- ge_usa_vec_data[,c("ORIG_X","ORIG_X.lag1")]
 U_beta_o <- cbind(U_beta_o,W_o %*% W_o %*% U_beta_o)
 colnames(U_beta_o) <- paste0("ORIG_X", lag_names)
-U_beta_I <- U_beta_o * iota_I
-colnames(U_beta_I) <- paste0("INTRA_X", lag_names)
 
-U_gamma <- usa_usa_vec_data[,"DISTANCE"]
+U_gamma <- ge_usa_vec_data[,"DISTANCE"]
 U_gamma <- cbind(U_gamma, W_w %*% U_gamma, W_w %*% W_w %*% U_gamma)
 colnames(U_gamma) <- paste0("DISTANCE", c("", ".wGw", ".wwGww"))
-U <- cbind(U_alpha,U_beta_d,U_beta_o,U_beta_I,U_gamma)
+U <- cbind(U_beta_d,U_beta_o,U_gamma)
 
 target_moments <- list(
   # all models
   "ZZ"   = as.matrix(crossprod(Z)),
   "UU"   = as.matrix(crossprod(U)),
   # model 1
-  "ZY1"  = as.matrix(crossprod(Z,usa_usa_vec_data[,"y1", drop = FALSE])),
-  "TSS1" = as.matrix(crossprod(usa_usa_vec_data[,"y1", drop = FALSE])),
+  "ZY1"  = as.matrix(crossprod(Z,ge_usa_vec_data[,"y1", drop = FALSE])),
+  "TSS1" = as.matrix(crossprod(ge_usa_vec_data[,"y1", drop = FALSE])),
   # model 2
   "ZY2"  = as.matrix(crossprod(Z,Y_t2)),
   "UY2"  = as.matrix(crossprod(U,Y_t2)),
@@ -151,11 +136,11 @@ target_moments <- list(
 # ---- ... results ------------------------------------------------------------
 
 # ols_results
-N_s <- nrow(usa_usa_vec_data)
+N_s <- nrow(ge_usa_vec_data)
 delta1_ols <- solve(
   as.matrix(target_moments[["ZZ"]]),
   as.vector(target_moments[["ZY1"]]))
-e1 <- usa_usa_vec_data[,"y1"] - (Z %*% delta1_ols)
+e1 <- ge_usa_vec_data[,"y1"] - (Z %*% delta1_ols)
 sigma1_ols <- as.vector(sqrt(crossprod(e1)/N_s))
 
 
@@ -166,11 +151,11 @@ L2_hat <- U %*% solve(
 colnames(L2_hat) <- "rho_d"
 Z2_hat <- cbind(L2_hat,Z)
 ZZ2 <- crossprod(Z2_hat)
-ZY2_hat <- as.vector(crossprod(Z2_hat,usa_usa_vec_data[,"y2",drop = FALSE]))
+ZY2_hat <- as.vector(crossprod(Z2_hat,ge_usa_vec_data[,"y2",drop = FALSE]))
 mu2_s2sls <- solve(as.matrix(ZZ2),ZY2_hat)
 
 ZY2_tilde <- cbind(Y_t2[,-1], Z)
-e2 <- usa_usa_vec_data[,"y2"] - ZY2_tilde %*%  mu2_s2sls
+e2 <- ge_usa_vec_data[,"y2"] - ZY2_tilde %*%  mu2_s2sls
 sigma2_s2sls <- as.vector(sqrt(crossprod(e2)/N_s))
 
 
@@ -181,11 +166,11 @@ L9_hat <- U %*% solve(
 colnames(L9_hat) <- paste0("rho_",c("d","o","w"))
 Z9_hat <- cbind(L9_hat,Z)
 ZZ9 <- crossprod(Z9_hat)
-ZY9_hat <- as.vector(crossprod(Z9_hat,usa_usa_vec_data[,"y9",drop = FALSE]))
+ZY9_hat <- as.vector(crossprod(Z9_hat,ge_usa_vec_data[,"y9",drop = FALSE]))
 mu9_s2sls <- solve(as.matrix(ZZ9),ZY9_hat)
 
 ZY9_tilde <- cbind(Y_t9[,-1], Z)
-e9 <- usa_usa_vec_data[,"y9"] - ZY9_tilde %*%  mu9_s2sls
+e9 <- ge_usa_vec_data[,"y9"] - ZY9_tilde %*%  mu9_s2sls
 sigma9_s2sls <- as.vector(sqrt(crossprod(e9)/N_s))
 
 # all results
@@ -209,7 +194,7 @@ expect_zero_diff <- function(y,x) expect_equal(max(abs(x - y)), 0)
 
 # ---- ... ols - model 1 ------------------------------------------------------
 res_model_1_ols <- spflow(
-  y1 ~ . + G_(DISTANCE), multi_net_usa_ge, "usa_usa",
+  y1 ~ . + G_(DISTANCE), multi_net_usa_ge, net_pair,
   spflow_control(estimation_method = "ols", model = "model_1"))
 
 # test results

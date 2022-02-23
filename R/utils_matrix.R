@@ -96,11 +96,11 @@ matrix_format_d_o <- function(
 
 
   if (fill_ratio < .5) {
-    return(sparseMatrix(
-      i = dest_index,
-      j = orig_index,
-      x = values,
-      dims = c(num_dest, num_orig)))
+      args <- compact(list(
+        i = dest_index, j = orig_index, x = values,
+        dims = c(num_dest, num_orig)))
+
+      return(do.call("sparseMatrix", args))
   }
 
   if (fill_ratio <= 1) {
@@ -109,8 +109,8 @@ matrix_format_d_o <- function(
     return(result_mat)
   }
 
-  stop("No result could be obtained." %p%
-       "Please check that our indexes are integer vectors!")
+  stop("No result could be obtained.
+       Please check that your indexes are integer vectors!")
 
 }
 
@@ -124,13 +124,13 @@ matrix_format_o_d <- function(
   num_orig = max(orig_index),
   assume_ordered = TRUE) {
 
-  matrix_format_d_o(
+  t(matrix_format_d_o(
     values = values,
-    dest_index = orig_index,
-    orig_index = dest_index,
+    dest_index = dest_index,
+    orig_index = orig_index,
     num_dest = num_orig,
     num_orig = num_dest,
-    assume_ordered = assume_ordered)
+    assume_ordered = assume_ordered))
 
 }
 

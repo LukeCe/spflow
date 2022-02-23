@@ -2,7 +2,6 @@
 #' @title Additional infix operators for more concise code
 #' @keywords internal
 #' @rdname infix_operators
-#' @author Lukas Dargel
 '%p%' <- function(x, y) {
   paste0(x,y)
 }
@@ -127,4 +126,11 @@ sort_names <- function(x) {
 maybe <- function(expr){
   result <- try(expr,silent = TRUE)
   if (is(result,"try-error")) NULL else result
+}
+
+# ---- id_fun -----------------------------------------------------------------
+#' @keywords internal
+#' @author Lukas Dargel
+do_nothing <- function(x) {
+  x
 }

@@ -254,6 +254,8 @@ setValidity("sp_network_pair", function(object) { # ---- validity -------------
 #'   A character that serves as identifier for the origin network
 #' @param dest_net_id
 #'   A character that serves as identifier for the destination network
+#' @param network_pair_id
+#'   A character that as identifier for network_pair
 #' @param pair_data
 #'   A data.frame containing information on the origin-destination pairs
 #' @param orig_key_column
@@ -274,6 +276,7 @@ setValidity("sp_network_pair", function(object) { # ---- validity -------------
 sp_network_pair <- function(
   orig_net_id,
   dest_net_id,
+  network_pair_id = paste0(orig_net_id,"_",dest_net_id),
   pair_data = NULL,
   orig_key_column,
   dest_key_column
@@ -285,7 +288,7 @@ sp_network_pair <- function(
     orig_nnodes      = NULL,
     dest_net_id      = dest_net_id,
     dest_nnodes      = NULL,
-    network_pair_id  = orig_net_id %p% "_" %p% dest_net_id,
+    network_pair_id  = network_pair_id,
     pair_data        = NULL,
     npairs           = NULL)
 
@@ -302,14 +305,13 @@ sp_network_pair <- function(
 
   # convert to factor
   attr_key_od(pair_data) <- od_key_cols
-  pair_data[[od_key_cols[1]]] <- factor_in_order(pair_data[[od_key_cols[1]]])
-  pair_data[[od_key_cols[2]]] <- factor_in_order(pair_data[[od_key_cols[2]]])
-  pair_data <- pair_data[order(pair_data[[od_key_cols[1]]],
-                               pair_data[[od_key_cols[2]]]), ]
+  od_key_data <- lapply(pair_data[od_key_cols], "factor_in_order")
+  pair_data[od_key_cols] <- od_key_data
+  pair_data <- pair_data[order(od_key_data[[1]],od_key_data[[2]]),]
 
   network_pair@pair_data   <- pair_data
-  network_pair@orig_nnodes <- nlevels(pair_data[[od_key_cols[1]]])
-  network_pair@dest_nnodes <- nlevels(pair_data[[od_key_cols[2]]])
+  network_pair@orig_nnodes <- nlevels(od_key_data[[1]])
+  network_pair@dest_nnodes <- nlevels(od_key_data[[2]])
   network_pair@npairs      <- nrow(pair_data)
 
   validObject(network_pair)

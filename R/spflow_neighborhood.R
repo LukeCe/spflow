@@ -44,10 +44,13 @@ expand_flow_neighborhood <- function(
          check_args, "origin-to-destination", "OW and DW")
 
 
-  # when all elements in the flow indicator are 1 we can ignore it
+  ### Cartesian expansion
+  if (all(flow_indicator == 1))
+    flow_indicator <- NULL
   return_nbs <- c("Wd","Wo","Ww")[c(require_Wd,require_Wo,require_Ww)]
   return_nbs <- named_list(return_nbs)
-    if (is.null(flow_indicator) | !any(flow_indicator != 0)) {
+
+  if (is.null(flow_indicator)) {
 
       if (require_Wd) return_nbs$Wd <- Diagonal(n_o) %x% DW
       if (require_Wo) return_nbs$Wo <- OW %x% Diagonal(n_d)
@@ -183,6 +186,23 @@ drop_superfluent_nodes <- function(OW,DW,flow_indicator) {
 
 #' @keywords internal
 get_flow_indicator <- function(sp_net_pair) {
-  mfc <- matrix_form_control(sp_net_pair)
-  return(mfc$mat_format(1))
+
+  n_nodes <- nnodes(sp_net_pair)
+  complete <-  npairs(sp_net_pair) / prod(n_nodes)
+  od_indexes <- lapply(get_keys(sp_net_pair), "as.integer")
+
+  if (complete >= 1)
+    return(1)
+
+  if (complete >= .5) {
+    indicator_mat <- matrix(0L,nrow = n_nodes["dest"], ncol = n_nodes["orig"])
+    indicator_mat[cbind(od_indexes[[2]],od_indexes[[1]])] <- 1L
+  }
+
+  if (complete < .5) {
+    indicator_mat <- sparseMatrix(i = od_indexes[[2]],
+                                  j = od_indexes[[1]],
+                                  dims = nnodes(sp_net_pair)[2:1])
+  }
+  return(indicator_mat)
 }

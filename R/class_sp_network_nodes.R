@@ -86,6 +86,7 @@ setReplaceMethod(
 
 #' @rdname sp_network_nodes-class
 #' @export
+#' @examples
 #' ## access the column that identifies the nodes of the network
 #'
 #' net_ge <- pull_member(multi_net_usa_ge,"ge")

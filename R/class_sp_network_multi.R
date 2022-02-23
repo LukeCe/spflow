@@ -166,7 +166,7 @@ setMethod(
 
     od_ids <- id(object)[["network_pairs"]]
     assert(network_pair_id %in% od_ids,
-           "Network pair with id " %p% network_pair_id %p% " was not found!")
+           "Network pair with id %s was not found!", network_pair_id)
 
     pair_data <- dat(object, network_pair_id)
     orig_data <- dat(object, id_part(network_pair_id, "orig"))
@@ -316,9 +316,6 @@ sp_multi_network <- function(...) {
   error_template <- "
   Some of the %ss in the network pair object are not identifyed
   with the nodes in the %s network."
-  warn_template <- "
-  The od-pairs in the network pair object [%s] were reordered to match the
-  order of the nodes in the networks."
 
   pair_ids <- lapply(sp_network_pairs, "id")
 
@@ -349,14 +346,19 @@ sp_multi_network <- function(...) {
       }
 
     if (wrong_od_order) {
-      warning(sprintf(warn_template, net_pair))
+      warn_template <- "
+      The od-pairs in the network pair object [%s] were reordered to match the
+      order of the nodes in the networks."
+      assert(TRUE, warn_template, net_pair, warn = TRUE)
       pair_keys[[1]] <- factor(pair_keys[[1]], levels(orig_keys))
       pair_keys[[2]] <- factor(pair_keys[[2]], levels(dest_keys))
-      od_key_cols <- names(pair_keys)
       od_order <- order(pair_keys[[1]], pair_keys[[2]])
-      sp_network_pairs[[net_pair]]@pair_data[od_key_cols] <- pair_keys
-      sp_network_pairs[[net_pair]]@pair_data[od_key_cols] <-
-        sp_network_pairs[[net_pair]]@pair_data[od_order,]
+      od_key_cols <- names(pair_keys)
+
+      new_key_data <- dat(sp_network_pairs[[net_pair]])
+      new_key_data[od_key_cols[1]] <- pair_keys[[1]]
+      new_key_data[od_key_cols[2]] <- pair_keys[[2]]
+      dat(sp_network_pairs[[net_pair]]) <- new_key_data[od_order,]
     }
   }
 
