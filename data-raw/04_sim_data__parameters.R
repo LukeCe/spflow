@@ -19,7 +19,6 @@ delta <- c(
   "ORIG_X"       =  -0.8,
   "ORIG_X.lag1"  =  -0.4,
   "INTRA_X"      =  2,
-  "INTRA_X.lag1" =  -0.3,
   "DISTANCE"     = -3
 )
 

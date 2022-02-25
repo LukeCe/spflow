@@ -44,7 +44,7 @@ dat(multi_net_usa_ge_copy@networks$ge) <- ge_data_with_lag
 dat(multi_net_usa_ge_copy@networks$usa) <- usa_data_with_lag
 
 # extract the exogenous variables and add intraregional ones
-pair_ids <- id(multi_net_usa_ge)[["network_pairs"]]
+pair_ids <- spflow:::lookup(id(multi_net_usa_ge)[["network_pairs"]])
 pair_variables <- lapply(pair_ids, function(.id) {
   .dat <- pair_merge(multi_net_usa_ge_copy,.id)
   .dat[["(Intercept)"]] <- 1
@@ -55,7 +55,6 @@ pair_variables <- lapply(pair_ids, function(.id) {
 pair_variables[1:2] <- lapply(pair_variables[1:2], function(.dat) {
   .dat[["(Intra)"]] <- as.integer(.dat[["ID_ORIG"]] == .dat[["ID_DEST"]])
   .dat[["INTRA_X"]] <- .dat[["(Intra)"]] * .dat[["ORIG_X"]]
-  .dat[["INTRA_X.lag1"]] <- .dat[["(Intra)"]] * .dat[["ORIG_X.lag1"]]
   .dat})
 
 model_vars <- names(delta)
@@ -65,11 +64,13 @@ pair_variables_mat <- lapply(pair_variables, function(.dat) {
 
 # compute spatial filter matrices for the simulations
 pair_neighborhoods <- lapply(spflow:::lookup(pair_ids), function(.id) {
-  od_ids <- spflow:::split_pair_id(.id)
+  net_pair <- pull_member(multi_net_usa_ge_copy, .id)
+  net_pair_ids <- id(net_pair)
+
   spflow:::expand_flow_neighborhood(
-    OW = neighborhood(multi_net_usa_ge_copy,od_ids[1]),
-    DW = neighborhood(multi_net_usa_ge_copy,od_ids[2]),
-    flow_indicator = spflow:::get_flow_indicator(pull_member(multi_net_usa_ge_copy, .id)))
+    OW = neighborhood(multi_net_usa_ge_copy, net_pair_ids["orig"]),
+    DW = neighborhood(multi_net_usa_ge_copy, net_pair_ids["dest"]),
+    flow_indicator = spflow:::get_flow_indicator(net_pair))
   })
 
 model_filters <- lapply(pair_neighborhoods, function(.nbs) {
@@ -86,24 +87,22 @@ flows <- mapply(function(filters,variables,ids) {
     model_coefficients = delta[colnames(variables)],
     filter_matrix = .filt,
     noise_sd = sd_error)}
-  cbind(data.frame(lapply(filters, "sim_one")),ids)
+  data.frame(lapply(filters, "sim_one"))
   },
   filters = model_filters,
   variables = pair_variables_mat,
-  ids = pair_variables,
   SIMPLIFY = FALSE)
 
 # add the simulated flows to the initial data
+y_cols <- c("y9","y2","y1")
 for (i in seq_along(multi_net_usa_ge@network_pairs)) {
-
-  flows_i <- merge()
-  multi_net_usa_ge@network_pairs[[i]]@pair_data[c("y9","y2","y1")] <-
-    flows[[i]]
+  multi_net_usa_ge@network_pairs[[i]]@pair_data[y_cols] <- flows[[i]]
 }
 
 save(multi_net_usa_ge, file = "data/multi_net_usa_ge.rda")
 
 # keep the vectorized data for integration tests
-vec_data_usa_ge <- lapply(Map("cbind",flows,pair_variables_mat), "as.matrix")
+vec_data_usa_ge <- Map("cbind",flows,pair_variables_mat)
+vec_data_usa_ge <- lapply(vec_data_usa_ge, "as.matrix")
 saveRDS(vec_data_usa_ge, "tests/integration/vec_data_usa_ge.Rds")
 saveRDS(pair_neighborhoods, "tests/integration/pair_neighborhoods_usa_ge.Rds")

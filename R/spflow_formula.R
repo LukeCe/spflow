@@ -16,6 +16,7 @@ interpret_flow_formula <- function(
   # define the parts of the formula that are relevant for each case
   has_sdm <- flow_control[["sdm_variables"]] != "none"
   has_inst <- flow_control[["estimation_method"]] == "s2sls"
+  usa_sdm_shortcut <- !is.character(flow_control[["sdm_variables"]])
 
   I_ <- "I_" %T% flow_control$use_intra
   norm_f <- c("D_", "O_", I_, "G_")
@@ -28,9 +29,16 @@ interpret_flow_formula <- function(
   sdm_rhs_split  <- sdm_f %|!|%
     split_with_shortcut(flow_control[["sdm_variables"]],
                         sdm_f,norm_rhs_split)
+
+  # sdm shortcuts don not apply to intra
+  sdm_rhs_split$I_ <- sdm_rhs_split$I_ %T% usa_sdm_shortcut
+
+
   inst_rhs_split <- inst_f %|!|%
     split_with_shortcut(flow_control[["twosls_instrumental_variables"]],
                         inst_f, norm_rhs_split)
+
+  specific_intra_sdm <-
 
   ### ---- assemble all formulas with constants set apart
   strip_consts <- function(.ll) lapply(compact(.ll),"remove_constant")

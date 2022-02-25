@@ -42,7 +42,7 @@ spflow_model_matrix <- function(
   od_neighborhoods <- pull_neighborhood_data(sp_multi_network, network_pair_id)
   constants <- derive_flow_constants(
     use_global_const = formula_parts[["constants"]][["global"]],
-    use_intra_const = formula_parts[["constants"]][["intra"]],
+    use_intra_const = isTRUE(formula_parts[["constants"]][["intra"]]),
     use_instruments = flow_control[["estimation_method"]] == "s2sls",
     flow_indicator = flow_indicator,
     OW = od_neighborhoods[["OW"]],
@@ -172,7 +172,7 @@ derive_flow_constants <- function(
   if (!use_intra_const)
     return(c_terms["const"])
 
-  In <- Diagonal(nrow(W), diag(flow_indicator) %||% 1)
+  In <- Diagonal(nrow(OW), diag(flow_indicator) %||% 1)
   attr_inst_status(In) <- FALSE
   c_terms[["const_intra"]] <- list("(Intra)" = In)
 

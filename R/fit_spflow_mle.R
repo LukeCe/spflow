@@ -82,9 +82,9 @@ spflow_mle <- function(
   loglik_value <- ll_partial + ll_const_part
 
   drop_sigma <- length(sd_mu)
-  results_df <- data.frame(
-    "est" = mu,
-    "sd" = sd_mu[-drop_sigma])
+  results_df <- create_results(
+    est = mu,
+    sd = sd_mu[-drop_sigma])
 
   estimation_results <- spflow_model(
     varcov = varcov,

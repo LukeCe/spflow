@@ -13,7 +13,7 @@
 # - estimators: "ols" and "twosls" (exact tests)
 # - estimators: "mle" and "mcmc"   (approximate tests)
 # = = = = = = = = = = = = = = = = = = =
-# Date: Jan 2022
+# Date: Feb 2022
 
 # cran packages
 library("spflow")
@@ -24,7 +24,7 @@ data("multi_net_usa_ge")
 data("simulation_params")
 
 test_dir <- ""
-test_dir <- "tests/integration/" # uncomment for interactive check
+# test_dir <- "tests/integration/" # uncomment for interactive check
 ge_ge_vec_data <-
   readRDS(paste0(test_dir,"vec_data_usa_ge.Rds"))[["ge_ge"]]
 ge_ge_pairnb <-
@@ -41,7 +41,7 @@ n <- 16
 target_matrices <- list(
   "D_" = as.matrix(OX),
   "O_" = as.matrix(OX),
-  "I_" = as.matrix(OX),
+  "I_" = as.matrix(OX[,1]),
   "OW" = W,
   "G_"  = list("DISTANCE" = matrix(ge_ge_vec_data[,"DISTANCE"],n,n)),
   "Y1_" = list("y1" = matrix(ge_ge_vec_data[,"y1"],n,n)),
@@ -98,7 +98,9 @@ colnames(U_beta_d) <- paste0("DEST_X", lag_names)
 U_beta_o <- ge_ge_vec_data[,c("ORIG_X","ORIG_X.lag1")]
 U_beta_o <- cbind(U_beta_o,W_o %*% W_o %*% U_beta_o)
 colnames(U_beta_o) <- paste0("ORIG_X", lag_names)
-U_beta_I <- U_beta_o * iota_I
+
+lag_names <- c("", paste0(".lag",1:2))
+U_beta_I <- U_beta_o[,1:3] * iota_I
 colnames(U_beta_I) <- paste0("INTRA_X", lag_names)
 
 U_gamma <- ge_ge_vec_data[,"DISTANCE"]
@@ -278,9 +280,9 @@ expect_inherits(res_model_2_mle, "spflow_model_mle")
 expect_equal(names(target_results$mu2_input),
              names(coef(res_model_2_mle)))
 expect_equal(target_results$mu2_input / coef(res_model_2_mle),
-             rep(1,10), tolerance = 0.5, check.names = FALSE)
+             rep(1,9), tolerance = 0.5, check.names = FALSE)
 expect_equal(target_results$sigma_input / sd_error(res_model_2_mle),
-             rep(1,1), tolerance = 0.1, check.names = FALSE)
+             1, tolerance = 0.1, check.names = FALSE)
 
 # test moments
 actual_moments <- res_model_2_mle@model_moments
@@ -308,9 +310,9 @@ res_model_9_mle <- spflow(
 expect_inherits(res_model_9_mle, "spflow_model_mle")
 expect_equal(names(target_results$mu9_input), names(coef(res_model_9_mle)))
 expect_equal(target_results$mu9_input / coef(res_model_9_mle),
-             rep(1,12), tolerance = 0.3, check.names = FALSE)
+             rep(1,11), tolerance = 0.3, check.names = FALSE)
 expect_equal(target_results$sigma_input / sd_error(res_model_9_mle),
-             rep(1,1), tolerance = 0.1, check.names = FALSE)
+             1, tolerance = 0.1, check.names = FALSE)
 
 # test moments
 actual_moments <- res_model_9_mle@model_moments
@@ -340,9 +342,9 @@ res_model_2_mcmc <- spflow(
 expect_inherits(res_model_2_mcmc, "spflow_model_mcmc")
 expect_equal(names(target_results$mu2_input), names(coef(res_model_2_mcmc)))
 expect_equal(target_results$mu2_input / coef(res_model_2_mcmc),
-             rep(1,10), tolerance = 0.5, check.names = FALSE)
+             rep(1,9), tolerance = 0.5, check.names = FALSE)
 expect_equal(target_results$sigma_input / sd_error(res_model_2_mcmc),
-             rep(1,1), tolerance = 0.1, check.names = FALSE)
+             1, tolerance = 0.1, check.names = FALSE)
 
 # test moments
 actual_moments <- res_model_2_mcmc@model_moments
@@ -370,9 +372,9 @@ res_model_9_mcmc <- spflow(
 expect_inherits(res_model_9_mcmc, "spflow_model_mcmc")
 expect_equal(names(target_results$mu9_input), names(coef(res_model_9_mcmc)))
 expect_equal(target_results$mu9_input / coef(res_model_9_mcmc),
-             rep(1,12), tolerance = 0.3, check.names = FALSE)
+             rep(1,11), tolerance = 0.3, check.names = FALSE)
 expect_equal(target_results$sigma_input / sd_error(res_model_9_mcmc),
-             rep(1,1), tolerance = 0.1, check.names = FALSE)
+             1, tolerance = 0.1, check.names = FALSE)
 
 # test moments
 actual_moments <- res_model_9_mcmc@model_moments

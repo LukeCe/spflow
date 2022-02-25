@@ -96,17 +96,16 @@ matrix_format_d_o <- function(
          The number of supplied values is to large
          for the dimension of the matrix representation!")
 
+  if (fill_ratio < .5) {
+    args <- compact(list(
+      i = dest_index, j = orig_index, x = values,
+      dims = c(num_dest, num_orig)))
+    return(do.call("sparseMatrix", args))
+  }
+
+  values <- values %||% 1L
   if (fill_ratio == 1 & assume_ordered)
     return(matrix(values,nrow = num_dest, ncol = num_orig))
-
-
-  if (fill_ratio < .5) {
-      args <- compact(list(
-        i = dest_index, j = orig_index, x = values,
-        dims = c(num_dest, num_orig)))
-
-      return(do.call("sparseMatrix", args))
-  }
 
   if (fill_ratio <= 1) {
     result_mat <- matrix(0, nrow = num_dest, ncol = num_orig)

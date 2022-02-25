@@ -1,5 +1,5 @@
 #' @include class_generics_and_maybes.R
-
+# ---- Class definition -------------------------------------------------------
 
 #' @title Class spflow_model
 #'
@@ -77,6 +77,7 @@ setClass("spflow_model",
            design_matrix = "maybe_list",
            model_moments = "maybe_list"))
 
+
 # ---- Methods ----------------------------------------------------------------
 
 #' @title Internal method to add details to a [spflow_model-class()]
@@ -104,13 +105,6 @@ setMethod(
 
     object@design_matrix <- drop_instruments(model_matrices)
     object@model_moments <- model_moments
-
-    # add significance tests
-    results_df <- results(object)
-    results_df$"t.stat" <- results_df$est / results_df$sd
-    results_df$"p.value" <- 1 - pt(q = abs(results_df$est / results_df$sd),
-                                   df =  1)
-    results(object) <- results_df
 
     # add fitted values , residuals, and goodness-of-fit
     nb_rho <- spatial_model_order(flow_control$model)
@@ -366,15 +360,15 @@ setMethod(
     cat(print_line(50))
     cat("\nSpatial interaction model estimated by:",
         toupper(cntrl$estimation_method) ,collapse = " ")
-    cat("\nAutocorrelation structure:",
-        cntrl$model, paste0("(",cntrl$model_type,")"),
-        collapse = " ")
+    cat(sprintf("\nSpatial correlation structure: %s (%s)",
+                cntrl$spatial_type,
+                cntrl$model))
     cat("\nObservations:", nobs(object), collapse = " ")
 
     cat("\n\n")
     cat(print_line(50))
     cat("\nCoefficients:\n")
-    print(round(results(object), digits = 2),
+    print(round(results(object)[,1:4], digits = 2),
           print.gap = 2L,
           quote = FALSE)
 
@@ -485,7 +479,31 @@ derive_param_space_validator <- function(
   return(validate_fun)
 }
 
+#' @keywords internal
+create_results <- function(...) {
 
+  r <- list(...)
+  if (is.null(r[["est"]]))
+    stop("Argument est for estimates is required!")
+
+  if (is.null(r[["sd"]]))
+    stop("Argument sd for standard deviation is required!")
+
+  if (is.null(r[["t.stat"]]))
+    r <- c(r, list("t.stat" = r[["est"]] / r[["sd"]]))
+
+  if (is.null(r[["p.val"]]))
+    r <- c(r, list("p.val" = pt(1 - abs(r[["t.stat"]]), 1)))
+
+  if (is.null(r[["quant_025"]]))
+    r <- c(r, list("quant_025" = qnorm(.025, r[["est"]], r[["sd"]])))
+
+  if (is.null(r[["quant_975"]]))
+    r <- c(r, list("quant_975" = qnorm(.975, r[["est"]], r[["sd"]])))
+
+  results <- data.frame(r)
+  return(results)
+}
 
 
 

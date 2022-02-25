@@ -46,7 +46,7 @@ spflow_s2sls <- function(UU,UY,ZZ,ZY,TSS,N,flow_control) {
   varcov <- sigma2 * solve(stage2_ZZ)
   sd_mu <- sqrt(diag(varcov))
 
-  results_df <- data.frame(
+  results_df <- create_results(
     "est" = mu,
     "sd" = sd_mu)
 

@@ -12,9 +12,9 @@ spflow_ols <- function(ZZ,ZY,TSS,N,flow_control) {
   varcov <- sigma2 * solve(ZZ)
   sd_delta <- sqrt(diag(varcov))
 
-  results_df <- data.frame(
-    "est" = as.vector(delta),
-    "sd" = sd_delta)
+  results_df <- create_results(
+    est = as.vector(delta),
+    sd = sd_delta)
 
   estimation_results <- spflow_model(
     varcov = varcov,
