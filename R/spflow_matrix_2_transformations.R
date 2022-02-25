@@ -12,7 +12,8 @@ by_source_model_matrix <- function(
   data_sources) {
 
   source_formulas <- lapply(formula_parts, function(.f) {
-    combine_formulas_by_source(.f,sources = names(data_sources))})
+    combine_formulas_by_source(sources = names(data_sources),
+                               formulas = .f)})
   source_formulas <- lapply(translist(source_formulas), "combine_rhs_formulas")
   source_formulas <- source_formulas[names(data_sources)]
 

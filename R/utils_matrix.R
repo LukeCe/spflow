@@ -77,19 +77,24 @@ matrix2binary <- function(mat) {
 #' @importFrom Matrix sparseMatrix
 #' @keywords internal
 matrix_format_d_o <- function(
-  values,
+  values = NULL,
   dest_index,
   orig_index,
   num_dest = max(dest_index),
   num_orig = max(orig_index),
   assume_ordered = TRUE) {
 
-  Ns <- length(values)
+  Ns <- length(dest_index)
   N <- num_dest * num_orig
-
   fill_ratio <- Ns/N
-  assert(fill_ratio <= 1,
-         "The number of supplied values is to large for the dimension of the matrix representation!")
+
+  assert(length(orig_index) == Ns,"
+         The length of the origin and destination index musst be identical!")
+  assert(any(length(values) == c(0,1,Ns)),"
+         The length of the values musst match those of the indexes!")
+  assert(fill_ratio <= 1, "
+         The number of supplied values is to large
+         for the dimension of the matrix representation!")
 
   if (fill_ratio == 1 & assume_ordered)
     return(matrix(values,nrow = num_dest, ncol = num_orig))

@@ -326,7 +326,7 @@ matrix_form_control <- function(sp_net_pair) {
 
   matrix_arguments <- list(
     "mat_complet" = npairs(sp_net_pair) / prod(nnodes(sp_net_pair)),
-    "mat_within" = id(sp_net_pair)["orig"] == id(sp_net_pair)["dest"],
+    "mat_within" = has_equal_elements(id(sp_net_pair)[c("orig","dest")]),
     "mat_npairs" = npairs(sp_net_pair),
     "mat_nrows" = nnodes(sp_net_pair)["dest"],
     "mat_ncols" = nnodes(sp_net_pair)["orig"],
@@ -347,7 +347,6 @@ matrix_form_control <- function(sp_net_pair) {
         assume_ordered = TRUE)
 
     })
-
   return(matrix_arguments)
 }
 

@@ -259,3 +259,4 @@ spflow_control <- function(
     return(c(general_control,mcmc_control))
   }
 }
+

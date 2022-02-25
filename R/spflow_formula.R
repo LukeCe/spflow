@@ -7,11 +7,10 @@ interpret_flow_formula <- function(
   ### ---- split according to specials and treat constants first
   all_specials <- c("D_","O_","I_","G_")
   split_specials <- split_forumla_specials(pull_rhs(flow_formula),all_specials)
-  constants <- list(
+  constants <- compact(list(
     "global" = flow_formula,
-    "intra" =  split_specials$I_ %||% flow_formula %T% flow_control$use_intra
-  )
-  constants <- lapply(compact(constants), "has_constant")
+    "intra" =  split_specials$I_ %||% flow_formula %T% flow_control$use_intra))
+  constants <- lapply(constants, "has_constant")
 
   ### ---- split the right hand side formulas for all three cases...
   # define the parts of the formula that are relevant for each case

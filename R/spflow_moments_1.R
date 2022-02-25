@@ -21,21 +21,22 @@ spflow_model_moments <- function(...) {
 #' @keywords internal
 compute_spflow_moments <- function(
   model_matrices,
-  estim_control
+  flow_control
 ) {
 
   ## ---- define dimensionality of the estimation
-  n_o <- estim_control[["mat_nrows"]]
-  n_d <- estim_control[["mat_ncols"]]
-  N <- estim_control[["mat_npairs"]]
+  n_o <- flow_control[["mat_nrows"]]
+  n_d <- flow_control[["mat_ncols"]]
+  N <- flow_control[["mat_npairs"]]
 
 
   ## ---- derive moments from the covariates (Z,H)
   UU <- moment_empirical_var(model_matrices,N,n_d,n_o)
 
   # subset ZZ
-  variable_order <- c("constants","D_","O_","I_","G_")
-  Z_index <- !rapply(model_matrices[variable_order],f = attr_inst_status)
+  variable_order <- c("const","const_intra","D_","O_","I_","G_")
+  is_instrument <- rapply(model_matrices[variable_order],f = attr_inst_status)
+  Z_index <- !as.logical(is_instrument)
   ZZ <- UU[Z_index, Z_index]
 
 
@@ -53,7 +54,7 @@ compute_spflow_moments <- function(
   TSS <- crossproduct_mat_list(model_matrices$Y_, Y_wt)
 
   ## ---- Range of the eigenvalues for neighborhood matrices
-  is_spatial <- estim_control[["estimation_method"]] != "ols"
+  is_spatial <- flow_control[["estimation_method"]] != "ols"
   OW_eigen_range <- DW_eigen_range <- NULL
 
   if (is_spatial) {
@@ -79,25 +80,25 @@ compute_spflow_moments <- function(
     OW_eigen_range <- DW_eigen_range <-
       real_eigen_range(model_matrices[["OW"]])
 
-    if (!estim_control[["mat_within"]])
+    if (!flow_control[["mat_within"]])
       DW_eigen_range <- real_eigen_range(model_matrices[["DW"]])
 
     }
 
   ## ---- Likelihood moments (trace sequence of the weight matrix)
   OW_traces <- DW_traces <- NULL
-  uses_loglik <- estim_control[["estimation_method"]] %in% c("mle", "mcmc")
+  uses_loglik <- flow_control[["estimation_method"]] %in% c("mle", "mcmc")
 
   if (uses_loglik) {
-    approx_order <- estim_control[["log_det_approx_order"]]
+    approx_order <- flow_control[["log_det_approx_order"]]
     OW_traces <- DW_traces <-
       trace_sequence(model_matrices[["OW"]], approx_order)
 
-    if (!estim_control[["mat_within"]])
+    if (!flow_control[["mat_within"]])
       DW_traces <- trace_sequence(model_matrices[["DW"]],approx_order)
   }
 
-  is_2sls <- estim_control[["estimation_method"]] == "s2sls"
+  is_2sls <- flow_control[["estimation_method"]] == "s2sls"
   model_moments <- compact(list(
     "n_d"       = n_d,
     "n_o"       = n_o,

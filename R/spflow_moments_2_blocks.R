@@ -17,13 +17,13 @@
 moment_empirical_var <- function(model_matrices,N,n_d,n_o) {
 
   ## ---- prepare weighting of the model matrices
-  wt <- model_matrices$wt
+  wt <- model_matrices$weights
   if (is.null(wt))
     wt <- model_matrices$flow_indicator
 
   # prepare weighted neighborhood matrices
-  const_global <- model_matrices$constants$global
-  const_intra <- model_matrices$constants$intra
+  const_global <- model_matrices[["const"]]
+  const_intra <- model_matrices[["const_intra"]]
   const_intra_wt <- wt %|!|% lapply(const_intra, "*", wt)
 
   # prepare the moment weighting for the site attributes (D,O,I)
@@ -200,8 +200,8 @@ moment_empirical_covar <- function(Y, model_matrices) {
     Y <- Y * model_matrices$weights
 
   result <- Reduce("c", c(
-    cov_moment_alpha(Y) %T% (1 == model_matrices$constants$global),
-    cov_moment_alpha_I(Y, model_matrices$constants$intra),
+    cov_moment_alpha(Y) %T% (1 == model_matrices[["const"]]),
+    cov_moment_alpha_I(Y, model_matrices[["const_intra"]]),
     cov_moment_beta(Y, X),
     cov_moment_gamma(Y, model_matrices$G)
   ))

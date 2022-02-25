@@ -171,37 +171,30 @@ spflow <- function(
          'The the network pair id "%s" is not available!',
          network_pair_id)
 
-  ## validate (by calling again) then enrich control parameters
-  flow_control <- do.call("spflow_control", flow_control)
-  estim_control <- c(
-    flow_control,
-    list("model_type" = sp_model_type(flow_control)),
-    matrix_form_control(pull_member(sp_multi_network, network_pair_id)))
+  # validate (by calling again) and enrich flow control
+  flow_control <- c(
+    do.call("spflow_control", flow_control),
+    matrix_form_control(pull_member(sp_multi_network, network_pair_id)),
+    list("spatial_type" = sp_model_type(flow_control)))
 
-  # below cases should become available in future versions of the package
-  assert(is.null(estim_control$weight_variable), warn = TRUE,
-         "Weighting of observations is not yet possible and will be ignored.")
-  assert(estim_control$mat_within,
-         "Estimation of flows between two diffrent networks are " %p%
-         "not yet available!")
+  flow_control$use_intra <- all(
+    flow_control$use_intra,
+    flow_control$mat_nrows == flow_control$mat_ncols)
 
-  formula_parts <- interpret_flow_formula(
-    flow_formula,
-    flow_control)
 
   model_matrices <- spflow_model_matrix(
     sp_multi_network,
     network_pair_id,
-    formula_parts,
-    estim_control)
+    flow_formula,
+    flow_control)
 
   model_moments <- spflow_model_moments(
     model_matrices = model_matrices,
-    estim_control = estim_control)
+    flow_control = flow_control)
 
   estimation_results <- spflow_model_estimation(
     model_moments,
-    estim_control)
+    flow_control)
 
   estimation_results <- add_details(
     estimation_results,
@@ -239,31 +232,34 @@ parameter_names <- function(
 #' @keywords internal
 drop_instruments <- function(model_matrices) {
 
-  # ... from constants
-  filter_inst <- function(x) Filter(function(x) !attr_inst_status(x), x)
-  constants <- list(
-    "global" = model_matrices$constants$global,
-    "intra" = filter_inst(model_matrices$constants$intra))
+  filter_inst_single <-
+    function(x) { if (isFALSE(attr_inst_status(x))) x }
+  mm <- "const"
+  model_matrices[[mm]] <- filter_inst_single(model_matrices[[mm]])
 
-  # ... from site attributes
-  filter_inst_col <- function(mat) mat[,!attr_inst_status(mat), drop = FALSE]
-  vector_treatment <- c("D","O","I") %p% "_"
-  matrices_X <- lapply(compact(model_matrices[vector_treatment]),
-                       "filter_inst_col")
+  filter_inst_list <-
+    function(l) { Filter(Negate(attr_inst_status), model_matrices[[mm]]) }
+  mm <- "const_intra"
+  model_matrices[[mm]] <- filter_inst_list(model_matrices[[mm]])
+  mm <- "G_"
+  model_matrices[[mm]] <- filter_inst_list(model_matrices[[mm]])
 
-  # ... from pair attributes
-  matrices_G <- lapply(model_matrices["G_"], "filter_inst")
+  filter_inst_mat <-
+    function(mat) {
+    if (is.null(mat))
+      return(NULL)
+    is_inst <- attr_inst_status(mat)
+    attr_inst_status(mat) <- is_inst[!is_inst]
+    mat[,!is_inst, drop = FALSE]
+  }
+  mm <- "D_"
+  model_matrices[[mm]] <- filter_inst_mat(model_matrices[[mm]])
+  mm <- "O_"
+  model_matrices[[mm]] <- filter_inst_mat(model_matrices[[mm]])
+  mm <- "I_"
+  model_matrices[[mm]] <- filter_inst_mat(model_matrices[[mm]])
 
-  # ... combine cleaned versions
-  matrices_and_spatial_weights <- c(
-    model_matrices["Y_"],
-    list("constants" = constants),
-    matrices_X,
-    matrices_G,
-    compact(model_matrices[c("DW","OW")])
-  )
-
-  return(matrices_and_spatial_weights)
+  return(model_matrices)
 }
 
 #' @keywords internal

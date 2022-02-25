@@ -21,7 +21,14 @@
 #' @keywords internal
 #' @rdname infix_operators
 "%|!|%" <- function(x, y) {
-  if (length(x) != 0) y else NULL
+
+  if (length(x) == 0)
+    return(NULL)
+
+  if (is.function(y))
+    return(y(x))
+
+  return(y)
 }
 
 # ---- list operations --------------------------------------------------------
@@ -133,4 +140,10 @@ maybe <- function(expr){
 #' @author Lukas Dargel
 do_nothing <- function(x) {
   x
+}
+
+#' @keywords internal
+#' @author Lukas Dargel
+curry <- function(x,y) {
+  function(a) x(y(a))
 }

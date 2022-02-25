@@ -187,22 +187,14 @@ drop_superfluent_nodes <- function(OW,DW,flow_indicator) {
 #' @keywords internal
 get_flow_indicator <- function(sp_net_pair) {
 
-  n_nodes <- nnodes(sp_net_pair)
-  complete <-  npairs(sp_net_pair) / prod(n_nodes)
   od_indexes <- lapply(get_keys(sp_net_pair), "as.integer")
-
-  if (complete >= 1)
-    return(1)
-
-  if (complete >= .5) {
-    indicator_mat <- matrix(0L,nrow = n_nodes["dest"], ncol = n_nodes["orig"])
-    indicator_mat[cbind(od_indexes[[2]],od_indexes[[1]])] <- 1L
-  }
-
-  if (complete < .5) {
-    indicator_mat <- sparseMatrix(i = od_indexes[[2]],
-                                  j = od_indexes[[1]],
-                                  dims = nnodes(sp_net_pair)[2:1])
-  }
+  n_nodes <- nnodes(sp_net_pair)
+  indicator_mat <- matrix_format_d_o(
+    values = NULL,
+    dest_index = od_indexes[[2]],
+    orig_index = od_indexes[[1]],
+    num_dest = n_nodes["dest"],
+    num_orig = n_nodes["orig"],
+    assume_ordered = TRUE)
   return(indicator_mat)
 }

@@ -2,11 +2,16 @@
 by_role_spatial_lags <- function(
   model_matrices,
   variable_roles,
-  neighborhoods,
-  estim_control,
-  flow_indicator){
+  flow_control,
+  flow_indicator,
+  neighborhoods){
 
-  ### 0) Define requirements
+  # 1. define required lags by data source
+  sources <- c("pair", "orig", "dest")
+  sources <- intersect(sources, names(model_matrices))
+  sources <- lookup(sources)
+  role_lookup <- sources_to_roles(!"dest" %in% sources)
+
   instrument_statu_by_role <-
     lapply(variable_roles, "predict_lags_and_inst_satus")
   lag_requirements_by_role <-
@@ -18,16 +23,15 @@ by_role_spatial_lags <- function(
     result <- lapply(translist(lag_requirements_by_role[role_key]), "unlist")
     lapply(result, "unique")
   }
-  sources <- intersect(c("pair", "orig", "dest"), names(model_matrices))
-  sources <- lookup(sources)
-  role_lookup <- sources_to_roles(!"dest" %in% sources)
   lag_requirements_by_source <- lapply(sources, "summarize_lags_by_source")
 
-  ### 1) Lag data for nodes
-  node_sources <- intersect(c("orig","dest"), names(model_matrices))
+  # 2. compute lags for node data
+  node_sources <- c("orig","dest")
+  node_sources <- intersect(node_sources, names(model_matrices))
+  role_prefixes <- list("D_" = "DEST_","O_" = "ORIG_","I_" = "INTRA_")
+
   lag_varnames_by_role <- lapply(lag_requirements_by_role, "suffix_sp_lags")
   lag_varnames_by_role <- lapply(lag_varnames_by_role, "unlist")
-  role_prefixes <- list("D_" = "DEST_","O_" = "ORIG_","I_" = "INTRA_")
 
   apply_lags_to_node_source <- function(source_key) {
 
@@ -61,62 +65,54 @@ by_role_spatial_lags <- function(
     }
   node_lags <- flatlist(lapply(node_sources, "apply_lags_to_node_source"))
 
-  if (isTRUE(estim_control[["twosls_decorrelate_instruments"]]))
+  if (isTRUE(flow_control[["twosls_decorrelate_instruments"]]))
     node_lags <- lapply(node_lags, "orthoginolize_instruments")
 
-  ### 2) Lag data for pairs
-  # ... Y_ lags
-  response_variables <-
-    unlist(lag_requirements_by_role[["Y_"]], use.names = FALSE)
-  flow_matrices <- lapply(
-    lookup(response_variables),
-    function(.col) estim_control$mat_format(model_matrices[["pair"]][,.col]))
+  # 3.) compute lags for pair data
+  mformat <- function(.v) flow_control$mat_format(model_matrices$pair[,.v])
 
-  flow_matrices <- Map(
-    "lag_flow_matrix",
+  # ... Y_ (dependent variables)
+  response_variables <- as.character(lag_requirements_by_role[["Y_"]])
+  response_variables <- lookup(response_variables)
+
+  flow_matrices <- lapply(response_variables, "mformat")
+  flow_matrices <- Reduce("c", Map(
+    f = "lag_flow_matrix",
     Y = flow_matrices,
     name = response_variables,
     MoreArgs = c(
-      estim_control["model"],
+      flow_control["model"],
       neighborhoods, # OW and DW
-      list("flow_indicator" = flow_indicator)))
+      list("flow_indicator" = flow_indicator))))
 
-  # ... G_ lags
-  pair_covariates <-
-    unique(unlist(lag_requirements_by_role[["G_"]], use.names = FALSE))
-  covariate_matrices <- lapply(
-    lookup(pair_covariates),
-    function(.col) estim_control$mat_format(model_matrices[["pair"]][,.col]))
+  # ... G_ (explanatory variables)
+  pair_covariates <- as.character(lag_requirements_by_role[["G_"]])
+  pair_covariates <- lookup(unique(pair_covariates))
+  G_lag_num <- translist(lag_requirements_by_role[["G_"]])
+  G_lag_num <- lapply(G_lag_num, function(x) length(x) - 1)
+  keep_all_lags <- !isTRUE(flow_control[["twosls_reduce_pair_instruments"]])
 
-  lag_pair_covariate <- function(var){
-    var_lags <-
-      length(Filter(function(x) x == var, lag_requirements_by_role[["G_"]]))
-    G_lags <- derive_pair_instruments(
-      G = covariate_matrices[[var]],
-      OW = neighborhoods[["OW"]],
+  G_matrices <- lapply(pair_covariates, "mformat")
+  G_matrices <- Reduce("c", lapply(pair_covariates,  function(.var) {
+    double_lag_matrix(
+      M = G_matrices[[.var]],
       DW = neighborhoods[["DW"]],
-      name = var,
-      full_inst = !isTRUE(estim_control[["twosls_reduce_pair_instruments"]])
-    ) %T% (var_lags > 1) %||% covariate_matrices[var]
+      OW = neighborhoods[["OW"]],
+      name = .var,
+      key = "G",
+      flow_indicator = flow_indicator,
+      lag_order = G_lag_num[[.var]],
+      return_all_lags = keep_all_lags,
+      lags_are_instruments = TRUE
+    )}))
 
-    inst_a <- unlist(lapply(instrument_statu_by_role[["G_"]], "[", var))
-    inst <- !logical(length(G_lags))
-    inst[seq_along(inst_a)] <- inst_a
-    Map("attr_inst_status<-", x = G_lags,value = inst)
-  }
-  lagged_covariate_matrices <- lapply(pair_covariates, "lag_pair_covariate")
+  return(c(list("Y_" = flow_matrices,
+                "G_" = G_matrices),
+           node_lags))
 
-  ### 3) Combine
-  names(flow_matrices) <- NULL
-  all_model_matrices <- c(
-    list("Y_" = flatlist(flow_matrices),
-         "G_" = flatlist(lagged_covariate_matrices)),
-    flatlist(node_lags))
-
-  return(all_model_matrices)
 }
 
-# ---- Helpers 1: defining requirements ---------------------------------------
+# ---- lag requirements -------------------------------------------------------
 
 #' @keywords internal
 predict_lags_and_inst_satus <- function(.vars) {
@@ -161,48 +157,17 @@ suffix_sp_lags <- function(lag_req) {
   Map("paste0",lag_req, suffix[names(lag_req)])
 }
 
-#' @keywords internal
-`attr_inst_status<-` <- function(x, value) {
-  attr(x, "is_instrument_var") <- value
-  x
-}
 
-#' @keywords internal
-attr_inst_status <- function(x) {
-  attr(x, "is_instrument_var")
-}
+# ---- lag computations -------------------------------------------------------
 
-# ---- Helpers 2: lagging node data -------------------------------------------
-
-#' @keywords internal
-orthoginolize_instruments <- function(mat) {
-
-  inst_index <- attr_inst_status(mat)
-  no_instruments <- none(inst_index)
-  if (no_instruments)
-    return(mat)
-
-  vars <- mat[,!inst_index, drop = FALSE]
-  inst_orth <- decorellate_matrix(mat[,inst_index, drop = FALSE],
-                                  cbind(1,vars))
-  inst_orth <- linear_dim_reduction(inst_orth, var_threshold = 1e-4)
-
-  new_matr <- cbind(vars,inst_orth)
-  new_inst_order <- Map("rep", c(FALSE,TRUE), c(ncol(vars),ncol(inst_orth)))
-  attr_inst_status(new_matr) <- unlist(new_inst_order)
-  return(new_matr)
-}
-
-
-# ---- Helpers 3: lagging pair data -------------------------------------------
 #' @keywords internal
 lag_flow_matrix <- function(
-  Y,
-  model,
-  OW,
-  DW,
-  name = "Y",
-  flow_indicator = NULL) {
+    Y,
+    model,
+    OW,
+    DW,
+    name = "Y",
+    flow_indicator = NULL) {
 
 
   if (model == "model_1")
@@ -261,56 +226,126 @@ define_spatial_lag_params <- function(model) {
   return(names_rho)
 }
 
-#' @keywords internal
-derive_pair_instruments <- function(
-  G,
-  OW,
-  DW,
-  name = "G",
-  full_inst = FALSE,
-  flow_indicator = NULL) {
 
-  if (is.null(G))
+#' @importFrom Matrix tcrossprod t
+#' @keywords internal
+double_lag_matrix <- function(
+    M,
+    DW,
+    OW,
+    name = "G",
+    key = "G",
+    flow_indicator = NULL,
+    symmetric_lags = FALSE,
+    lag_order = 2,
+    return_all_lags = FALSE,
+    lags_are_instruments = TRUE) {
+
+  if (is.null(M))
     return(NULL)
 
-  if (is.null(OW) & is.null(DW))
-    return(named_list(name,G))
+  ### order 1 lag ###
+  lags_0 <- named_list(name, M)
+  if (lags_are_instruments)
+    attr_inst_status(lags_0[[1]]) <- FALSE
 
-  if (is.null(OW) | is.null(DW))
-    full_inst <- TRUE
+  if ((is.null(OW) & is.null(DW)) | lag_order == 0)
+    return(lags_0)
 
-  include_index <-
-    if (!is.null(flow_indicator)) do_nothing else function(x) x * flow_indicator
+  ### lags of order 1 ###
+  lags_1 <- named_list(c("w%s", "%sw", "w%sw"))
 
+  # define controls
+  left_lag <- !is.null(DW)
+  right_lag <- !is.null(OW)
+  double_lag <- left_lag & right_lag
+  symmetric_lags <- symmetric_lags & double_lag
 
-  lag_left <- lag_right <- lag_double <- !is.null(OW) & !is.null(DW)
-  lag_left <- !is.null(DW) & full_inst
-  lag_right <- !is.null(OW) & full_inst
+  wM <- (DW %*% M) %T% left_lag
+  wMw <- tcrossprod(wM, OW) %T% double_lag
+  # skip right lags if not needed
+  Mw <- t(wM) %T% (symmetric_lags & right_lag & return_all_lags)
+  Mw <- Mw %||% tcrossprod(M, OW) %T% (right_lag & return_all_lags)
 
-  lags_o1 <- named_list(c("wG", "Gw", "wGw"))
-  lags_o1[["wG"]]  <- (DW %*% G) %T% lag_left
-  lags_o1[["Gw"]]  <- tcrossprod(G, OW) %T% lag_right
-  lags_o1[["wGw"]] <- tcrossprod((DW %*% G), OW) %T% lag_double
-  lags_o1 <- compact(lags_o1)
+  if (!is.null(flow_indicator)) {
+    account_for_sparsity <- function(x) x * flow_indicator
+    wMw <- wMw %|!|% account_for_sparsity
+    Mw <- Mw %|!|% account_for_sparsity
+
+    # skip sparsity if not returned
+    if (lag_order >= 1)
+      wM <- wM %|!|% account_for_sparsity
+  }
+
+  lags_1[["w%s"]]  <- wM %T% return_all_lags
+  lags_1[["%sw"]]  <- Mw
+  lags_1[["w%sw"]]  <- wMw
+  names(lags_1) <- paste0(name, ".", sprintf(names(lags_1), key))
+
+  if (lags_are_instruments)
+    lags_1 <- lapply(lags_1, "attr_inst_status<-", TRUE)
+
+  if (lag_order == 1)
+    return(c(lags_0,lags_1))
+
+  ### lags of order 2 ###
+  lags_2 <- c("ww%s", "%sww", "ww%sw", "w%sww", "ww%sww")
+  lags_2 <- named_list(lags_2)
+
+  wwMw <- (DW %*% wMw) %T% double_lag
+  wwMww <- tcrossprod(wwMw, OW) %T% double_lag
+  # skip double left lag and all right lags if not needed
+  wwM <- (DW %*% wM) %T% (left_lag & return_all_lags)
+  Mww <- t(wwM) %T% (symmetric_lags & right_lag & return_all_lags)
+  Mww <- Mww %||% tcrossprod(Mw, OW) %T% (right_lag & return_all_lags)
+  wMww <- t(wwMw) %T% (symmetric_lags & double_lag  & return_all_lags)
+  wMww <- wMww %||% (DW %*% Mww) %T% (double_lag  & return_all_lags)
+
+  lags_2[["ww%s"]] <- wwM
+  lags_2[["%sww"]] <- Mww
+  lags_2[["ww%sw"]] <- wwMw %T% return_all_lags
+  lags_2[["w%sww"]] <- wMww
+  lags_2[["ww%sww"]] <- wwMww
+  names(lags_2) <- paste0(name, ".", sprintf(names(lags_2), key))
+
   if (!is.null(flow_indicator))
-    lags_o1 <- lapply(lags_o1, "*", flow_indicator)
+    lags_2 <- lapply(lags_2, "account_for_sparsity")
 
-  lags_o2 <- named_list(c("wwG", "Gww", "wwGww", "wwGw", "wGww"))
-  lags_o2[["wwG"]]   <- (DW %*% lags_o1[["wG"]]) %T% lag_left
-  lags_o2[["Gww"]]   <- tcrossprod(lags_o1[["wG"]], OW) %T% lag_right
-  lags_o2[["wwGww"]] <- tcrossprod((DW %*% lags_o1[["wGw"]]), OW) %T% lag_double
-  lags_o2[["wwGw"]]  <- (DW %*% lags_o1[["wGw"]]) %T% lag_left
-  lags_o2[["wGww"]]  <- tcrossprod(lags_o1[["wGw"]], OW) %T% lag_right
-  if (!is.null(flow_indicator))
-    lags_o2 <- lapply(lags_o2, "*", flow_indicator)
+  if (lags_are_instruments)
+    lags_2 <- lapply(lags_2, "attr_inst_status<-", TRUE)
 
-
-  lag_suffixes <- c("", paste0(".", c(names(lags_o1),names(lags_o2))))
-  all_g <- c(named_list(name, G), lags_o1, lags_o2)
-  names(all_g) <- paste0(name, lag_suffixes)
-  return(all_g)
+  return(c(lags_0,lags_1,lags_2))
 }
 
 
+# ---- instruments ------------------------------------------------------------
+#' @keywords internal
+orthoginolize_instruments <- function(mat) {
 
+  inst_index <- attr_inst_status(mat)
+  no_instruments <- none(inst_index)
+  if (no_instruments)
+    return(mat)
+
+  vars <- mat[,!inst_index, drop = FALSE]
+  inst_orth <- decorellate_matrix(mat[,inst_index, drop = FALSE],
+                                  cbind(1,vars))
+  inst_orth <- linear_dim_reduction(inst_orth, var_threshold = 1e-4)
+
+  new_matr <- cbind(vars,inst_orth)
+  new_inst_order <- Map("rep", c(FALSE,TRUE), c(ncol(vars),ncol(inst_orth)))
+  attr_inst_status(new_matr) <- unlist(new_inst_order)
+  return(new_matr)
+}
+
+#' @keywords internal
+`attr_inst_status<-` <- function(x, value) {
+  attr(x, "is_instrument_var") <- value
+  x
+}
+
+#' @keywords internal
+attr_inst_status <- function(x) {
+  attr(x, "is_instrument_var")
+}
 

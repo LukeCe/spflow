@@ -14,51 +14,60 @@
 spflow_model_matrix <- function(
   sp_multi_network,
   network_pair_id,
-  formula_parts,
-  estim_control
-) {
+  flow_formula,
+  flow_control) {
 
-  # transform original variables according to formula
-  data_sources <- pull_flow_data(sp_multi_network, network_pair_id)
-  model_matrices <- by_source_model_matrix(formula_parts, data_sources)
+  formula_parts <- interpret_flow_formula(
+    flow_formula,
+    flow_control)
+
+  # 1. transform by sources = c("pair", "orig", "dest")
+  od_data_sources <- pull_relational_flow_data(
+    sp_multi_network,
+    network_pair_id)
+
+  od_model_matrices <- by_source_model_matrix(
+    formula_parts,
+    od_data_sources)
+
+  # 2. solve constant terms, weight and indicator
+  weights <- flow_control[["weight_var"]]
+  if (!is.null(flow_control[["weight_var"]]))
+    weights <- flow_control$mat_format(od_data_sources$pair[[weights]])
 
   flow_indicator <- NULL
-  if (estim_control[["mat_complet"]] < 1)
-    flow_indicator <- estim_control$mat_format(NULL)
+  if (flow_control[["mat_complet"]] < 1)
+    flow_indicator <- flow_control$mat_format(NULL)
 
-  # generate the required lags and split the variables according to their
-  # roles (O_ vs D_ vs I_ ...)
-  variable_roles <- define_variable_roles(formula_parts, data_sources)
-  neighborhoods <- pull_neighborhood_data(sp_multi_network, network_pair_id)
+  od_neighborhoods <- pull_neighborhood_data(sp_multi_network, network_pair_id)
+  constants <- derive_flow_constants(
+    use_global_const = formula_parts[["constants"]][["global"]],
+    use_intra_const = formula_parts[["constants"]][["intra"]],
+    use_instruments = flow_control[["estimation_method"]] == "s2sls",
+    flow_indicator = flow_indicator,
+    OW = od_neighborhoods[["OW"]],
+    DW = od_neighborhoods[["DW"]])
+
+  # 3. compute spatial lags and sort into roles = c("Y_", "D_", "O_", "I_", "G_")
+  variable_roles <- define_variable_roles(formula_parts, od_data_sources)
   model_matrices <- by_role_spatial_lags(
-    model_matrices = model_matrices,
+    model_matrices = od_model_matrices,
     variable_roles = variable_roles,
-    neighborhoods = neighborhoods,
-    estim_control = estim_control,
-    flow_indicator = flow_indicator)
-
-  # Extract weights and constants if they are defined
-  constants <- define_flow_constants(
-    const_formula = formula_parts[["constants"]],
-    use_instruments = estim_control[["estimation_method"]] == "s2sls",
-    OW = neighborhoods[["OW"]])
+    flow_control = flow_control,
+    flow_indicator = flow_indicator,
+    neighborhoods = od_neighborhoods)
 
 
-  # weights matter if they are specified or if the flows are not complete
-  weights <- estim_control[["weight_var"]]
-  if (!is.null(estim_control[["weight_var"]]))
-    weights <- estim_control$mat_format(data_sources$pair[[weights]])
-
-
-  return(c(model_matrices, neighborhoods,
-           list("constants" = constants,
-                "weights" = weights,
+  return(c(constants,
+           model_matrices,
+           od_neighborhoods,
+           list("weights" = weights,
                 "flow_indicator" = flow_indicator)))
 }
 
 
 #' @keywords internal
-pull_flow_data <- function(sp_multi_net, pair_id) {
+pull_relational_flow_data <- function(sp_multi_net, pair_id) {
 
   # identification of the data sources
   od_id <- split_pair_id(pair_id)
@@ -144,50 +153,45 @@ roles_to_sources <- function(is_within) {
     "I_" = "orig")
 }
 
+#' @importFrom Matrix Diagonal
 #' @keywords internal
-define_flow_constants <- function(const_formula, use_instruments, OW = NULL) {
+derive_flow_constants <- function(
+    use_global_const,
+    use_intra_const,
+    use_instruments,
+    flow_indicator = NULL,
+    OW = NULL,
+    DW = NULL) {
 
-  global_const <- `attr_inst_status<-`(1, FALSE) %T% const_formula[["global"]]
-  intra_const <- NULL
-  if (isTRUE(const_formula[["intra"]]))
-    intra_const <- intra_regional_constant(OW, use_instruments)
+  if (!use_global_const & !use_intra_const)
+    return(NULL)
 
-  return(list("global" = global_const, "intra" = intra_const))
-}
+  c_terms <- named_list("const","const_intra")
+  c_terms[["const"]] <- `attr_inst_status<-`(1, FALSE) %T% use_global_const
 
+  if (!use_intra_const)
+    return(c_terms["const"])
 
-#' @importFrom Matrix Diagonal tcrossprod t
-#' @keywords internal
-intra_regional_constant <- function(
-    W,
-    use_instruments = FALSE,
-    flow_indicator = NULL) {
-
-  In <- Diagonal(nrow(W))
-  if (!is.null(flow_indicator))
-    In <- In %*% flow_indicator
-
+  In <- Diagonal(nrow(W), diag(flow_indicator) %||% 1)
   attr_inst_status(In) <- FALSE
-  In <- list("(Intra)" = In)
+  c_terms[["const_intra"]] <- list("(Intra)" = In)
+
   if (!use_instruments)
-    return(In)
+    return(c_terms)
 
-  V <- tcrossprod(W) # def. V = WW'
-  WV <- W %*% V
-  WW <- W %*% W
-  w_int <- list(
-    "W"   = W,
-    "W'"  = t(W),
-    "WW"  = WW,
-    "WW'" = t(WW),
-    "V"   = V,
-    "VV"  = tcrossprod(WV, W),
-    "WV"  = WV,
-    "VW'" = t(WV)
+  c_terms[["const_intra"]] <- double_lag_matrix(
+    M = In,
+    OW = OW,
+    DW = DW,
+    name = "(Intra)",
+    key = "I",
+    flow_indicator = flow_indicator,
+    symmetric_lags = is.null(flow_indicator),
+    lag_order = 2,
+    return_all_lags = TRUE,
+    lags_are_instruments = TRUE
   )
-  if (!is.null(flow_indicator))
-    w_int <- lapply(w_int, "*", flow_indicator)
-  w_int <- lapply(w_int, "attr_inst_status<-",TRUE)
 
-  return(c(In,w_int))
+
+  return(c_terms)
 }

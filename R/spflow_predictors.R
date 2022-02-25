@@ -2,60 +2,50 @@
 #' @keywords internal
 compute_signal <- function(model_matrices, delta) {
 
-  # index the coefficient vectors according to the model segments
-  sub_index <- list(
-    "const" = model_matrices$constants$global %||% 0,
-    "const_intra" = 1 - is.null(model_matrices$constants$intra),
-    "D_" = seq_len(ncol(model_matrices$D_) %||% 0) %||% 0,
-    "O_" = seq_len(ncol(model_matrices$O_) %||% 0) %||% 0,
-    "I_" = seq_len(ncol(model_matrices$I_) %||% 0) %||% 0,
-    "G_" = seq_len(length(model_matrices$G)) %||% 0)
-  sub_index <- sequentialize_index(sub_index)
+  number_of_coefs <- compact(list(
+    "const" = model_matrices$const %|!|% length,
+    "const_intra" = model_matrices$const_intra %|!|% length,
+    "D_" = model_matrices$D_ %|!|% curry(seq, ncol),
+    "O_" = model_matrices$O_ %|!|% curry(seq, ncol),
+    "I_" = model_matrices$I_ %|!|% curry(seq, ncol),
+    "G_" = model_matrices$G_ %|!|% curry(seq, length)))
+  id_coefs <- sequentialize_index(number_of_coefs)
+  id_coefs <- lapply(id_coefs, function(x) as.numeric(delta[x]))
 
-  ## Calculate the components of the signal.
-  # Missing components are set to zero and do not affect the final sum.
-  # Number of destinations is required because of recycling.
-  vector_or_null <- function(part_id) {
-    .v <- model_matrices[[part_id]]
-    .v %|!|% as.vector(.v %*% delta[sub_index[[part_id]]])
-  }
+  # add the components of the signal
+  # the flow indicator (fi) accounts for sparsity
+  vmult <- function(.id) as.vector(model_matrices[[.id]] %*% id_coefs[[.id]])
   n_d <- nrow(model_matrices$Y_[[1]])
+  fi <- model_matrices$flow_indicator
+  sig <- 0
 
-  # constant
-  const <- delta[sub_index$const]
+  cf <- "const"
+  if (!is.null(id_coefs[[cf]]))
+    sig <- sig + id_coefs[[cf]] * (fi %||% 1)
 
-  # intra constant
-  const_intra <- model_matrices$constants$intra %|!|%
-    Diagonal(delta[sub_index$const_intra], n = n_d)
-  const_intra <- const_intra %||% 0
+  cf <- "const_intra"
+  if (!is.null(id_coefs[[cf]]))
+    sig <- sig + model_matrices[[cf]][[1]] * id_coefs[[cf]]
 
-  # destination part - (vector is recycled)
-  dest <- vector_or_null("D_")
-  dest <- dest %||% 0
+  cf <- "D_"
+  if (!is.null(id_coefs[[cf]]))
+    sig <- sig + vmult(cf) * (fi %||% 1)
 
-  # origin part - vector is not recycled correctly ...
-  orig <- vector_or_null("O_")
-  orig <- orig %|!|% matrix(rep(orig,n_d),nrow = n_d,byrow = TRUE)
-  orig <- orig %||% 0
+  cf <- "O_"
+  if (!is.null(id_coefs[[cf]]) & is.null(fi))
+    sig <- sig + matrix(rep(vmult(cf),n_d),nrow = n_d,byrow = TRUE)
+  if (!is.null(id_coefs[[cf]]) & !is.null(fi))
+    sig <- sig + t(vmult(cf) * t(fi))
 
-  # intra part - only for diagonal elements
-  intra <- vector_or_null("I_")
-  intra <- intra %|!|% Diagonal(intra,n = length(intra))
-  intra <- intra %||% 0
+  cf <- "I_"
+  if (!is.null(id_coefs[[cf]]))
+    sig <- sig + Diagonal(n_d, vmult(cf) * (diag(fi) %||% 1))
 
-  # G part - (origin-destination pair attributes)
-  g_term <- 0
-  if (length(model_matrices$G_) != 0 ) {
-    g_term <- Map("*", model_matrices$G_, delta[sub_index$G_])
-    g_term <- as.matrix(Reduce("+", g_term))
-  }
+  cf <- "G_"
+  if (!is.null(id_coefs[[cf]]))
+    sig <- sig + Reduce("+", Map("*", model_matrices[[cf]], id_coefs[[cf]]))
 
-  signal <- const + const_intra + dest + orig + intra + g_term
-  if (!is.null(model_matrices$flow_indicator)) {
-    signal <- signal * model_matrices$flow_indicator
-  }
-
-  return(signal)
+  return(sig)
 }
 
 
@@ -66,7 +56,7 @@ compute_expectation <- function(
   OW,
   rho,
   model,
-  Y_indicator = NULL,
+  flow_indicator = NULL,
   approximate = TRUE,
   max_it = 10) {
 
@@ -78,7 +68,7 @@ compute_expectation <- function(
 
       decomposed_signal <- lag_flow_matrix(
         Y = signal_matrix,
-        Y_indicator = Y_indicator,
+        flow_indicator = flow_indicator,
         model = model,
         OW = OW,
         DW = DW,
@@ -102,7 +92,7 @@ compute_expectation <- function(
 
 
   # exact expectation
-  assert(is.null(Y_indicator),
+  assert(is.null(flow_indicator),
          "The exact expectation is not yet implemented for non-cartesian flows.")
   WF_parts <- expand_flow_neighborhood(DW = DW, OW = OW, model = model)
   A <- spatial_filter(weight_matrices = WF_parts, autoreg_parameters = rho)
@@ -119,7 +109,7 @@ compute_bp_insample <- function(
   OW,
   rho,
   model,
-  Y_indicator = NULL,
+  flow_indicator = NULL,
   approximate = TRUE,
   max_it = 10) {
 
