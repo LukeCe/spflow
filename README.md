@@ -20,14 +20,14 @@ computational burden and memory requirements.
 
 ## Installation
 
-<!-- You can install the released version of spflow from [CRAN](https://CRAN.R-project.org) with: -->
-<!-- ``` r -->
-<!-- install.packages("spflow") -->
-<!-- ``` -->
-<!-- And the  -->
+You can install the released version of spflow from
+[CRAN](https://CRAN.R-project.org/package=spflow) with:
 
-You can install development version from [GitHub](https://github.com/)
-with:
+``` r
+install.packages("spflow")
+```
+
+And the development version from [GitHub](https://github.com/) with:
 
 ``` r
 # install.packages("devtools")
@@ -45,30 +45,31 @@ contains a more detailed example.
 
 ``` r
 library("spflow")
+data("multi_net_usa_ge")
+
 spflow(y9 ~ . + G_(DISTANCE), multi_net_usa_ge)
 #> --------------------------------------------------
 #> Spatial interaction model estimated by: MLE  
-#> Autocorrelation structure: model_9 (SDM)  
+#> Spatial correlation structure: SDM (model_9)
 #> Observations: 256  
 #> 
 #> --------------------------------------------------
 #> Coefficients:
-#>                 est    sd  t.stat  p.value
-#> rho_d          0.48  0.03   15.75     0.02
-#> rho_o          0.36  0.03   10.59     0.03
-#> rho_w         -0.25  0.04   -5.95     0.05
-#> (Intercept)   10.00  1.92    5.21     0.06
-#> (Intra)       11.32  3.07    3.69     0.08
-#> DEST_X         0.94  0.06   14.97     0.02
-#> DEST_X.lag1    0.62  0.11    5.80     0.05
-#> ORIG_X        -0.78  0.04  -21.20     0.02
-#> ORIG_X.lag1   -0.32  0.08   -3.93     0.08
-#> INTRA_X        1.95  0.08   23.98     0.01
-#> INTRA_X.lag1  -0.34  0.19   -1.76     0.16
-#> DISTANCE      -2.80  0.34   -8.25     0.04
+#>                est    sd  t.stat  p.val
+#> rho_d         0.49  0.03   16.66   0.02
+#> rho_o         0.33  0.04    9.10   0.04
+#> rho_w        -0.23  0.04   -5.13   0.08
+#> (Intercept)  10.58  2.14    4.96   0.08
+#> (Intra)       9.75  1.53    6.37   0.06
+#> DEST_X        0.99  0.07   14.59   0.02
+#> DEST_X.lag1   0.53  0.11    4.64   0.09
+#> ORIG_X       -0.77  0.04  -20.37   0.02
+#> ORIG_X.lag1  -0.38  0.09   -4.14   0.10
+#> INTRA_X       2.04  0.08   24.64   0.01
+#> DISTANCE     -2.69  0.38   -7.13   0.05
 #> 
 #> --------------------------------------------------
-#> R2_corr: 0.9927709
+#> R2_corr: 0.9921277
 ```
 
 ## License

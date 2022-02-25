@@ -29,14 +29,13 @@ It is designed to exploit the relational structure of flow data, reducing the co
 
 ## Installation
 
-<!-- You can install the released version of spflow from [CRAN](https://CRAN.R-project.org) with: -->
+You can install the released version of spflow from [CRAN](https://CRAN.R-project.org/package=spflow) with:
 
-<!-- ``` r -->
-<!-- install.packages("spflow") -->
-<!-- ``` -->
+``` r
+install.packages("spflow")
+```
 
-<!-- And the  -->
-You can install development version from [GitHub](https://github.com/) with:
+And the  development version from [GitHub](https://github.com/) with:
 
 ``` r
 # install.packages("devtools")
@@ -52,6 +51,8 @@ The [package vignette](https://lukece.github.io/spflow/articles/paris_commute_fl
 
 ```{r, message=FALSE}
 library("spflow")
+data("multi_net_usa_ge")
+
 spflow(y9 ~ . + G_(DISTANCE), multi_net_usa_ge)
 ```
 

@@ -16,7 +16,9 @@
 #' autocorrelation that follow the naming convention of
 #' \insertCite{LeSage2008;textual}{spflow}.
 #' The most general specification is "model_9", leading to the model
-#' \eqn{y = \rho_dW_dy + \rho_o W_oy + \rho_wW_wy + Z\delta + \epsilon}.
+#'
+#' \deqn{y = \rho_dW_dy + \rho_o W_oy + \rho_wW_wy + Z\delta + \epsilon.}
+#'
 #' All other models special cases of this one.
 #' The constraints that lead to the different sub models are summarized in
 #' this table.

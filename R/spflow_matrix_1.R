@@ -1,16 +1,43 @@
 #' @title
-#' Generate design matrices for the spatial interaction model
+#' Generate the design matrices for the spatial interaction model
 #'
 #' @description
-#' Creates model matrices from a [sp_multi_network()] network.
-#' For efficiency the relational representation of origin and destination data
-#' is preserved.
+#' Create the model matrices required for matrix-form estimation of
+#' the spatial econometric interaction model.
 #'
+#' @details
+#' The key to an efficient estimation is to preserve the relational
+#' representation of the data for origins, destinations and
+#' origins-destinations pairs.
+#' This requires to be aware of the;
+#'  - three sources of data (pair, orig, dest)
+#'  - three parts of the formula (norm, sdm, inst)
+#'  - five roles of the variables (Y_, G_, D_, O_, I_)
+#'
+#' The additional separation of data sources and roles makes sense if the list
+#' of origins coincides with the list of destinations.
+#' In this case, we can use data from the same source as origin, destination,
+#' or intra-regional characteristics.
+#'
+#' The model formulas contain information about mathematical transformations
+#' of the variables and allow to deduce number of spatial lags required for
+#' each of them.
+#' To apply the transformations we use R's build-in tools for handling formulas.
+#' Spatial lags are calculated after the transformations have been applied.
+#' Below is an explanation of the formula parts:
+#'  - norm variables are not lagged
+#'  - sdm variables are lagged once and used as explanatory variables
+#'  - inst variables are lagged twice and used as instruments.
+#'   If a variable is at the same time inst and sdm we have to increase the
+#'   lags-order to avoid duplicating columns
+#'   (see \insertCite{Dargel2021}{spflow}).
+#'
+#' @references \insertAllCited{}
 #' @inheritParams sp_network_pair
 #' @inheritParams spflow
 #' @name spflow_model_matrix
 #' @keywords internal
-#' @return A list of design matrices for spatial interaction model
+#' @return A list of design matrices for the spatial interaction model
 spflow_model_matrix <- function(
   sp_multi_network,
   network_pair_id,
