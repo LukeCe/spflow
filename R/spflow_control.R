@@ -70,6 +70,10 @@
 #' @param log_det_approx_order
 #'   A numeric indicating the order of the Taylor expansion used to approximate
 #'   the value of the log-determinant term.
+#' @param log_det_simplify2cartesian
+#'   A logical indicating whether the log-determinant approximation should be
+#'   based on the spatial filter matrix of the cartesian model even when the
+#'   actual flows are non-cartesian.
 #' @param mle_hessian_method
 #'   A character which indicates the method for Hessian calculation
 #' @param mle_optim_limit
@@ -134,6 +138,7 @@ spflow_control <- function(
   approx_expectation = TRUE,
   expectation_approx_order = 10,
   log_det_approx_order = 10,
+  log_det_simplify2cartesian = TRUE,
   mle_hessian_method = "mixed",
   mle_optim_limit = 100,
   mcmc_iterations = 5500,
@@ -184,7 +189,6 @@ spflow_control <- function(
     return(general_control)
 
   # ---- spatial models -------------------------------------------------------
-  # control parameters used for all spatial models
   assert_is_single_x(approx_parameter_space, "logical")
   assert_is_single_x(approx_expectation, "logical")
   assert_is_single_x(expectation_approx_order, "numeric")
@@ -192,16 +196,14 @@ spflow_control <- function(
   assert_valid_case(fitted_value_method, c("TS","TC", "BP"))
 
 
-  general_control <-
-    c(general_control,
-      list(
-        "approx_parameter_space" = approx_parameter_space,
-        "approx_expectation" = approx_expectation,
-        "expectation_approx_order" = expectation_approx_order,
-        "fitted_value_method" = fitted_value_method
-      ))
+  general_control <- c(general_control, list(
+    "approx_parameter_space" = approx_parameter_space,
+    "approx_expectation" = approx_expectation,
+    "expectation_approx_order" = expectation_approx_order,
+    "fitted_value_method" = fitted_value_method))
 
-  if (estimation_method == "s2sls") { # s2sls ---------------------------------
+  # ---- ... s2sls -----------------------------------------------------------
+  if (estimation_method == "s2sls") {
     assert_is_single_x(twosls_decorrelate_instruments, "logical")
     assert_is_single_x(twosls_reduce_pair_instruments, "logical")
     assert(is(twosls_instrumental_variables,"formula")
@@ -211,20 +213,22 @@ spflow_control <- function(
     twosls_control <- list(
       "twosls_instrumental_variables"  = twosls_instrumental_variables,
       "twosls_decorrelate_instruments" = twosls_decorrelate_instruments,
-      "twosls_reduce_pair_instruments" = twosls_reduce_pair_instruments
-    )
+      "twosls_reduce_pair_instruments" = twosls_reduce_pair_instruments)
     return(c(general_control,twosls_control))
   }
 
-  # control parameters for the likelihood evaluation
+  # ---- ... likelihood -------------------------------------------------------
   assert_is_single_x(log_det_approx_order, "numeric")
+  assert_is_single_x(log_det_simplify2cartesian, "logical")
   assert(log_det_approx_order >= 2,
          "The log_det_approx_order must be two or larger!")
-  general_control <- c(
-    general_control,
-    list("log_det_approx_order" = as.integer(log_det_approx_order)))
 
-  if (estimation_method == "mle") { # mle -------------------------------------
+  general_control <- c(general_control, list(
+    "log_det_approx_order" = as.integer(log_det_approx_order),
+    "log_det_simplify2cartesian" = log_det_simplify2cartesian))
+
+  # ---- ... ... mle ----------------------------------------------------------
+  if (estimation_method == "mle") {
 
     assert_is_single_x(mle_optim_limit, "numeric")
     assert(mle_optim_limit > 0, "The mle_optim_limit must be positive!")
@@ -234,14 +238,15 @@ spflow_control <- function(
            'The approx_parameter_space must be a one string among c("%s")!',
            paste0(available_hessians, collapse = ", "))
 
-    mle_control <- list("mle_hessian_method" = mle_hessian_method,
-                        "mle_optim_limit" = mle_optim_limit)
+    mle_control <- list(
+      "mle_hessian_method" = mle_hessian_method,
+      "mle_optim_limit" = mle_optim_limit)
     return(c(general_control,mle_control))
   }
 
 
-
-  if (estimation_method == "mcmc") {  # mcmc ----------------------------------
+  # ---- ... ... mcmc ---------------------------------------------------------
+  if (estimation_method == "mcmc") {
 
     assert_is_single_x(mcmc_iterations, "numeric")
     assert_is_single_x(mcmc_burn_in, "numeric")
@@ -256,9 +261,34 @@ spflow_control <- function(
     mcmc_control <- list(
       "mcmc_iterations"  = mcmc_iterations,
       "mcmc_burn_in" = mcmc_burn_in,
-      "mcmc_resampling_limit" = mcmc_resampling_limit
-    )
+      "mcmc_resampling_limit" = mcmc_resampling_limit)
     return(c(general_control,mcmc_control))
   }
+}
+
+#' @title Enhance the flow_control object for estimation
+#' @description
+#' Validate the input to flow control and add additional information related
+#' to the matrix form expression of the model.
+#' @keywords internal
+enhance_flow_control <- function(
+  flow_control,
+  net_pair) {
+
+  # validate by calling again
+  flow_control <- do.call("spflow_control", flow_control)
+  flow_control <- c(
+    flow_control,
+    matrix_form_control(net_pair),
+    list("spatial_type" = sp_model_type(flow_control)))
+
+  if (flow_control$mat_nrows != flow_control$mat_ncols)
+    flow_control$use_intra <- FALSE
+
+  requires_logdet <- !is.null(flow_control$log_det_simplify2cartesian)
+  if (requires_logdet & (flow_control$mat_complet == 1))
+    flow_control$log_det_simplify2cartesian <- TRUE
+
+  return(flow_control)
 }
 

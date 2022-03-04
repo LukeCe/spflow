@@ -1,5 +1,5 @@
-# ==== [+++ constructor +++] ==================================================
 library("spflow")
+# ---- constructor ------------------------------------------------------------
 
 expect_inherits({
   test_network_ids <- c("net1","net2")
@@ -45,17 +45,57 @@ expect_warning({
   },
   info = "wrong ordering of nodes gives a warning")
 
+
+expect_warning({
+  test_o_net <- sp_network_nodes(
+    network_id = "o1",
+    node_neighborhood = NULL,
+    node_data = data.frame("ID" = LETTERS[1:3]),
+    node_key_column = "ID")
+
+  test_d_net <- sp_network_nodes(
+    network_id = "d1",
+    node_neighborhood = NULL,
+    node_data = data.frame("ID" = letters[1:3]),
+    node_key_column = "ID")
+
+  test_pairs_unordered <- sp_network_pair(
+    orig_net_id = "o1",
+    dest_net_id = "d1",
+    pair_data = data.frame(
+      "ID_O" = rep(LETTERS[c(2,1,3)], 3),
+      "ID_D" = rep(letters[3:1], each = 3)),
+    orig_key_column = "ID_O",
+    dest_key_column = "ID_D")
+
+  test_multi_net_ordered <- sp_multi_network(
+    test_o_net, test_d_net, test_pairs_unordered)
+}, info = "adjusts wrong ordering of od keys when possible")
+
 expect_equal({
-  test_o_net <-
-    sp_network_nodes("o1",NULL,data.frame("ID" = LETTERS[1:3]),"ID")
-  test_d_net <-
-    sp_network_nodes("d1",NULL,data.frame("ID" = letters[1:3]),"ID")
-  test_pairs_unordered <-
-    sp_network_pair("o1","d1",data.frame("ID_O" = rep(LETTERS[c(2,1,3)], 3),
-                                         "ID_D" = rep(letters[3:1], each = 3)),
-                    "ID_O","ID_D")
+  test_o_net <- sp_network_nodes(
+    network_id = "o1",
+    node_neighborhood = NULL,
+    node_data = data.frame("ID" = LETTERS[1:3]),
+    node_key_column = "ID")
+
+  test_d_net <- sp_network_nodes(
+    network_id = "d1",
+    node_neighborhood = NULL,
+    node_data = data.frame("ID" = letters[1:3]),
+    node_key_column = "ID")
+
+  test_pairs_unordered <- sp_network_pair(
+      orig_net_id = "o1",
+      dest_net_id = "d1",
+      pair_data = data.frame(
+        "ID_O" = rep(LETTERS[c(2,1,3)], 3),
+        "ID_D" = rep(letters[3:1], each = 3)),
+      orig_key_column = "ID_O",
+      dest_key_column = "ID_D")
+
   suppressWarnings({test_multi_net_ordered <-
-    sp_multi_network(test_o_net,test_d_net, test_pairs_unordered)
+    sp_multi_network(test_o_net, test_d_net, test_pairs_unordered)
   })
   test_pairs_ordered <- test_multi_net_ordered@network_pairs$o1_d1@pair_data
   cbind(levels(test_pairs_ordered[["ID_O"]]),
@@ -168,27 +208,75 @@ expect_equal({
   info = "merging origin and destination infos to the pairs
           test expansion of missing pairs and correct ordering")
 
+# ----- check_pair_completeness -----------------------------------------------
+expect_equal({
+  test_o_net <- sp_network_nodes(
+    network_id = "net1",
+    node_neighborhood =  NULL,
+    node_data = data.frame(
+      "ID"  = c("A", "B"),
+      "VAL" = "OO"),
+    node_key_column = "ID")
+
+  test_d_net <- sp_network_nodes(
+    network_id = "net2",
+    node_neighborhood =  NULL,
+    node_data = data.frame(
+      "ID"  = c("C", "D"),
+      "VAL" = "DD"),
+    node_key_column = "ID")
+
+  test_net_pair <- sp_network_pair(
+    orig_net_id = "net1",
+    dest_net_id = "net2",
+    pair_data = data.frame(
+      "ID_O" = c("A", "B"),
+      "ID_D" = c("C", "D"),
+      "DIST" = c(1, 4)),
+    orig_key_column = "ID_O",
+    dest_key_column = "ID_D")
+
+  test_multi_net <- sp_multi_network(test_net_pair, test_o_net, test_d_net)
+  check_pair_completeness("net1_net2", test_multi_net)
+}, {
+  data.frame("ID_NET_PAIR" = "net1_net2",
+             "NPAIRS" = 2,
+             "COMPLETENESS" = 0.5,
+             "ID_ORIG_NET" = "net1",
+             "ORIG_NNODES" = 2,
+             "ID_DEST_NET" = "net2",
+             "DEST_NNODES" = 2)
+}, info = "create completeness info")
+
 # ---- show method ------------------------------------------------------------
 expect_stdout({
-  test_o_net <-
-    sp_network_nodes("net1", NULL, data.frame("ID" = c("A", "B"),
-                                              "VAL" = "OO"),
-                     "ID")
-  test_d_net <-
-    sp_network_nodes("net2", NULL, data.frame("ID" = c("C", "D"),
-                                              "VAL" = "DD"),
-                     "ID")
-  test_net_pair <- sp_network_pair("net1",
-                                   "net2",
-                                   data.frame(
-                                     "ID_O" = c("A", "B"),
-                                     "ID_D" = c("C", "D"),
-                                     "DIST" = c(1, 4)
-                                   ),
-                                   "ID_O",
-                                   "ID_D")
-  test_multi_net <-
-    sp_multi_network(test_net_pair, test_o_net, test_d_net)
+  test_o_net <- sp_network_nodes(
+    network_id = "net1",
+    node_neighborhood =  NULL,
+    node_data = data.frame(
+      "ID"  = c("A", "B"),
+      "VAL" = "OO"),
+    node_key_column = "ID")
+
+  test_d_net <- sp_network_nodes(
+    network_id = "net2",
+    node_neighborhood =  NULL,
+    node_data = data.frame(
+      "ID"  = c("C", "D"),
+      "VAL" = "DD"),
+    node_key_column = "ID")
+
+  test_net_pair <- sp_network_pair(
+    orig_net_id = "net1",
+    dest_net_id = "net2",
+    pair_data = data.frame(
+      "ID_O" = c("A", "B"),
+      "ID_D" = c("C", "D"),
+      "DIST" = c(1, 4)),
+    orig_key_column = "ID_O",
+    dest_key_column = "ID_D")
+
+  test_multi_net <- sp_multi_network(test_net_pair, test_o_net, test_d_net)
   test_multi_net
   },
   info = "show something on print")

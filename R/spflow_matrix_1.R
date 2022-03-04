@@ -97,10 +97,8 @@ spflow_model_matrix <- function(
 pull_relational_flow_data <- function(sp_multi_net, pair_id) {
 
   # identification of the data sources
-  od_id <- split_pair_id(pair_id)
-  source_ids <- list("pair" = pair_id, "orig" = od_id[1], "dest" = od_id[2])
-
-  if (has_equal_elements(od_id))
+  source_ids <- as.list(id(sp_multi_net@network_pairs[[pair_id]]))
+  if (has_equal_elements(source_ids[c("orig", "dest")]))
     source_ids[["dest"]] <- NULL
 
   flow_data <- lapply(
@@ -123,12 +121,10 @@ pull_relational_flow_data <- function(sp_multi_net, pair_id) {
 #' @keywords internal
 pull_neighborhood_data <-  function(sp_multi_network, network_pair_id) {
 
-  od_id <- split_pair_id(network_pair_id)
+  od_id <- id(sp_multi_network@network_pairs[[network_pair_id]])
   neighbor_mats <- named_list(c("OW","DW"))
-  neighbor_mats[["OW"]] <-
-    neighborhood(sp_multi_network, od_id[1])
-  neighbor_mats[["DW"]] <-
-    neighborhood(sp_multi_network, od_id[2])
+  neighbor_mats[["OW"]] <- neighborhood(sp_multi_network, od_id["orig"])
+  neighbor_mats[["DW"]] <- neighborhood(sp_multi_network, od_id["dest"])
 
   return(compact(neighbor_mats))
 

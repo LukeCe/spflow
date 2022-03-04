@@ -27,10 +27,7 @@ derive_log_det_calculator <- function(
   n_d,
   model) {
 
-
-  # first treat the "easy cases"
   easy_models <- "model_" %p% c(2,3,4,8)
-
   if (model %in% easy_models) {
     # the first power is ignored because it is always weighted by 0
     max_power <- max(length(OW_traces),length(DW_traces))

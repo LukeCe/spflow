@@ -56,12 +56,13 @@ setMethod(
   signature = "sp_multi_network",
   function(object, .id) { # ---- dat ------------------------------------
 
-    assert(.id %in% unlist(id(object)),
+    assert_is_single_x(.id, "character")
+
+    all_ids <- id(object)
+    which_id <- lapply(all_ids, "==", .id)
+    assert(sum(unlist(which_id)) == 1,
            "The provided id does not correspond to any network object.")
-    if (valid_network_id(.id))
-      from <- "networks"
-    if (valid_network_pair_id(.id))
-      from <- "network_pairs"
+    from <- names(Filter("any",which_id))
     return(dat(slot(object,from)[[.id]]))
 })
 
@@ -76,19 +77,21 @@ setMethod(
     return(neighborhood(object@networks[[.id]]))
   })
 
+
+# ---- ... pull_member --------------------------------------------------------
 #' @rdname sp_multi_network-class
 #' @export
 #' @examples
 #' ## access sp_network_nodes or sp_network_pair inside a sp_multi_network
 #'
-#' pull_member(multi_net_usa_ge, net_id = "ge")
-#' pull_member(multi_net_usa_ge, net_id = "usa")
-#' pull_member(multi_net_usa_ge, pair_id ="ge_ge")
+#' pull_member(multi_net_usa_ge, .id = "ge")
+#' pull_member(multi_net_usa_ge, .id = "usa")
+#' pull_member(multi_net_usa_ge, .id ="ge_ge")
 #'
 setMethod(
   f = "pull_member",
   signature = "sp_multi_network",
-  function(object, .id = NULL) { # ---- pull_member ----------------------------------
+  function(object, .id = NULL) {
 
     assert_is_single_x(.id, "character")
 
@@ -101,35 +104,44 @@ setMethod(
     return(slot(object,from)[[.id]])
   })
 
+# ---- ... show ---------------------------------------------------------------
 #' @keywords internal
 setMethod(
   f = "show",
   signature = "sp_multi_network",
-  function(object){ # ---- show -----------------------------------------------
+  function(object){
 
     cat("Collection of spatial network nodes and pairs")
     cat("\n")
     cat(print_line(50))
-
+    plural <- function(s, x) paste0(s, ifelse(x == 1, "", "s"))
     multi_net_ids <- id(object)
+
+
     nodes_ids <- multi_net_ids$networks
-    cat("\nContains",length(nodes_ids),
-        "sets of spatial network nodes.",
-        "\n    With ids:", paste(nodes_ids, collapse = ", "))
-
-    pair_ids <- multi_net_ids$network_pairs
-    cat("\nContains",length(pair_ids),
-        "sets of spatial network pairs",
-        "\n    With ids:", paste(pair_ids, collapse = ", "))
-
-    if (length(pair_ids) > 0) {
-      cat("\n\nAvailability of origin-destination pair information:\n")
-      od_pair_info <- check_pair_completeness(object)
-      od_pair_info$COMPLETENESS <- format_percent(od_pair_info$COMPLETENESS)
-
-      print(od_pair_info)
+    num_nodes <- length(nodes_ids)
+    if(num_nodes >= 1) {
+      cat("\nContains", num_nodes,
+          "spatial network nodes ",
+          "\n    With", plural("id", num_nodes), ": ",
+          paste(nodes_ids, collapse = ", "))
     }
 
+    pair_ids <- multi_net_ids$network_pairs
+    num_pairs <- length(pair_ids)
+    if( num_pairs >= 1) {
+      cat("\nContains", num_pairs,
+          "spatial network pairs ",
+          "\n    With", plural("id", num_pairs), ": ",
+          paste(pair_ids, collapse = ", "))
+
+      cat("\n\nAvailability of origin-destination pair information:\n\n")
+      od_pair_info <- Reduce("rbind", lapply(pair_ids, function(.id) {
+        check_pair_completeness(.id, object)}))
+      od_pair_info$COMPLETENESS <- format_percent(od_pair_info$COMPLETENESS)
+
+      print(od_pair_info, row.names = FALSE)
+    }
 
     cat("\n")
     invisible(object)
@@ -224,8 +236,7 @@ setValidity("sp_multi_network", function(object) { # ---- validity ------------
   # ... naming: networks
   network_names <- lapply(object@networks, slot, name = "network_id")
   pair_names <- lapply(object@network_pairs, slot, name = "network_pair_id")
-  unique_names <-
-    has_distinct_elements(network_names) & has_distinct_elements(pair_names)
+  unique_names <- has_distinct_elements(c(network_names, pair_names))
   if (!unique_names) {
     error_msg <-
       "The identification of all networks and network_pairs must be unique!"
@@ -314,8 +325,8 @@ sp_multi_network <- function(...) {
   # 1. we have to ensure that the identification is correct
   # 2. the order of observations is important for calculations
   error_template <- "
-  Some of the %ss in the network pair object are not identifyed
-  with the nodes in the %s network."
+  In the network pair with id %s, it is not possible to identify
+  all of the %ss with the nodes in the %s network."
 
   pair_ids <- lapply(sp_network_pairs, "id")
 
@@ -331,7 +342,7 @@ sp_multi_network <- function(...) {
     if (orig_net %in% names(sp_networks)) {
       orig_keys <- get_keys(sp_networks[[orig_net]])[[1]]
       assert(all(as.character(orig_keys_od) %in% as.character(orig_keys)),
-             error_template, "origin", "origin")
+             error_template, net_pair, "origin", "origin")
       wrong_od_order <- any(levels(orig_keys_od) != levels(orig_keys))
     }
 
@@ -340,16 +351,16 @@ sp_multi_network <- function(...) {
     if (dest_net %in% names(sp_networks)) {
       dest_keys <- get_keys(sp_networks[[dest_net]])[[1]]
       assert(all(as.character(dest_keys_od) %in% as.character(dest_keys)),
-             error_template, "destination", "destination")
+             error_template, net_pair, "destination", "destination")
       wrong_od_order <- any(c(wrong_od_order,
                               levels(dest_keys_od) != levels(dest_keys)))
       }
 
     if (wrong_od_order) {
       warn_template <- "
-      The od-pairs in the network pair object [%s] were reordered to match the
-      order of the nodes in the networks."
-      assert(TRUE, warn_template, net_pair, warn = TRUE)
+      The od-pairs in the network pair object with id %s
+      were reordered to match the order of the nodes in the networks."
+      assert(FALSE, warn_template, net_pair, warn = TRUE)
       pair_keys[[1]] <- factor(pair_keys[[1]], levels(orig_keys))
       pair_keys[[2]] <- factor(pair_keys[[2]], levels(dest_keys))
       od_order <- order(pair_keys[[1]], pair_keys[[2]])
@@ -371,33 +382,24 @@ sp_multi_network <- function(...) {
 # ---- Helpers ----------------------------------------------------------------
 
 #' @keywords internal
-check_pair_completeness <- function(multi_net) {
+check_pair_completeness <- function(pair_id, multi_net) {
 
   all_ids <- id(multi_net)
+  this_pair <- pull_member(multi_net, pair_id)
+  od_id <- id(this_pair)
+  od_nnodes <- nnodes(this_pair)
+  has_o_id <- od_id["orig"] %in% all_ids$networks
+  has_d_id <- od_id["dest"] %in% all_ids$networks
 
-  pair_meta_data <- lapply(
-    all_ids$network_pairs,
-    function(.p_id) {
-      od_id <- split_pair_id(.p_id)
-      od_nnodes <- nnodes(multi_net@network_pairs[[.p_id]])
-      has_o_id <- od_id[1] %in% all_ids$networks
-      has_d_id <- od_id[2] %in% all_ids$networks
-
-      data.frame(
-        "ID_NET_PAIR" =
-          .p_id,
-        "NPAIRS" =
-          npairs(multi_net@network_pairs[[.p_id]]),
-        "COMPLETENESS" =
-          npairs(multi_net@network_pairs[[.p_id]]) / prod(od_nnodes),
-        "ID_ORIG_NET" = ifelse(has_o_id, od_id[1], "(missing)"),
-        "ORIG_NNODES" = ifelse(has_o_id, od_nnodes[1], "(missing)"),
-        "ID_DEST_NET" = ifelse(has_o_id, od_id[2], "(missing)"),
-        "DEST_NNODES" = ifelse(has_o_id, od_nnodes[2], "(missing)"),
-        row.names = NULL)})
-
-  Reduce("rbind", pair_meta_data)
-
+  return(data.frame(
+    "ID_NET_PAIR" = pair_id,
+    "NPAIRS" = npairs(this_pair),
+    "COMPLETENESS" = npairs(this_pair) / prod(od_nnodes),
+    "ID_ORIG_NET" = ifelse(has_o_id, od_id["orig"], "(missing)"),
+    "ORIG_NNODES" = ifelse(has_o_id, od_nnodes["orig"], "(missing)"),
+    "ID_DEST_NET" = ifelse(has_o_id, od_id["dest"], "(missing)"),
+    "DEST_NNODES" = ifelse(has_o_id, od_nnodes["dest"], "(missing)"),
+    row.names = NULL))
 }
 
 #' @keywords internal

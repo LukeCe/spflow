@@ -212,11 +212,11 @@ setValidity("sp_network_pair", function(object) { # ---- validity -------------
 
   # check ids
   ids <- id(object)
-  if (!valid_network_pair_id(ids["pair"])) {
-    error_msg <-
-      "The id of the pair object is invalid.\n Please ensure that the id " %p%
-      "is based on two alphanumeric strings sperated by an underscore, " %p%
-      "as for example 'alnum1_alnum2'!"
+  if (any(length(ids) != 3, !is.character(ids))) {
+    error_msg <- strwrap("
+      The ids for the network pair object are invalid invalid!
+      Please ensure that the origin, destination and network_pair ids are
+      characters of length one.")
     return(error_msg)
   }
 
@@ -353,17 +353,14 @@ matrix_form_control <- function(sp_net_pair) {
 
 # ---- Helpers ----------------------------------------------------------------
 #' @keywords internal
-split_pair_id <- function(pair_id){
-  strsplit(pair_id,"_")[[1]]
-}
-
-#' @keywords internal
 attr_key_orig <- function(df) {
   attr(df, "orig_key_column")
 }
 
 #' @keywords internal
 `attr_key_orig<-` <- function(df, value) {
+  assert(sum(names(df) == value) == 1,
+         "The key column %s does not exist!", value)
   attr(df, "orig_key_column") <- value
   df
 }
@@ -375,6 +372,8 @@ attr_key_dest <- function(df) {
 
 #' @keywords internal
 `attr_key_dest<-` <- function(df, value) {
+  assert(sum(names(df) == value) == 1,
+         "The key column %s does not exist!", value)
   attr(df, "dest_key_column") <- value
   df
 }
@@ -391,13 +390,3 @@ attr_key_od <- function(df) {
   attr_key_dest(df) <- value[2]
   df
 }
-
-#' @keywords internal
-valid_network_pair_id <- function(key) {
-  split_strings <- unlist(strsplit(key,"_",fixed = TRUE))
-  is_single_character(key) &&
-    length(split_strings) == 2 &&
-    valid_network_id(split_strings[1]) &&
-    valid_network_id(split_strings[2])
-}
-

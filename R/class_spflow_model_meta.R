@@ -80,6 +80,8 @@ setClass("spflow_model",
 
 # ---- Methods ----------------------------------------------------------------
 
+
+# ---- ... add_details --------------------------------------------------------
 #' @title Internal method to add details to a [spflow_model-class()]
 #'
 #' @details
@@ -101,7 +103,7 @@ setMethod(
   function(object,
            model_matrices,
            flow_control,
-           model_moments) { # ---- add_details --------------------------------
+           model_moments) {
 
     object@design_matrix <- drop_instruments(model_matrices)
     object@model_moments <- model_moments
@@ -131,6 +133,7 @@ setMethod(
   })
 
 
+# ---- ... coef ---------------------------------------------------------------
 #' @title Extract the coefficient vector from a spatial interaction model
 #' @param object A [spflow_model-class()]
 #' @rdname spflow_model-class
@@ -138,7 +141,7 @@ setMethod(
 setMethod(
   f = "coef",
   signature = "spflow_model",
-  function(object, which = NULL) { # ---- coef --------------------------------
+  function(object, which = NULL) {
 
     results_df <- object@estimation_results
     coefs <- lookup(results_df$est,rownames(results_df))
@@ -159,7 +162,7 @@ setMethod(
     return(res)
   })
 
-
+# ---- ... fitted -------------------------------------------------------------
 #' @title Extract a vector of fitted values from a spatial interaction model
 #' @param object A [spflow_model()]
 #' @rdname spflow_model-class
@@ -167,10 +170,12 @@ setMethod(
 setMethod(
   f = "fitted",
   signature = "spflow_model",
-  function(object) { # ---- fitted --------------------------------------------
+  function(object) {
     return(object@fitted)
   })
 
+
+# ---- ... nobs ---------------------------------------------------------------
 #' @title Access the number if observations of a spatial interaction model
 #' @param object A [spflow_model()]
 #' @rdname spflow_model-class
@@ -178,11 +183,12 @@ setMethod(
 setMethod(
   f = "nobs",
   signature = "spflow_model",
-  function(object) { # ---- nobs ----------------------------------------------
+  function(object) {
     return(object@N)
   })
 
 
+# ---- ... predict ------------------------------------------------------------
 #' @title Prediction methods for spatial interaction models
 #' @param object A [spflow_model()]
 #' @param method A character indicating which method to use for computing the
@@ -203,7 +209,7 @@ setMethod(
            type = "TS",
            approx_expectation = TRUE,
            expectation_approx_order = 10,
-           keep_matrix_form = FALSE) { # ---- predict -------------------------
+           keep_matrix_form = FALSE) {
 
 
     # extract coefficients and compute the signal
@@ -269,6 +275,7 @@ setMethod(
   })
 
 
+# ---- ... resid --------------------------------------------------------------
 #' @title Extract the vector of residuals values from a [spflow_model()]
 #'
 #' @param object A [spflow_model()]
@@ -277,10 +284,11 @@ setMethod(
 setMethod(
   f = "resid",
   signature = "spflow_model",
-  function(object) { # ---- resid ---------------------------------------------
+  function(object) {
     return(object@resid)
   })
 
+# ---- ... results ------------------------------------------------------------
 #' @section Main results:
 #' The main results are accessed with the `results()` method.
 #' They are given in the form of a data frame with the following columns;
@@ -298,22 +306,25 @@ setMethod(
 setMethod(
   f = "results",
   signature = "spflow_model",
-  function(object){ # ---- results --------------------------------------------
+  function(object) {
     return(object@estimation_results)
   })
 
+# ---- ... results <- ---------------------------------------------------------
 #' @title Internal method for overwriting the results
 #' @noRd
 #' @keywords internal
 setReplaceMethod(
   f = "results",
   signature = "spflow_model",
-  function(object, value) { # ---- results <- ---------------------------------
+  function(object, value) {
     object@estimation_results <- value
     if (validObject(object))
       return(object)
   })
 
+
+# ---- ... results_flat -------------------------------------------------------
 #' @title
 #'   Reshaped version of the estimation results that can be used to compare
 #'   results in simulation studies.
@@ -325,7 +336,7 @@ setMethod(
   signature = "spflow_model",
   function(object,
            res_info = c("est","sd"),
-           cntrol_info = c("estimation_method")){ # ---- results_flat ---------
+           cntrol_info = c("estimation_method")){
 
     res <- results(object)
     flat_results <- lapply(res_info, function(.col) {
@@ -336,25 +347,30 @@ setMethod(
 
     flat_controls <-
       cbind(as.data.frame(object@estimation_control[cntrol_info]),
+            "R2_corr" = object@R2_corr,
             "sigma_est" = sd_error(object))
 
-    return(cbind(flat_controls,flat_results))
+    return(cbind(flat_controls, flat_results))
   })
 
+
+# ---- ... sd_error -----------------------------------------------------------
 #' @rdname spflow_model-class
 #' @export
 setMethod(
   f = "sd_error",
   signature = "spflow_model",
-  function(object){ # ---- sd_error -------------------------------------------
+  function(object){
     return(object@sd_error)
   })
 
+
+# ---- ... show ---------------------------------------------------------------
 #' @keywords internal
 setMethod(
   f = "show",
   signature = "spflow_model",
-  function(object){ # ---- show -----------------------------------------------
+  function(object){
 
     cntrl <- object@estimation_control
     cat(print_line(50))
@@ -381,7 +397,6 @@ setMethod(
   })
 
 # ---- Constructors -----------------------------------------------------------
-
 #' @title Internal function to construct a [spflow_model-class()]
 #'
 #' @param estimation_results A data.frame of estimation [results()]

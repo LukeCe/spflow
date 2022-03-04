@@ -165,22 +165,14 @@ spflow <- function(
   assert_is(sp_multi_network,"sp_multi_network")
 
   pair_ids <- id(sp_multi_network)[["network_pairs"]]
-  assert(valid_network_pair_id(network_pair_id),
-         "The network_pair_id must be a character of length 1!")
+  assert_is_single_x(network_pair_id, "character")
   assert(network_pair_id %in% pair_ids,
          'The the network pair id "%s" is not available!',
          network_pair_id)
 
-  # validate (by calling again) and enrich flow control
-  flow_control <- c(
-    do.call("spflow_control", flow_control),
-    matrix_form_control(pull_member(sp_multi_network, network_pair_id)),
-    list("spatial_type" = sp_model_type(flow_control)))
-
-  flow_control$use_intra <- all(
-    flow_control$use_intra,
-    flow_control$mat_nrows == flow_control$mat_ncols)
-
+  flow_control <- enhance_flow_control(
+    flow_control = flow_control,
+    net_pair = pull_member(sp_multi_network, network_pair_id))
 
   model_matrices <- spflow_model_matrix(
     sp_multi_network,
