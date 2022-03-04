@@ -17,3 +17,9 @@ print_line <- function(n_lines = 60, line_symbol = "-") {
 format_percent <- function(x) {
   sprintf(x * 100,fmt = "%1.2f%%")
 }
+
+#' @keywords internal
+sort_chars <- function(charvec){
+  unlist(lapply(charvec, function(string) {
+    paste0(sort(strsplit(string, "*")[[1]]),collapse = "")
+  }))

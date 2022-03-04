@@ -1,5 +1,5 @@
-#' @include class_generics_and_maybes.R
 # ---- Class definition -------------------------------------------------------
+#' @include class_generics_and_maybes.R
 
 #' @title Class spflow_model
 #'
@@ -400,7 +400,7 @@ setMethod(
 #' @title Internal function to construct a [spflow_model-class()]
 #'
 #' @param estimation_results A data.frame of estimation [results()]
-#' @param estimation_control A list of control parameters
+#' @param flow_control A list of control parameters
 #' @param N A numeric indicating the number of observations
 #' @param sd_error A numeric which reports the
 #' @param R2_corr A numeric which reports a pseudo R^2 measure
@@ -417,7 +417,7 @@ setMethod(
 spflow_model <- function(
   ...,
   estimation_results,
-  estimation_control,
+  flow_control,
   N,
   sd_error,
   R2_corr = NULL,
@@ -427,14 +427,14 @@ spflow_model <- function(
   design_matrix = NULL,
   model_moments = NULL) {
 
-  est <- estimation_control$estimation_method
+  est <- flow_control$estimation_method
   model_class <- "spflow_model_" %p% est
 
   # fill generic arguments
   model_results <-
     new(model_class,
         estimation_results = estimation_results,
-        estimation_control = estimation_control,
+        estimation_control = flow_control,
         N = N,
         sd_error = sd_error,
         R2_corr = R2_corr,

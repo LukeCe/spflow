@@ -1,26 +1,51 @@
-#' Create a lookup table for the multinomial coefficient
-#' @keywords internal
-#' @importFrom utils combn
-multinom_lookup_template <- function(max_power, coef_names) {
+derive_log_det_approximator <- function(
+  OW,
+  DW,
+  n_o,
+  n_d,
+  model,
+  approx_order,
+  is_within,
+  is_cartesian,
+  flow_indicator) {
 
-  nb_coefs <- length(coef_names)
-  possible_powers <- seq(0, max_power)
-  coef_orders <- combn(rep(possible_powers,nb_coefs),nb_coefs,simplify = FALSE)
-  coef_orders <- as.data.frame(do.call("rbind",coef_orders),row.names = NULL)
-  names(coef_orders) <- coef_names
+  if (is_cartesian) {
+    OW_traces <- trace_sequence(model_matrices[["OW"]], approx_order)
+    DW_traces <- OW_traces
+    if (!is_within)
+      DW_traces <- trace_sequence(model_matrices[["DW"]], approx_order)
 
-  coef_orders$t <- rowSums(coef_orders)
-  coef_orders <- coef_orders[coef_orders$t <= max_power,]
-  coef_orders <- coef_orders[coef_orders$t > 0,]
-  coef_orders <- unique(coef_orders)
-  coef_orders$c_multinom <- multinom_coef(coef_orders[coef_names])
+    approx_log_det <- approxfun_log_det_cartesian(
+      OW_traces = OW_traces,
+      DW_traces = DW_traces,
+      n_o = n_o,
+      n_d = n_d,
+      model = model)
+    return(approx_log_det)
+  }
 
-  return(coef_orders)
+  if (!is_cartesian) {
+    W_flow <- expand_flow_neighborhood(
+      OW = OW,
+      DW = DW,
+      n_o = n_o,
+      n_d = n_d,
+      flow_indicator = flow_indicator,
+      model = model)
+
+
+
+  }
+
+
 }
+
+
+
 
 #' Fill the lookup table created by [multinom_lookup_template()] with values
 #' @keywords internal
-derive_log_det_calculator <- function(
+approxfun_log_det_cartesian <- function(
   OW_traces = NULL,
   DW_traces = NULL,
   n_o,
@@ -29,7 +54,7 @@ derive_log_det_calculator <- function(
 
   easy_models <- "model_" %p% c(2,3,4,8)
   if (model %in% easy_models) {
-    # the first power is ignored because it is always weighted by 0
+    # the first trace is always equal to zero
     max_power <- max(length(OW_traces),length(DW_traces))
     powers_2p <- seq(2, max_power)
     tDW_traces <- DW_traces[-1] / powers_2p
@@ -37,22 +62,22 @@ derive_log_det_calculator <- function(
 
   log_det_calculator <- switch (model,
     "model_2" = function(rho) {
-      rho_p <- rho^powers_2p
-      -as.numeric(n_o * sum(rho_p * tDW_traces))
+      rho_dt <- rho^powers_2p
+      -as.numeric(n_o * sum(rho_dt * tDW_traces))
       },
     "model_3" = function(rho) {
-      rho_p <- rho^powers_2p
-      -as.numeric(n_d * sum(rho_p * tOW_traces))
+      rho_ot <- rho^powers_2p
+      -as.numeric(n_d * sum(rho_ot * tOW_traces))
       },
     "model_4" = function(rho) {
-      rho_p <- rho^powers_2p
-      -as.numeric(sum(rho_p * tOW_traces * DW_traces[-1]))
+      rho_wt <- rho^powers_2p
+      -as.numeric(sum(rho_wt * tOW_traces * DW_traces[-1]))
       },
     "model_8" = function(rho) {
-      rho1_p <- rho[1]^powers_2p
-      rho2_p <- rho[2]^powers_2p
-      -as.numeric(n_o * sum(rho1_p * tDW_traces) +
-                  n_d * sum(rho2_p * tOW_traces))
+      rho_dt <- rho[1]^powers_2p
+      rho_ot <- rho[2]^powers_2p
+      -as.numeric(n_o * sum(rho_dt * tDW_traces) +
+                  n_d * sum(rho_ot * tOW_traces))
     })
 
 
@@ -109,4 +134,138 @@ derive_log_det_calculator <- function(
       -sum(trace_parts * Reduce("*",Map("^", rho,rho_powers)))
     })
   return(log_det_calculator)
+}
+
+
+approxfun_log_det_noncartesian <- function(
+  Wd,
+  Wo,
+  Ww,
+  approx_oder,
+  model) {
+
+
+
+  model_num <- substr(model, 7, 7)
+  model_with_single_weight_matrix <- model_num %in% c(2,3,4,5,6)
+
+  if (model == "model_2")
+    tWx_traces <- trace_sequence(Wd)
+
+  if (model == "model_3")
+    tWx_traces <- trace_sequence(Wo)
+
+  if (model == "model_4")
+    tWx_traces <- trace_sequence(Ww)
+
+  if (model == "model_5")
+    tWx_traces <- trace_sequence((Wd + Wo) / 2)
+
+  if (model == "model_6")
+    tWx_traces <- trace_sequence((Wd + Wo + Ww) / 3)
+
+  if (model_with_single_weight_matrix) {
+    # the first trace is always zero
+    powers_2p <- seq(2, approx_oder)
+    tWx_traces <- tWx_traces[-1] / powers_2p
+    log_det_calculator <- function(rho) {
+      rho_xt <- sum(rho)^powers_2p
+      return(-as.numeric(sum(rho_xt * tWx_traces)))
+    }
+    return(log_det_calculator)
+  }
+
+  assert(approx_oder <= 4, warn = TRUE,
+         "For the non-cartesian models with multiple parameters we can only
+         use the log-determinant approximation of order four or lower.
+         The estimation proceeds with order four.")
+
+  stop("Implement log-det!!!")
+}
+
+
+
+#' Create a lookup table for the multinomial coefficient
+#' @keywords internal
+#' @importFrom utils combn
+multinom_lookup_template <- function(max_power, coef_names) {
+
+  nb_coefs <- length(coef_names)
+  possible_powers <- seq(0, max_power)
+  coef_orders <- combn(rep(possible_powers,nb_coefs),nb_coefs,simplify = FALSE)
+  coef_orders <- as.data.frame(do.call("rbind",coef_orders),row.names = NULL)
+  names(coef_orders) <- coef_names
+
+  coef_orders$t <- rowSums(coef_orders)
+  coef_orders <- coef_orders[coef_orders$t <= max_power,]
+  coef_orders <- coef_orders[coef_orders$t > 0,]
+  coef_orders <- unique(coef_orders)
+  coef_orders$c_multinom <- multinom_coef(coef_orders[coef_names])
+
+  return(coef_orders)
+}
+
+
+assert(approx_order >= 2,
+       "Approximations of order less than two have no meaning!")
+assert(approx_order < 5,
+       "Approximations of order five or higher are not implemented!")
+
+#' @keywords internal
+trace_lookup_template <- function() {
+
+  order_2 <- data.frame(
+    "TRACE_ORDER" = 2,
+    "TRACE_KEY" = c("dd","oo","ww"),
+    "TRACE_COEF" = 1,
+    "TRACE_VAL" = NA,
+    "PARAM_KEY" = c("dd", "oo", "ww"),
+    "PARAM_VAL" = NA)
+
+  tracekey2coef <- c(
+    "ddd" = 1,
+    "ooo" = 1,
+    "www" = 1,
+    "dww" = 3,
+    "oww" = 3,
+    "dow" = 6)
+
+  order_3 <- data.frame(
+    "TRACE_ORDER" = 3,
+    "TRACE_KEY" =  names(tracekey2coef),
+    "TRACE_COEF" = 1,
+    "TRACE_VAL" = NA,
+    "PARAM_KEY" = sort_chars(names(tracekey2coef)),
+    "PARAM_VAL" = NA)
+
+  tracekey2coef <- c(
+    "dddd" = 1,
+    "oooo" = 1,
+    "wwww" = 1,
+    "ddoo" = 6,
+    "ddww" = 4,
+    "dwdw" = 2,
+    "ooww" = 4,
+    "owow" = 2,
+    "ddow" = 8,
+    "dodw" = 4,
+    "doow" = 8,
+    "dowo" = 4,
+    "doww" = 4,
+    "dwow" = 4,
+    "dwwo" = 4,
+    "dwww" = 4,
+    "owww" = 4)
+
+  order_4 <- data.frame(
+    "TRACE_ORDER" = 4,
+    "TRACE_KEY" =  names(tracekey2coef),
+    "TRACE_COEF" = 1,
+    "TRACE_VAL" = NA,
+    "PARAM_KEY" = sort_chars(names(tracekey2coef)),
+    "PARAM_VAL" = NA)
+
+  return(rbind(order_2, order_3, order_4))
+
+
 }
