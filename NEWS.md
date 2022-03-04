@@ -1,4 +1,4 @@
-# spflow 0.1.0.9000 (development version)
+# spflow 0.1.0.9002 (development version)
 
 * Added `map_flows()` to visualize flow data
 * Added support for non-cartesian and rectangular cases
