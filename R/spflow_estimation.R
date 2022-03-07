@@ -1,16 +1,16 @@
 #' @keywords internal
 spflow_model_estimation <- function(
   model_moments,
-  estim_control) {
+  flow_control) {
 
-  estimation_results <- switch(estim_control$estimation_method,
+  estimation_results <- switch(flow_control$estimation_method,
     "ols" = {
       spflow_ols(
         ZZ  = model_moments[["ZZ"]],
         ZY  = model_moments[["ZY"]],
         TSS = model_moments[["TSS"]],
         N   = model_moments[["N"]],
-        flow_control = estim_control
+        flow_control = flow_control
       )},
     "s2sls" = {
       spflow_s2sls(
@@ -20,7 +20,7 @@ spflow_model_estimation <- function(
         ZY  = model_moments[["ZY"]],
         TSS = model_moments[["TSS"]],
         N   = model_moments[["N"]],
-        flow_control = estim_control
+        flow_control = flow_control
       )},
     "mle" = {
       spflow_mle(
@@ -30,9 +30,8 @@ spflow_model_estimation <- function(
         N     = model_moments[["N"]],
         n_d   = model_moments[["n_d"]],
         n_o   = model_moments[["n_o"]],
-        DW_traces = model_moments[["DW_traces"]],
-        OW_traces = model_moments[["OW_traces"]],
-        flow_control = estim_control
+        flow_control = flow_control,
+        logdet_calculator = model_moments[["logdet_calculator"]]
       )},
     "mcmc" = {spflow_mcmc(
       ZZ  = model_moments[["ZZ"]],
@@ -41,13 +40,10 @@ spflow_model_estimation <- function(
       N   = model_moments[["N"]],
       n_d = model_moments[["n_d"]],
       n_o = model_moments[["n_o"]],
-      DW_traces = model_moments[["DW_traces"]],
-      OW_traces = model_moments[["OW_traces"]],
-      flow_control = estim_control
+      flow_control = flow_control,
+      logdet_calculator = model_moments[["logdet_calculator"]]
     )}
   )
-
   return(estimation_results)
-
 }
 

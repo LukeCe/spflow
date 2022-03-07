@@ -7,9 +7,8 @@ spflow_mcmc <- function(
   N,
   n_d,
   n_o,
-  DW_traces,
-  OW_traces,
-  flow_control = flow_control) {
+  flow_control,
+  logdet_calculator) {
 
   model <- flow_control$model
   nb_draw <- flow_control$mcmc_iterations
@@ -62,9 +61,7 @@ spflow_mcmc <- function(
 
   # we also calculate an initial log-determinant value ...
   #... and pass it to the mcmc variable
-  clalc_log_det <-
-    derive_log_det_calculator(OW_traces, DW_traces,  n_o, n_d, model)
-  previous_log_det <- clalc_log_det(pre_rho)
+  previous_log_det <- logdet_calculator(pre_rho)
 
   ## begin MCMC sampling ----
   for (i_mcmc in 1:nb_draw) {
@@ -134,7 +131,7 @@ spflow_mcmc <- function(
       # updated RSS and log-determinant
       RSS_candidate <- tau_candidate %*% RSS_t %*% tau_candidate
       RSS_diff <- (RSS_candidate - RSS_mean) / (2*sigma2_updated)
-      candidate_log_det <- clalc_log_det(updated_rho)
+      candidate_log_det <- logdet_calculator(updated_rho)
       proba_ratio <- exp(candidate_log_det - previous_log_det - RSS_diff)
 
       accept[j] <- (proba_ratio > accept_hurdle[j])
@@ -171,7 +168,7 @@ spflow_mcmc <- function(
   estimation_results <- spflow_model(
     mcmc_results = as.mcmc(mcmc_results),
     estimation_results = results_df[-id_sd, ],
-    estimation_control = flow_control,
+    flow_control = flow_control,
     sd_error = sqrt(results_df$est[id_sd]),
     N = N
   )

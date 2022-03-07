@@ -154,10 +154,10 @@
 #' @seealso [spflow_control()] [spflow_network_classes()]
 #' @export
 spflow <- function(
-  flow_formula,
-  sp_multi_network,
-  network_pair_id = id(sp_multi_network)[["network_pairs"]][[1]],
-  flow_control = spflow_control()
+    flow_formula,
+    sp_multi_network,
+    network_pair_id = id(sp_multi_network)[["network_pairs"]][[1]],
+    flow_control = spflow_control()
 ) {
 
   ## check for abusive inputs and correct ids
@@ -185,8 +185,8 @@ spflow <- function(
     flow_control = flow_control)
 
   estimation_results <- spflow_model_estimation(
-    model_moments,
-    flow_control)
+    model_moments = model_moments,
+    flow_control = flow_control)
 
   estimation_results <- add_details(
     estimation_results,
@@ -200,8 +200,8 @@ spflow <- function(
 
 #' @keywords internal
 parameter_names <- function(
-  model_matrices,
-  model) {
+    model_matrices,
+    model) {
 
   names_rho <- define_spatial_lag_params(model)
   names_const <- c("(Intercept)", "(Intra)")
@@ -238,12 +238,12 @@ drop_instruments <- function(model_matrices) {
 
   filter_inst_mat <-
     function(mat) {
-    if (is.null(mat))
-      return(NULL)
-    is_inst <- attr_inst_status(mat)
-    attr_inst_status(mat) <- is_inst[!is_inst]
-    mat[,!is_inst, drop = FALSE]
-  }
+      if (is.null(mat))
+        return(NULL)
+      is_inst <- attr_inst_status(mat)
+      attr_inst_status(mat) <- is_inst[!is_inst]
+      mat[,!is_inst, drop = FALSE]
+    }
   mm <- "D_"
   model_matrices[[mm]] <- filter_inst_mat(model_matrices[[mm]])
   mm <- "O_"

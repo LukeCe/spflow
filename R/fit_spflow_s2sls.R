@@ -53,7 +53,7 @@ spflow_s2sls <- function(UU,UY,ZZ,ZY,TSS,N,flow_control) {
   estimation_results <- spflow_model(
     varcov = varcov,
     estimation_results = results_df,
-    estimation_control = flow_control,
+    flow_control = flow_control,
     sd_error = sqrt(sigma2),
     N = N)
 

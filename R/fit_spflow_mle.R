@@ -6,9 +6,8 @@ spflow_mle <- function(
   N,
   n_d,
   n_o,
-  DW_traces,
-  OW_traces,
-  flow_control) {
+  flow_control,
+  logdet_calculator) {
 
   model <- flow_control$model
   hessian_method <- flow_control$mle_hessian_method
@@ -18,15 +17,12 @@ spflow_mle <- function(
   RSS <- TSS - crossprod(ZY,delta_t)
 
   ## OPTIMIZE the concentrated likelihood ----
-  calc_log_det <-
-    derive_log_det_calculator(OW_traces, DW_traces,  n_o, n_d, model)
   optim_part_LL <- function(rho) {
-    tau <- c(1, -rho)
-
     # invert the signs (minimize the negative)
+    tau <- c(1, -rho)
     rss_part <- N * log(tau %*% RSS %*% tau) / 2
-    return(rss_part - calc_log_det(rho))
-    }
+    return(rss_part - logdet_calculator(rho))
+  }
 
   # initialization
   nb_rho <- ncol(ZY) - 1
@@ -90,7 +86,7 @@ spflow_mle <- function(
     varcov = varcov,
     ll = loglik_value,
     estimation_results = results_df,
-    estimation_control = flow_control,
+    flow_control = flow_control,
     sd_error = sqrt(sigma2),
     N = N)
 

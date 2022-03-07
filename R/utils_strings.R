@@ -23,3 +23,12 @@ sort_chars <- function(charvec){
   unlist(lapply(charvec, function(string) {
     paste0(sort(strsplit(string, "*")[[1]]),collapse = "")
   }))
+}
+
+#' @keywords internal
+count_pattern <- function(charvec, pattern){
+
+  charvec_p <- unlist(lapply(charvec, "strsplit", "*"), recursive = FALSE)
+  charvec_p <- unlist(lapply(charvec_p, function(x) length(grep(pattern, x))))
+  return(charvec_p)
+}

@@ -340,8 +340,8 @@ setMethod(
 
     res <- results(object)
     flat_results <- lapply(res_info, function(.col) {
-        tmp <- suffix_columns(t(res[.col]), "_" %p% .col)
-        data.frame(tmp, row.names = NULL,check.names = FALSE)
+      tmp <- suffix_columns(t(res[.col]), "_" %p% .col)
+      data.frame(tmp, row.names = NULL,check.names = FALSE)
     })
 
 
@@ -415,17 +415,17 @@ setMethod(
 #' @importFrom methods slot<- slot
 #' @keywords internal
 spflow_model <- function(
-  ...,
-  estimation_results,
-  flow_control,
-  N,
-  sd_error,
-  R2_corr = NULL,
-  resid = NULL,
-  fitted = NULL,
-  spatial_filter_matrix = NULL,
-  design_matrix = NULL,
-  model_moments = NULL) {
+    ...,
+    estimation_results,
+    flow_control,
+    N,
+    sd_error,
+    R2_corr = NULL,
+    resid = NULL,
+    fitted = NULL,
+    spatial_filter_matrix = NULL,
+    design_matrix = NULL,
+    model_moments = NULL) {
 
   est <- flow_control$estimation_method
   model_class <- "spflow_model_" %p% est
@@ -460,11 +460,41 @@ spflow_model <- function(
 
 #' @keywords internal
 derive_param_space_validator <- function(
-  OW_eigen_range,
-  DW_eigen_range,
-  model,
-  est) {
+    OW_eigen_range,
+    DW_eigen_range,
+    model,
+    est) {
 
+  is_spatial <- flow_control[["estimation_method"]] != "ols"
+  OW_eigen_range <- DW_eigen_range <- NULL
+
+  # if (is_spatial) {
+  #   real_eigen_range <- function(W) {
+  #     if (is.null(W))
+  #       return(NULL)
+  #
+  #     max_abs <- RSpectra::eigs(W,1,"LM")$values
+  #
+  #     if (Re(max_abs) > 0) {
+  #       max_re <- max_abs
+  #       min_re <- RSpectra::eigs(W,1,"SR")$values
+  #     }
+  #
+  #     if (Re(max_abs) < 0) {
+  #       min_re <- max_abs
+  #       max_re <- RSpectra::eigs(W,1,"LR")$values
+  #     }
+  #
+  #     return(c(min_re, max_re))
+  #   }
+  #
+  #   OW_eigen_range <- DW_eigen_range <-
+  #     real_eigen_range(model_matrices[["OW"]])
+  #
+  #   if (!flow_control[["mat_within"]])
+  #     DW_eigen_range <- real_eigen_range(model_matrices[["DW"]])
+  #
+  # }
 
   DWmax <- DW_eigen_range[1]
   DWmin <- DW_eigen_range[2]
@@ -482,7 +512,7 @@ derive_param_space_validator <- function(
     "max_min" = c("rho_d" = DWmax, "rho_o" = OWmin, "rho_w" =  OWmin*DWmax),
     "min_max" = c("rho_d" = DWmin, "rho_o" = OWmax, "rho_w" =  OWmax*DWmin),
     "min_min" = c("rho_d" = DWmin, "rho_o" = OWmin, "rho_w" =  OWmin*DWmin)
-    )[,rho_names]
+  )[,rho_names]
 
 
   validate_fun <- function(rho){

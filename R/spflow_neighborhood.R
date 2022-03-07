@@ -36,13 +36,12 @@ expand_flow_neighborhood <- function(
   require_Ww <- model_number %in% c(4,6,8,9)
 
   check_args <- "Construction of the %s weight matrix requires non-null input arguments for %s!"
-  assert(require_Wd & !any(is.null(n_o),is.null(DW)),
-         check_args, "destination", "n_o and DW")
-  assert(require_Wo & !any(is.null(n_d),is.null(OW)),
-         check_args, "origin", "n_d and OW")
-  assert(require_Ww & !any(is.null(DW),is.null(OW)),
-         check_args, "origin-to-destination", "OW and DW")
-
+  if (require_Wd)
+    assert(!is.null(n_o) & !is.null(DW), check_args, "destination", "n_o and DW")
+  if (require_Wo)
+    assert(!is.null(n_d) & !is.null(OW), check_args, "origin", "n_d and OW")
+  if (require_Wo)
+    assert(!is.null(DW) & !is.null(OW), check_args, "origin-to-destination", "OW and DW")
 
   ### Cartesian expansion
   if (all(flow_indicator == 1))

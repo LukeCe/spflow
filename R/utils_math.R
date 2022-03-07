@@ -55,6 +55,11 @@ hadamard_sum <- function(x,y = x) {
 }
 
 #' @keywords internal
+mprod_trace <- function(x, y = x) {
+  sum(x * t(y))
+}
+
+#' @keywords internal
 impose_orthogonality <- function(mat,column_sets){
 
   # first block does not require orthogonal projection
@@ -94,6 +99,24 @@ sandwich_prod <- function(w1,mat,w2=w1){
 }
 
 # ---- combinatorics ----------------------------------------------------------
+#' Create a table for  multinomial coefficient and parameter powers
+#' @keywords internal
+#' @importFrom utils combn
+multinom_table <- function(max_power, coef_names) {
+
+  nb_coefs <- length(coef_names)
+  possible_powers <- seq(0, max_power)
+  coef_powers <- combn(rep(possible_powers,nb_coefs),nb_coefs,simplify = FALSE)
+  coef_powers <- as.data.frame(do.call("rbind",coef_powers),row.names = NULL)
+  names(coef_powers) <- coef_names
+
+  coef_powers[["POWER_ORDER"]] <- rowSums(coef_powers)
+  coef_powers <- subset(coef_powers, POWER_ORDER <= max_power & POWER_ORDER > 0)
+  coef_powers <- unique(coef_powers)
+  coef_powers[["COEF_MULTINOM"]] <- multinom_coef(coef_powers[coef_names])
+  row.names(coef_powers) <- NULL
+  return(coef_powers)
+}
 
 #' Compute the multinomial coefficient
 #'

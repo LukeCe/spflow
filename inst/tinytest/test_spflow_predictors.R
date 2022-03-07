@@ -1,3 +1,30 @@
+# ---- compute_signal ---------------------------------------------------------
+expect_equal({
+  n_o <- 5
+  n_d <- 5
+  res_all <- matrix(4,n_d,n_o)
+  res_dg <- diag(2, n_d,n_o)
+  res_all + res_dg
+
+  }, {
+  n_o <- 5
+  n_d <- 5
+  params <- named_list(c(
+    "const", "const_intra", "D_", "O_", "I_", "G"), 1)
+  mats <- list(
+    "const" = 1,
+    "const_intra" = diag(2, n_d,n_o),
+    "D_" = matrix(1,nrow = n_d),
+    "O_" = matrix(1,nrow = n_o),
+    "I_" = matrix(1,nrow = n_d),
+    "G_" = list(matrix(1,n_d,n_o)))
+  # compute_signal()
+})
+
+
+
+
+# ---- compute_expectation ----------------------------------------------------
 expect_equal({
 
   # test the iterative formula based on powers of 2
@@ -9,7 +36,7 @@ expect_equal({
     DW =  W, OW = W,
     rho = -1,
     max_it = 10,
-    Y_indicator = NULL)
+    flow_indicator = NULL)
 },
 {
   # at each iteration we multiply the previous result by 2 and in the end
@@ -31,7 +58,7 @@ expect_equal({
     DW =  W, OW = W,
     rho = -1,
     max_it = 10,
-    Y_indicator = NULL)
+    flow_indicator = NULL)
 },
 {
   # at each iteration we multiply the previous result by 2 and in the end

@@ -20,8 +20,8 @@ spflow_model_moments <- function(...) {
 #' @importFrom Matrix nnzero
 #' @keywords internal
 compute_spflow_moments <- function(
-  model_matrices,
-  flow_control
+    model_matrices,
+    flow_control
 ) {
 
   ## ---- define dimensionality of the estimation
@@ -53,51 +53,6 @@ compute_spflow_moments <- function(
 
   TSS <- crossproduct_mat_list(model_matrices$Y_, Y_wt)
 
-  ## ---- Range of the eigenvalues for neighborhood matrices
-  is_spatial <- flow_control[["estimation_method"]] != "ols"
-  OW_eigen_range <- DW_eigen_range <- NULL
-
-  if (is_spatial) {
-    real_eigen_range <- function(W) {
-      if (is.null(W))
-        return(NULL)
-
-      max_abs <- RSpectra::eigs(W,1,"LM")$values
-
-      if (Re(max_abs) > 0) {
-        max_re <- max_abs
-        min_re <- RSpectra::eigs(W,1,"SR")$values
-      }
-
-      if (Re(max_abs) < 0) {
-        min_re <- max_abs
-        max_re <- RSpectra::eigs(W,1,"LR")$values
-      }
-
-      return(c(min_re, max_re))
-      }
-
-    OW_eigen_range <- DW_eigen_range <-
-      real_eigen_range(model_matrices[["OW"]])
-
-    if (!flow_control[["mat_within"]])
-      DW_eigen_range <- real_eigen_range(model_matrices[["DW"]])
-
-    }
-
-  ## ---- Likelihood moments (trace sequence of the weight matrix)
-  OW_traces <- DW_traces <- NULL
-  uses_loglik <- flow_control[["estimation_method"]] %in% c("mle", "mcmc")
-
-  if (uses_loglik) {
-    approx_order <- flow_control[["log_det_approx_order"]]
-    OW_traces <- DW_traces <-
-      trace_sequence(model_matrices[["OW"]], approx_order)
-
-    if (!flow_control[["mat_within"]])
-      DW_traces <- trace_sequence(model_matrices[["DW"]],approx_order)
-  }
-
   is_2sls <- flow_control[["estimation_method"]] == "s2sls"
   model_moments <- compact(list(
     "n_d"       = n_d,
@@ -107,12 +62,51 @@ compute_spflow_moments <- function(
     "ZZ"        = ZZ,
     "UY"        = UY %T% is_2sls,   # only for s2sls
     "ZY"        = ZY,
-    "TSS"       = TSS,
-    "DW_eigen_range" = DW_eigen_range, # not for ols
-    "OW_eigen_range" = OW_eigen_range, # not for ols
-    "DW_traces" = DW_traces, # only for mle and mcmc
-    "OW_traces" = OW_traces  # only for mle and mcmc
-    ))
+    "TSS"       = TSS))
 
-  return(model_moments)
+  # (if required)
+  # Functions to validate the parameter space
+  # and to calculate the log determinant
+  nbfunctions <- spflow_nbfunctions(
+    OW = model_matrices[["OW"]],
+    DW = model_matrices[["DW"]],
+    flow_control = flow_control,
+    flow_indicator = model_matrices[["flow_indicator"]])
+
+  return(c(model_moments, nbfunctions))
+}
+
+
+#' @keywords internal
+spflow_nbfunctions <- function(
+    OW,
+    DW,
+    flow_control,
+    flow_indicator) {
+
+
+  if (flow_control[["estimation_method"]] == "ols")
+    return(NULL)
+
+  nbfunctions <- named_list(c("logdet_calculator", "pspace_validator"))
+  if (flow_control[["estimation_method"]] %in% c("mle", "mcmc")) {
+    nbfunctions[["logdet_calculator"]] <- derive_logdet_calculator(
+      OW = OW,
+      DW = DW,
+      model = flow_control[["model"]],
+      n_o = flow_control[["mat_ncols"]],
+      n_d = flow_control[["mat_nrows"]],
+      approx_order = flow_control[["logdet_approx_order"]],
+      is_cartesian = is.null(flow_indicator) | flow_control[["logdet_simplify2cartesian"]],
+      flow_indicator = flow_indicator)
+  }
+
+
+
+  # TODO finish the parameter space...
+  # nbfunctions[["pspace_validator"]] <- derive_param_space_validator(
+  #   OW = ,DW = ,model = ,)
+  # )
+
+  return(compact(nbfunctions))
 }

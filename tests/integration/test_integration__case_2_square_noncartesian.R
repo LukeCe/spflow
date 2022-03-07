@@ -14,6 +14,7 @@
 # - estimators: "mle" and "mcmc"   (approximate tests)
 # = = = = = = = = = = = = = = = = = = =
 # Date: Feb 2022
+opts <- options(warn = 1)
 
 
 # cran packages
@@ -431,4 +432,4 @@ expect_zero_diff(target_matrices[["Y9_"]][[2]], actual_matrices[["Y_"]][[2]])
 expect_zero_diff(target_matrices[["Y9_"]][[3]], actual_matrices[["Y_"]][[3]])
 expect_zero_diff(target_matrices[["Y9_"]][[4]], actual_matrices[["Y_"]][[4]])
 rm(res_model_9_mcmc)
-
+options(opts)

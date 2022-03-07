@@ -67,10 +67,10 @@
 #' @param expectation_approx_order
 #'   A numeric indicating the order of the power series expression used to
 #'   approximate the expected value of the flows.
-#' @param log_det_approx_order
+#' @param logdet_approx_order
 #'   A numeric indicating the order of the Taylor expansion used to approximate
 #'   the value of the log-determinant term.
-#' @param log_det_simplify2cartesian
+#' @param logdet_simplify2cartesian
 #'   A logical indicating whether the log-determinant approximation should be
 #'   based on the spatial filter matrix of the cartesian model even when the
 #'   actual flows are non-cartesian.
@@ -128,25 +128,25 @@
 #' # deactivate the intra-regional coefficients and SDM variables
 #' custom_control <- spflow_control(use_intra = FALSE, sdm_variables = "none")
 spflow_control <- function(
-  estimation_method = "mle",
-  model = "model_9",
-  use_intra = TRUE,
-  sdm_variables = "same",
-  weight_variable = NULL,
-  approx_parameter_space = TRUE,
-  fitted_value_method = "TS",
-  approx_expectation = TRUE,
-  expectation_approx_order = 10,
-  log_det_approx_order = 10,
-  log_det_simplify2cartesian = TRUE,
-  mle_hessian_method = "mixed",
-  mle_optim_limit = 100,
-  mcmc_iterations = 5500,
-  mcmc_burn_in = 2500,
-  mcmc_resampling_limit = 100,
-  twosls_instrumental_variables = "same",
-  twosls_decorrelate_instruments = FALSE,
-  twosls_reduce_pair_instruments = TRUE) {
+    estimation_method = "mle",
+    model = "model_9",
+    use_intra = TRUE,
+    sdm_variables = "same",
+    weight_variable = NULL,
+    approx_parameter_space = TRUE,
+    fitted_value_method = "TS",
+    approx_expectation = TRUE,
+    expectation_approx_order = 10,
+    logdet_approx_order = 10,
+    logdet_simplify2cartesian = TRUE,
+    mle_hessian_method = "mixed",
+    mle_optim_limit = 100,
+    mcmc_iterations = 5500,
+    mcmc_burn_in = 2500,
+    mcmc_resampling_limit = 100,
+    twosls_instrumental_variables = "same",
+    twosls_decorrelate_instruments = FALSE,
+    twosls_reduce_pair_instruments = TRUE) {
 
 
   available_estimators <- c("s2sls", "mle","mcmc","ols")
@@ -218,14 +218,14 @@ spflow_control <- function(
   }
 
   # ---- ... likelihood -------------------------------------------------------
-  assert_is_single_x(log_det_approx_order, "numeric")
-  assert_is_single_x(log_det_simplify2cartesian, "logical")
-  assert(log_det_approx_order >= 2,
-         "The log_det_approx_order must be two or larger!")
+  assert_is_single_x(logdet_approx_order, "numeric")
+  assert_is_single_x(logdet_simplify2cartesian, "logical")
+  assert(logdet_approx_order >= 2,
+         "The logdet_approx_order must be two or larger!")
 
   general_control <- c(general_control, list(
-    "log_det_approx_order" = as.integer(log_det_approx_order),
-    "log_det_simplify2cartesian" = log_det_simplify2cartesian))
+    "logdet_approx_order" = as.integer(logdet_approx_order),
+    "logdet_simplify2cartesian" = logdet_simplify2cartesian))
 
   # ---- ... ... mle ----------------------------------------------------------
   if (estimation_method == "mle") {
@@ -272,8 +272,8 @@ spflow_control <- function(
 #' to the matrix form expression of the model.
 #' @keywords internal
 enhance_flow_control <- function(
-  flow_control,
-  net_pair) {
+    flow_control,
+    net_pair) {
 
   # validate by calling again
   flow_control <- do.call("spflow_control", flow_control)
@@ -285,9 +285,9 @@ enhance_flow_control <- function(
   if (flow_control$mat_nrows != flow_control$mat_ncols)
     flow_control$use_intra <- FALSE
 
-  requires_logdet <- !is.null(flow_control$log_det_simplify2cartesian)
+  requires_logdet <- !is.null(flow_control$logdet_simplify2cartesian)
   if (requires_logdet & (flow_control$mat_complet == 1))
-    flow_control$log_det_simplify2cartesian <- TRUE
+    flow_control$logdet_simplify2cartesian <- TRUE
 
   return(flow_control)
 }
