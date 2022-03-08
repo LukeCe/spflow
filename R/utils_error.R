@@ -10,7 +10,7 @@ assert <- function(expr, error_msg = "ERROR", ..., warn = FALSE) {
   if (expr) {
     return(invisible(TRUE))
   }
-  error_msg <- sprintf(strwrap(error_msg), ...)
+  error_msg <- sprintfwrap(error_msg, ...)
   do.call(ifelse(warn,yes = "warning",no = "stop"),
           list(error_msg = error_msg, call. = FALSE))
   return(invisible(FALSE))

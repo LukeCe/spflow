@@ -50,8 +50,14 @@ compute_spflow_moments <- function(
   dimnames(UY) <- list(rownames(UU), names(model_matrices$Y_))
 
   ZY <- UY[Z_index, , drop = FALSE]
-
   TSS <- crossproduct_mat_list(model_matrices$Y_, Y_wt)
+
+  # covariance matrix
+  TCOVAR <- rbind(cbind(UU,UY), cbind(t(UY), TSS))
+  TCOVAR <- TCOVAR - (outer(TCOVAR[1,], TCOVAR[1,])/N)
+  TCOVAR <- TCOVAR / outer(sqrt(diag(TCOVAR)), sqrt(diag(TCOVAR)))
+  diag(TCOVAR[-1,-1]) <- 1
+
 
   is_2sls <- flow_control[["estimation_method"]] == "s2sls"
   model_moments <- compact(list(
@@ -62,7 +68,8 @@ compute_spflow_moments <- function(
     "ZZ"        = ZZ,
     "UY"        = UY %T% is_2sls,   # only for s2sls
     "ZY"        = ZY,
-    "TSS"       = TSS))
+    "TSS"       = TSS,
+    "TCOVAR"    = TCOVAR))
 
   # (if required)
   # Functions to validate the parameter space

@@ -32,3 +32,12 @@ count_pattern <- function(charvec, pattern){
   charvec_p <- unlist(lapply(charvec_p, function(x) length(grep(pattern, x))))
   return(charvec_p)
 }
+
+#' @keywords internal
+sprintfwrap <- function(msg, ... , linebreak = "<br>") {
+  wrap_str <- sprintf(strwrap(msg, width = 10000), ...)
+  gsub(pattern = linebreak,
+       replacement = "\n",
+       x = wrap_str,
+       fixed = TRUE)
+  }

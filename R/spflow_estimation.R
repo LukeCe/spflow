@@ -10,6 +10,7 @@ spflow_model_estimation <- function(
         ZY  = model_moments[["ZY"]],
         TSS = model_moments[["TSS"]],
         N   = model_moments[["N"]],
+        TCOVAR = model_moments[["TCOVAR"]],
         flow_control = flow_control
       )},
     "s2sls" = {
@@ -20,6 +21,7 @@ spflow_model_estimation <- function(
         ZY  = model_moments[["ZY"]],
         TSS = model_moments[["TSS"]],
         N   = model_moments[["N"]],
+        TCOVAR = model_moments[["TCOVAR"]],
         flow_control = flow_control
       )},
     "mle" = {
@@ -30,6 +32,7 @@ spflow_model_estimation <- function(
         N     = model_moments[["N"]],
         n_d   = model_moments[["n_d"]],
         n_o   = model_moments[["n_o"]],
+        TCOVAR = model_moments[["TCOVAR"]],
         flow_control = flow_control,
         logdet_calculator = model_moments[["logdet_calculator"]]
       )},
@@ -40,6 +43,7 @@ spflow_model_estimation <- function(
       N   = model_moments[["N"]],
       n_d = model_moments[["n_d"]],
       n_o = model_moments[["n_o"]],
+      TCOVAR = model_moments[["TCOVAR"]],
       flow_control = flow_control,
       logdet_calculator = model_moments[["logdet_calculator"]]
     )}
@@ -47,3 +51,26 @@ spflow_model_estimation <- function(
   return(estimation_results)
 }
 
+#' @importFrom utils askYesNo
+#' @keywords internal
+solve_savely <- function(ZZ, ZY, TCOVAR, error_msg) {
+
+  result <- try(solve(ZZ, ZY), silent = TRUE)
+  if (!is(result,"try-error"))
+    return(result)
+
+  if (interactive()) {
+    question <- sprintfwrap("
+         The covariates of your models lead to a singular fit!
+         <br>Type \"yes\" to show a correlpation plot.")
+    answer <- askYesNo(question, default = FALSE)
+
+    if (answer)
+      cor_map(TCOVAR)
+  }
+
+  if (missing(error_msg))
+    stop(result[1])
+
+  stop(sprintfwrap(error_msg))
+}

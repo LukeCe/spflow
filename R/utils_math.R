@@ -98,6 +98,71 @@ sandwich_prod <- function(w1,mat,w2=w1){
   return(w_mat_w)
 }
 
+#' @importFrom grDevices hcl.colors
+#' @importFrom graphics axis image text
+#' @keywords internal
+cor_map <- function(cor_mat) {
+
+  assert(all(c(diag(cor_mat) == 1, cor_mat <= 1),na.rm = TRUE),
+         "Make sure to provide a valid correlation matrix.
+         All elements musst be in the interval from -1 to 1
+         and the diagonal elements musst be 1!")
+
+  if (is.null(rownames(cor_mat)))
+    rownames(cor_mat) <- colnames(cor_mat)
+
+  if (is.null(colnames(cor_mat)))
+    colnames(cor_mat) <- rownames(cor_mat)
+
+  assert(all(colnames(cor_mat) == rownames(cor_mat)),
+         "If provided colnames and rownames musst be equal!")
+
+  opts <- par(mar = c(2, 13, 13, 2) + .1)
+  cor_mat_rev <- cor_mat[,rev(seq(ncol(cor_mat)))]
+
+  # color
+  ncolor <- 200
+  col_breaks <- seq(from = -1, to = 1, length.out = ncolor + 1)
+  col_breaks <- sign(col_breaks) * sqrt(abs(col_breaks))
+  col_pal <- hcl.colors(n = ncolor, palette = "Blue-Red 3",rev = T)
+
+  # text and labels
+  pos_xy <- seq(from = 0, to = 1, length.out = ncol(cor_mat))
+  pos_x <- rep(pos_xy, ncol(cor_mat))
+  pos_y <- rep(pos_xy, each = ncol(cor_mat))
+  text_cor <- as.vector(cor_mat_rev)
+  text_cor <- round(text_cor,2)
+  text_col <- rep("white", length(text_cor))
+  text_col[abs(text_cor) < .5] <- "black"
+  top_labels <- rev(colnames(cor_mat_rev))
+  left_labels <- rev(rownames(cor_mat_rev))
+  backup_labels <- paste0("V", seq(ncol(cor_mat_rev)))
+
+  dont_show <- sort(abs(col_breaks))[2]
+  text_filter <- abs(text_cor) > dont_show
+
+
+  image.default(
+    z = cor_mat_rev,
+    useRaster = FALSE,
+    axes = FALSE,
+    col = col_pal,
+    breaks = col_breaks)
+  axis(side = 2, # left
+       at = seq(from = 0, to = 1, length.out = ncol(cor_mat)),
+       labels = left_labels %||% backup_labels,
+       las = 2)
+  axis(side = 3, # top
+       at = seq(from = 0, to = 1, length.out = ncol(cor_mat)),
+       labels = top_labels %||% backup_labels,
+       las = 2)
+  text(x = pos_x[text_filter],
+       y = pos_y[text_filter],
+       labels = text_cor[text_filter],
+       col = text_col[text_filter])
+  par(opts)
+}
+
 # ---- combinatorics ----------------------------------------------------------
 #' Create a table for  multinomial coefficient and parameter powers
 #' @keywords internal

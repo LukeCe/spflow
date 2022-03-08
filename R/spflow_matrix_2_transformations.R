@@ -29,7 +29,22 @@ by_source_model_matrix <- function(
     formula = source_formulas,
     data = data_sources)
 
-  return(c(source_model_matrices))
+  no_drops <- sapply(source_model_matrices, nrow) == sapply(data_sources, nrow)
+  if (all(no_drops))
+    return(c(source_model_matrices))
+
+  error_source <- names(no_drops[!no_drops])
+  error_source <- c("pair" = "oriigin-destination pairs",
+                    "orig" = "origins",
+                    "dest" = "destinations")[error_source]
+  error_source <- paste0(error_source, collapse =  " and ")
+  error_msg <- "
+  There are missing values in the data associcated with the %s,
+  please remove them from the data first!
+  <br>Also make sure that no missing values are created through the
+  transformations in your formula (e.g logartihms of negative numbers)."
+  stop(sprintfwrap(error_msg, error_source))
+
 }
 
 #' @keywords internal
