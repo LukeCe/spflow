@@ -10,13 +10,20 @@ derive_logdet_calculator <- function(
   flow_indicator) {
 
   if (is_cartesian) {
+
+    scaling <- 1
+    if (!is.null(flow_indicator))
+      scaling <- nnzero(flow_indicator) / (n_o * n_d)
+
+
     approx_logdet <- generate_approxldet_cartesian(
       OW = OW,
       DW = DW,
       n_o = n_o,
       n_d = n_d,
       model = model,
-      approx_order = approx_order)
+      approx_order = approx_order,
+      scaling = scaling)
     return(approx_logdet)
   }
 
@@ -48,7 +55,8 @@ generate_approxldet_cartesian <- function(
   n_o,
   n_d,
   model,
-  approx_order) {
+  approx_order,
+  scaling) {
 
   # the first trace is allways zero
   powers_2p <- seq(2, approx_order)
@@ -68,7 +76,7 @@ generate_approxldet_cartesian <- function(
     logdet_calculator_234 <- function(rho) {
       rho_xt <- rho^powers_2p
       logdet_val <- -as.numeric(sum(rho_xt * tWx_traces))
-      return(logdet_val)
+      return(logdet_val * scaling)
     }
     return(logdet_calculator_234)
   }
@@ -83,7 +91,7 @@ generate_approxldet_cartesian <- function(
 
       logdet_val_d <- -as.numeric(sum(rho_dt * tWd_traces))
       logdet_val_o <- -as.numeric(sum(rho_ot * tWo_traces))
-      return(logdet_val_d + logdet_val_o)
+      return((logdet_val_d + logdet_val_o) * scaling)
     }
     return(logdet_calculator_8)
   }
@@ -372,14 +380,14 @@ trace_template_nc <- function() {
 }
 
 #' @keywords  internal
-tracevals2approxldet <- function(tracevals) {
+tracevals2approxldet <- function(tracevals, scaling = 1) {
 
   approxldet <- function(rho) {
 
     powers <- subset(tracevals, select = -TRACE_VAL)
     param_vals <- Reduce("*", Map("^", rho, powers))
     logdet_val <- -as.numeric(sum(param_vals * tracevals$TRACE_VAL))
-    return(logdet_val)
+    return(logdet_val * scaling)
   }
 
   return(approxldet)
