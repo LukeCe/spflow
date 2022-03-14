@@ -21,7 +21,7 @@ setClass("sp_multi_network",
 
 
 # ---- Methods ----------------------------------------------------------------
-
+# ---- ... id -----------------------------------------------------------------
 #' @rdname sp_multi_network-class
 #' @export
 #' @examples
@@ -33,7 +33,7 @@ setClass("sp_multi_network",
 setMethod(
   f = "id",
   signature = "sp_multi_network",
-  function(object) { # ---- id -----------------------------------------------
+  function(object) {
     return(list(
       "networks" = names(slot(object,"networks")),
       "network_pairs" = names(slot(object,"network_pairs")))
@@ -41,6 +41,7 @@ setMethod(
   })
 
 
+# ---- ... dat ----------------------------------------------------------------
 #' @rdname sp_multi_network-class
 #' @param .id A character indicating the id of a [sp_network_nodes-class()] or a
 #'   [sp_network_pair-class()] inside the [sp_multi_network-class()].
@@ -54,7 +55,7 @@ setMethod(
 setMethod(
   f = "dat",
   signature = "sp_multi_network",
-  function(object, .id) { # ---- dat ------------------------------------
+  function(object, .id) {
 
     assert_is_single_x(.id, "character")
 
@@ -67,11 +68,12 @@ setMethod(
 })
 
 
+# ---- ... neighborhood -------------------------------------------------------
 #' @rdname sp_multi_network-class
 setMethod(
   f = "neighborhood",
   signature = "sp_multi_network",
-  function(object, .id = 1) { # ---- neighborhood -----------------------------
+  function(object, .id = 1) {
     assert(.id %in% id(object)[["networks"]],
            "The provided id does not correspond to any sp_network_nodes.")
     return(neighborhood(object@networks[[.id]]))
@@ -148,6 +150,65 @@ setMethod(
   })
 
 
+# ---- ... pair_corr ----------------------------------------------------------
+#' @title Compute a correlation matrix for OD pairs
+#' @description
+#' The method computes person correlations for all variables available for the
+#' the origins, destinations, and OD-pairs inside for a given network pair.
+#' The variables can be adjusted using the formula argument.
+#'
+#' @param object
+#'   A [sp_multi_network-class()]
+#' @param network_pair_id
+#'   A character indicating the id of a [sp_network_pair-class()]
+#' @param flow_formula
+#'
+#'
+#' @return A matrix of pairwise correlations between variables.
+#' @rdname pair_corr
+#' @export
+#' @examples
+#' # long form data for flows from Germany to Germany
+#' pair_merge(multi_net_usa_ge,"ge_ge")
+#'
+#' # long form data for flows from Germany to USA
+#' pair_merge(multi_net_usa_ge,"ge_usa")
+setMethod(
+  f = "pair_merge",
+  signature = "sp_multi_network",
+  function(object,
+           network_pair_id =  id(object)[["network_pairs"]][[1]] ,
+           flow_formula = ~ .,
+           add_lags_x = TRUE,
+           add_lags_y = FALSE) {
+
+    od_ids <- id(object)[["network_pairs"]]
+    assert(network_pair_id %in% od_ids,
+           "Network pair with id %s was not found!", network_pair_id)
+    assert_is(flow_formula, "formula")
+
+    flow_control <- list(
+      model = ifelse(add_lags_y,"model_9", "model_1"),
+      sdm_variables = ifelse(add_lags_x,"same", "none"))
+
+    flow_control <- enhance_flow_control(
+      flow_control = flow_control,
+      net_pair = pull_member(object, network_pair_id))
+
+    mat <- spflow_model_matrix(
+      sp_multi_network = object,
+      network_pair_id = network_pair_id,
+      flow_formula = flow_formula,
+      flow_control = flow_control,
+      ignore_na = TRUE)
+
+    mom <- compute_spflow_moments(mat, flow_control,ignore_na = TRUE)
+    return(mom[["TCORR"]])
+  })
+
+
+
+# ---- ... pair_merge ---------------------------------------------------------
 #' @title Create a long form data.frame of origin-destination pairs
 #'
 #' @description
@@ -174,7 +235,7 @@ setMethod(
 setMethod(
   f = "pair_merge",
   signature = "sp_multi_network",
-  function(object, network_pair_id, all_pairs = FALSE) { # ---- pair_merge ----
+  function(object, network_pair_id, all_pairs = FALSE) {
 
     od_ids <- id(object)[["network_pairs"]]
     assert(network_pair_id %in% od_ids,
@@ -224,7 +285,9 @@ setMethod(
     return(pair_data[col_order, name_order])
 })
 
-setValidity("sp_multi_network", function(object) { # ---- validity ------------
+
+# ---- ... validity -----------------------------------------------------------
+setValidity("sp_multi_network", function(object) {
 
   ### check validity of pairs and nodes
   lapply(compact(object@network_pairs), "assert_is", "sp_network_pair")

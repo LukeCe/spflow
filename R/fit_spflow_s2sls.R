@@ -1,5 +1,5 @@
 #' @keywords internal
-spflow_s2sls <- function(UU,UY,ZZ,ZY,TSS,N,TCOVAR,flow_control) {
+spflow_s2sls <- function(UU,UY,ZZ,ZY,TSS,N,TCORR,flow_control) {
 
   # number of auto-regressive parameters and model coefficients and total
   nb_rho <- ncol(UY) - 1
@@ -20,7 +20,7 @@ spflow_s2sls <- function(UU,UY,ZZ,ZY,TSS,N,TCOVAR,flow_control) {
   # fill four blocks of the second stage variance moment
   UL <- UY[,-1]
   ZL <- ZY[,-1]
-  LL_hat <- crossprod(UL, solve_savely(UU, UL, TCOVAR))
+  LL_hat <- crossprod(UL, solve_savely(UU, UL, TCORR))
   stage2_ZZ[index_rho,index_rho] <- LL_hat
   stage2_ZZ[index_rho,index_delta] <- t(ZL)
   stage2_ZZ[index_delta,index_rho] <- ZL

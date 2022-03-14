@@ -7,7 +7,7 @@ spflow_mcmc <- function(
   N,
   n_d,
   n_o,
-  TCOVAR,
+  TCORR,
   flow_control,
   logdet_calculator) {
 
@@ -51,7 +51,7 @@ spflow_mcmc <- function(
   tune_rw <- rep(0.2,nb_rho)
 
   # pre-compute quantities that are used repeatedly
-  delta_t <- solve_savely(ZZ, ZY, TCOVAR)
+  delta_t <- solve_savely(ZZ, ZY, TCORR)
   RSS_t <- TSS - crossprod(ZY,delta_t)
   varcov_delta <- chol2inv(chol(ZZ))
   varcov_delta_chol <- chol(varcov_delta)

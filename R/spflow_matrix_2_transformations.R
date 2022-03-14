@@ -9,7 +9,8 @@
 #' @keywords internal
 by_source_model_matrix <- function(
   formula_parts,
-  data_sources) {
+  data_sources,
+  ignore_na = FALSE) {
 
   source_formulas <- lapply(formula_parts, function(.f) {
     combine_formulas_by_source(sources = names(data_sources),
@@ -30,8 +31,8 @@ by_source_model_matrix <- function(
     data = data_sources)
 
   no_drops <- sapply(source_model_matrices, nrow) == sapply(data_sources, nrow)
-  if (all(no_drops))
-    return(c(source_model_matrices))
+  if (all(no_drops) | ignore_na)
+    return(source_model_matrices)
 
   error_source <- names(no_drops[!no_drops])
   error_source <- c("pair" = "oriigin-destination pairs",
@@ -40,9 +41,7 @@ by_source_model_matrix <- function(
   error_source <- paste0(error_source, collapse =  " and ")
   error_msg <- "
   There are missing values in the data associcated with the %s,
-  please remove them from the data first!
-  <br>Also make sure that no missing values are created through the
-  transformations in your formula (e.g logartihms of negative numbers)."
+  please remove them from the data first!"
   stop(sprintfwrap(error_msg, error_source))
 
 }

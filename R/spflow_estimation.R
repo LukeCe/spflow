@@ -1,6 +1,7 @@
 #' @keywords internal
 spflow_model_estimation <- function(
   model_moments,
+  nb_functions,
   flow_control) {
 
   estimation_results <- switch(flow_control$estimation_method,
@@ -10,7 +11,7 @@ spflow_model_estimation <- function(
         ZY  = model_moments[["ZY"]],
         TSS = model_moments[["TSS"]],
         N   = model_moments[["N"]],
-        TCOVAR = model_moments[["TCOVAR"]],
+        TCORR = model_moments[["TCORR"]],
         flow_control = flow_control
       )},
     "s2sls" = {
@@ -21,7 +22,7 @@ spflow_model_estimation <- function(
         ZY  = model_moments[["ZY"]],
         TSS = model_moments[["TSS"]],
         N   = model_moments[["N"]],
-        TCOVAR = model_moments[["TCOVAR"]],
+        TCORR = model_moments[["TCORR"]],
         flow_control = flow_control
       )},
     "mle" = {
@@ -32,9 +33,9 @@ spflow_model_estimation <- function(
         N     = model_moments[["N"]],
         n_d   = model_moments[["n_d"]],
         n_o   = model_moments[["n_o"]],
-        TCOVAR = model_moments[["TCOVAR"]],
+        TCORR = model_moments[["TCORR"]],
         flow_control = flow_control,
-        logdet_calculator = model_moments[["logdet_calculator"]]
+        logdet_calculator = nb_functions[["logdet_calculator"]]
       )},
     "mcmc" = {spflow_mcmc(
       ZZ  = model_moments[["ZZ"]],
@@ -43,9 +44,9 @@ spflow_model_estimation <- function(
       N   = model_moments[["N"]],
       n_d = model_moments[["n_d"]],
       n_o = model_moments[["n_o"]],
-      TCOVAR = model_moments[["TCOVAR"]],
+      TCORR = model_moments[["TCORR"]],
       flow_control = flow_control,
-      logdet_calculator = model_moments[["logdet_calculator"]]
+      logdet_calculator = nb_functions[["logdet_calculator"]]
     )}
   )
   return(estimation_results)
@@ -53,7 +54,7 @@ spflow_model_estimation <- function(
 
 #' @importFrom utils askYesNo
 #' @keywords internal
-solve_savely <- function(ZZ, ZY, TCOVAR, error_msg) {
+solve_savely <- function(ZZ, ZY, TCORR, error_msg) {
 
   result <- try(solve(ZZ, ZY), silent = TRUE)
   if (!is(result,"try-error"))
@@ -66,7 +67,7 @@ solve_savely <- function(ZZ, ZY, TCOVAR, error_msg) {
     answer <- askYesNo(question, default = FALSE)
 
     if (answer)
-      cor_map(TCOVAR)
+      cor_map(TCORR)
   }
 
   if (missing(error_msg))

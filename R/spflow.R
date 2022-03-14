@@ -180,13 +180,23 @@ spflow <- function(
     flow_formula,
     flow_control)
 
-  model_moments <- spflow_model_moments(
+  model_moments <- compute_spflow_moments(
     model_matrices = model_matrices,
     flow_control = flow_control)
 
+  # (if required)
+  # Functions to validate the parameter space
+  # and to calculate the log determinant
+  spatial_nbfunctions <- spflow_nbfunctions(
+    OW = model_matrices[["OW"]],
+    DW = model_matrices[["DW"]],
+    flow_control = flow_control,
+    flow_indicator = model_matrices[["flow_indicator"]])
+
   estimation_results <- spflow_model_estimation(
     model_moments = model_moments,
-    flow_control = flow_control)
+    flow_control = flow_control,
+    nb_functions = spatial_nbfunctions)
 
   estimation_results <- add_details(
     estimation_results,
@@ -265,4 +275,39 @@ sp_model_type <- function(cntrl) {
     model_type <- ifelse(has_lagged_x,"SDM","LAG")
 
   return(model_type)
+}
+
+
+#' @keywords internal
+spflow_nbfunctions <- function(
+    OW,
+    DW,
+    flow_control,
+    flow_indicator) {
+
+
+  if (flow_control[["estimation_method"]] == "ols")
+    return(NULL)
+
+  nbfunctions <- named_list(c("logdet_calculator", "pspace_validator"))
+  if (flow_control[["estimation_method"]] %in% c("mle", "mcmc")) {
+    nbfunctions[["logdet_calculator"]] <- derive_logdet_calculator(
+      OW = OW,
+      DW = DW,
+      model = flow_control[["model"]],
+      n_o = flow_control[["mat_ncols"]],
+      n_d = flow_control[["mat_nrows"]],
+      approx_order = flow_control[["logdet_approx_order"]],
+      is_cartesian = is.null(flow_indicator) | flow_control[["logdet_simplify2cartesian"]],
+      flow_indicator = flow_indicator)
+  }
+
+
+
+  # TODO finish the parameter space...
+  # nbfunctions[["pspace_validator"]] <- derive_param_space_validator(
+  #   OW = ,DW = ,model = ,)
+  # )
+
+  return(compact(nbfunctions))
 }

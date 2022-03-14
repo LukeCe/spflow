@@ -6,7 +6,7 @@ spflow_mle <- function(
   N,
   n_d,
   n_o,
-  TCOVAR,
+  TCORR,
   flow_control,
   logdet_calculator) {
 
@@ -14,7 +14,7 @@ spflow_mle <- function(
   hessian_method <- flow_control$mle_hessian_method
 
   # compute the decomposed coefficients to obtain the decomposed RSS
-  delta_t <- solve_savely(ZZ, ZY, TCOVAR)
+  delta_t <- solve_savely(ZZ, ZY, TCORR)
   RSS <- TSS - crossprod(ZY,delta_t)
 
   ## OPTIMIZE the concentrated likelihood ----

@@ -42,7 +42,8 @@ spflow_model_matrix <- function(
   sp_multi_network,
   network_pair_id,
   flow_formula,
-  flow_control) {
+  flow_control,
+  ignore_na = FALSE) {
 
   formula_parts <- interpret_flow_formula(
     flow_formula,
@@ -55,7 +56,8 @@ spflow_model_matrix <- function(
 
   od_model_matrices <- by_source_model_matrix(
     formula_parts,
-    od_data_sources)
+    od_data_sources,
+    ignore_na = ignore_na)
 
   # 2. solve constant terms, weight and indicator
   weights <- flow_control[["weight_var"]]

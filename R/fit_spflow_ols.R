@@ -1,7 +1,7 @@
 #' @keywords internal
-spflow_ols <- function(ZZ,ZY,TSS,N,TCOVAR,flow_control) {
+spflow_ols <- function(ZZ,ZY,TSS,N,TCORR,flow_control) {
 
-  delta <- solve_savely(ZZ, ZY, TCOVAR)
+  delta <- solve_savely(ZZ, ZY, TCORR)
 
   # standard errors
   ESS <- crossprod(ZY, delta)
