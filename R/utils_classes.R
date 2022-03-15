@@ -5,11 +5,6 @@ safely_to_list <- function(obj) {
 }
 
 #' @keywords internal
-setGenericVerif <- function(x,y) {
-  if ( !isGeneric(x))  setGeneric(x,y)
-}
-
-#' @keywords internal
 savely_as <- function(obj, class, ...) {
   if (is.null(obj))
     return(NULL)

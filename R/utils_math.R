@@ -101,7 +101,7 @@ sandwich_prod <- function(w1,mat,w2=w1){
 #' @importFrom grDevices hcl.colors
 #' @importFrom graphics axis image text
 #' @keywords internal
-cor_map <- function(cor_mat) {
+corr_map <- function(cor_mat) {
 
   assert(all(c(diag(cor_mat) == 1, cor_mat <= 1),na.rm = TRUE),
          "Make sure to provide a valid correlation matrix.

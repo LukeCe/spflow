@@ -18,15 +18,16 @@ setClassUnion("maybe_mcmc"      , c("NULL", "mcmc"))
 
 
 # ---- New Generics -----------------------------------------------------------
-
+# ---- ... add_details --------------------------------------------------------
 #' @name add_details
 #' @rdname add_details
 #' @keywords internal
 setGeneric(
-  name = "add_details", # ---- ... add_details --------------------------------
+  name = "add_details",
   def = function(object, ...) standardGeneric("add_details"))
 
 
+# ---- ... dat ----------------------------------------------------------------
 #' @title Generic for accessing the data inside
 #'   [spflow network classes][spflow_network_classes()]
 #' @description For details on the methods see the documentation of the
@@ -39,19 +40,21 @@ setGeneric(
 #' @seealso [spflow_network_classes()]
 #' @export
 setGeneric(
-  name = "dat", # ---- ... dat ------------------------------------------------
+  name = "dat",
   def = function(object, ...) standardGeneric("dat"))
 
 
+# ---- ... dat<- --------------------------------------------------------------
 #' @param value A data.frame to replace existing data
 #' @rdname dat
 #' @name dat<-
 #' @export
 setGeneric(
-  name = "dat<-", # ---- ... dat<- --------------------------------------------
+  name = "dat<-",
   def = function(object, value) standardGeneric("dat<-"))
 
 
+# ---- ... id -----------------------------------------------------------------
 #' @title Generic for accessing the ids of
 #'   [spflow network classes][spflow_network_classes()]
 #' @description For details on the methods see the documentation of the
@@ -66,28 +69,30 @@ setGeneric(
 #' @seealso [spflow_network_classes()]
 #' @export
 setGeneric(
-  name = "id", # ---- ... id --------------------------------------------------
+  name = "id",
   def = function(object, ...) standardGeneric("id"))
 
-
+# ---- ... id<- ---------------------------------------------------------------
 #' @param value A character replacing the existing id
 #' @rdname id
 #' @name id<-
 #' @export
 setGeneric(
-  name = "id<-", # ---- ... id<- ----------------------------------------------
+  name = "id<-",
   def = function(object, ..., value) standardGeneric("id<-"))
 
+# ---- ... get_keys -----------------------------------------------------------
 #' @title Get the keys for identifying origins, destinations, or od-pairs
 #' @param value A character replacing the existing id
 #' @param object One of [sp_network_nodes-class()], [sp_network_pair-class()]
 #' @seealso
 #' @export
 setGeneric(
-  name = "get_keys", # ---- ... get_keys --------------------------------------
+  name = "get_keys",
   def = function(object) standardGeneric("get_keys"))
 
 
+# ---- ... mcmc_results -------------------------------------------------------
 #' @title Access the sampling results of a [spflow_model_mcmc-class()]
 #' @description For details see the documentation of the corresponding class.
 #' @name mcmc_results
@@ -96,10 +101,11 @@ setGeneric(
 #' @seealso [spflow_model_mcmc-class()]
 #' @export
 setGeneric(
-  name = "mcmc_results", # ---- ... mcmc_results ------------------------------
+  name = "mcmc_results",
   def = function(object) standardGeneric("mcmc_results"))
 
 
+# ---- ... neighborhood -------------------------------------------------------
 #' @title Generic for accessing the neighborhood matrix inside
 #'   [spflow network classes][spflow_network_classes()]
 #' @description For details on the methods see the documentation of the
@@ -114,19 +120,21 @@ setGeneric(
 #'
 #' @export
 setGeneric(
-  name = "neighborhood", # ---- ... neighborhood ------------------------------
+  name = "neighborhood",
   def = function(object, ...) standardGeneric("neighborhood"))
 
 
+# ---- ... neighborhood<- -----------------------------------------------------
 #' @rdname neighborhood
 #' @param value A neighborhood matrix to replace the existing one
 #' @name neighborhood<-
 #' @export
 setGeneric(
-  name = "neighborhood<-", # ---- ... neighborhood<- --------------------------
+  name = "neighborhood<-",
   def = function(object, value) standardGeneric("neighborhood<-"))
 
 
+# ---- ... nnodes -------------------------------------------------------------
 #' @title Generic for accessing the node count of
 #'   [spflow network classes][spflow_network_classes()]
 #' @description For details on the methods see the documentation of the
@@ -139,10 +147,11 @@ setGeneric(
 #' @seealso [sp_network_nodes-class()] [sp_network_pair-class()]
 #' @export
 setGeneric(
-  name = "nnodes", # ---- ... nnodes ------------------------------------------
+  name = "nnodes",
   def = function(object, ...) standardGeneric("nnodes"))
 
 
+# ---- ... npairs -------------------------------------------------------------
 #' @title Generic for accessing the node pairs count of a
 #'   [sp_network_pair-class()]
 #' @description For details on the method see the documentation of the
@@ -153,10 +162,27 @@ setGeneric(
 #' @seealso [sp_network_pair-class()]
 #' @export
 setGeneric(
-  name = "npairs", # ---- ... npairs ------------------------------------------
+  name = "npairs",
   def = function(object) standardGeneric("npairs"))
 
 
+# ---- ... pair_corr ----------------------------------------------------------
+#' @title Generic for creating a matrix correlations for OD data
+#'   pairs inside [spflow network classes][spflow_network_classes()]
+#' @description For details on the methods see the documentation of the
+#'   corresponding classes.
+#' @rdname pair_corr
+#' @name pair_corr
+#' @param object A [sp_multi_network-class()]
+#' @param ... Arguments to be passed to methods
+#' @seealso [sp_multi_network-class()]
+#' @export
+setGeneric(
+  name = "pair_corr",
+  def = function(object, ...) standardGeneric("pair_corr"))
+
+
+# ---- ... pair_merge ---------------------------------------------------------
 #' @title Generic for merging information on origins and destination to node
 #'   pairs inside [spflow network classes][spflow_network_classes()]
 #' @description For details on the methods see the documentation of the
@@ -168,7 +194,7 @@ setGeneric(
 #' @seealso [sp_multi_network-class()]
 #' @export
 setGeneric(
-  name = "pair_merge", # ---- ... pair_merge ----------------------------------
+  name = "pair_merge",
   def = function(object, ...) standardGeneric("pair_merge"))
 
 

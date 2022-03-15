@@ -86,7 +86,7 @@ by_role_spatial_lags <- function(
       list("flow_indicator" = flow_indicator))))
 
   # ... G_ (explanatory variables)
-  pair_covariates <- as.character(lag_requirements_by_role[["G_"]])
+  pair_covariates <- unlist(lag_requirements_by_role[["G_"]])
   pair_covariates <- lookup(unique(pair_covariates))
   G_lag_num <- translist(lag_requirements_by_role[["G_"]])
   G_lag_num <- lapply(G_lag_num, function(x) length(x) - 1)

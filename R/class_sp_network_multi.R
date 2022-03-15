@@ -174,17 +174,20 @@ setMethod(
 #' # long form data for flows from Germany to USA
 #' pair_merge(multi_net_usa_ge,"ge_usa")
 setMethod(
-  f = "pair_merge",
+  f = "pair_corr",
   signature = "sp_multi_network",
   function(object,
            network_pair_id =  id(object)[["network_pairs"]][[1]] ,
-           flow_formula = ~ .,
+           flow_formula,
            add_lags_x = TRUE,
            add_lags_y = FALSE) {
 
     od_ids <- id(object)[["network_pairs"]]
     assert(network_pair_id %in% od_ids,
            "Network pair with id %s was not found!", network_pair_id)
+
+    if (missing(flow_formula))
+      flow_formula <- 1 ~ .
     assert_is(flow_formula, "formula")
 
     flow_control <- list(

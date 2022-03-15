@@ -67,7 +67,7 @@ solve_savely <- function(ZZ, ZY, TCORR, error_msg) {
     answer <- askYesNo(question, default = FALSE)
 
     if (answer)
-      cor_map(TCORR)
+      corr_map(TCORR)
   }
 
   if (missing(error_msg))
