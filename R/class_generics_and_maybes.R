@@ -26,6 +26,13 @@ setGeneric(
   name = "add_details",
   def = function(object, ...) standardGeneric("add_details"))
 
+# ---- ... complete_pairs -----------------------------------------------------
+#' @name add_details
+#' @rdname add_details
+#' @keywords internal
+setGeneric(
+  name = "complete_pairs",
+  def = function(object, ...) standardGeneric("complete_pairs"))
 
 # ---- ... dat ----------------------------------------------------------------
 #' @title Generic for accessing the data inside

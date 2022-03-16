@@ -41,6 +41,80 @@ setMethod(
   })
 
 
+# ---- ... complete_pair ------------------------------------------------------
+#' @param make_cartesian
+#'   A logical, when set to `TRUE` the resulting data.frame contains all
+#'   possible pairs of origins and destination, even if the data in the
+#'   [sp_network_pair-class()] does not have them.
+#' @rdname sp_multi_network-class
+#' @export
+setMethod(
+  f = "complete_pair",
+  signature = "sp_multi_network",
+  function(
+    object,
+    pair_ids = id(object)[["network_pairs"]][[1]],
+    make_cartesian = FALSE,
+    add_distances = TRUE,
+    dist_fun) {
+
+
+    assert_is(pair_ids, "character")
+    od_infos <- lapply(pair_ids, check_pair_completeness, object)
+    od_infos <- Filter(function(x) !any(x[c("ID_ORIG_NET", "ID_DEST_NET")] == "(missing)"), od_infos)
+
+    for (i in seq_along(od_infos)) {
+
+      p_id <- od_infos[[i]][["ID_NET_PAIR"]]
+      flow_dat <- pull_relational_flow_data(object, p_id)
+
+      o_dat <- dat(object, od_infos[[i]][["ID_ORIG_NET"]])
+      d_dat <- dat(object, od_infos[[i]][["ID_DEST_NET"]])
+      N <- od_infos[[i]][["NPAIRS"]]
+      n_o <- od_infos[[i]][["ORIG_NNODES"]]
+      n_d <- od_infos[[i]][["DEST_NNODES"]]
+
+      is_cartesian <- N == n_o * n_d
+      coord_od <- list("o" = attr_coord_col(o_dat),
+                       "d" = attr_coord_col(d_dat))
+
+
+
+      pair_dat <- dat(object, od_infos[[i]][["ID_NET_PAIR"]])
+
+      if (make_cartesian) {
+
+        o_index <- rep()
+      }
+
+
+
+      if (make_cartesian)
+
+      if (add_distances) {
+        o_coord <- pull_node_coords(pull_member(object, o_id))
+        d_coord <- pull_node_coords(pull_member(object, d_id))
+
+
+      }
+
+
+
+
+
+
+    }
+    pair_ids
+
+    all_ids <- id(object)
+    which_id <- lapply(all_ids, "==", .id)
+    assert(sum(unlist(which_id)) == 1,
+           "The provided id does not correspond to any network object.")
+    from <- names(Filter("any",which_id))
+    return(dat(slot(object,from)[[.id]]))
+  })
+
+
 # ---- ... dat ----------------------------------------------------------------
 #' @rdname sp_multi_network-class
 #' @param .id A character indicating the id of a [sp_network_nodes-class()] or a
@@ -206,7 +280,7 @@ setMethod(
       ignore_na = TRUE)
 
     mom <- compute_spflow_moments(mat, flow_control,ignore_na = TRUE)
-    return(mom[["TCORR"]])
+    return(mom[["TCORR"]][-1,-1, drop = FALSE])
   })
 
 
@@ -222,7 +296,7 @@ setMethod(
 #'   A [sp_multi_network-class()]
 #' @param network_pair_id
 #'   A character indicating the id of a [sp_network_pair-class()]
-#' @param all_pairs
+#' @param make_cartesian
 #'   A logical, when set to `TRUE` the resulting data.frame contains all
 #'   possible pairs of origins and destination, even if the data in the
 #'   [sp_network_pair-class()] does not have them.
@@ -238,7 +312,7 @@ setMethod(
 setMethod(
   f = "pair_merge",
   signature = "sp_multi_network",
-  function(object, network_pair_id, all_pairs = FALSE) {
+  function(object, network_pair_id, make_cartesian = FALSE) {
 
     od_ids <- id(object)[["network_pairs"]]
     assert(network_pair_id %in% od_ids,
@@ -250,7 +324,8 @@ setMethod(
     od_keys <- attr_key_od(pair_data)
 
     # check if cartesian merge is required
-    if (all_pairs && (nrow(pair_data) < nrow(orig_data) * nrow(dest_data))) {
+    is_cartesian <- nrow(pair_data) < (nrow(orig_data) * nrow(dest_data))
+    if (make_cartesian & !is_cartesian) {
       o_keys <- orig_data[[attr_key_nodes(orig_data)]]
       d_keys <- dest_data[[attr_key_nodes(dest_data)]]
       template <-
@@ -287,6 +362,8 @@ setMethod(
 
     return(pair_data[col_order, name_order])
 })
+
+
 
 
 # ---- ... validity -----------------------------------------------------------
@@ -462,9 +539,9 @@ check_pair_completeness <- function(pair_id, multi_net) {
     "NPAIRS" = npairs(this_pair),
     "COMPLETENESS" = npairs(this_pair) / prod(od_nnodes),
     "ID_ORIG_NET" = ifelse(has_o_id, od_id["orig"], "(missing)"),
-    "ORIG_NNODES" = ifelse(has_o_id, od_nnodes["orig"], "(missing)"),
+    "ORIG_NNODES" = od_nnodes["orig"],
     "ID_DEST_NET" = ifelse(has_o_id, od_id["dest"], "(missing)"),
-    "DEST_NNODES" = ifelse(has_o_id, od_nnodes["dest"], "(missing)"),
+    "DEST_NNODES" = od_nnodes["dest"],
     row.names = NULL))
 }
 
@@ -481,6 +558,11 @@ validate_od_keys <- function(o_keys, d_keys, od_keys) {
 }
 
 #' @keywords internal
+pull_node_coords <- function(sp_dat) {
+  sp_dat[attr_coord_col(sp_dat)] %||% NULL
+}
+
+#' @keywords internal
 pull_od_levels <- function(sp_net_pair, o_vs_d = "orig") {
   get_key <- match.fun("attr_key_" %p% o_vs_d)
   key <- get_key(sp_net_pair)
@@ -494,3 +576,27 @@ id_part <- function(.id, o_vs_d) {
 }
 
 
+#' @keywords internal
+od_expand <- function(
+  o_dat = NULL,
+  d_dat = NULL,
+  n_d,
+  n_o,
+  index_o,
+  index_d) {
+
+  if (missing(n_o))
+    n_o <- nrow(o_dat)
+
+  if (missing(n_d))
+    n_d <- nrow(d_dat)
+
+  if (missing(index_o))
+    index_o <- rep(seq_len(n_o), each = n_d)
+
+  if (missing(index_d))
+    index_d <- rep(seq_len(n_d), n_o)
+
+  return(cbind(o_dat %|!|% suffix_columns(o_dat, "_ORIG")[index_o,],
+               d_dat %|!|% suffix_columns(d_dat, "_DEST")[index_d,]))
+}

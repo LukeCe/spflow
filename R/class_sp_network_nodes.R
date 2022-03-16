@@ -250,6 +250,9 @@ setValidity(
 #'   A matrix that describes the neighborhood of the nodes
 #' @param node_key_column
 #'   A character indicating the column containing the identifiers for the nodes
+#' @param node_coord_columns
+#'   A character indicating the column containing the identifiers for
+#'   geographic coordinates, such as c("LON", "LAT").
 #'
 #' @family Constructors for spflow network classes
 #' @importClassesFrom Matrix Matrix
@@ -264,8 +267,9 @@ sp_network_nodes <- function(
   network_id,
   node_neighborhood = NULL,
   node_data = NULL,
-  node_key_column
-) {
+  node_key_column,
+  node_coord_columns,
+  prefer_lonlat = TRUE) {
 
 
   # checks for validity of dimensions are done before the return
@@ -287,18 +291,24 @@ sp_network_nodes <- function(
   if (is.null(node_data))
     return(nodes)
 
-  # Add the key column to the node_data
-  assert_inherits(node_data, "data.frame")
+  node_data <- simplfy2df(
+    node_data,
+    derive_coord_cols = missing(node_coord_columns),
+    prefer_lonlat = prefer_lonlat)
 
-  if (missing(node_key_column)) node_key_column <- attr_key_nodes(node_data)
-  assert_is_single_x(node_key_column,"character")
-  assert(node_key_column %in% names(node_data),
-         "The node_key_column is not found in the node_data!")
-
+  # identfyer
+  if (missing(node_key_column))
+    node_key_column <- attr_key_nodes(node_data)
   attr_key_nodes(node_data) <- node_key_column
   node_data[[node_key_column]] <- factor_in_order(node_data[[node_key_column]])
-  nodes@node_data <- node_data
 
+  # coordinates
+  if (missing(node_coord_columns))
+    node_coord_columns <- attr_coord_col(node_data)
+  attr_coord_col(node_data) <- node_coord_columns
+
+
+  nodes@node_data <- node_data
   validObject(nodes)
   return(nodes)
 }
@@ -312,6 +322,10 @@ attr_key_nodes <- function(df) {
 
 #' @keywords internal
 `attr_key_nodes<-` <- function(df, value) {
+
+  assert(sum(value == names(df)) == 1, "
+         The node_key_column musst unquily identfy one
+         column name of in the node_data!")
   attr(df, "node_key_column") <- value
   df
 }
@@ -320,3 +334,63 @@ attr_key_nodes <- function(df) {
 valid_network_id <- function(key) {
   is_single_character(key) && grepl("^[[:alnum:]]+$",key)
 }
+
+
+#' @keywords internal
+simplfy2df <- function(df, derive_coord_cols = TRUE, prefer_lonlat = TRUE) {
+
+  if (inherits(df, "Spatial")) {
+
+    if (require("sf")) {
+      df <- sf::st_as_sf(df)
+    } else {
+      df <- df@data
+    }
+  }
+
+  if (inherits(df, "sf")) {
+
+    if (derive_coord_cols && require("sf")) {
+      coords <- sf::st_geometry(df)
+      coords <- suppressWarnings(sf::st_point_on_surface(coords))
+      if (!is.na(sf::st_crs(coords)) & prefer_lonlat)
+        coords <- sf::st_transform(coords, "WGS84")
+      is_lonlat <- sf::st_is_longlat(coords)
+      coords <- data.frame(sf::st_coordinates(coords))
+
+      df <- cbind(sf::st_drop_geometry(df), coords)
+      attr_coord_col(df) <- names(coords)
+      attr_coord_lonlat(df) <- is_lonlat
+    } else {
+      df <- as.data.frame(df)
+      df <- Filter("is.atomic", df)
+    }
+  }
+  return(as.data.frame(df))
+}
+
+
+attr_coord_col <- function(df, value) {
+  attr(df, "coord_columns")
+}
+
+`attr_coord_col<-` <- function(df, value) {
+  assert(sum(value %in% names(df)) == length(value), "
+         The coord_columns musst unquily identfy the corresponding
+         column names in the node_data!")
+  attr(df, "coord_columns") <- value
+  df
+}
+
+attr_coord_lonlat <- function(df, value) {
+  attr(df, "coord_lonlat")
+}
+
+`attr_coord_lonlat<-` <- function(df, value) {
+  if (is.null(attr_coord_col(df)))
+    value <- NULL
+
+  attr(df, "coord_lonlat") <- value
+  df
+}
+

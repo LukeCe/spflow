@@ -96,28 +96,42 @@ spflow_model_matrix <- function(
 
 
 #' @keywords internal
-pull_relational_flow_data <- function(sp_multi_net, pair_id) {
+pull_relational_flow_data <- function(
+  sp_multi_net,
+  pair_id,
+  drop_keys,
+  only_keys = FALSE) {
+
+  if (missing(drop_keys))
+    drop_keys <- !only_keys
+  only_keys <- !drop_keys
+
 
   # identification of the data sources
   source_ids <- as.list(id(sp_multi_net@network_pairs[[pair_id]]))
   if (has_equal_elements(source_ids[c("orig", "dest")]))
     source_ids[["dest"]] <- NULL
 
-  flow_data <- lapply(
+  # fd = flow_data
+  fd <- lapply(
     source_ids,
     function(.id) as.data.frame(dat(sp_multi_net, .id)))
-  for (i in seq_along(flow_data)) {
-    if (names(flow_data)[i] == "pair")
-      key_cols <- attr_key_od(flow_data[[i]])
 
-    if (names(flow_data)[i] %in% c("orig","dest"))
-      key_cols <- attr_key_nodes(flow_data[[i]])
+  for (i in seq_along(fd)) {
 
-    flow_data[[i]][key_cols] <- NULL
+    if (names(fd)[i] == "pair")
+      key_cols <- attr_key_od(fd[[i]])
+
+    if (names(fd)[i] %in% c("orig","dest"))
+      key_cols <- c(attr_key_nodes(fd[[i]]), attr_coord_col(fd[[i]]))
+
+    if (only_keys)
+      keys <- setdiff(names(fd[[i]]), keys)
+
+    fd[[i]][key_cols] <- NULL
   }
 
-
-  return(flow_data)
+  return(fd)
 }
 
 #' @keywords internal
