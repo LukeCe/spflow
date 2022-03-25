@@ -49,7 +49,7 @@ spflow_model_matrix <- function(
     flow_formula,
     flow_control)
 
-  # 1. transform by sources = c("pair", "orig", "dest")
+  # transform by sources = c("pair", "orig", "dest")
   od_data_sources <- pull_relational_flow_data(
     sp_multi_network,
     network_pair_id)
@@ -59,14 +59,59 @@ spflow_model_matrix <- function(
     od_data_sources,
     ignore_na = ignore_na)
 
-  # 2. solve constant terms, weight and indicator
-  weights <- flow_control[["weight_var"]]
-  if (!is.null(flow_control[["weight_var"]]))
-    weights <- flow_control$mat_format(od_data_sources$pair[[weights]])
+  # check if the case is cartesian
+  #   and if observations are dropped due to the transformations
+  source_obs <- unlist(lapply(od_model_matrices, "nrow"))
+  trans_obs <- unlist(lapply(od_model_matrices, "nrow"))
+  non_cartesian <- source_obs["pair"] < prod(source_obs[c("orig","dest")])
+  lost_rows <- !all(unlist(Map("==", source_obs, trans_obs)))
 
   flow_indicator <- NULL
-  if (flow_control[["mat_complet"]] < 1)
-    flow_indicator <- flow_control$mat_format(NULL)
+  if (non_cartesian | lost_rows) {
+    pairobs_index <- as.integer(row.names(od_model_matrices[["pair"]]))
+    od_keys <- attr_key_od(od_data_sources[["pair"]])
+    do_indexes <- od_data_sources[["pair"]][rev(od_keys)]
+    do_indexes <- Reduce("cbind", lapply(do_indexes, "as.integer"))
+    do_indexes <- do_indexes[pairobs_index,]
+
+    flow_indicator <- matrix_format_d_o(
+      dest_index = do_indexes[,1],
+      orig_index = do_indexes[,2],
+      num_dest = source_obs[["dest"]],
+      num_orig = source_obs[["orig"]])
+    }
+
+
+  # transforming from vector to matrix format
+  mat_formatter <- switch(EXPR = class(flow_indicator)
+  , "ngCMatrix" = {
+    imat <- as(flow_indicator,"dgCMatrix")
+    function(vec) {
+      imat@x <- vec
+      return(imat)}}
+  , "matrix" = {
+    nd <- source_obs[["dest"]]
+    no <- source_obs[["orig"]]
+    function(vec) {
+      mat <- matrix(0, nrow = nd, ncol = no)
+      mat[do_indexes] <- vec
+      return(mat)}}
+  , "NULL" = {
+    nd <- source_obs[["dest"]]
+    no <- source_obs[["orig"]]
+    function(vec) {
+      mat <- matrix(vec, nrow = nd, ncol = no)
+      return(mat)}})
+
+  # solve constant terms and weights
+  weights <- flow_control[["weight_var"]]
+  if (!is.null(weights)) {
+    weights <- od_data_sources$pair[[weights]]
+    if (lost_rows)
+      weights <- weights[pairobs_index]
+    weights <- mat_formatter(weights)
+  }
+
 
   od_neighborhoods <- pull_neighborhood_data(sp_multi_network, network_pair_id)
   constants <- derive_flow_constants(
@@ -77,26 +122,31 @@ spflow_model_matrix <- function(
     OW = od_neighborhoods[["OW"]],
     DW = od_neighborhoods[["DW"]])
 
-  # 3. compute spatial lags and sort into roles = c("Y_", "D_", "O_", "I_", "G_")
-  variable_roles <- define_variable_roles(formula_parts, od_data_sources)
+  # compute spatial lags and sort into roles = c("Y_", "D_", "O_", "I_", "G_")
+  variable_roles <- define_variable_roles(
+    formula_parts,
+    lapply(od_data_sources, "subset_keycols" , drop_keys = TRUE))
   model_matrices <- by_role_spatial_lags(
     model_matrices = od_model_matrices,
     variable_roles = variable_roles,
     flow_control = flow_control,
     flow_indicator = flow_indicator,
-    neighborhoods = od_neighborhoods)
+    neighborhoods = od_neighborhoods,
+    mat_formatter = mat_formatter)
 
 
   return(c(constants,
            model_matrices,
            od_neighborhoods,
            list("weights" = weights,
-                "flow_indicator" = flow_indicator)))
+                "flow_indicator" = flow_indicator,
+                "mat_formatter" = mat_formatter)))
 }
 
 
+
 #' @keywords internal
-pull_relational_flow_data <- function(
+pull_pair_o_d_data <- function(
   sp_multi_net,
   pair_id,
   drop_keys,
@@ -106,16 +156,10 @@ pull_relational_flow_data <- function(
     drop_keys <- !only_keys
   only_keys <- !drop_keys
 
-
-  # identification of the data sources
   source_ids <- as.list(id(sp_multi_net@network_pairs[[pair_id]]))
-  if (has_equal_elements(source_ids[c("orig", "dest")]))
-    source_ids[["dest"]] <- NULL
 
   # fd = flow_data
-  fd <- lapply(
-    source_ids,
-    function(.id) as.data.frame(dat(sp_multi_net, .id)))
+  fd <- lapply(source_ids, function(.id) dat(sp_multi_net, .id))
 
   for (i in seq_along(fd)) {
 
@@ -132,6 +176,36 @@ pull_relational_flow_data <- function(
   }
 
   return(fd)
+}
+
+
+#' @keywords internal
+pull_relational_flow_data <- function(
+  sp_multi_net,
+  pair_id) {
+
+  source_ids <- as.list(id(sp_multi_net@network_pairs[[pair_id]]))
+  flow_data <- lapply(source_ids, function(.id){
+    source_data <- as.data.frame(dat(sp_multi_net, .id))
+    row.names(source_data) <- NULL
+    source_data
+    })
+  return(flow_data)
+}
+
+#' @keywords internal
+get_keycols <- function(df) {
+  c(attr_key_od(df),
+    attr_coord_col(df),
+    attr_key_nodes(df))
+}
+
+#' @keywords internal
+subset_keycols <- function(df, drop_keys = TRUE) {
+    keep_cols <- get_keycols(df)
+  if (drop_keys)
+    keep_cols <- setdiff(names(df), keep_cols)
+  return(subset(df, select = keep_cols))
 }
 
 #' @keywords internal

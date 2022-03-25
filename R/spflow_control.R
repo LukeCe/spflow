@@ -103,6 +103,9 @@
 #'   derived from pair attributes should be reduced or not. The default is
 #'   `TRUE`, because constructing these instruments is often the most demanding
 #'   part of the estimation \insertCite{Dargel2021}{spflow}.
+#' @param track_condition_numbers
+#'   A logical that controls whether or not the reciprocal condition numbers
+#'   of the systems that are solved during the estimation are tracked.
 #'
 #' @seealso [spflow()]
 #' @references \insertAllCited{}
@@ -146,7 +149,8 @@ spflow_control <- function(
     mcmc_resampling_limit = 100,
     twosls_instrumental_variables = "same",
     twosls_decorrelate_instruments = FALSE,
-    twosls_reduce_pair_instruments = TRUE) {
+    twosls_reduce_pair_instruments = TRUE,
+    track_condition_numbers = FALSE) {
 
 
   available_estimators <- c("s2sls", "mle","mcmc","ols")
@@ -176,13 +180,16 @@ spflow_control <- function(
   assert(is_single_character(weight_variable) || is.null(weight_variable),
          "The weight_variable must be a character of length one!")
 
+  assert_is_single_x(track_condition_numbers, "logical")
+
   # control parameter used in all cases
   general_control <- list(
     "estimation_method" = estimation_method,
     "model" = model,
     "use_intra" = use_intra,
     "sdm_variables" = sdm_variables,
-    "weight_variable" = weight_variable
+    "weight_variable" = weight_variable,
+    "track_condition_numbers" = track_condition_numbers
   )
 
   if (estimation_method == "ols")

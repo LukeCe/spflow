@@ -165,6 +165,10 @@ spflow_mcmc <- function(
     sd = apply(mcmc_results, 2, sd)
   )
 
+  diagnostics <- NULL
+  if (isTRUE(flow_control[["track_condition_numbers"]]))
+    diagnostics <- list("rcond" = rcond(ZZ))
+
   N <- n_o * n_d
   id_sd <- nrow(results_df)
   estimation_results <- spflow_model(
@@ -172,8 +176,9 @@ spflow_mcmc <- function(
     estimation_results = results_df[-id_sd, ],
     flow_control = flow_control,
     sd_error = sqrt(results_df$est[id_sd]),
-    N = N
-  )
+    N = N,
+    fit_diagnostics = diagnostics)
+
 
   return(estimation_results)
 }

@@ -32,7 +32,8 @@
 #'   A numeric vector of fitted values computed as the in sample prediction
 #'   trend signal (TS) prediction described by @Goulard2017
 #' @slot spatial_filter_matrix A matrix (can be sparse) or NULL
-#' @slot design_matrix A matrix (can be sparse) or NULL
+#' @slot design_matrix A list or NULL
+#' @slot fit_diagnostics A list or NULL
 #'
 #' @name spflow_model-class
 #' @seealso [spflow()], [spflow_network_classes()]
@@ -75,7 +76,8 @@ setClass("spflow_model",
            fitted = "maybe_numeric",
            spatial_filter_matrix = "maybe_any_matrix",
            design_matrix = "maybe_list",
-           model_moments = "maybe_list"))
+           model_moments = "maybe_list",
+           fit_diagnostics = "maybe_list"))
 
 
 # ---- Methods ----------------------------------------------------------------
@@ -323,37 +325,6 @@ setReplaceMethod(
       return(object)
   })
 
-
-# ---- ... results_flat -------------------------------------------------------
-#' @title
-#'   Reshaped version of the estimation results that can be used to compare
-#'   results in simulation studies.
-#'
-#' @rdname results_flat
-#' @keywords internal
-setMethod(
-  f = "results_flat",
-  signature = "spflow_model",
-  function(object,
-           res_info = c("est","sd"),
-           cntrol_info = c("estimation_method")){
-
-    res <- results(object)
-    flat_results <- lapply(res_info, function(.col) {
-      tmp <- suffix_columns(t(res[.col]), "_" %p% .col)
-      data.frame(tmp, row.names = NULL,check.names = FALSE)
-    })
-
-
-    flat_controls <-
-      cbind(as.data.frame(object@estimation_control[cntrol_info]),
-            "R2_corr" = object@R2_corr,
-            "sigma_est" = sd_error(object))
-
-    return(cbind(flat_controls, flat_results))
-  })
-
-
 # ---- ... sd_error -----------------------------------------------------------
 #' @rdname spflow_model-class
 #' @export
@@ -425,7 +396,8 @@ spflow_model <- function(
     fitted = NULL,
     spatial_filter_matrix = NULL,
     design_matrix = NULL,
-    model_moments = NULL) {
+    model_moments = NULL,
+    fit_diagnostics = NULL) {
 
   est <- flow_control$estimation_method
   model_class <- "spflow_model_" %p% est
@@ -441,7 +413,8 @@ spflow_model <- function(
         resid = resid,
         fitted = fitted,
         spatial_filter_matrix = spatial_filter_matrix,
-        design_matrix = design_matrix)
+        design_matrix = design_matrix,
+        fit_diagnostics = fit_diagnostics)
 
   # model specific arguments
   dot_args <- list(...)

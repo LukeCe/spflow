@@ -11,6 +11,11 @@ sequentialize_index <- function(index_list) {
 }
 
 #' @keywords internal
+prefix_columns <- function(obj,prefix){
+  `colnames<-`(obj, paste0(prefix, colnames(obj)))
+}
+
+#' @keywords internal
 suffix_columns <- function(obj,suffix){
   `colnames<-`(obj, paste0(colnames(obj), suffix))
 }

@@ -36,47 +36,40 @@ moment_empirical_var <- function(model_matrices,N,n_d,n_o) {
 
 
   ## ---- compute the 10 moment blocks
+  namerows <- function(rnames) matrix(numeric(),length(rnames), 0,dimnames =  list(rnames, NULL))
 
   # [alpha] blocks (4/10)
   alpha_blocks <- const_global %|!|% Reduce("cbind",list(
+    namerows("(Intercept)"),
     var_block_alpha(wt, N),
     var_block_alpha_alpha_I(const_intra_wt %||% const_intra),
     var_block_alpha_beta(X,wt_odi),
-    var_block_alpha_gamma(G_wt %||% model_matrices$G_)
-    ))
-  if (!is.null(alpha_blocks))
-    rownames(alpha_blocks) <- "(Intercept)"
+    var_block_alpha_gamma(G_wt %||% model_matrices$G_)))
+
 
   # [alpha_I] blocks (7/10)
   alpha_I_blocks <- const_intra %|!|% Reduce("cbind",list(
+    namerows(names(const_intra)),
     var_block_alpha_I(const_intra,const_intra_wt),
     var_block_alpha_I_beta(const_intra_wt %||% const_intra,X),
     var_block_alpha_I_gamma(const_intra_wt %||% const_intra,
-                            model_matrices$G)
-    ))
-  if (!is.null(alpha_I_blocks))
-    rownames(alpha_I_blocks) <- names(const_intra)
-
+                            model_matrices$G)))
 
   # [beta] blocks (9/10)
   beta_blocks <- X %|!|% Reduce("cbind",list(
+    namerows(ulapply(X,"colnames")),
     var_block_beta(X,wt_odi,wt),
-    var_block_beta_gamma(X, G_wt %||% model_matrices$G)
-    ))
-  if (!is.null(beta_blocks))
-    rownames(beta_blocks) <- ulapply(X,"colnames")
-
+    var_block_beta_gamma(X, G_wt %||% model_matrices$G)))
 
   # [gamma] block (10/10)
-  gamma_block <- model_matrices$G %|!|% var_block_gamma(model_matrices$G, G_wt)
-  if (!is.null(gamma_block))
-    rownames(gamma_block) <- names(model_matrices$G)
+  gamma_block <- model_matrices$G %|!|% cbind(
+    namerows(names(model_matrices$G)),
+    var_block_gamma(model_matrices$G, G_wt))
 
   combined_blocks <- list(alpha_blocks,alpha_I_blocks,beta_blocks,gamma_block)
   combined_blocks <- rbind_fill_left(compact(combined_blocks))
   combined_blocks <- make_symmetric(combined_blocks)
   colnames(combined_blocks) <- rownames(combined_blocks)
-
   return(combined_blocks)
 }
 

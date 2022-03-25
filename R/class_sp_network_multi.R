@@ -41,7 +41,7 @@ setMethod(
   })
 
 
-# ---- ... complete_pair ------------------------------------------------------
+# ---- ... complete_pairs -----------------------------------------------------
 #' @param make_cartesian
 #'   A logical, when set to `TRUE` the resulting data.frame contains all
 #'   possible pairs of origins and destination, even if the data in the
@@ -49,7 +49,7 @@ setMethod(
 #' @rdname sp_multi_network-class
 #' @export
 setMethod(
-  f = "complete_pair",
+  f = "complete_pairs",
   signature = "sp_multi_network",
   function(
     object,
@@ -58,60 +58,69 @@ setMethod(
     add_distances = TRUE,
     dist_fun) {
 
+    if (!add_distances & !make_cartesian)
+      return(object)
+
 
     assert_is(pair_ids, "character")
     od_infos <- lapply(pair_ids, check_pair_completeness, object)
-    od_infos <- Filter(function(x) !any(x[c("ID_ORIG_NET", "ID_DEST_NET")] == "(missing)"), od_infos)
+
+    if (!add_distances) {
+      od_infos <- Filter(
+        function(x) {
+          x[["NPAIRS"]] < prod(x[c("ORIG_NNODES", "DEST_NNODES")])
+          }, od_infos)
+    }
+
+    if (!make_cartesian) {
+      od_infos <- Filter(
+        function(x) {
+          od <- c("ORIG_", "DEST_")
+          all(x[paste0(od, "HAS_COORD")]) &
+          has_equal_elements(x[paste0(od, "IS_COORD_LONLAT")])
+          }, od_infos)
+    }
 
     for (i in seq_along(od_infos)) {
 
       p_id <- od_infos[[i]][["ID_NET_PAIR"]]
-      flow_dat <- pull_relational_flow_data(object, p_id)
-
-      o_dat <- dat(object, od_infos[[i]][["ID_ORIG_NET"]])
-      d_dat <- dat(object, od_infos[[i]][["ID_DEST_NET"]])
-      N <- od_infos[[i]][["NPAIRS"]]
-      n_o <- od_infos[[i]][["ORIG_NNODES"]]
-      n_d <- od_infos[[i]][["DEST_NNODES"]]
-
-      is_cartesian <- N == n_o * n_d
-      coord_od <- list("o" = attr_coord_col(o_dat),
-                       "d" = attr_coord_col(d_dat))
-
-
-
-      pair_dat <- dat(object, od_infos[[i]][["ID_NET_PAIR"]])
+      flow_dat <- pull_pair_o_d_data(object, p_id)
+      od_key_cols <- attr_key_od(flow_dat[["pair"]])
 
       if (make_cartesian) {
-
-        o_index <- rep()
+        o_keys <- attr_key_nodes(flow_dat[["orig"]])
+        d_keys <- attr_key_nodes(flow_dat[["dest"]])
+        dat_pairs <- data.frame(
+          rep(o_keys, each = length(d_keys)),
+          rep(d_keys, times = length(o_keys)),
+          row.names = NULL)
+        names(dat_pairs) <- od_key_cols
+        dat_pairs <- merge(dat_pairs, flow_dat[["pair"]], by = od_key_cols,s)
+        attr_key_od(dat_pairs) <- od_key_cols
+        object@network_pairs[[p_id]]@pair_data <- dat_pairs
       }
 
+      if (add_distances){
+        dest_index <- as.integer(dat(object)[[od_keys[2]]])
+        orig_index <- as.integer(dat(object)[[od_keys[1]]])
+
+        if (od_infos[["ORIG_IS_COORD_LONLAT"]]) {
+          dfun <- function(x, y) haversine_distance(x[[1]], x[[2]], y[[1]], y[[2]])
+        }
 
 
-      if (make_cartesian)
+        if (!od_infos[["ORIG_IS_COORD_LONLAT"]]) {
+          dfun <- function(x, y) rowSums((x - y)^2)^(1/ncol(x))
+        }
 
-      if (add_distances) {
-        o_coord <- pull_node_coords(pull_member(object, o_id))
-        d_coord <- pull_node_coords(pull_member(object, d_id))
-
-
+        object@network_pairs[[p_id]]@pair_data[["DISTANCE"]] <- dfun(
+          flow_dat[["orig"]][orig_index, attr_coord_col(flow_dat[["orig"]])],
+          flow_dat[["dest"]][dest_index, attr_coord_col(flow_dat[["dest"]])])
+      }
       }
 
-
-
-
-
-
-    }
-    pair_ids
-
-    all_ids <- id(object)
-    which_id <- lapply(all_ids, "==", .id)
-    assert(sum(unlist(which_id)) == 1,
-           "The provided id does not correspond to any network object.")
-    from <- names(Filter("any",which_id))
-    return(dat(slot(object,from)[[.id]]))
+    validObject(object)
+    return(object)
   })
 
 
@@ -216,7 +225,7 @@ setMethod(
         check_pair_completeness(.id, object)}))
       od_pair_info$COMPLETENESS <- format_percent(od_pair_info$COMPLETENESS)
 
-      print(od_pair_info, row.names = FALSE)
+      print(od_pair_info[1:7], row.names = FALSE)
     }
 
     cat("\n")
@@ -486,7 +495,10 @@ sp_multi_network <- function(...) {
       orig_keys <- get_keys(sp_networks[[orig_net]])[[1]]
       assert(all(as.character(orig_keys_od) %in% as.character(orig_keys)),
              error_template, net_pair, "origin", "origin")
-      wrong_od_order <- any(levels(orig_keys_od) != levels(orig_keys))
+
+      wrong_od_order <-
+        length(levels(orig_keys_od)) != length(levels(orig_keys)) ||
+        any(levels(orig_keys_od) != levels(orig_keys))
     }
 
     dest_net <- pair_ids[[i]]["dest"]
@@ -531,19 +543,51 @@ check_pair_completeness <- function(pair_id, multi_net) {
   this_pair <- pull_member(multi_net, pair_id)
   od_id <- id(this_pair)
   od_nnodes <- nnodes(this_pair)
-  has_o_id <- od_id["orig"] %in% all_ids$networks
-  has_d_id <- od_id["dest"] %in% all_ids$networks
+  o_nnodes <- nnodes(pull_member(multi_net, od_id["orig"]))
+  d_nnodes <- nnodes(pull_member(multi_net, od_id["dest"]))
 
-  return(data.frame(
+
+  pair_infos <- data.frame(
+    "ID_ORIG_NET" = od_id["orig"],
+    "ID_DEST_NET" = od_id["dest"],
     "ID_NET_PAIR" = pair_id,
-    "NPAIRS" = npairs(this_pair),
     "COMPLETENESS" = npairs(this_pair) / prod(od_nnodes),
-    "ID_ORIG_NET" = ifelse(has_o_id, od_id["orig"], "(missing)"),
-    "ORIG_NNODES" = od_nnodes["orig"],
-    "ID_DEST_NET" = ifelse(has_o_id, od_id["dest"], "(missing)"),
-    "DEST_NNODES" = od_nnodes["dest"],
-    row.names = NULL))
+    "C_PAIRS" = sprintf("%s/%s", npairs(this_pair), o_nnodes * d_nnodes),
+    "C_ORIG" = sprintf("%s/%s", o_nnodes, od_nnodes["orig"]),
+    "C_DEST" = sprintf("%s/%s", d_nnodes, od_nnodes["dest"]),
+    "NPAIRS" = npairs(this_pair),
+    "NORIG" = od_nnodes["orig"],
+    "NDEST" = od_nnodes["dest"],
+    "ORIG_NNODES" = o_nnodes,
+    "DEST_NNODES" = d_nnodes)
+
+
+  o_infos <- d_infos <- NULL
+  if (od_id["orig"] %in% all_ids$networks) {
+    o_infos <- check_node_infos(pull_member(multi_net, od_id["orig"]))
+    names(o_infos) <- paste0("ORIG_", names(o_infos))
+  }
+
+  if (od_id["dest"] %in% all_ids$networks) {
+    d_infos <- check_node_infos(pull_member(multi_net, od_id["dest"]))
+    names(d_infos) <- paste0("DEST_", names(d_infos))
+  }
+
+  return(cbind(pair_infos, o_infos, d_infos))
 }
+
+#' @keywords internal
+check_node_infos <- function(sp_net) {
+
+  data.frame(
+    HAS_DATA = !is.null(dat(sp_net)),
+    HAS_NB = !is.null(neighborhood(sp_net)),
+    HAS_COORD = is.character(attr_coord_col(sp_net)),
+    IS_COORD_LONLAT = isTRUE(attr_coord_lonlat(sp_net))
+    , row.names = FALSE)
+}
+
+
 
 #' @keywords internal
 validate_od_keys <- function(o_keys, d_keys, od_keys) {
@@ -573,30 +617,4 @@ pull_od_levels <- function(sp_net_pair, o_vs_d = "orig") {
 id_part <- function(.id, o_vs_d) {
   o_vs_d <- c("orig" = 1, "dest" = 2)[o_vs_d]
   unlist(strsplit(.id,"_"))[o_vs_d]
-}
-
-
-#' @keywords internal
-od_expand <- function(
-  o_dat = NULL,
-  d_dat = NULL,
-  n_d,
-  n_o,
-  index_o,
-  index_d) {
-
-  if (missing(n_o))
-    n_o <- nrow(o_dat)
-
-  if (missing(n_d))
-    n_d <- nrow(d_dat)
-
-  if (missing(index_o))
-    index_o <- rep(seq_len(n_o), each = n_d)
-
-  if (missing(index_d))
-    index_d <- rep(seq_len(n_d), n_o)
-
-  return(cbind(o_dat %|!|% suffix_columns(o_dat, "_ORIG")[index_o,],
-               d_dat %|!|% suffix_columns(d_dat, "_DEST")[index_d,]))
 }

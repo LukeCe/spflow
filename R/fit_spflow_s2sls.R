@@ -50,12 +50,21 @@ spflow_s2sls <- function(UU,UY,ZZ,ZY,TSS,N,TCORR,flow_control) {
     "est" = mu,
     "sd" = sd_mu)
 
+  diagnostics <- NULL
+  if (isTRUE(flow_control[["track_condition_numbers"]])) {
+    diagnostics <- list("rcond" = rcond(ZZ),
+                        "rcond_stage1" = rcond(UU),
+                        "rcond_stage2" = rcond(stage2_ZZ))
+  }
+
+
   estimation_results <- spflow_model(
     varcov = varcov,
     estimation_results = results_df,
     flow_control = flow_control,
     sd_error = sqrt(sigma2),
-    N = N)
+    N = N,
+    fit_diagnostics = diagnostics)
 
   return(estimation_results)
 }

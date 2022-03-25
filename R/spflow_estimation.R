@@ -47,8 +47,8 @@ spflow_model_estimation <- function(
       TCORR = model_moments[["TCORR"]],
       flow_control = flow_control,
       logdet_calculator = nb_functions[["logdet_calculator"]]
-    )}
-  )
+    )})
+
   return(estimation_results)
 }
 

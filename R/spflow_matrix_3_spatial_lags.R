@@ -4,7 +4,8 @@ by_role_spatial_lags <- function(
   variable_roles,
   flow_control,
   flow_indicator,
-  neighborhoods){
+  neighborhoods,
+  mat_formatter){
 
   # 1. define required lags by data source
   sources <- c("pair", "orig", "dest")
@@ -69,12 +70,11 @@ by_role_spatial_lags <- function(
     node_lags <- lapply(node_lags, "orthoginolize_instruments")
 
   # 3.) compute lags for pair data
-  mformat <- function(.v) flow_control$mat_format(model_matrices$pair[,.v])
-
   # ... Y_ (dependent variables)
   response_variables <- as.character(lag_requirements_by_role[["Y_"]])
   response_variables <- lookup(response_variables)
 
+  mformat <- function(.v) mat_formatter(model_matrices$pair[,.v])
   flow_matrices <- lapply(response_variables, "mformat")
   flow_matrices <- Reduce("c", Map(
     f = "lag_flow_matrix",

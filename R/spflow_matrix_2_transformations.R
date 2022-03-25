@@ -10,7 +10,8 @@
 by_source_model_matrix <- function(
   formula_parts,
   data_sources,
-  ignore_na = FALSE) {
+  ignore_na = FALSE,
+  is_within = FALSE) {
 
   source_formulas <- lapply(formula_parts, function(.f) {
     combine_formulas_by_source(sources = names(data_sources),
@@ -25,25 +26,63 @@ by_source_model_matrix <- function(
       source_type = names(data_sources))
 
   # Generate model matrices by data source
-  source_model_matrices <- Map(
-    "flow_conform_model_matrix",
-    formula = source_formulas,
-    data = data_sources)
+  data_sources <- lapply(data_sources, "row.names<-", NULL)
+  source_model_matrix <- function(.s) flow_conform_model_matrix(
+    source_formulas[[.s]],
+    subset_keycols(data_sources[[.s]], drop_keys = TRUE))
 
-  no_drops <- sapply(source_model_matrices, nrow) == sapply(data_sources, nrow)
-  if (all(no_drops) | ignore_na)
-    return(source_model_matrices)
-
-  error_source <- names(no_drops[!no_drops])
-  error_source <- c("pair" = "oriigin-destination pairs",
-                    "orig" = "origins",
-                    "dest" = "destinations")[error_source]
-  error_source <- paste0(error_source, collapse =  " and ")
+  orig_mm <- source_model_matrix("orig")
+  dest_mm <- source_model_matrix("dest")
+  lost_origs <- nrow(orig_mm) != nrow(data_sources[["orig"]])
+  lost_dests <- nrow(dest_mm) != nrow(data_sources[["dest"]])
+  if (!ignore_na) {
   error_msg <- "
   There are missing values in the data associcated with the %s,
   please remove them from the data first!"
-  stop(sprintfwrap(error_msg, error_source))
+    assert(!lost_origs, error_msg, "origins")
+    assert(!lost_dests, error_msg, "destinations")
+  }
 
+  # when origins or destinations are missing in the node data
+  # remove them from the pair data before transforming it
+  if (lost_origs) {
+    obs_nodes <- rep(TRUE, nrow(data_source[["orig"]]))
+    obs_nodes[-as.integer(row.names(orig_mm))] <- FALSE
+
+    orig_key <- attr_key_orig(data_source[["pair"]])
+    obs_origs <- as.integer(data_source[["pair"]][[orig_key]])
+    obs_origs <- obs_nodes[obs_origs]
+    data_source[["pair"]] <- data_source[["pair"]][obs_origs,]
+  }
+  if (lost_dests) {
+    obs_nodes <- rep(TRUE, nrow(data_source[["dest"]]))
+    obs_nodes[-as.integer(row.names(dest_mm))] <- FALSE
+
+    dest_key <- attr_key_dest(data_source[["pair"]])
+    obs_dests <- as.integer(data_source[["pair"]][[dest_key]])
+    obs_dests <- obs_nodes[obs_dests]
+    data_source[["pair"]] <- data_source[["pair"]][obs_dests,]
+  }
+
+  dest_is_redundant <-
+    is_within && all(row.names(orig_mm) == row.names(dest_mm))
+  if (dest_is_redundant) {
+    dest_specific_cols <- setdiff(colnames(dest_mm), colnames(orig_mm))
+    orig_mm <- cbind(orig_mm,dest_mm[,dest_specific_cols, drop = FALSE])
+    dest_mm <- NULL
+  }
+
+  pair_mm <- source_model_matrix("pair")
+  lost_pairs <- nrow(pair_mm) != nrow(data_sources[["pair"]])
+  assert(!lost_pairs | ignore_na, error_msg, "origin-destination pairs")
+
+
+  source_model_matrices <- named_list(c("pair", "orig", "dest"))
+  source_model_matrices[["pair"]] <- pair_mm
+  source_model_matrices[["orig"]] <- orig_mm
+  source_model_matrices[["dest"]] <- dest_mm
+
+  return(source_model_matrices)
 }
 
 #' @keywords internal

@@ -16,12 +16,18 @@ spflow_ols <- function(ZZ,ZY,TSS,N,TCORR,flow_control) {
     est = as.vector(delta),
     sd = sd_delta)
 
+  diagnostics <- NULL
+  if (isTRUE(flow_control[["track_condition_numbers"]]))
+    diagnostics <- list("rcond" = rcond(ZZ))
+
+
   estimation_results <- spflow_model(
     varcov = varcov,
     estimation_results = results_df,
     flow_control = flow_control,
     sd_error = sqrt(sigma2),
-    N = N)
+    N = N,
+    fit_diagnostics = diagnostics)
 
   return(estimation_results)
 }
