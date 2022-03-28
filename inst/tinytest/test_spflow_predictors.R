@@ -9,17 +9,18 @@ expect_equal({
   }, {
   n_o <- 5
   n_d <- 5
-  params <- named_list(c(
-    "const", "const_intra", "D_", "O_", "I_", "G"), 1)
+  params <- c("const", "const_intra", "D_", "O_", "I_", "G")
+  params <- lookup(1, params)
   mats <- list(
+    "Y_" = list(matrix(1,n_d,n_o)),
     "const" = 1,
-    "const_intra" = diag(2, n_d,n_o),
+    "const_intra" = list("In" = diag(1, n_d,n_o)),
     "D_" = matrix(1,nrow = n_d),
     "O_" = matrix(1,nrow = n_o),
     "I_" = matrix(1,nrow = n_d),
     "G_" = list(matrix(1,n_d,n_o)))
-  # compute_signal()
-})
+  as.matrix(compute_signal(mats,delta = params))
+}, check.attributes = FALSE)
 
 
 

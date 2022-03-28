@@ -33,14 +33,27 @@ expect_error({
   info = "ids of origins are diffrent than node ids")
 
 expect_warning({
-  test_o_net <-
-    sp_network_nodes("o1",NULL,data.frame("ID" = LETTERS[1:3]),"ID")
-  test_d_net <-
-    sp_network_nodes("d1",NULL,data.frame("ID" = letters[1:3]),"ID")
-  test_pairs_unordered <-
-    sp_network_pair("o1","d1",data.frame("ID_O" = rep(LETTERS[c(2,1,3)], 3),
-                                         "ID_D" = rep(letters[3:1], each = 3)),
-                    "ID_O","ID_D")
+  test_o_net <- sp_network_nodes(
+    network_id = "o1",
+    node_neighborhood = NULL,
+    node_data = data.frame("ID" = LETTERS[1:3]),
+    node_key_column = "ID")
+
+  test_d_net <- sp_network_nodes(
+    network_id = "d1",
+    node_neighborhood = NULL,
+    node_data = data.frame("ID" = letters[1:3]),
+    node_key_column = "ID")
+
+  test_pairs_unordered <- sp_network_pair(
+    orig_net_id = "o1",
+    dest_net_id = "d1",
+    pair_data = data.frame(
+      "ID_O" = rep(LETTERS[c(2,1,3)], 3),
+      "ID_D" = rep(letters[3:1], each = 3)),
+    orig_key_column = "ID_O",
+    dest_key_column = "ID_D")
+
   sp_multi_network(test_o_net, test_d_net, test_pairs_unordered)
   },
   info = "wrong ordering of nodes gives a warning")
@@ -146,63 +159,75 @@ expect_error({
 
 # ---- pair_merge method ------------------------------------------------------
 expect_equal({
-  test_o_net <-
-    sp_network_nodes("net1", NULL, data.frame("ID" = c("A", "B"),
-                                              "VAL" = "OO"),
-                     "ID")
-  test_d_net <-
-    sp_network_nodes("net2", NULL, data.frame("ID" = c("C","D"),
-                                              "VAL" = "DD"),
-                     "ID")
+  test_o_net <- sp_network_nodes(
+    network_id = "net1",
+    node_neighborhood =  NULL,
+    node_data =  data.frame("ID" = c("A", "B"),"VAL" = "OO"),
+    node_key_column = "ID")
+
+  test_d_net <- sp_network_nodes(
+    network_id = "net2",
+    node_neighborhood =  NULL,
+    node_data =  data.frame("ID" = c("C","D"), "VAL" = "DD"),
+    node_key_column = "ID")
+
   test_net_pair <- sp_network_pair(
-    "net1","net2",
-    data.frame("ID_O" = c("A","A","B","B"),
-               "ID_D" = c("C","D","C","D"),
-               "DIST" = 1:4),
-    "ID_O", "ID_D")
+    orig_net_id = "net1",
+    dest_net_id = "net2",
+    pair_data = data.frame(
+      "ID_O" = c("A","A","B","B"),
+      "ID_D" = c("C","D","C","D"),
+      "DIST" = 1:4),
+    orig_key_column = "ID_O",
+    dest_key_column =  "ID_D")
   test_multi_net <- sp_multi_network(test_net_pair,test_o_net,test_d_net)
-  pair_merge(test_multi_net, "net1_net2")
+  data.frame(pair_merge(test_multi_net, "net1_net2"))
   },
   {
     data.frame("ID_O" = factor(c("A","A","B","B")),
                "ID_D" = factor(c("C","D","C","D")),
-               "ORIG_VAL" = "OO",
+               "DIST" = 1:4,
                "DEST_VAL" = "DD",
-               "DIST" = 1:4)
+               "ORIG_VAL" = "OO")
   },
   info = "merging origin and destination infos to the pairs")
 
 expect_equal({
   # invert order of ids for pairs
-  test_o_net <-
-    sp_network_nodes("net1", NULL, data.frame("ID" = c("B","A"),
-                                              "VAL" = "OO"),
-                     "ID")
-  test_d_net <-
-    sp_network_nodes("net2", NULL, data.frame("ID" = c("D","C"),
-                                              "VAL" = "DD"),
-                     "ID")
+  test_o_net <- sp_network_nodes(
+    network_id = "net1",
+    node_neighborhood =  NULL,
+    node_data =  data.frame("ID" = c("B","A"),"VAL" = "OO"),
+    node_key_column = "ID")
+
+  test_d_net <- sp_network_nodes(
+    network_id = "net2",
+    node_neighborhood =  NULL,
+    node_data =  data.frame("ID" = c("D", "C"), "VAL" = "DD"),
+    node_key_column = "ID")
+
   test_net_pair <- sp_network_pair(
-    "net1",
-    "net2",
-    data.frame(
+    orig_net_id = "net1",
+    dest_net_id = "net2",
+    pair_data = data.frame(
       "ID_O" = c("A", "B"),
       "ID_D" = c("C", "D"),
-      "DIST" = c(1, 4)
-    ),
-    "ID_O",
-    "ID_D")
-  test_multi_net <-
-    suppressWarnings(sp_multi_network(test_net_pair, test_o_net, test_d_net))
-  pair_merge(test_multi_net, "net1_net2", TRUE)
+      "DIST" = c(1,4)),
+    orig_key_column = "ID_O",
+    dest_key_column =  "ID_D")
+
+  test_multi_net <- suppressWarnings(sp_multi_network(
+    test_net_pair, test_o_net, test_d_net))
+
+  data.frame(pair_merge(test_multi_net, "net1_net2", make_cartesian = TRUE))
   },
   {
     data.frame(
-      "ID_O" = factor(c("B", "B","A", "A"),levels = c("B","A")),
       "ID_D" = factor(c("D", "C", "D", "C"),levels = c("D","C")),
-      "ORIG_VAL" = "OO",
+      "ID_O" = factor(c("B", "B","A", "A"),levels = c("B","A")),
+      "DIST" = c(4, NA, NA, 1),
       "DEST_VAL" = "DD",
-      "DIST" = c(4, NA, NA, 1)
+      "ORIG_VAL" = "OO"
     )
   },
   info = "merging origin and destination infos to the pairs
@@ -237,7 +262,10 @@ expect_equal({
     dest_key_column = "ID_D")
 
   test_multi_net <- sp_multi_network(test_net_pair, test_o_net, test_d_net)
-  check_pair_completeness("net1_net2", test_multi_net)
+  check_infos <- c("ID_NET_PAIR", "NPAIRS", "COMPLETENESS",
+                   "ID_ORIG_NET", "ORIG_NNODES",
+                   "ID_DEST_NET", "DEST_NNODES")
+  check_pair_completeness("net1_net2", test_multi_net)[,check_infos]
 }, {
   data.frame("ID_NET_PAIR" = "net1_net2",
              "NPAIRS" = 2,
@@ -245,7 +273,8 @@ expect_equal({
              "ID_ORIG_NET" = "net1",
              "ORIG_NNODES" = 2,
              "ID_DEST_NET" = "net2",
-             "DEST_NNODES" = 2)
+             "DEST_NNODES" = 2,
+             row.names = NULL)
 }, info = "create completeness info")
 
 # ---- show method ------------------------------------------------------------

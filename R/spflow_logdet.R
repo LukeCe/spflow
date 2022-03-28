@@ -11,6 +11,7 @@ derive_logdet_calculator <- function(
 
   if (is_cartesian) {
 
+    # TODO remove scaling once simulations are conclusive
     scaling <- 1
     if (!is.null(flow_indicator))
       scaling <- nnzero(flow_indicator) / (n_o * n_d)
@@ -26,6 +27,17 @@ derive_logdet_calculator <- function(
       scaling = scaling)
     return(approx_logdet)
   }
+
+  if (approx_order == 2) {
+    approx_logdet <- generate_approxldet_noncartesian2(
+      OW = OW,
+      DW = DW,
+      n_o = n_o,
+      n_d = n_d,
+      model = model)
+    return(approx_logdet)
+  }
+
 
   W_flow <- expand_flow_neighborhood(
     OW = OW,
@@ -56,7 +68,7 @@ generate_approxldet_cartesian <- function(
   n_d,
   model,
   approx_order,
-  scaling) {
+  scaling = 1) {
 
   # the first trace is allways zero
   powers_2p <- seq(2, approx_order)
@@ -109,6 +121,37 @@ generate_approxldet_cartesian <- function(
   return(logdet_calculator_5679)
 }
 
+#' @title Order 2 approximations for non cartesian case
+#' @keywords internal
+generate_approxldet_noncartesian2 <- function(
+  OW = NULL,
+  DW = NULL,
+  flow_indicator,
+  n_o,
+  n_d,
+  model) {
+
+  model_num <- substr(model,7,7)
+
+  trace_dd <- if (model_num %in% c(2,5:9))
+     sum(flow_indicator * ((DW * t(DW)) %*% flow_indicator))
+
+  trace_oo <- if (model_num %in% c(3,5:9))
+    sum(flow_indicator * (flow_indicator %*% ((OW * t(OW)))))
+
+  trace_ww <- if (model_num %in% c(3,5:9))
+    sum(flow_indicator * ((DW * t(DW)) %*% flow_indicator %*% ((OW * t(OW)))))
+
+  tracevals <- c(trace_dd,trace_oo,trace_ww) / 2
+  logdet_calculator_123456789 <- function(rho) {
+    logdet_val <- -as.numeric(sum(rho^2 * tracevals))
+    return(logdet_val)
+  }
+  return(logdet_calculator_123456789)
+}
+
+
+#' @title Order 4 approximations for non cartesian case
 #' @keywords internal
 generate_approxldet_noncartesian <- function(
     Wd,
@@ -122,7 +165,7 @@ generate_approxldet_noncartesian <- function(
   model_with_single_weight_matrix <- model_num %in% c(2,3,4,5,6)
 
   if (model_with_single_weight_matrix) {
-    # the first trace is allways zero
+    # the first trace is always zero
     powers_2p <- seq(2, approx_order)
     tseq <- function(W) (trace_sequence(W, approx_order)[-1] / powers_2p)
 

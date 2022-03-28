@@ -59,8 +59,8 @@ expect_equal({
   tvals <- data.frame(Reduce("rbind", list(
     "o" = c(OW_trace * n_d, 0, 1),
     "d" = c(DW_trace * n_o, 1, 0),
-    "oo" = .5 * c(OW_trace2 * n_d, 0, 2),
-    "dd" = .5 * c(DW_trace2 * n_o, 2, 0),
+    "oo" = .5 * c(OW_trace2 * n_d, 0, 4),
+    "dd" = .5 * c(DW_trace2 * n_o, 4, 0),
     "od" = .5 * .c * c(OW_trace * DW_trace, 1, 1))),row.names = NULL)
   p_names <- paste0("rho_", c("d","o"))
   colnames(tvals) <- c("TRACE_VAL", p_names)

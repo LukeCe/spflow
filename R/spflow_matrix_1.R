@@ -143,42 +143,6 @@ spflow_model_matrix <- function(
                 "mat_formatter" = mat_formatter)))
 }
 
-
-
-#' @keywords internal
-pull_pair_o_d_data <- function(
-  sp_multi_net,
-  pair_id,
-  drop_keys,
-  only_keys = FALSE) {
-
-  if (missing(drop_keys))
-    drop_keys <- !only_keys
-  only_keys <- !drop_keys
-
-  source_ids <- as.list(id(sp_multi_net@network_pairs[[pair_id]]))
-
-  # fd = flow_data
-  fd <- lapply(source_ids, function(.id) dat(sp_multi_net, .id))
-
-  for (i in seq_along(fd)) {
-
-    if (names(fd)[i] == "pair")
-      key_cols <- attr_key_od(fd[[i]])
-
-    if (names(fd)[i] %in% c("orig","dest"))
-      key_cols <- c(attr_key_nodes(fd[[i]]), attr_coord_col(fd[[i]]))
-
-    if (only_keys)
-      keys <- setdiff(names(fd[[i]]), keys)
-
-    fd[[i]][key_cols] <- NULL
-  }
-
-  return(fd)
-}
-
-
 #' @keywords internal
 pull_relational_flow_data <- function(
   sp_multi_net,
@@ -205,7 +169,7 @@ subset_keycols <- function(df, drop_keys = TRUE) {
     keep_cols <- get_keycols(df)
   if (drop_keys)
     keep_cols <- setdiff(names(df), keep_cols)
-  return(subset(df, select = keep_cols))
+  return(df[, keep_cols, drop = FALSE])
 }
 
 #' @keywords internal

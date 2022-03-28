@@ -44,7 +44,7 @@ expect_equal({
       constants = list("global" = TRUE, "intra" = TRUE),
       norm      = list("Y_" = ~ y - 1, "D_" = ~ a - 1, "O_" = ~ b - 1,
                        "I_" = ~ c - 1, "G_" = ~ d - 1),
-      sdm       = list("D_" = ~ a - 1, "O_" = ~ b - 1, "I_" = ~ c - 1)
+      sdm       = list("D_" = ~ a - 1, "O_" = ~ b - 1)
     )
   },
   info = "formulas is split correctly (with sdm) (with intra)")
@@ -63,7 +63,7 @@ expect_equal({
       constants = list("global" = TRUE, "intra" = TRUE),
       norm      = list("Y_" = ~ y - 1, "D_" = ~ a - 1, "O_" = ~ b - 1,
                        "I_" = ~ c - 1, "G_" = ~ d - 1),
-      sdm       = list("D_" = ~ a - 1, "O_" = ~ b - 1, "I_" = ~ c - 1),
+      sdm       = list("D_" = ~ a - 1, "O_" = ~ b - 1),
       inst      = list("D_" = ~ a - 1, "O_" = ~ b - 1,
                        "I_" = ~ c - 1, "G_" = ~ d - 1)
     )
@@ -89,8 +89,7 @@ expect_equal({
                        "O_" = ~ . + log(a + 1) + log(b + 1) - 1,
                        "I_" = ~ c - 1, "G_" = ~ d - 1),
       sdm       = list("D_" = ~ . + log(a + 1) + log(b + 1) - 1,
-                       "O_" = ~ . + log(a + 1) + log(b + 1) - 1,
-                       "I_" = ~ c - 1),
+                       "O_" = ~ . + log(a + 1) + log(b + 1) - 1),
       inst      = list("D_" = ~ . + log(a + 1) + log(b + 1) - 1,
                        "O_" = ~ . + log(a + 1) + log(b + 1) - 1,
                        "I_" = ~ c - 1, "G_" = ~ d - 1)

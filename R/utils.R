@@ -41,6 +41,12 @@ haversine_distance <- function(lon1, lat1, lon2, lat2) {
 }
 
 #' @keywords internal
+euclidean_distance <- function(coord_a, coord_b) {
+  stopifnot(identical(dim(coord_a), dim(coord_b)))
+  rowSums((coord_a - coord_b)^2)^(1/ncol(x))
+}
+
+#' @keywords internal
 degree2radian <- function(deg) {
   return(deg*pi/180)
 }

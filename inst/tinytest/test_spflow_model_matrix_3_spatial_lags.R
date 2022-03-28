@@ -61,60 +61,63 @@ expect_equal({
   },
   info = "do not tuch explanatory variables")
 
-# ---- derive_pair_instruments ------------------------------------------------
-expect_null(spflow:::derive_pair_instruments(G = NULL))
+# ---- double_lag_matrix ------------------------------------------------------
+expect_null(spflow:::double_lag_matrix(M = NULL))
 
 expect_equal({
   G <- diag(2)
   W <- diag(2,2,2)
-  spflow:::derive_pair_instruments(G,W,W,full_inst = FALSE)
+  spflow:::double_lag_matrix(G,W,W,return_all_lags = FALSE)
   },
   {
     # the power is equal the occurrence of w
     lapply(list("G" = 0, "G.wGw" = 2, "G.wwGww" = 4),
            function(.p) diag(2^.p,2,2))
   },
-  info = "generate a list of lags (reduced instruments)")
+  info = "generate a list of lags (reduced instruments)",
+  check.attributes = FALSE)
 
 expect_equal({
   G <- diag(2)
   W <- diag(2,2,2)
-  spflow:::derive_pair_instruments(G,W,W,full_inst = TRUE)
+  res <- spflow:::double_lag_matrix(G,W,W,return_all_lags = TRUE)
+  spflow::sort_names(res)
   },
   {
     # the power is equal the occurrence of w
-    lapply(list("G" = 0,
-                "G.wG" = 1, "G.wwG" = 2,
-                "G.Gw" = 1, "G.Gww" = 2,
-                "G.wGw" = 2, "G.wwGw" = 3, "G.wGww" = 3, "G.wwGww" = 4),
-           function(.p) diag(2^.p,2,2))
+  res_ref <- lapply(list(
+    "G" = 0,
+    "G.wG" = 1, "G.wwG" = 2,
+    "G.Gw" = 1, "G.Gww" = 2,
+    "G.wGw" = 2, "G.wwGw" = 3, "G.wGww" = 3, "G.wwGww" = 4),
+    function(.p) diag(2 ^ .p, 2, 2))
+  spflow::sort_names(res_ref)
   },
-  info = "generate a list of lags (full instruments)")
+  info = "generate a list of lags (full instruments)",
+  check.attributes = FALSE)
 
 expect_equal({
   G <- diag(2)
   W <- diag(2,2,2)
-  spflow:::derive_pair_instruments(G,W, NULL,full_inst = TRUE)
-  },
-  {
-    # the power is equal the occurrence of w
-    lapply(list("G" = 0,
-                "G.Gw" = 1, "G.Gww" = 2),
-           function(.p) diag(2^.p,2,2))
-  },
+  spflow:::double_lag_matrix(G,NULL,W,return_all_lags = FALSE)
+},
+{
+  # the power is equal the occurrence of w
+  lapply(list("G" = 0, "G.wG" = 2, "G.wwG" = 4),
+         function(.p) diag(2^.p,2,2))
+},
   info = "generate a list of lags (only orig instruments)")
 
 expect_equal({
   G <- diag(2)
   W <- diag(2,2,2)
-  spflow:::derive_pair_instruments(G,NULL, W,full_inst = TRUE)
-  },
-  {
-    # the power is equal the occurrence of w
-    lapply(list("G" = 0,
-                "G.wG" = 1, "G.wwG" = 2),
-           function(.p) diag(2^.p,2,2))
-  },
+  spflow:::double_lag_matrix(G,W,NULL,return_all_lags = FALSE)
+},
+{
+  # the power is equal the occurrence of w
+  lapply(list("G" = 0, "G.Gw" = 2, "G.Gww" = 4),
+         function(.p) diag(2^.p,2,2))
+},
   info = "generate a list of lags (only dest instruments)")
 
 # ---- lag_flow_matrix --------------------------------------------------------
@@ -199,13 +202,14 @@ expect_equal({
     "sdm"  = var_roles[c("O_", "D_")],
     "inst" = var_roles[c("O_", "D_", "G_")]))
 
-  ctrl <- list("mat_format" = function(x) matrix(x,3,3),
-               "model" = "model_9",
+  ctrl <- list("model" = "model_9",
                "twosls_reduce_pair_instruments" = TRUE)
   results <- spflow:::by_role_spatial_lags(
     mat_sources, var_roles,
-    list("OW" = diag(2,3,3), "DW" = diag(2,3,3)),
-    ctrl)
+    neighborhoods = list("OW" = diag(2,3,3), "DW" = diag(2,3,3)),
+    flow_control = ctrl,
+    flow_indicator = NULL,
+    mat_formatter = function(x) matrix(x,3,3))
   results[c("Y_","O_","G_")]
   },
   {

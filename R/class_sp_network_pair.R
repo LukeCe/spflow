@@ -390,3 +390,15 @@ attr_key_od <- function(df) {
   attr_key_dest(df) <- value[2]
   df
 }
+
+#' @keywords internal
+attr_key_do <- function(df) {
+  c(attr_key_dest(df),attr_key_orig(df))
+}
+
+#' @keywords internal
+`attr_key_do<-` <- function(df, value) {
+  attr_key_dest(df) <- value[1]
+  attr_key_orig(df) <- value[2]
+  df
+}
