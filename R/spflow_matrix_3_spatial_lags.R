@@ -260,6 +260,7 @@ double_lag_matrix <- function(
   right_lag <- !is.null(OW)
   double_lag <- left_lag & right_lag
   symmetric_lags <- symmetric_lags & double_lag
+  return_all_lags <- return_all_lags | !double_lag
 
   wM <- (DW %*% M) %T% left_lag
   wMw <- tcrossprod(wM, OW) %T% double_lag

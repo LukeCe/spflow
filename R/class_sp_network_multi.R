@@ -84,6 +84,8 @@ setMethod(
       object@network_pairs[[p_id]]@pair_data <- pair_merge(
         object,
         network_pair_id = p_id,
+        make_cartesian = make_cartesian,
+        add_od_data = FALSE,
         add_od_distance = add_od_distance,
         add_od_coordinates = FALSE,
         dist_function = dist_function)
@@ -120,6 +122,35 @@ setMethod(
     return(dat(slot(object,from)[[.id]]))
 })
 
+# ---- ... dat <- -------------------------------------------------------------
+#' @rdname sp_multi_network-class
+#' @param .id A character indicating the id of a [sp_network_nodes-class()] or a
+#'   [sp_network_pair-class()] inside the [sp_multi_network-class()].
+#' @export
+#' @examples
+#' ## access the data of a network or a network_pair inside a multi_network
+#'
+#' dat(multi_net_usa_ge, "ge")    # extract data of nodes
+#' dat(multi_net_usa_ge, "ge_ge") # extract data of pairs
+#'
+setReplaceMethod(
+  f = "dat",
+  signature = "sp_multi_network",
+  function(object, .id, value) {
+
+    assert_is_single_x(.id, "character")
+
+    all_ids <- id(object)
+    which_id <- lapply(all_ids, "==", .id)
+    assert(sum(unlist(which_id)) == 1,
+           "The provided id does not correspond to any network object.")
+    from <- names(Filter("any",which_id))
+    dat(slot(object,from)[[.id]]) <- value
+    return(object)
+  })
+
+
+
 
 # ---- ... neighborhood -------------------------------------------------------
 #' @rdname sp_multi_network-class
@@ -132,74 +163,22 @@ setMethod(
     return(neighborhood(object@networks[[.id]]))
   })
 
-
-# ---- ... pull_member --------------------------------------------------------
+# ---- ... nnodes -------------------------------------------------------------
 #' @rdname sp_multi_network-class
-#' @export
-#' @examples
-#' ## access sp_network_nodes or sp_network_pair inside a sp_multi_network
-#'
-#' pull_member(multi_net_usa_ge, .id = "ge")
-#' pull_member(multi_net_usa_ge, .id = "usa")
-#' pull_member(multi_net_usa_ge, .id ="ge_ge")
-#'
 setMethod(
-  f = "pull_member",
   signature = "sp_multi_network",
-  function(object, .id = NULL) {
-
-    assert_is_single_x(.id, "character")
-
-    .id_type <- sapply(id(object), function(x) .id %in% x)
-    assert(any(.id_type),
-           "The provided id does not correspond to any sp_network_nodes " %p%
-           "or sp_network_pair bject.")
-
-    from <- names(.id_type[.id_type])
-    return(slot(object,from)[[.id]])
+  f = "nnodes",
+  function(object, .id) {
+    nnodes(pull_member(object, .id))
   })
 
-# ---- ... show ---------------------------------------------------------------
-#' @keywords internal
+# ---- ... npairs -------------------------------------------------------------
+#' @rdname sp_multi_network-class
 setMethod(
-  f = "show",
   signature = "sp_multi_network",
-  function(object){
-
-    cat("Collection of spatial network nodes and pairs")
-    cat("\n")
-    cat(print_line(50))
-    plural <- function(s, x) paste0(s, ifelse(x == 1, "", "s"))
-    multi_net_ids <- id(object)
-
-
-    nodes_ids <- multi_net_ids$networks
-    num_nodes <- length(nodes_ids)
-    if(num_nodes >= 1) {
-      cat("\nContains", num_nodes,
-          "spatial network nodes ",
-          "\n    With", plural("id", num_nodes), ": ",
-          paste(nodes_ids, collapse = ", "))
-    }
-
-    pair_ids <- multi_net_ids$network_pairs
-    num_pairs <- length(pair_ids)
-    if( num_pairs >= 1) {
-      cat("\nContains", num_pairs,
-          "spatial network pairs ",
-          "\n    With", plural("id", num_pairs), ": ",
-          paste(pair_ids, collapse = ", "))
-
-      cat("\n\nAvailability of origin-destination pair information:\n\n")
-      od_pair_info <- Reduce("rbind", lapply(pair_ids, function(.id) {
-        check_pair_completeness(.id, object)}))
-      od_pair_info$COMPLETENESS <- format_percent(od_pair_info$COMPLETENESS)
-
-      print(od_pair_info[1:7], row.names = FALSE)
-    }
-
-    cat("\n")
-    invisible(object)
+  f = "npairs",
+  function(object, .id) {
+    npairs(pull_member(object, .id))
   })
 
 
@@ -279,6 +258,9 @@ setMethod(
 #'   A logical, when set to `TRUE` the resulting data.frame contains all
 #'   possible pairs of origins and destination, even if the data in the
 #'   [sp_network_pair-class()] does not have them.
+#' @param add_od_data
+#'   A logical, when set to `TRUE` variables describing the origins and
+#'   destinations are added to the data.
 #' @param add_od_distance
 #'   A logical, when set to `TRUE` add the pairwise distances in a column
 #'   `DISTANCE`. To make this work the origins and destinations must have
@@ -308,6 +290,7 @@ setMethod(
   function(object,
            network_pair_id,
            make_cartesian = FALSE,
+           add_od_data = TRUE,
            add_od_distance = FALSE,
            add_od_coordinates = FALSE,
            dist_function) {
@@ -324,6 +307,7 @@ setMethod(
     do_indexes <- pair_data[,attr_key_do(pair_data), drop = FALSE]
     do_indexes <- lapply(do_indexes, "as.integer")
 
+    # complete missing OD pairs
     if (make_cartesian & flow_infos$COMPLETENESS < 1) {
       n_o <- flow_infos[["ORIG_NNODES"]]
       n_d <- flow_infos[["DEST_NNODES"]]
@@ -343,26 +327,18 @@ setMethod(
       pair_data[pair_index,] <- flow_data[["pair"]][names(pair_data)]
     }
 
+    # add distances and coordinates
+    o_coords <- attr_coord_col(flow_data[["orig"]])
+    d_coords <- attr_coord_col(flow_data[["dest"]])
+    need_coords <- add_od_distance | add_od_coordinates
+    if (need_coords & !is.null(o_coords) & !is.null(d_coords)) {
 
-    orig_data[, attr_key_nodes(orig_data)] <- NULL
-    dest_data[, attr_key_nodes(dest_data)] <- NULL
-
-    if (!add_od_distance & !add_od_coordinates) {
-      orig_data[, attr_coord_col(orig_data)] <- NULL
-      dest_data[, attr_coord_col(dest_data)] <- NULL
-    }
-
-    pair_data <- cbind(
-      pair_data,
-      prefix_columns(dest_data, "DEST_")[do_indexes[[1]],,drop = FALSE],
-      prefix_columns(orig_data, "ORIG_")[do_indexes[[2]],,drop = FALSE],
-      row.names = NULL)
-
-
-    if (add_od_distance) {
+      coord_data <- list(
+        prefix_columns(dest_data[do_indexes[[1]], d_coords, drop = FALSE], "DEST_"),
+        prefix_columns(orig_data[do_indexes[[2]], o_coords, drop = FALSE], "ORIG_"))
 
       if (missing(dist_function)) {
-        dist_function <- NULL
+        dist_function <- function(x, y) stop("No distance function available!")
 
         o_lonlat <- isTRUE(attr_coord_lonlat(orig_data))
         d_lonlat <- isTRUE(attr_coord_lonlat(dest_data))
@@ -373,28 +349,102 @@ setMethod(
           dist_function <- euclidean_distance
       }
 
-      o_coords <- attr_coord_col(flow_data[["orig"]])
-      d_coords <- attr_coord_col(flow_data[["dest"]])
-      missing_infos <- c(
-        is.null(o_coords),
-        is.null(d_coords),
-        is.null(dist_function))
+      DISTANCE <- dist_function(coord_data[[1]], coord_data[[2]])
+      pair_data <- cbind(
+        pair_data,
+        DISTANCE,
+        coord_data %T% add_od_coordinates,
+        row.names = NULL)
+    }
 
-      if (!any(missing_infos)) {
-        pair_data[["DISTANCE"]] <- dist_function(
-          pair_data[,paste0("ORIG_", o_coords)],
-          pair_data[,paste0("DEST_", d_coords)])
-      }
+    # add remaining variables
+    if (add_od_data) {
+      orig_data <- subset_keycols(orig_data,drop_keys = TRUE)
+      orig_data <- prefix_columns(orig_data, "ORIG_")
+      dest_data <- subset_keycols(dest_data,drop_keys = TRUE)
+      dest_data <- prefix_columns(dest_data, "DEST_")
 
-      if (!add_od_coordinates) {
-        pair_data[,paste0("ORIG_", o_coords)] <- NULL
-        pair_data[,paste0("DEST_", d_coords)] <- NULL
-      }
-    } # finish distances
+      pair_data <- cbind(
+        pair_data,
+        dest_data[do_indexes[[1]],,drop = FALSE],
+        orig_data[do_indexes[[2]],,drop = FALSE], row.names = NULL)
+    }
+
     attr_key_do(pair_data) <- names(do_indexes)
     return(pair_data)
 })
 
+
+
+
+# ---- ... pull_member --------------------------------------------------------
+#' @rdname sp_multi_network-class
+#' @export
+#' @examples
+#' ## access sp_network_nodes or sp_network_pair inside a sp_multi_network
+#'
+#' pull_member(multi_net_usa_ge, .id = "ge")
+#' pull_member(multi_net_usa_ge, .id = "usa")
+#' pull_member(multi_net_usa_ge, .id ="ge_ge")
+#'
+setMethod(
+  f = "pull_member",
+  signature = "sp_multi_network",
+  function(object, .id = NULL) {
+
+    assert_is_single_x(.id, "character")
+
+    .id_type <- sapply(id(object), function(x) .id %in% x)
+    assert(any(.id_type),
+           "The provided id does not correspond to any sp_network_nodes " %p%
+             "or sp_network_pair bject.")
+
+    from <- names(.id_type[.id_type])
+    return(slot(object,from)[[.id]])
+  })
+
+# ---- ... show ---------------------------------------------------------------
+#' @keywords internal
+setMethod(
+  f = "show",
+  signature = "sp_multi_network",
+  function(object){
+
+    cat("Collection of spatial network nodes and pairs")
+    cat("\n")
+    cat(print_line(50))
+    plural <- function(s, x) paste0(s, ifelse(x == 1, "", "s"))
+    multi_net_ids <- id(object)
+
+
+    nodes_ids <- multi_net_ids$networks
+    num_nodes <- length(nodes_ids)
+    if(num_nodes >= 1) {
+      cat("\nContains", num_nodes,
+          "spatial network nodes ",
+          "\n    With", plural("id", num_nodes), ": ",
+          paste(nodes_ids, collapse = ", "))
+    }
+
+    pair_ids <- multi_net_ids$network_pairs
+    num_pairs <- length(pair_ids)
+    if( num_pairs >= 1) {
+      cat("\nContains", num_pairs,
+          "spatial network pairs ",
+          "\n    With", plural("id", num_pairs), ": ",
+          paste(pair_ids, collapse = ", "))
+
+      cat("\n\nAvailability of origin-destination pair information:\n\n")
+      od_pair_info <- Reduce("rbind", lapply(pair_ids, function(.id) {
+        check_pair_completeness(.id, object)}))
+      od_pair_info$COMPLETENESS <- format_percent(od_pair_info$COMPLETENESS)
+
+      print(od_pair_info[1:7], row.names = FALSE)
+    }
+
+    cat("\n")
+    invisible(object)
+  })
 
 
 

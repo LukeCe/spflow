@@ -6,11 +6,14 @@ compute_spflow_moments <- function(
     flow_control,
     ignore_na = FALSE) {
 
-  ## ---- define dimensionality of the estimation
-  n_o <- flow_control[["mat_nrows"]]
-  n_d <- flow_control[["mat_ncols"]]
-  N <- flow_control[["mat_npairs"]]
+  ## ---- define dimensions of the estimation
+  flow_dims <- dim(model_matrices[["Y_"]][[1]])
+  n_d <- flow_dims[1]
+  n_o <- flow_dims[2]
+  N <- prod(flow_dims)
 
+  if (!is.null(model_matrices[["flow_indicator"]]))
+    N <- nnzero(model_matrices[["flow_indicator"]])
 
   ## ---- derive moments from the covariates (Z,H)
   UU <- moment_empirical_var(model_matrices,N,n_d,n_o)

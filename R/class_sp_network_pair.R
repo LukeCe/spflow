@@ -13,18 +13,12 @@
 #'
 #' @slot orig_net_id
 #'   A character that serves as identifier for the origin network
-#' @slot orig_nnodes
-#'   A numeric that represents the number of nodes in the origin network
 #' @slot dest_net_id
 #'   A character that serves as identifier for the destination network
-#' @slot dest_nnodes
-#'   A numeric that represents the number of nodes in the destination network
 #' @slot network_pair_id
 #'   A character identifying the pair of networks
 #' @slot pair_data
 #'   A data.frame containing information on origin-destination pairs
-#' @slot npairs
-#'   A numeric indicating the number of origin-destination pairs
 #'
 #' @param object A sp_network_pair-class
 #' @param value An object to replace the existing id/data
@@ -34,16 +28,13 @@
 #' @export
 setClass("sp_network_pair",
          slots = c(orig_net_id     = "character",
-                   orig_nnodes     = "maybe_numeric",
                    dest_net_id     = "character",
-                   dest_nnodes     = "maybe_numeric",
                    network_pair_id = "character",
-                   pair_data       = "maybe_data.frame",
-                   npairs          = "maybe_numeric"))
+                   pair_data       = "maybe_data.frame"))
 
 # ---- Methods ----------------------------------------------------------------
 
-
+# ---- ... dat ----------------------------------------------------------------
 #' @rdname sp_network_pair-class
 #' @export
 #' @examples
@@ -54,21 +45,22 @@ setClass("sp_network_pair",
 #'
 setMethod(
   f = "dat",
-  signature = "sp_network_pair", function(object) {  # ---- dat ---------------
+  signature = "sp_network_pair", function(object) {
     return(object@pair_data)
     })
 
+# ---- ... dat <- -------------------------------------------------------------
 #' @rdname sp_network_pair-class
 setReplaceMethod(
   f = "dat",
-  signature = "sp_network_pair", function(object, value) {  # ---- dat <- -----
+  signature = "sp_network_pair", function(object, value) {
 
     object@pair_data <- value
-    object@npairs <- nrow(value)
     validObject(object)
     return(object)
   })
 
+# ---- ... id -----------------------------------------------------------------
 #' @rdname sp_network_pair-class
 #' @export
 #' @examples
@@ -81,7 +73,7 @@ setReplaceMethod(
 setMethod(
   f = "id",
   signature = "sp_network_pair",
-  function(object) { # ---- id -----------------------------------
+  function(object) {
     return(c(
       "pair" = object@network_pair_id,
       "orig" = object@orig_net_id,
@@ -90,25 +82,30 @@ setMethod(
   })
 
 
+# ---- ... id <- --------------------------------------------------------------
 #' @rdname sp_network_pair-class
 #' @export
 setReplaceMethod(
   f = "id",
   signature = "sp_network_pair",
-  function(object,value) {  # ---- id <- --------------------------------------
+  function(object, which = "pair", value) {
 
-    split_ids   <- unlist(strsplit(value,"_"))
-    new_id_orig <- split_ids[1]
-    new_id_dest <- split_ids[2]
+    assert_is_single_x(value, "character")
 
-    object@orig_net_id <- new_id_orig
-    object@dest_net_id <- new_id_dest
-    object@network_pair_id <- value
-    validObject(object)
+    if (which == "pair")
+      object@network_pair_id <- value
+
+    if (which == "orig")
+      object@orig_net_id <- value
+
+    if (which == "dest")
+      object@dest_net_id <- value
+
     return(object)
   })
 
 
+# ---- ... npairs -------------------------------------------------------------
 #' @rdname sp_network_pair-class
 #' @export
 #' @examples
@@ -120,11 +117,12 @@ setReplaceMethod(
 setMethod(
   f = "npairs",
   signature = "sp_network_pair",
-  function(object) { # ---- npairs --------------------------------------------
-    return(object@npairs)
+  function(object) {
+    return(nrow(dat(object)))
   })
 
 
+# ---- ... get_keys -----------------------------------------------------------
 #' @rdname sp_network_pair-class
 #' @export
 #' @examples
@@ -137,7 +135,7 @@ setMethod(
 setMethod(
   f = "get_keys",
   signature = "sp_network_pair",
-  function(object) { # ---- get_keys ------------------------------------------
+  function(object) {
 
     if (is.null(object@pair_data))
       return(NULL)
@@ -147,6 +145,7 @@ setMethod(
     return(od_key_cols)
   })
 
+# ---- ... nnodes -------------------------------------------------------------
 #' @rdname sp_network_pair-class
 #' @export
 #' @examples
@@ -161,19 +160,25 @@ setMethod(
 setMethod(
   f = "nnodes",
   signature = "sp_network_pair",
-  function(object) { # ---- nnodes --------------------------------------------
-    return(c(
-      "orig" = object@orig_nnodes,
-      "dest" = object@dest_nnodes
-    ))
+  function(object) {
+
+    if (is.null(dat(object)))
+      return(NULL)
+
+    od_key_cols <- attr_key_od(dat(object))
+    od_nnodes <- unlist(lapply(
+      od_key_cols,
+      function(.key) nlevels(dat(object)[[.key]])))
+    return(od_nnodes)
   })
 
 
+# ---- ... show ---------------------------------------------------------------
 #' @keywords internal
 setMethod(
   f = "show",
   signature = "sp_network_pair",
-  function(object){ # ---- show -----------------------------------------------
+  function(object){
 
     cat("Spatial network pair with id:",id(object)["pair"])
     cat("\n")
@@ -208,12 +213,13 @@ setMethod(
     invisible(object)
   })
 
-setValidity("sp_network_pair", function(object) { # ---- validity -------------
+# ---- ... validity -----------------------------------------------------------
+setValidity("sp_network_pair", function(object) {
 
   # check ids
   ids <- id(object)
   if (any(length(ids) != 3, !is.character(ids))) {
-    error_msg <- strwrap("
+    error_msg <- sprintfwrap("
       The ids for the network pair object are invalid invalid!
       Please ensure that the origin, destination and network_pair ids are
       characters of length one.")
@@ -231,17 +237,24 @@ setValidity("sp_network_pair", function(object) { # ---- validity -------------
     data_keys <- unique(dat(object)[,data_keys, with = FALSE])
   } else {
     data_keys <- unique(dat(object)[,data_keys, drop = FALSE])
-
   }
 
   unique_identification <- nrow(data_keys) == nrow(dat(object))
-
   if (!all(keys_exist, unique_identification)) {
-    error_msg <-
-      "Based on the origin and destination key columns the observations " %p%
-      "are not unequely identifyed!"
-    return(error_msg)
+    error_msg <- "
+    Based on the origin and destination key columns the observations
+    are not unequely identifyed!"
+    return(sprintfwrap(error_msg))
   }
+
+  if (is.unsorted(get_pair_index(dat(object)))) {
+    error_msg <- "
+    The order of origin-destination pairs is invalid!"
+    return(sprintfwrap(error_msg))
+  }
+
+
+
 
   # The object is valid
   return(TRUE)
@@ -285,12 +298,9 @@ sp_network_pair <- function(
   network_pair <- new(
     "sp_network_pair",
     orig_net_id      = orig_net_id,
-    orig_nnodes      = NULL,
     dest_net_id      = dest_net_id,
-    dest_nnodes      = NULL,
     network_pair_id  = network_pair_id,
-    pair_data        = NULL,
-    npairs           = NULL)
+    pair_data        = NULL)
 
   # early return with empty counts when no data was provided
   if (is.null(pair_data) && validObject(network_pair))
@@ -310,10 +320,6 @@ sp_network_pair <- function(
   pair_data <- pair_data[order(od_key_data[[1]],od_key_data[[2]]),]
 
   network_pair@pair_data   <- pair_data
-  network_pair@orig_nnodes <- nlevels(od_key_data[[1]])
-  network_pair@dest_nnodes <- nlevels(od_key_data[[2]])
-  network_pair@npairs      <- nrow(pair_data)
-
   validObject(network_pair)
   return(network_pair)
 }
@@ -380,8 +386,8 @@ attr_key_dest <- function(df) {
 
 #' @keywords internal
 attr_key_od <- function(df) {
-  c(attr_key_orig(df),
-    attr_key_dest(df))
+  c("orig" = attr_key_orig(df),
+    "dest" = attr_key_dest(df))
 }
 
 #' @keywords internal
@@ -393,7 +399,8 @@ attr_key_od <- function(df) {
 
 #' @keywords internal
 attr_key_do <- function(df) {
-  c(attr_key_dest(df),attr_key_orig(df))
+  c("dest" = attr_key_dest(df),
+    "orig" = attr_key_orig(df))
 }
 
 #' @keywords internal
@@ -402,3 +409,19 @@ attr_key_do <- function(df) {
   attr_key_orig(df) <- value[2]
   df
 }
+
+#' @keywords internal
+get_do_indexes <- function(df, do_keys = attr_key_do(df)) {
+  Reduce("cbind", lapply(df[do_keys], "as.integer"), init = NULL)
+}
+
+#' @keywords internal
+get_pair_index <- function(
+  df,
+  do_keys = attr_key_do(df),
+  n_o = nlevels(df[[do_keys[1]]])) {
+
+  do_ind <- get_do_indexes(df, do_keys)
+  do_ind[,1] + n_o * (do_ind[,2] - 1)
+}
+

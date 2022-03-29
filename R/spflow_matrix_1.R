@@ -45,42 +45,48 @@ spflow_model_matrix <- function(
   flow_control,
   ignore_na = FALSE) {
 
-  formula_parts <- interpret_flow_formula(
-    flow_formula,
-    flow_control)
+
 
   # transform by sources = c("pair", "orig", "dest")
   od_data_sources <- pull_relational_flow_data(
     sp_multi_network,
     network_pair_id)
 
-  od_model_matrices <- by_source_model_matrix(
+  formula_parts <- interpret_flow_formula(
+    flow_formula,
+    flow_control)
+
+  od_model_matrices <- by_source_variable_trans(
     formula_parts,
     od_data_sources,
     ignore_na = ignore_na)
 
   # check if the case is cartesian
   #   and if observations are dropped due to the transformations
-  source_obs <- unlist(lapply(od_model_matrices, "nrow"))
+  flow_indicator <- NULL
+  orig_indicator <- NULL
+  dest_indicator <- NULL
+
+  source_obs <- unlist(lapply(od_data_sources, "nrow"))
   trans_obs <- unlist(lapply(od_model_matrices, "nrow"))
   non_cartesian <- source_obs["pair"] < prod(source_obs[c("orig","dest")])
-  lost_rows <- !all(unlist(Map("==", source_obs, trans_obs)))
+  lost_rows <- unlist(Map(">", source_obs, trans_obs))
 
-  flow_indicator <- NULL
-  if (non_cartesian | lost_rows) {
-    pairobs_index <- as.integer(row.names(od_model_matrices[["pair"]]))
-    od_keys <- attr_key_od(od_data_sources[["pair"]])
-    do_indexes <- od_data_sources[["pair"]][rev(od_keys)]
-    do_indexes <- Reduce("cbind", lapply(do_indexes, "as.integer"))
-    do_indexes <- do_indexes[pairobs_index,]
-
+  if (non_cartesian | any(lost_rows)) {
+    rows2indic <- function(x) as.integer(row.names(od_model_matrices[[x]]))
+    pairobs_index <- rows2indic("pair")
+    do_indexes <- get_do_indexes(od_data_sources[["pair"]])
+    do_indexes <- do_indexes[,,drop = FALSE]
     flow_indicator <- matrix_format_d_o(
       dest_index = do_indexes[,1],
       orig_index = do_indexes[,2],
       num_dest = source_obs[["dest"]],
-      num_orig = source_obs[["orig"]])
-    }
+      num_orig = source_obs[["orig"]]
+      )
+  }
 
+  if (lost_rows["orig"])
+    orig_indicator <-
 
   # transforming from vector to matrix format
   mat_formatter <- switch(EXPR = class(flow_indicator)
@@ -94,7 +100,7 @@ spflow_model_matrix <- function(
     no <- source_obs[["orig"]]
     function(vec) {
       mat <- matrix(0, nrow = nd, ncol = no)
-      mat[do_indexes] <- vec
+      mat[pairobs_index] <- vec
       return(mat)}}
   , "NULL" = {
     nd <- source_obs[["dest"]]
@@ -112,8 +118,6 @@ spflow_model_matrix <- function(
     weights <- mat_formatter(weights)
   }
 
-
-  od_neighborhoods <- pull_neighborhood_data(sp_multi_network, network_pair_id)
   constants <- derive_flow_constants(
     use_global_const = formula_parts[["constants"]][["global"]],
     use_intra_const = isTRUE(formula_parts[["constants"]][["intra"]]),

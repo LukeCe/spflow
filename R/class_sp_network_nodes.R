@@ -13,8 +13,6 @@
 #'
 #' @slot network_id
 #'   A character that serves as an identifier for the network
-#' @slot nnodes
-#'   A numeric that indicates the number of nodes in the network
 #' @slot node_data
 #'   A data.frame that contains all information describing the nodes
 #' @slot node_neighborhood
@@ -29,12 +27,11 @@
 setClass("sp_network_nodes",
          slots = c(
            network_id        = "character",
-           nnodes            = "maybe_numeric",
            node_neighborhood = "maybe_any_matrix",
            node_data         = "maybe_data.frame"))
 
 # ---- Methods ----------------------------------------------------------------
-
+# ---- ... dat ----------------------------------------------------------------
 #' @rdname sp_network_nodes-class
 #' @export
 #' @examples
@@ -44,21 +41,22 @@ setClass("sp_network_nodes",
 setMethod(
   f = "dat",
   signature = "sp_network_nodes",
-  function(object) { # ---- dat -----------------------------------------------
+  function(object) {
     return(object@node_data)
     })
 
+# ---- ... dat <- -------------------------------------------------------------
 #' @rdname sp_network_nodes-class
 setReplaceMethod(
   f = "dat",
-  signature = "sp_network_nodes", function(object, value) { # ---- dat <- -----
+  signature = "sp_network_nodes", function(object, value) {
 
     object@node_data <- value
-    object@nnodes <- nrow(value) %||% object@nnodes
     validObject(object)
     return(object)
     })
 
+# ---- ... id -----------------------------------------------------------------
 #' @rdname sp_network_nodes-class
 #' @examples
 #' # access the id of the network
@@ -69,21 +67,24 @@ setReplaceMethod(
 setMethod(
   f = "id",
   signature = "sp_network_nodes",
-  function(object) { # ---- id ------------------------------------------------
+  function(object) {
     return(object@network_id)
   })
 
+# ---- ... id <- --------------------------------------------------------------
 #' @rdname sp_network_nodes-class
 #' @export
 setReplaceMethod(
   f = "id",
   signature = "sp_network_nodes",
-  function(object, value) { # ---- id <- --------------------------------------
+  function(object, value) {
     assert(valid_network_id(value), "The network id is invalid!")
     object@network_id <- value
     return(object)
   })
 
+
+# ---- ... get_keys -----------------------------------------------------------
 #' @rdname sp_network_nodes-class
 #' @export
 #' @examples
@@ -95,7 +96,7 @@ setReplaceMethod(
 setMethod(
   f = "get_keys",
   signature = "sp_network_nodes",
-  function(object) { # ---- get_keys -----------------------------------
+  function(object) {
 
     if (is.null(object@node_data))
       return(NULL)
@@ -105,6 +106,7 @@ setMethod(
     return(key_col)
   })
 
+# ---- ... neighborhood -------------------------------------------------------
 #' @rdname sp_network_nodes-class
 #' @export
 #' @examples
@@ -114,21 +116,23 @@ setMethod(
 setMethod(
   f = "neighborhood",
   signature = "sp_network_nodes",
-  function(object) { # ---- neighborhood --------------------------------------
+  function(object) {
     return(object@node_neighborhood)
   })
 
+# ---- ... neighborhood <- ----------------------------------------------------
 #' @rdname sp_network_nodes-class
 setReplaceMethod(
   f = "neighborhood",
   signature = "sp_network_nodes",
-  function(object,value) { # ---- neighborhood <- -----------------------------
+  function(object,value) {
 
     object@node_neighborhood <- value %|!|% try_coercion(value,"Matrix")
     validObject(object)
     return(object)
   })
 
+# ---- ... nnodes -------------------------------------------------------------
 #' @rdname sp_network_nodes-class
 #' @export
 #' @examples
@@ -138,16 +142,18 @@ setReplaceMethod(
 setMethod(
   f = "nnodes",
   signature = "sp_network_nodes",
-  function(object) { # ---- nnodes --------------------------------------------
-    return(object@nnodes)
+  function(object) {
+    dims <- c(nrow(object@node_data), nrow(object@node_neighborhood))
+    return(dims %|!|% max)
   })
 
 
+# ---- ... show ---------------------------------------------------------------
 #' @keywords internal
 setMethod(
   f = "show",
   signature = "sp_network_nodes",
-  function(object){ # ---- show -----------------------------------------------
+  function(object){
 
     cat("Spatial network nodes with id:",id(object))
     cat("\n")
@@ -179,9 +185,10 @@ setMethod(
     invisible(object)
   })
 
+# ---- ... validity -----------------------------------------------------------
 setValidity(
   Class = "sp_network_nodes",
-  function(object) { # ---- validity ------------------------------------------
+  function(object) {
 
     # check the id
     if (!valid_network_id(id(object))) {
@@ -199,19 +206,17 @@ setValidity(
     # check content of nb matrix
     if (!is.null(neighborhood(object))
         && any(diag(neighborhood(object)) != 0)) {
-      error_msg <-
-        "The neighborhood matrix must have zeros on the main diagonal!"
-      return(error_msg)
+      error_msg <- "
+      The neighborhood matrix must have zeros on the main diagonal!"
+      return(sprintfwrap(error_msg))
     }
 
     # check dimensions of data and matrix
-    nr_dat <- nrow(dat(object))
-    nnodes <- nnodes(object)
-    if (!has_equal_elements(c(nr_dat,dim_nb,nnodes))) {
-      error_msg <-
-        "The row number of the node_data does not match the dimensions " %p%
-        "of the neighborhood matrix!"
-      return(error_msg)
+    if (!has_equal_elements(c(nrow(dat(object)), dim_nb))) {
+      error_msg <- "
+      The row number of the node_data does not match the dimensions
+      of the neighborhood matrix!"
+      return(sprintfwrap(error_msg))
     }
 
     # check details of the data
@@ -225,12 +230,17 @@ setValidity(
     }
 
     node_ids <- dat(object)[[node_id_col]]
-    duplicated_ids <- length(unique(node_ids)) != nr_dat
+    duplicated_ids <- length(unique(node_ids)) != length(node_ids)
     wrong_id_type <- !is.factor(node_ids)
     if (duplicated_ids | wrong_id_type ) {
-      error_msg <-
-        "The nodes are not correctly identifyed.\n Please ensure " %p%
-        "that all entries in column " %p% node_id_col %p% " are unique!"
+      error_msg <- "
+      The nodes are not correctly identifyed!<br>
+      Please ensure that all entries in the id-column are unique!"
+      return(sprintfwrap(error_msg))
+    }
+
+    if (is.unsorted(node_ids)) {
+      error_msg <- "The node data is not ordered correctly!"
       return(error_msg)
     }
 
@@ -285,7 +295,6 @@ sp_network_nodes <- function(
     "sp_network_nodes",
     network_id        = network_id,
     node_neighborhood = node_neighborhood,
-    nnodes            = nnodes,
     node_data         = NULL)
 
   if (is.null(node_data))
@@ -314,7 +323,6 @@ sp_network_nodes <- function(
 }
 
 # ---- Helpers ----------------------------------------------------------------
-
 #' @keywords internal
 attr_key_nodes <- function(df) {
   attr(df, "node_key_column")

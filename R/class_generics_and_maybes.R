@@ -58,7 +58,7 @@ setGeneric(
 #' @export
 setGeneric(
   name = "dat<-",
-  def = function(object, value) standardGeneric("dat<-"))
+  def = function(object, ... , value) standardGeneric("dat<-"))
 
 
 # ---- ... id -----------------------------------------------------------------
@@ -170,7 +170,7 @@ setGeneric(
 #' @export
 setGeneric(
   name = "npairs",
-  def = function(object) standardGeneric("npairs"))
+  def = function(object, ...) standardGeneric("npairs"))
 
 
 # ---- ... pair_corr ----------------------------------------------------------

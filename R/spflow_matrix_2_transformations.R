@@ -7,7 +7,7 @@
 #'   overall model matrix which is only expanded once for each source.
 #' @return A list of matrices
 #' @keywords internal
-by_source_model_matrix <- function(
+by_source_variable_trans <- function(
   formula_parts,
   data_sources,
   weights_var = NULL,

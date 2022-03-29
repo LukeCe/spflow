@@ -64,7 +64,7 @@ spflow_mle <- function(
   }
 
   if ( hessian_method == "f2" ) {
-    f2_specific <- list("delta_t" = delta_t, "calc_log_det" = calc_log_det)
+    f2_specific <- list("delta_t" = delta_t, "calc_log_det" = logdet_calculator)
     hessian_inputs <- c(hessian_inputs,f2_specific)
   }
 

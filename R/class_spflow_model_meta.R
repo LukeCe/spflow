@@ -400,7 +400,7 @@ spflow_model <- function(
     fit_diagnostics = NULL) {
 
   est <- flow_control$estimation_method
-  model_class <- "spflow_model_" %p% est
+  model_class <- paste0("spflow_model_", est)
 
   # fill generic arguments
   model_results <-
