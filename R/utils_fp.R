@@ -100,7 +100,7 @@ named_list <- function(names, init = NULL) {
 #' @rdname lookup_operators
 #' @keywords internal
 lookup <- function(values, names = as.character(values)) {
-  pair_nv <- data.frame(v = values, n = names)
+  pair_nv <- data.frame(v = as.vector(values), n = names)
   values %|!|% structure(pair_nv$v, names = pair_nv$n)
 }
 

@@ -17,9 +17,7 @@
 moment_empirical_var <- function(model_matrices,N,n_d,n_o) {
 
   ## ---- prepare weighting of the model matrices
-  wt <- model_matrices$weights
-  if (is.null(wt))
-    wt <- model_matrices$flow_indicator
+  wt <- model_matrices$weights %||% model_matrices$flow_indicator
 
   # prepare weighted neighborhood matrices
   const_global <- model_matrices[["const"]]
@@ -27,9 +25,8 @@ moment_empirical_var <- function(model_matrices,N,n_d,n_o) {
   const_intra_wt <- wt %|!|% lapply(const_intra, "*", wt)
 
   # prepare the moment weighting for the site attributes (D,O,I)
-  order_keys <- c("D_","O_","I_")
-  X <- compact(model_matrices[order_keys])
-  wt_odi <- derive_weights_ODI(wt,n_d,n_o)[names(X)]
+  X <- compact(model_matrices[c("D_","O_","I_")])
+  wt_odi <- derive_weights_DOI(wt,n_o = n_o,n_d = n_d)[names(X)]
 
   # prepare weighted pair attributes
   G_wt <- wt %|!|% lapply(model_matrices$G_, "*", wt)
@@ -156,7 +153,7 @@ var_block_alpha_I_beta <- function(const_intra,X) {
   if (is.null(X) || is.null(const_intra))
     return(NULL)
 
-  result <- Reduce("rbind", lapply(const_intra, "matrix_prod_ODI", X))
+  result <- Reduce("rbind", lapply(const_intra, "matrix_prod_DOI", X))
   return(result)
 }
 
@@ -177,7 +174,7 @@ var_block_beta_gamma <- function(X,G) {
   if (is.null(X) || is.null(G))
     return(NULL)
 
-  result <- lapply(G, "matrix_prod_ODI", X)
+  result <- lapply(G, "matrix_prod_DOI", X)
   result <- Reduce("cbind", lapply(result, "t"))
   return(result)
 }
@@ -228,7 +225,7 @@ cov_moment_alpha_I <- function(Y,const_intra) {
 
 #' @keywords internal
 cov_moment_beta <- function(Y, X) {
-  as.vector(matrix_prod_ODI(mat = Y,X = X))
+  as.vector(matrix_prod_DOI(mat = Y,X = X))
 }
 
 #' @keywords internal
@@ -240,7 +237,7 @@ cov_moment_gamma <- function(Y, G) {
 # ---- Helpers ----------------------------------------------------------------
 
 #' @keywords internal
-derive_weights_ODI <- function(wt,n_o,n_d) {
+derive_weights_DOI <- function(wt,n_o,n_d) {
 
    if (is.null(wt)) # scalar weights
      return(list("D_" = n_o, "O_" = n_d, "I_" = 1))
@@ -249,7 +246,7 @@ derive_weights_ODI <- function(wt,n_o,n_d) {
  }
 
 #' @keywords internal
-matrix_prod_ODI <- function(mat,X) {
+matrix_prod_DOI <- function(mat,X) {
 
   if (is.null(X) | is.null(mat))
     return(NULL)

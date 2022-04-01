@@ -2,7 +2,7 @@
 
 * Added `map_flows()` to visualize flow data
 * Added support for non-cartesian and rectangular cases
-* Added tolerance for `NA` value during the estimation
+* Added handling of `NA` values during the estimation
 
 # spflow 0.1.0 (2021-09-08)
 

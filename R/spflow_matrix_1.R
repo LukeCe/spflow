@@ -46,7 +46,6 @@ spflow_model_matrix <- function(
   ignore_na = FALSE) {
 
 
-
   # transform by sources = c("pair", "orig", "dest")
   od_data_sources <- pull_relational_flow_data(
     sp_multi_network,
@@ -56,95 +55,38 @@ spflow_model_matrix <- function(
     flow_formula,
     flow_control)
 
-  od_model_matrices <- by_source_variable_trans(
+  flowmodel_matrices <- flowdata_transformations(
+    formula_parts = formula_parts,
+    data_sources = od_data_sources,
+    na_rm = ignore_na,
+    weights_var = flow_control[["weights"]])
+
+  variable_usage <- define_lags_and_instruments(
     formula_parts,
-    od_data_sources,
-    ignore_na = ignore_na)
+    lapply(od_data_sources, "subset_keycols" , drop_keys = TRUE))
 
-  # check if the case is cartesian
-  #   and if observations are dropped due to the transformations
-  flow_indicator <- NULL
-  orig_indicator <- NULL
-  dest_indicator <- NULL
+  od_neighborhoods <- pull_neighborhood_data(
+    sp_multi_network = sp_multi_network,
+    network_pair_id = network_pair_id)
 
-  source_obs <- unlist(lapply(od_data_sources, "nrow"))
-  trans_obs <- unlist(lapply(od_model_matrices, "nrow"))
-  non_cartesian <- source_obs["pair"] < prod(source_obs[c("orig","dest")])
-  lost_rows <- unlist(Map(">", source_obs, trans_obs))
-
-  if (non_cartesian | any(lost_rows)) {
-    rows2indic <- function(x) as.integer(row.names(od_model_matrices[[x]]))
-    pairobs_index <- rows2indic("pair")
-    do_indexes <- get_do_indexes(od_data_sources[["pair"]])
-    do_indexes <- do_indexes[,,drop = FALSE]
-    flow_indicator <- matrix_format_d_o(
-      dest_index = do_indexes[,1],
-      orig_index = do_indexes[,2],
-      num_dest = source_obs[["dest"]],
-      num_orig = source_obs[["orig"]]
-      )
-  }
-
-  if (lost_rows["orig"])
-    orig_indicator <-
-
-  # transforming from vector to matrix format
-  mat_formatter <- switch(EXPR = class(flow_indicator)
-  , "ngCMatrix" = {
-    imat <- as(flow_indicator,"dgCMatrix")
-    function(vec) {
-      imat@x <- vec
-      return(imat)}}
-  , "matrix" = {
-    nd <- source_obs[["dest"]]
-    no <- source_obs[["orig"]]
-    function(vec) {
-      mat <- matrix(0, nrow = nd, ncol = no)
-      mat[pairobs_index] <- vec
-      return(mat)}}
-  , "NULL" = {
-    nd <- source_obs[["dest"]]
-    no <- source_obs[["orig"]]
-    function(vec) {
-      mat <- matrix(vec, nrow = nd, ncol = no)
-      return(mat)}})
-
-  # solve constant terms and weights
-  weights <- flow_control[["weight_var"]]
-  if (!is.null(weights)) {
-    weights <- od_data_sources$pair[[weights]]
-    if (lost_rows)
-      weights <- weights[pairobs_index]
-    weights <- mat_formatter(weights)
-  }
+  flowmodel_matrices <- flowdata_spatiallag(
+    variable_usage = variable_usage,
+    flowmodel_matrices = flowmodel_matrices,
+    nb_matrices = od_neighborhoods,
+    model = flow_control[["model"]],
+    decorrelate_instruments = isTRUE(flow_control[["twosls_decorrelate_instruments"]]),
+    reduce_pair_instruments = isTRUE(flow_control[["twosls_reduce_pair_instruments"]]))
 
   constants <- derive_flow_constants(
     use_global_const = formula_parts[["constants"]][["global"]],
     use_intra_const = isTRUE(formula_parts[["constants"]][["intra"]]),
     use_instruments = flow_control[["estimation_method"]] == "s2sls",
-    flow_indicator = flow_indicator,
+    flow_indicator = flowmodel_matrices[["flow_indicator"]],
     OW = od_neighborhoods[["OW"]],
     DW = od_neighborhoods[["DW"]])
 
-  # compute spatial lags and sort into roles = c("Y_", "D_", "O_", "I_", "G_")
-  variable_roles <- define_variable_roles(
-    formula_parts,
-    lapply(od_data_sources, "subset_keycols" , drop_keys = TRUE))
-  model_matrices <- by_role_spatial_lags(
-    model_matrices = od_model_matrices,
-    variable_roles = variable_roles,
-    flow_control = flow_control,
-    flow_indicator = flow_indicator,
-    neighborhoods = od_neighborhoods,
-    mat_formatter = mat_formatter)
 
-
-  return(c(constants,
-           model_matrices,
-           od_neighborhoods,
-           list("weights" = weights,
-                "flow_indicator" = flow_indicator,
-                "mat_formatter" = mat_formatter)))
+  return(c(constants, flowmodel_matrices))
 }
 
 #' @keywords internal
@@ -188,51 +130,28 @@ pull_neighborhood_data <-  function(sp_multi_network, network_pair_id) {
 
 }
 
-#' @title Internal functions to generate model matrices
-#' @details
-#'   The function generates a list for each role `c("Y_","G_","O_","D_","I_")`
-#'   which indicates whether a variable in the design matrix is used as
-#'   `c("norm", "sdm", "inst")`.
-#' @return
-#'   A list of lists, with information on the way variables are used
-#'   in the model. (e.g. origin vs destination and the number of lags)
 #' @keywords internal
-define_variable_roles <- function(formula_parts, data_sources) {
+define_lags_and_instruments <- function(formula_parts, data_sources) {
 
-  roles <- c("Y_","G_","O_","D_","I_")
-  is_within <- !"dest" %in% names(data_sources)
-
-  source_role_lookup <- roles_to_sources(is_within)
-  role_usage <- translist(formula_parts)[roles]
-  role_usage <- compact(role_usage)
-
-  what_vars_are_lagged_roles <- function(role_key) {
-    source_key <- source_role_lookup[role_key]
-    lapply(role_usage[[role_key]], "predict_tranfomed_vars",
-           data_sources[[source_key]])
-  }
-  role_lags <- lapply(lookup(names(role_usage)), "what_vars_are_lagged_roles")
-  role_lags <- compact(role_lags)
-
-  # remove lags for Y_ that appear in the G_ part
-  dependent_vars <- role_lags[["Y_"]][["norm"]]
-  role_lags[["G_"]][["norm"]] <-
-    setdiff(role_lags[["G_"]][["norm"]], dependent_vars)
-  role_lags[["G_"]][["inst"]] <-
-    setdiff(role_lags[["G_"]][["inst"]], dependent_vars)
-
-  return(role_lags)
-}
-
-#' @keywords internal
-roles_to_sources <- function(is_within) {
-  D_source <- if (is_within) "orig" else "dest"
-  c("Y_" = "pair",
-    "G_" = "pair",
+  formulas2sources  <- c(
+    "D_" = "dest",
     "O_" = "orig",
-    "D_" = D_source,
-    "I_" = "orig")
+    "I_" = "orig",
+    "G_" = "pair",
+    "Y_" = "pair")
+
+
+  interpret_formulas <- function(.key_form) {
+    .key_source <- formulas2sources[.key_form]
+    derive_variables_use(variable_usage[[.key_form]], data_sources[[.key_source]])
+  }
+
+  variable_usage <- translist(formula_parts)[names(formulas2sources)]
+  variable_usage <- compact(variable_usage)
+  variable_usage <- lapply(lookup(names(variable_usage)), interpret_formulas)
+  return(variable_usage)
 }
+
 
 #' @importFrom Matrix Diagonal
 #' @keywords internal
@@ -273,6 +192,37 @@ derive_flow_constants <- function(
     lags_are_instruments = TRUE
   )
 
-
   return(c_terms)
 }
+
+
+
+derive_variables_use <- function(
+    formula_part,
+    data_source) {
+
+  var_use <- lapply(formula_part, "predict_tranfomed_vars", data_source)
+  var_use_types <- named_list(c("norm","sdm","inst"))
+  var_use_types[names(var_use)] <- var_use
+
+  all_vars <- unique(unlist(var_use, use.names = FALSE))
+  get_v_use <- function(.v) data.frame(lapply(var_use_types, function(.u) any(.u == .v)))
+  var_use_df <- do.call("rbind", lapply(lookup(all_vars), get_v_use))
+  var_use_df[["num_lags"]] <- var_use_df[["sdm"]] + 2 * var_use_df[["inst"]]
+
+  inst_attr <- Map(
+    function(norm, sdm, num_lags){
+
+      inst_statu <- rep(TRUE, num_lags + 1)
+      inst_statu[1] <- !norm
+      if(num_lags >= 1)
+        inst_statu[2] <- !sdm
+      inst_statu
+    },
+    var_use_df$norm, var_use_df$sdm, var_use_df$num_lags)
+
+  var_use_df[["inst_attr"]] <- I(inst_attr)
+  var_use_df
+
+}
+

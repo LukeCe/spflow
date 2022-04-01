@@ -7,92 +7,152 @@
 #'   overall model matrix which is only expanded once for each source.
 #' @return A list of matrices
 #' @keywords internal
-by_source_variable_trans <- function(
-  formula_parts,
-  data_sources,
-  weights_var = NULL,
-  ignore_na = FALSE,
-  is_within = FALSE) {
+flowdata_transformations <- function(
+    formula_parts,
+    data_sources,
+    na_rm,
+    weights_var,
+    orig_equals_dest) {
 
-  source_formulas <- lapply(formula_parts, function(.f) {
-    combine_formulas_by_source(sources = names(data_sources),
-                               formulas = .f)})
-  source_formulas <- lapply(translist(source_formulas), "combine_rhs_formulas")
-  source_formulas <- source_formulas[names(data_sources)]
+  formulas2sources  <- c(
+    "D_" = "dest",
+    "O_" = "orig",
+    "I_" = "orig",
+    "G_" = "pair",
+    "Y_" = "pair")
 
-  # nice errors when columns are not available
-  Map("validate_source_formulas",
-      source_formula = source_formulas,
-      data_source = data_sources,
-      source_type = names(data_sources))
+  formulas4trans <- translist(formula_parts)[names(formulas2sources)]
+  formulas4trans <- lapply(
+    formulas4trans[intersect(names(formulas4trans), names(formulas2sources))],
+    "combine_rhs_formulas")
+  transform_in_source <- function(.key, .na_rm = na_rm) {
 
-  # Generate model matrices by data source
-  data_sources <- lapply(data_sources, "row.names<-", NULL)
-  source_model_matrix <- function(.s) flow_conform_model_matrix(
-    source_formulas[[.s]],
-    subset_keycols(data_sources[[.s]], drop_keys = TRUE))
+    this_formula <- formulas4trans[[.key]]
+    if (is.null(this_formula))
+      return(NULL)
 
-  orig_mm <- source_model_matrix("orig")
-  dest_mm <- source_model_matrix("dest")
-  lost_origs <- nrow(orig_mm) != nrow(data_sources[["orig"]])
-  lost_dests <- nrow(dest_mm) != nrow(data_sources[["dest"]])
-  if (!ignore_na) {
-    error_msg <- "
-    There are missing values in the data associcated with the %s,
-    please remove them from the data first!"
-      assert(!lost_origs, error_msg, "origins")
-      assert(!lost_dests, error_msg, "destinations")
+    this_source <- formulas2sources[.key]
+    this_source <- subset_keycols(data_sources[[this_source]], drop_keys = TRUE)
+    this_mat <- flow_conform_model_matrix(this_formula, this_source)
+
+    lost_cases <- nrow(this_mat) < nrow(this_source)
+    assert(.na_rm || !lost_cases, "
+           The transforumations specifyed in formula part %s(...) NA values!")
+    return(this_mat)
   }
 
-  # when weights have NA's remove them first
-  wt <- weights_var %|!|% data_sources[["pair"]][[weights_var]]
-  if (!is.null(wt)) {
-    wt <- is.finite(wt)
-    if (any(!wt)) {
-      assert(ignore_na, "NA/NaN/Inf in weights!")
-      data_sources[["pair"]] <- data_sources[["pair"]][wt,,drop = FALSE]
+  # transform nodes variables
+  node_formulas <- c("D_","O_", "I_")
+  node_matrices <- lapply(lookup(node_formulas), transform_in_source)
+
+  # ...if there are lost observations in the node matrices
+  # ...we can directly remove the corresponding pairs
+  do_indicators <- get_do_indexes(data_sources[["pair"]])
+  if (na_rm) {
+    rows2index <- function(x) as.integer(row.names(x))
+    node_obs_indicators <- lapply(node_formulas, function(.f) {
+      obs_source <- nrow(data_sources[[formulas2sources[.f]]])
+      obs_trans <- nrow(node_matrices[[.f]])
+      if (is.null(obs_trans) || obs_source == obs_trans)
+        return(NULL)
+
+      return(rows2index(node_matrices[[.f]]))
+    })
+
+
+    if (!is.null(node_obs_indicators[["D_"]])) {
+      keep_dest <- rep(FALSE, nrow(data_sources[["dest"]]))
+      keep_dest[node_obs_indicators[["D_"]]] <- TRUE
+      keep_dest <- keep_dest[do_indicators[,1]]
+      do_indicators <- do_indicators[keep_dest,, drop = FALSE]
+      data_sources[["pair"]] <- data_sources[["pair"]][keep_dest,, drop = FALSE]
+
+    }
+
+    if (!is.null(node_obs_indicators[["O_"]])) {
+      keep_orig <- rep(FALSE, nrow(data_sources[["orig"]]))
+      keep_orig[node_obs_indicators[["O_"]]] <- TRUE
+      keep_orig <- keep_orig[do_indicators[,2]]
+      do_indicators <- do_indicators[keep_orig,, drop = FALSE]
+      data_sources[["pair"]] <- data_sources[["pair"]][keep_orig,, drop = FALSE]
+
+    }
+
+    if (!is.null(node_obs_indicators[["I_"]])) {
+      keep_intra <- rep(FALSE, nrow(data_sources[["orig"]]))
+      keep_intra[node_obs_indicators[["I_"]]] <- TRUE
+      keep_intra <- keep_intra[do_indicators[,2]] | keep_intra[do_indicators[,1]]
+      do_indicators <- do_indicators[keep_intra,, drop = FALSE]
+      data_sources[["pair"]] <- data_sources[["pair"]][keep_intra,, drop = FALSE]
     }
   }
 
-  # when origins or destinations are missing in the node data
-  # remove them from the pair data before transforming it
-  if (lost_origs) {
-    obs_nodes <- rep(TRUE, nrow(data_sources[["orig"]]))
-    obs_nodes[-as.integer(row.names(orig_mm))] <- FALSE
 
-    orig_key <- attr_key_orig(data_sources[["pair"]])
-    obs_origs <- as.integer(data_sources[["pair"]][[orig_key]])
-    obs_origs <- obs_nodes[obs_origs]
-    data_sources[["pair"]] <- data_sources[["pair"]][obs_origs,]
-  }
-  if (lost_dests) {
-    obs_nodes <- rep(TRUE, nrow(data_sources[["dest"]]))
-    obs_nodes[-as.integer(row.names(dest_mm))] <- FALSE
-
-    dest_key <- attr_key_dest(data_sources[["pair"]])
-    obs_dests <- as.integer(data_sources[["pair"]][[dest_key]])
-    obs_dests <- obs_nodes[obs_dests]
-    data_sources[["pair"]] <- data_sources[["pair"]][obs_dests,]
+  # transform pair variables
+  wt <- weights_var %|!|% data_sources[["pair"]][[weights_var]]
+  na_wt <- is.na(wt)
+  if (any(na_wt)) {
+    assert(na_rm, "The weights contain NA values!")
+    obs_pairs <- cbind(obs_pairs, wt)[na_wt,,drop = FALSE]
   }
 
-  dest_is_redundant <-
-    is_within && all(row.names(orig_mm) == row.names(dest_mm))
-  if (dest_is_redundant) {
-    dest_specific_cols <- setdiff(colnames(dest_mm), colnames(orig_mm))
-    orig_mm <- cbind(orig_mm,dest_mm[,dest_specific_cols, drop = FALSE])
-    dest_mm <- NULL
+  G_matrices <- transform_in_source("G_")
+  if (na_rm && nrow(G_matrices) < nrow(data_sources[["pair"]])) {
+    obs_pairs <- rows2index(G_matrices)
+    do_indicators <- do_indicators[obs_pairs,,drop = FALSE]
+    data_sources[["pair"]] <- data_sources[["pair"]][obs_pairs,,drop = FALSE]
   }
 
-  pair_mm <- source_model_matrix("pair")
-  lost_pairs <- nrow(pair_mm) != nrow(data_sources[["pair"]])
-  assert(!lost_pairs | ignore_na, error_msg, "origin-destination pairs")
+  Y_matrices <- transform_in_source("Y_", na_rm)
+  if (na_rm & nrow(Y_matrices) < nrow(data_sources[["pair"]])) {
+    obs_pairs <- rows2index(Y_matrices)
+    do_indicators <- do_indicators[obs_pairs,,drop = FALSE]
+    G_matrices <- G_matrices[obs_pairs,,drop = FALSE]
+    data_sources[["pair"]] <- data_sources[["pair"]][obs_pairs,,drop = FALSE]
+  }
 
-  source_model_matrices <- named_list(c("pair", "orig", "dest"))
-  source_model_matrices[["pair"]] <- pair_mm
-  source_model_matrices[["orig"]] <- orig_mm
-  source_model_matrices[["dest"]] <- dest_mm
 
-  return(source_model_matrices)
+  # matrix format pair variables
+  nobs_sources <- unlist(lapply(data_sources,"nrow"))
+  non_cartesian <- prod(nobs_sources[c("orig", "dest")]) > nobs_sources["pair"]
+  flow_indicator <- matrix_format_d_o(
+    dest_index = do_indicators[,1],
+    orig_index = do_indicators[,2],
+    num_dest = nobs_sources[["dest"]],
+    num_orig = nobs_sources[["orig"]]) %T% non_cartesian
+
+  mat_formatter <- switch(EXPR = class(flow_indicator)
+    , "ngCMatrix" = {
+      imat <- as(flow_indicator,"dgCMatrix")
+      function(vec) {
+        imat@x <- vec
+        return(imat)}}
+    , "matrix" = {
+      nd <- nobs_sources[["dest"]]
+      no <- nobs_sources[["orig"]]
+      mat0 <- matrix(0, nrow = nd, ncol = no)
+      pairobs_index <- do_indicators[,1] + (do_indicators[,2] - 1L) * no
+      function(vec) {
+        mat0[pairobs_index] <- vec
+        return(mat0)}}
+    , "NULL" = {
+      nd <- nobs_sources[["dest"]]
+      no <- nobs_sources[["orig"]]
+      function(vec) {
+        return(matrix(vec, nrow = nd, ncol = no))}})
+
+  G_matrices <- apply(G_matrices, 2, mat_formatter, simplify = FALSE)
+  Y_matrices <- apply(Y_matrices, 2, mat_formatter, simplify = FALSE)
+  weights_var <- weights_var %|!|% mat_formatter(do_indicators[,3])
+
+  result <- c(node_matrices, list(
+    "G_" = G_matrices,
+    "Y_" = Y_matrices,
+    "weights" = weights_var,
+    "flow_indicator" = flow_indicator,
+    "do_indicators" = do_indicators[,1:2, drop = FALSE]))
+
+  return(result)
 }
 
 #' @keywords internal
@@ -110,25 +170,6 @@ combine_formulas_by_source <- function(sources, formulas) {
       fpt %|!|% combine_rhs_formulas(fpt) })
 
   return(compact(formula_by_source))
-}
-
-#' @keywords internal
-validate_source_formulas <- function(source_formula, data_source,
-                                     source_type) {
-
-  required_vars <- all.vars(combine_rhs_formulas(source_formula))
-  available_vars <- c(colnames(data_source),".")
-  unmatched_vars <- required_vars[!required_vars %in% available_vars]
-
-  error_msg <-
-    "The variables [%s] were not found in the data set associated to the %s!"
-
-  assert(length(unmatched_vars) == 0,
-         sprintf(error_msg,
-                 paste(unmatched_vars,collapse = " and "),
-                   c("orig" = "origins",
-                     "dest" = "distinations",
-                     "pair" = "origin-destination pairs")[source_type]))
 }
 
 #' @keywords internal
