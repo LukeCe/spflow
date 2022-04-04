@@ -22,15 +22,6 @@ expect_equal({
   },
   info = "combine all formulas that apply to the same data (with dest)")
 
-# ---- validate_source_formulas -----------------------------------------------
-expect_error({
-  spflow:::validate_source_formulas(
-    ~ A + B + not_avilable -1,
-    data.frame("A" = 1, "B" = 1),
-    "orig")
-  },
-  pattern = "^The variables \\[not_avilable\\] were not found in the data .*")
-
 # ---- flow_conform_model_matrix ----------------------------------------------
 expect_equal(
   spflow:::flow_conform_model_matrix(~ . , data.frame("A" = 1:2, "B" = 3:4)),
@@ -84,40 +75,3 @@ expect_equal({
   info = "handles two factor (dont expand all levels)",
   check.attributes = FALSE)
 
-# ---- by_source_variable_trans -------------------------------------------------
-expect_equal({
-  data_sources <- list(
-    pair = data.frame(y1 = 1, p1 = 1:4, p2 = 5:8),
-    orig = data.frame(o1 = 1:4, o2 = 5:8),
-    dest = data.frame(d1 = 1:4, d2 = 5:8))
-  formula_roles <- list("Y_" = ~ log(y1),
-                        "G_" = ~ p1,
-                        "O_" = ~ o1,
-                        "D_" = ~ log(d1))
-  formula_roles2 <- list("Y_" = ~ log(y1),
-                         "G_" = ~ p2,
-                         "O_" = ~ o2,
-                         "D_" = ~ log(d2))
-  formula_roles3 <- list("G_" = ~ sqrt(p1),
-                         "O_" = ~ sqrt(o1),
-                         "D_" = ~ sqrt(d1))
-
-
-  forumula_parts <- list("norm" = formula_roles,
-                         "sdm"  = formula_roles2,
-                         "inst" = formula_roles3)
-  lapply(spflow:::by_source_variable_trans(forumula_parts,data_sources),
-         spflow:::sort_columns)
-
-  },
-  {
-    lapply(
-      list(pair = model.matrix(~ log(y1) + p1 + p2 + sqrt(p1) - 1,
-                             data.frame(y1 = 1, p1 = 1:4, p2 = 5:8)),
-           orig = model.matrix(~ o1 + o2 + sqrt(o1) - 1,
-                             data.frame(o1 = 1:4, o2 = 5:8)),
-           dest = model.matrix(~ log(d1) +  log(d2) +  sqrt(d1) - 1,
-                               data.frame(d1 = 1:4, d2 = 5:8))),
-      spflow:::sort_columns)
-  },
-  info = "combine formulas and create a single design matrix by source")

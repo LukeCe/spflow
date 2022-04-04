@@ -1,21 +1,3 @@
-# ---- predict_lags_and_inst_satus --------------------------------------------
-expect_equal({
-  spflow:::predict_lags_and_inst_satus(list(
-    "norm" = c("F1", "E2",     "X4"),
-    "sdm"  = c("F1",     "D3",     "X5"),
-    "inst" = c("F1", "E2", "D3",         "X6")
-  ))
-  },
-  {
-    lapply(list(
-      "lag0" = c("F1" = F ,"E2" = F, "X4" = F, "X6" = T),
-      "lag1" = c("F1" = F, "D3" = F, "X5" = F, "E2" = T, "X6" = T),
-      "lag2" = c("F1" = T ,"E2" = T, "D3" = T),
-      "lag3" = c("F1" = T, "D3" = T)
-    ),spflow:::sort_names)
-  },
-  info = "predict the instrument status of variables")
-
 # ---- orthoginolize_instruments ----------------------------------------------
 expect_equal({
   set.seed(1)
@@ -187,44 +169,4 @@ expect_equal({
                     "Y.w" = indic_pos)
   },
   info = "generate sparse lags (model_9)")
-
-# ---- by_role_spatial_lags ---------------------------------------------------
-expect_equal({
-  mat_sources <- lapply(list(
-    pair = data.frame(y1 = rep(1,9), p1 = 1),
-    orig = data.frame(o1 = rep(1,3), o2 = 2),
-    dest = data.frame(d1 = rep(1,3), d2 = 2)),
-    "as.matrix")
-  var_roles <- list("Y_" = "y1",
-                    "G_" = c("p1"),
-                    "O_" = c("o1", "o2"),
-                    "D_" = c("d1", "d2"))
-  var_roles <- spflow:::translist(list(
-    "norm" = var_roles,
-    "sdm"  = var_roles[c("O_", "D_")],
-    "inst" = var_roles[c("O_", "D_", "G_")]))
-
-  ctrl <- list("model" = "model_9",
-               "twosls_reduce_pair_instruments" = TRUE)
-  results <- spflow:::by_role_spatial_lags(
-    mat_sources, var_roles,
-    neighborhoods = list("OW" = diag(2,3,3), "DW" = diag(2,3,3)),
-    flow_control = ctrl,
-    flow_indicator = NULL,
-    mat_formatter = function(x) matrix(x,3,3))
-  results[c("Y_","O_","G_")]
-  },
-  {
-    list(
-      "Y_" = lapply(list("Y" = 0, "Y.d" = 1, "Y.o" = 1, "Y.w" = 2),
-                    function(.p) matrix(2^.p,3,3)),
-      "O_" = as.matrix(data.frame(
-        o1 = rep(1,3), o2 = 2, o1.lag1 = 2, o2.lag1 = 4,
-        o1.lag2 =   4, o2.lag2 = 8, o1.lag3 = 8, o2.lag3 = 16)),
-      "G_" = lapply(list("p1" = 0, "p1.wGw" = 2, "p1.wwGww" = 4),
-                    function(.p) matrix(2^.p,3,3))
-    )
-  },
-  check.attributes = FALSE,
-  info = "create lags for each type of input data")
 
