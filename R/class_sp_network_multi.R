@@ -323,8 +323,8 @@ setMethod(
       pair_index <- compute_pair_index_do(
         d_index = do_indexes[[1]],
         o_index = do_indexes[[2]],
-        n_o = n_o)
-      pair_data[pair_index,] <- flow_data[["pair"]][names(pair_data)]
+        n_d = n_d)
+      pair_data[pair_index,] <- flow_data[["pair"]][,names(pair_data)]
     }
 
     # add distances and coordinates
@@ -693,13 +693,13 @@ id_part <- function(.id, o_vs_d) {
 }
 
 #' @keywords internal
-compute_pair_index_do <- function(d_index, o_index, n_o) {
-  pair_index <- d_index + (o_index - 1) * n_o
+compute_pair_index_do <- function(d_index, o_index, n_d) {
+  pair_index <- d_index + (o_index - 1) * n_d
   return(pair_index)
 }
 
 #' @keywords internal
-derive_pair_index <- function(pair_dat, n_o) {
+derive_pair_index <- function(pair_dat, n_d) {
   od_indexes <-  pair_dat[,attr_key_od(pair_dat), drop = FALSE]
-  compute_pair_index(od_indexes[[1]], od_indexes[[2]], n_o)
+  compute_pair_index_do(od_indexes[[1]], od_indexes[[2]], n_d)
 }

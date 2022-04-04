@@ -18,8 +18,9 @@ opts <- options(warn = 1)
 
 
 # cran packages
-library("spflow")
 library("Matrix")
+library("spflow")
+library("tinytest")
 
 # data
 data("multi_net_usa_ge")
@@ -433,3 +434,69 @@ expect_zero_diff(target_matrices[["Y9_"]][[3]], actual_matrices[["Y_"]][[3]])
 expect_zero_diff(target_matrices[["Y9_"]][[4]], actual_matrices[["Y_"]][[4]])
 rm(res_model_9_mcmc)
 options(opts)
+
+
+# ---- test NA's handling -----------------------------------------------------
+multi_net_usa_ge2 <- complete_pairs(
+  multi_net_usa_ge,
+  network_pair_ids = "usa_usa",
+  make_cartesian = TRUE)
+
+
+expect_equal(npairs(multi_net_usa_ge2, "usa_usa"), 51^2)
+expect_error(spflow(
+  y9 ~ . + G_(DISTANCE), multi_net_usa_ge2, "usa_usa",
+  spflow_control(estimation_method = "s2sls", model = "model_9")))
+
+
+res_model_9_s2sls_narm <- spflow(
+  flow_formula = y9 ~ . + G_(DISTANCE), multi_net_usa_ge2,
+  network_pair_id =  "usa_usa",
+  flow_control = spflow_control(estimation_method = "s2sls", model = "model_9"),
+  na_rm = TRUE)
+
+
+# test results
+expect_inherits(res_model_9_s2sls_narm, "spflow_model")
+expect_equal(names(target_results$mu9_input), names(coef(res_model_9_s2sls_narm)))
+expect_equal(target_results$mu9_s2sls, coef(res_model_9_s2sls_narm))
+expect_equal(target_results$sigma9_s2sls, sd_error(res_model_9_s2sls_narm))
+
+# test moments
+actual_moments <- res_model_9_s2sls_narm@model_moments
+expect_zero_diff(target_moments[["ZZ"]],   actual_moments[["ZZ"]])
+expect_zero_diff(target_moments[["ZY9"]],  actual_moments[["ZY"]])
+expect_zero_diff(target_moments[["TSS9"]], actual_moments[["TSS"]])
+
+# test model matrices
+actual_matrices <- res_model_9_s2sls_narm@design_matrix
+expect_zero_diff(target_matrices[["OW"]], actual_matrices[["OW"]])
+expect_zero_diff(target_matrices[["D_"]], actual_matrices[["D_"]])
+expect_zero_diff(target_matrices[["O_"]], actual_matrices[["O_"]])
+expect_zero_diff(target_matrices[["I_"]], actual_matrices[["I_"]])
+expect_zero_diff(target_matrices[["G_"]][[1]], actual_matrices[["G_"]][[1]])
+expect_zero_diff(target_matrices[["Y9_"]][[1]], actual_matrices[["Y_"]][[1]])
+expect_zero_diff(target_matrices[["Y9_"]][[2]], actual_matrices[["Y_"]][[2]])
+expect_zero_diff(target_matrices[["Y9_"]][[3]], actual_matrices[["Y_"]][[3]])
+expect_zero_diff(target_matrices[["Y9_"]][[4]], actual_matrices[["Y_"]][[4]])
+
+expect_equal({
+  results(spflow(
+    y9 ~ . + G_(DISTANCE), multi_net_usa_ge, "usa_usa",
+    spflow_control(estimation_method = "s2sls", model = "model_9")))
+  },
+  {
+    results(res_model_9_s2sls_narm)
+  })
+
+rm(res_model_9_s2sls_narm)
+
+
+
+
+
+
+
+
+
+
