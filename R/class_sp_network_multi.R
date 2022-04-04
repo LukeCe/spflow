@@ -42,7 +42,6 @@ setMethod(
 
 
 # ---- ... complete_pairs -----------------------------------------------------
-#' @inheritParams pair_merge
 #' @param network_pair_ids
 #'   A character indicating of one or several [sp_network_pair()] objects
 #' @rdname sp_multi_network-class
@@ -52,49 +51,28 @@ setMethod(
   signature = "sp_multi_network",
   function(
     object,
-    network_pair_ids = id(object)[["network_pairs"]][[1]],
-    make_cartesian = FALSE,
-    add_od_distance = TRUE,
-    dist_function) {
-
-    if (!add_od_distance & !make_cartesian)
-      return(object)
+    network_pair_ids = id(object)[["network_pairs"]][[1]]) {
 
     assert_is(network_pair_ids, "character")
     od_infos <- lapply(network_pair_ids, check_pair_completeness, object)
+    od_infos <- Filter(function(x) {
+      x[["NPAIRS"]] < prod(x[c("ORIG_NNODES", "DEST_NNODES")])
+      }, od_infos)
 
-    if (!add_od_distance) {
-      od_infos <- Filter(
-        function(x) {
-          x[["NPAIRS"]] < prod(x[c("ORIG_NNODES", "DEST_NNODES")])
-          }, od_infos)
-    }
-
-    if (!make_cartesian) {
-      od_infos <- Filter(
-        function(x) {
-          od <- c("ORIG_", "DEST_")
-          all(x[paste0(od, "HAS_COORD")]) &
-          has_equal_elements(x[paste0(od, "IS_COORD_LONLAT")])
-          }, od_infos)
-    }
 
     for (i in seq_along(od_infos)) {
       p_id <- od_infos[[i]][["ID_NET_PAIR"]]
       object@network_pairs[[p_id]]@pair_data <- pair_merge(
         object,
         network_pair_id = p_id,
-        make_cartesian = make_cartesian,
-        add_od_data = FALSE,
-        add_od_distance = add_od_distance,
-        add_od_coordinates = FALSE,
-        dist_function = dist_function)
-      }
+        make_cartesian = TRUE,
+        dest_cols = NULL,
+        orig_cols = NULL)
+    }
 
     validObject(object)
     return(object)
   })
-
 
 # ---- ... dat ----------------------------------------------------------------
 #' @rdname sp_multi_network-class
@@ -241,8 +219,6 @@ setMethod(
     return(mom[["TCORR"]][-1,-1, drop = FALSE])
   })
 
-
-
 # ---- ... pair_merge ---------------------------------------------------------
 #' @title Create a long form data.frame of origin-destination pairs
 #'
@@ -258,22 +234,17 @@ setMethod(
 #'   A logical, when set to `TRUE` the resulting data.frame contains all
 #'   possible pairs of origins and destination, even if the data in the
 #'   [sp_network_pair-class()] does not have them.
-#' @param add_od_data
-#'   A logical, when set to `TRUE` variables describing the origins and
-#'   destinations are added to the data.
-#' @param add_od_distance
-#'   A logical, when set to `TRUE` add the pairwise distances in a column
-#'   `DISTANCE`. To make this work the origins and destinations must have
-#'   coordinates.
-#' @param add_od_coordinates
-#'   A logical, when set to `TRUE` the coordinates of origins and destinations
-#'   are added to the data.
-#' @param dist_function
-#'   A function that computes pairwise distances from coordinates, the default
-#'   is the great circle distance, for longitude-latitude and euclidean
-#'   distance otherwise.
-#'   When supplied, this function must take two arguments that are data.frames,
-#'   as in `dist_function(coord_a, coord_b)`.
+#' @param dest_cols
+#'   A character, indicating the columns to be kept in the final data.frame
+#'   that contain information on the nodes in the destination network.
+#' @param orig_cols
+#'   A character, indicating the columns to be kept in the final data.frame
+#'   that contain information on the nodes in the origin network.
+#' @param pair_cols
+#'   A character, indicating the columns to be kept in the final data.frame
+#'   that contain information on the origin-destination pairs.
+#' @param keep_od_keys
+#'   A logical, indicating whether the id of the od should be included.
 #'
 #' @return A single data.frame, combining all available information on origins, destinations and OD pairs
 #' @rdname pair_merge
@@ -290,91 +261,94 @@ setMethod(
   function(object,
            network_pair_id,
            make_cartesian = FALSE,
-           add_od_data = TRUE,
-           add_od_distance = FALSE,
-           add_od_coordinates = FALSE,
-           dist_function) {
+           dest_cols,
+           orig_cols,
+           pair_cols,
+           keep_od_keys = TRUE) {
 
     od_ids <- id(object)[["network_pairs"]]
     assert(network_pair_id %in% od_ids,
-           "Network pair with id %s was not found!", network_pair_id)
+           "No network pair with id %s!", network_pair_id)
+    assert_is_single_x(make_cartesian, "logical")
 
     flow_data <- pull_relational_flow_data(object, network_pair_id)
     flow_infos <- check_pair_completeness(network_pair_id, object)
-    pair_data <- flow_data[["pair"]]
-    orig_data <- flow_data[["orig"]]
-    dest_data <- flow_data[["dest"]]
-    do_indexes <- pair_data[,attr_key_do(pair_data), drop = FALSE]
-    do_indexes <- lapply(do_indexes, "as.integer")
+    do_keys <- subset_keycols(flow_data[["pair"]], drop_keys = FALSE)
+    do_indexes <- lapply(do_keys, "as.integer")
 
-    # complete missing OD pairs
-    if (make_cartesian & flow_infos$COMPLETENESS < 1) {
+    select_nonid_cols <- function(.cols,.data) {
+
+      if (is.null(.cols))
+        return(NULL)
+
+      .data <- subset_keycols(.data)
+      if (missing(.cols))
+        return(.data)
+
+      assert_is(.cols, "The columns must be given as character vector!")
+      assert(all(.cols %in% .cd),
+             "Columns not available in data the data:",
+             paste0(setdiff(.cols,.cd), collapse = ", "))
+      return(.data[,.cols,drop = FALSE])
+    }
+    pair_data <- select_nonid_cols(pair_cols, flow_data[["pair"]])
+    dest_data <- select_nonid_cols(dest_cols, flow_data[["dest"]])
+    orig_data <- select_nonid_cols(orig_cols, flow_data[["orig"]])
+
+    # complete missing OD pairs (fill with NA's)
+    make_cartesian <- make_cartesian & flow_infos$COMPLETENESS < 1
+    if (make_cartesian) {
       n_o <- flow_infos[["ORIG_NNODES"]]
       n_d <- flow_infos[["DEST_NNODES"]]
-      o_keys <- orig_data[,attr_key_nodes(orig_data)]
-      d_keys <- dest_data[,attr_key_nodes(dest_data)]
-      pair_data <- data.frame(rep(d_keys, n_o), rep(o_keys, each = n_d))
-      colnames(pair_data) <- names(do_indexes)
-
-      other_cols <- setdiff(colnames(flow_data[["pair"]]), colnames(pair_data))
-      other_cols <- rbind(flow_data[["pair"]][1,other_cols, drop = FALSE],NA)
-      other_cols <- other_cols[2,, drop = FALSE]
-      pair_data <- cbind(pair_data, other_cols, row.names = NULL)
       pair_index <- compute_pair_index_do(
         d_index = do_indexes[[1]],
         o_index = do_indexes[[2]],
         n_d = n_d)
-      pair_data[pair_index,] <- flow_data[["pair"]][,names(pair_data)]
-    }
+      do_indexes <- list(
+        rep(seq_len(n_d), times = n_o),
+        rep(seq_len(n_o), each = n_d))
 
-    # add distances and coordinates
-    o_coords <- attr_coord_col(flow_data[["orig"]])
-    d_coords <- attr_coord_col(flow_data[["dest"]])
-    need_coords <- add_od_distance | add_od_coordinates
-    if (need_coords & !is.null(o_coords) & !is.null(d_coords)) {
-
-      coord_data <- list(
-        prefix_columns(dest_data[do_indexes[[1]], d_coords, drop = FALSE], "DEST_"),
-        prefix_columns(orig_data[do_indexes[[2]], o_coords, drop = FALSE], "ORIG_"))
-
-      if (missing(dist_function)) {
-        dist_function <- function(x, y) stop("No distance function available!")
-
-        o_lonlat <- isTRUE(attr_coord_lonlat(orig_data))
-        d_lonlat <- isTRUE(attr_coord_lonlat(dest_data))
-        if (o_lonlat & d_lonlat)
-          dist_function <- function(x, y) haversine_distance(x[[1]], x[[2]], y[[1]], y[[2]])
-
-        if (!o_lonlat & !d_lonlat)
-          dist_function <- euclidean_distance
+      pair_data_old <- pair_data
+      pair_data <- pair_data[seq_len(n_o * n_d),, drop = FALSE]
+      if (length(pair_data_old) > 0) {
+        na_data <- lapply(pair_data[1,,drop = FALSE], "is.na<-")
+        pair_data[,] <- na_data
+        pair_data[pair_index,,drop = FALSE] <- pair_data_old
       }
-
-      DISTANCE <- dist_function(coord_data[[1]], coord_data[[2]])
-      pair_data <- cbind(
-        pair_data,
-        DISTANCE,
-        coord_data %T% add_od_coordinates,
-        row.names = NULL)
+      row.names(pair_data) <- NULL
     }
 
-    # add remaining variables
-    if (add_od_data) {
-      orig_data <- subset_keycols(orig_data,drop_keys = TRUE)
-      orig_data <- prefix_columns(orig_data, "ORIG_")
-      dest_data <- subset_keycols(dest_data,drop_keys = TRUE)
+    if (length(dest_data) > 0) {
       dest_data <- prefix_columns(dest_data, "DEST_")
-
       pair_data <- cbind(
         pair_data,
-        dest_data[do_indexes[[1]],,drop = FALSE],
-        orig_data[do_indexes[[2]],,drop = FALSE], row.names = NULL)
+        dest_data[do_indexes[[1]],,drop = FALSE], row.names = NULL)
     }
 
+    if (length(orig_data) > 0) {
+      orig_data <- prefix_columns(orig_data, "ORIG_")
+      pair_data <- cbind(
+        pair_data,
+        dest_data[do_indexes[[1]],,drop = FALSE], row.names = NULL)
+    }
+
+
+    if (!keep_od_keys)
+      return(pair_data)
+
+    if (make_cartesian) {
+      d_keys <- factor_in_order(levels(do_keys[[1]]))
+      o_keys <- factor_in_order(levels(do_keys[[2]]))
+      key_names <- names(do_keys)
+      do_keys <- data.frame(
+        d_keys[do_indexes[[1]]],
+        o_keys[do_indexes[[2]]])
+      names(do_keys) <- key_names
+    }
+    pair_data <- cbind(do_keys, pair_data)
     attr_key_do(pair_data) <- names(do_indexes)
     return(pair_data)
-})
-
-
+  })
 
 
 # ---- ... pull_member --------------------------------------------------------

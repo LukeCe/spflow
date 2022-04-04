@@ -105,7 +105,7 @@ pull_relational_flow_data <- function(
 
 #' @keywords internal
 get_keycols <- function(df) {
-  c(attr_key_od(df),
+  c(attr_key_do(df),
     attr_coord_col(df),
     attr_key_nodes(df))
 }

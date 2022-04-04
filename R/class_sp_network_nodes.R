@@ -83,29 +83,6 @@ setReplaceMethod(
     return(object)
   })
 
-
-# ---- ... get_keys -----------------------------------------------------------
-#' @rdname sp_network_nodes-class
-#' @export
-#' @examples
-#' ## access the column that identifies the nodes of the network
-#'
-#' net_ge <- pull_member(multi_net_usa_ge,"ge")
-#' get_keys(net_ge)
-#'
-setMethod(
-  f = "get_keys",
-  signature = "sp_network_nodes",
-  function(object) {
-
-    if (is.null(object@node_data))
-      return(NULL)
-
-    key_col <- attr_key_nodes(object@node_data)
-    key_col <- object@node_data[,key_col, drop = FALSE]
-    return(key_col)
-  })
-
 # ---- ... neighborhood -------------------------------------------------------
 #' @rdname sp_network_nodes-class
 #' @export
@@ -260,9 +237,13 @@ setValidity(
 #'   A matrix that describes the neighborhood of the nodes
 #' @param node_key_column
 #'   A character indicating the column containing the identifiers for the nodes
-#' @param node_coord_columns
-#'   A character indicating the column containing the identifiers for
-#'   geographic coordinates, such as c("LON", "LAT").
+#' @param derive_coordinates
+#'   A logical indicating whether there should be an attempt to infer the
+#'   coordinates from the node_data.
+#' @param prefer_lonlat
+#'   A logical indicating whether the coordinates should be transformed to
+#'   longitude and latitude.
+#'
 #'
 #' @family Constructors for spflow network classes
 #' @importClassesFrom Matrix Matrix
@@ -278,7 +259,7 @@ sp_network_nodes <- function(
   node_neighborhood = NULL,
   node_data = NULL,
   node_key_column,
-  node_coord_columns,
+  derive_coordinates = TRUE,
   prefer_lonlat = TRUE) {
 
 
@@ -302,7 +283,7 @@ sp_network_nodes <- function(
 
   node_data <- simplfy2df(
     node_data,
-    derive_coord_cols = missing(node_coord_columns),
+    derive_coord_cols = derive_coordinates,
     prefer_lonlat = prefer_lonlat)
 
   # identfyer
@@ -310,11 +291,6 @@ sp_network_nodes <- function(
     node_key_column <- attr_key_nodes(node_data)
   attr_key_nodes(node_data) <- node_key_column
   node_data[[node_key_column]] <- factor_in_order(node_data[[node_key_column]])
-
-  # coordinates
-  if (missing(node_coord_columns))
-    node_coord_columns <- attr_coord_col(node_data)
-  attr_coord_col(node_data) <- node_coord_columns
 
 
   nodes@node_data <- node_data
@@ -376,29 +352,3 @@ simplfy2df <- function(df, derive_coord_cols = TRUE, prefer_lonlat = TRUE) {
   }
   return(as.data.frame(df))
 }
-
-
-attr_coord_col <- function(df, value) {
-  attr(df, "coord_columns")
-}
-
-`attr_coord_col<-` <- function(df, value) {
-  assert(sum(value %in% names(df)) == length(value), "
-         The coord_columns musst unquily identfy the corresponding
-         column names in the node_data!")
-  attr(df, "coord_columns") <- value
-  df
-}
-
-attr_coord_lonlat <- function(df, value) {
-  attr(df, "coord_lonlat")
-}
-
-`attr_coord_lonlat<-` <- function(df, value) {
-  if (is.null(attr_coord_col(df)))
-    value <- NULL
-
-  attr(df, "coord_lonlat") <- value
-  df
-}
-
