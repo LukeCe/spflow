@@ -84,7 +84,7 @@ expect_equal({
   info = "handles two factor (dont expand all levels)",
   check.attributes = FALSE)
 
-# ---- by_source_model_matrix -------------------------------------------------
+# ---- by_source_variable_trans -------------------------------------------------
 expect_equal({
   data_sources <- list(
     pair = data.frame(y1 = 1, p1 = 1:4, p2 = 5:8),
@@ -106,7 +106,7 @@ expect_equal({
   forumula_parts <- list("norm" = formula_roles,
                          "sdm"  = formula_roles2,
                          "inst" = formula_roles3)
-  lapply(spflow:::by_source_model_matrix(forumula_parts,data_sources),
+  lapply(spflow:::by_source_variable_trans(forumula_parts,data_sources),
          spflow:::sort_columns)
 
   },

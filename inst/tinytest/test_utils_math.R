@@ -92,9 +92,9 @@ expect_equal(spflow:::sandwich_prod(NULL,matrix(1,5,5),NULL),
 
 # ---- multinom coef ----------------------------------------------------------
 expect_equal(
-  multinom_coef(list(c(1,2), c(1,3), c(1,4))),
+  spflow:::multinom_coef(list(c(1,2), c(1,3), c(1,4))),
   c(factorial(1 + 1 + 1)/1/1/1,
     factorial(2 + 3 + 4) / factorial(2) / factorial(3) / factorial(4)))
 
-expect_inherits(multinom_table(max_power = 1,coef_names = c("A","B","C")),
+expect_inherits(spflow:::multinom_table(max_power = 1,coef_names = c("A","B","C")),
                 "data.frame")

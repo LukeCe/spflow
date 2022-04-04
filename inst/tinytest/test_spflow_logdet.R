@@ -1,6 +1,6 @@
 # ---- tracevals2params_c -----------------------------------------------------
 expect_equal({
-  tvals <- tracevals2params_c(
+  tvals <- spflow:::tracevals2params_c(
     OW = diag(c(2,2)),
     DW = diag(c(3,3)),
     n_o = 2,
@@ -37,7 +37,7 @@ expect_equal({
   }, info = "Parameter powers and trace values for model_9 (cartesian).")
 
 expect_equal({
-  tvals <- tracevals2params_c(
+  tvals <- spflow:::tracevals2params_c(
     OW = diag(c(2,2)),
     DW = diag(c(3,3)),
     n_o = 2,
@@ -70,7 +70,7 @@ expect_equal({
 }, info = "Parameter powers and trace values for model_7 (cartesian).")
 
 expect_equal({
-  tvals <- tracevals2params_c(
+  tvals <- spflow:::tracevals2params_c(
     OW = diag(c(2,2)),
     DW = diag(c(3,3)),
     n_o = 2,
@@ -107,7 +107,7 @@ expect_equal({
 }, info = "Parameter powers and trace values for model_6 (cartesian).")
 
 expect_equal({
-  tvals <- tracevals2params_c(
+  tvals <- spflow:::tracevals2params_c(
     OW = diag(c(2,2)),
     DW = diag(c(3,3)),
     n_o = 2,
@@ -142,7 +142,7 @@ expect_equal({
 
 # ---- tracevals2params_nc -----------------------------------------------------
 expect_equal({
-  tvals <- tracevals2params_nc(
+  tvals <- spflow:::tracevals2params_nc(
     Wo = diag(c(2,2)),
     Wd = diag(c(3,3)),
     Ww = diag(c(4,4)),
@@ -163,7 +163,7 @@ expect_equal({
 }, info = "Parameter powers and trace values for model_9 (non-cartesian).")
 
 expect_equal({
-  tvals <- tracevals2params_nc(
+  tvals <- spflow:::tracevals2params_nc(
     Wo = diag(c(2,2)),
     Wd = diag(c(3,3)),
     Ww = diag(c(4,4)),
@@ -183,7 +183,7 @@ expect_equal({
 }, info = "Parameter powers and trace values for model_8 (non-cartesian).")
 
 expect_equal({
-  tvals <- tracevals2params_nc(
+  tvals <- spflow:::tracevals2params_nc(
     Wo = diag(c(2,2)),
     Wd = diag(c(3,3)),
     model = "model_7",

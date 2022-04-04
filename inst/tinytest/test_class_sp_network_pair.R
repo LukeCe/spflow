@@ -56,12 +56,12 @@ expect_equal({
     d_key = rep(LETTERS[1:3],each = 3),
     dist = 1:9)
 
-  sp_network_pair(
+  npairs(sp_network_pair(
     orig_net_id = "net1",
     dest_net_id = "net1",
     pair_data = test_pair_data,
     orig_key_column =  "o_key",
-    dest_key_column = "d_key")@npairs
+    dest_key_column = "d_key"))
   }, 9)
 
 # ---- accessor methods -------------------------------------------------------

@@ -265,7 +265,7 @@ expect_equal({
   check_infos <- c("ID_NET_PAIR", "NPAIRS", "COMPLETENESS",
                    "ID_ORIG_NET", "ORIG_NNODES",
                    "ID_DEST_NET", "DEST_NNODES")
-  check_pair_completeness("net1_net2", test_multi_net)[,check_infos]
+  spflow:::check_pair_completeness("net1_net2", test_multi_net)[,check_infos]
 }, {
   data.frame("ID_NET_PAIR" = "net1_net2",
              "NPAIRS" = 2,

@@ -81,7 +81,7 @@ expect_equal({
   G <- diag(2)
   W <- diag(2,2,2)
   res <- spflow:::double_lag_matrix(G,W,W,return_all_lags = TRUE)
-  spflow::sort_names(res)
+  spflow:::sort_names(res)
   },
   {
     # the power is equal the occurrence of w
@@ -91,7 +91,7 @@ expect_equal({
     "G.Gw" = 1, "G.Gww" = 2,
     "G.wGw" = 2, "G.wwGw" = 3, "G.wGww" = 3, "G.wwGww" = 4),
     function(.p) diag(2 ^ .p, 2, 2))
-  spflow::sort_names(res_ref)
+  spflow:::sort_names(res_ref)
   },
   info = "generate a list of lags (full instruments)",
   check.attributes = FALSE)
@@ -99,26 +99,28 @@ expect_equal({
 expect_equal({
   G <- diag(2)
   W <- diag(2,2,2)
-  spflow:::double_lag_matrix(G,NULL,W,return_all_lags = FALSE)
-},
-{
-  # the power is equal the occurrence of w
-  lapply(list("G" = 0, "G.wG" = 2, "G.wwG" = 4),
-         function(.p) diag(2^.p,2,2))
-},
-  info = "generate a list of lags (only orig instruments)")
+  spflow:::double_lag_matrix(G,W,NULL,return_all_lags = FALSE)
+  },
+  {
+    # the power is equal the occurrence of w
+    lapply(list("G" = 0, "G.wG" = 1, "G.wwG" = 2),
+           function(.p) diag(2^.p,2,2))
+  },
+  info = "generate a list of lags (only dest instruments)",
+  check.attributes = FALSE)
 
 expect_equal({
   G <- diag(2)
   W <- diag(2,2,2)
-  spflow:::double_lag_matrix(G,W,NULL,return_all_lags = FALSE)
-},
-{
-  # the power is equal the occurrence of w
-  lapply(list("G" = 0, "G.Gw" = 2, "G.Gww" = 4),
-         function(.p) diag(2^.p,2,2))
-},
-  info = "generate a list of lags (only dest instruments)")
+  spflow:::double_lag_matrix(G,NULL,W,return_all_lags = FALSE)
+  },
+  {
+    # the power is equal the occurrence of w
+    lapply(list("G" = 0, "G.Gw" = 1, "G.Gww" = 2),
+           function(.p) diag(2^.p,2,2))
+  },
+  info = "generate a list of lags (only orig instruments)",
+  check.attributes = FALSE)
 
 # ---- lag_flow_matrix --------------------------------------------------------
 expect_equal({
@@ -172,7 +174,7 @@ expect_equal({
 expect_equal({
   Y  <- matrix(c(0,1,1,1),2,2)
   W <- matrix(1:4,2,2)
-  Y_lags <- spflow:::lag_flow_matrix(Y, model = "model_9", W, W,Y_indicator = Y)
+  Y_lags <- spflow:::lag_flow_matrix(Y, model = "model_9", W, W,flow_indicator = Y)
   lapply(Y_lags, "!=", 0)
 
   },
