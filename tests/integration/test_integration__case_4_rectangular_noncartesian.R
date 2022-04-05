@@ -420,8 +420,7 @@ options(opts)
 # ---- test NA's handling -----------------------------------------------------
 multi_net_usa_ge2 <- complete_pairs(
   multi_net_usa_ge,
-  network_pair_ids = net_pair,
-  make_cartesian = TRUE)
+  network_pair_ids = net_pair)
 
 
 expect_equal(npairs(multi_net_usa_ge2, net_pair), 51*16)

@@ -278,17 +278,21 @@ setMethod(
 
     select_nonid_cols <- function(.cols,.data) {
 
+      if (missing(.cols))
+        return(subset_keycols(.data))
+
       if (is.null(.cols))
         return(NULL)
 
-      .data <- subset_keycols(.data)
-      if (missing(.cols))
-        return(.data)
-
       assert_is(.cols, "The columns must be given as character vector!")
-      assert(all(.cols %in% .cd),
+
+      has_cols <- .cols %in% colnames(.data)
+      assert(all(has_cols),
              "Columns not available in data the data:",
-             paste0(setdiff(.cols,.cd), collapse = ", "))
+             paste0(.cols[!has_cols], collapse = ", "))
+
+      .data <- subset_keycols(.data)
+      .cols <- intersect(.cols, colnames(.data))
       return(.data[,.cols,drop = FALSE])
     }
     pair_data <- select_nonid_cols(pair_cols, flow_data[["pair"]])
@@ -308,14 +312,15 @@ setMethod(
         rep(seq_len(n_d), times = n_o),
         rep(seq_len(n_o), each = n_d))
 
-      pair_data_old <- pair_data
-      pair_data <- pair_data[seq_len(n_o * n_d),, drop = FALSE]
-      if (length(pair_data_old) > 0) {
+      if (length(pair_data) == 0)
+        pair_data <- data.frame(row.names = seq_len(n_o * n_d))
+
+      if (length(pair_data) > 0) {
+        pair_data_old <- pair_data
         na_data <- lapply(pair_data[1,,drop = FALSE], "is.na<-")
         pair_data[,] <- na_data
-        pair_data[pair_index,,drop = FALSE] <- pair_data_old
+        pair_data[pair_index,] <- pair_data_old
       }
-      row.names(pair_data) <- NULL
     }
 
     if (length(dest_data) > 0) {
@@ -329,9 +334,8 @@ setMethod(
       orig_data <- prefix_columns(orig_data, "ORIG_")
       pair_data <- cbind(
         pair_data,
-        dest_data[do_indexes[[1]],,drop = FALSE], row.names = NULL)
+        orig_data[do_indexes[[1]],,drop = FALSE], row.names = NULL)
     }
-
 
     if (!keep_od_keys)
       return(pair_data)
@@ -343,10 +347,10 @@ setMethod(
       do_keys <- data.frame(
         d_keys[do_indexes[[1]]],
         o_keys[do_indexes[[2]]])
-      names(do_keys) <- key_names
+      colnames(do_keys) <- key_names
     }
     pair_data <- cbind(do_keys, pair_data)
-    attr_key_do(pair_data) <- names(do_indexes)
+    attr_key_do(pair_data) <- colnames(do_keys)
     return(pair_data)
   })
 
@@ -539,7 +543,7 @@ sp_multi_network <- function(...) {
     orig_net <- pair_ids[[i]]["orig"]
     orig_keys <- orig_keys_od <- unique(pair_keys[[1]])
     if (orig_net %in% names(sp_networks)) {
-      orig_keys <- get_keys(sp_networks[[orig_net]])[[1]]
+      orig_keys <- subset_keycols(dat(sp_networks[[orig_net]]), drop_keys = FALSE)[[1]]
       assert(all(as.character(orig_keys_od) %in% as.character(orig_keys)),
              error_template, net_pair, "origin", "origin")
 
@@ -551,7 +555,7 @@ sp_multi_network <- function(...) {
     dest_net <- pair_ids[[i]]["dest"]
     dest_keys <- dest_keys_od <- unique(pair_keys[[2]])
     if (dest_net %in% names(sp_networks)) {
-      dest_keys <- get_keys(sp_networks[[dest_net]])[[1]]
+      dest_keys <- subset_keycols(dat(sp_networks[[dest_net]]), drop_keys = FALSE)[[1]]
       assert(all(as.character(dest_keys_od) %in% as.character(dest_keys)),
              error_template, net_pair, "destination", "destination")
       wrong_od_order <- any(c(wrong_od_order,
@@ -628,9 +632,7 @@ check_node_infos <- function(sp_net) {
 
   data.frame(
     HAS_DATA = !is.null(dat(sp_net)),
-    HAS_NB = !is.null(neighborhood(sp_net)),
-    HAS_COORD = is.character(attr_coord_col(sp_net)),
-    IS_COORD_LONLAT = isTRUE(attr_coord_lonlat(sp_net))
+    HAS_NB = !is.null(neighborhood(sp_net))
     , row.names = FALSE)
 }
 

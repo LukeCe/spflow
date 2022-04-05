@@ -157,7 +157,7 @@ expect_error({
   info = "pull non-existing pair")
 
 
-# ---- pair_merge method ------------------------------------------------------
+# ---- pair_merge -------------------------------------------------------------
 expect_equal({
   test_o_net <- sp_network_nodes(
     network_id = "net1",
@@ -184,8 +184,8 @@ expect_equal({
   data.frame(pair_merge(test_multi_net, "net1_net2"))
   },
   {
-    data.frame("ID_O" = factor(c("A","A","B","B")),
-               "ID_D" = factor(c("C","D","C","D")),
+    data.frame("ID_D" = factor(c("C","D","C","D")),
+               "ID_O" = factor(c("A","A","B","B")),
                "DIST" = 1:4,
                "DEST_VAL" = "DD",
                "ORIG_VAL" = "OO")
@@ -223,8 +223,8 @@ expect_equal({
   },
   {
     data.frame(
-      "ID_D" = factor(c("D", "C", "D", "C"),levels = c("D","C")),
-      "ID_O" = factor(c("B", "B","A", "A"),levels = c("B","A")),
+      "ID_D" = factor(c("D", "C", "D", "C"), levels = c("D","C")),
+      "ID_O" = factor(c("B", "B","A", "A"), levels = c("B","A")),
       "DIST" = c(4, NA, NA, 1),
       "DEST_VAL" = "DD",
       "ORIG_VAL" = "OO"
@@ -232,6 +232,45 @@ expect_equal({
   },
   info = "merging origin and destination infos to the pairs
           test expansion of missing pairs and correct ordering")
+
+expect_equal({
+  # invert order of ids for pairs
+  test_o_net <- sp_network_nodes(
+    network_id = "net1",
+    node_neighborhood =  NULL,
+    node_data =  data.frame("ID" = c("B","A"),"VAL" = "OO"),
+    node_key_column = "ID")
+
+  test_d_net <- sp_network_nodes(
+    network_id = "net2",
+    node_neighborhood =  NULL,
+    node_data =  data.frame("ID" = c("D", "C"), "VAL" = "DD"),
+    node_key_column = "ID")
+
+  test_net_pair <- sp_network_pair(
+    orig_net_id = "net1",
+    dest_net_id = "net2",
+    pair_data = data.frame(
+      "ID_O" = c("A", "B"),
+      "ID_D" = c("C", "D"),
+      "DIST" = c(1,4)),
+    orig_key_column = "ID_O",
+    dest_key_column =  "ID_D")
+
+  test_multi_net <- suppressWarnings(sp_multi_network(
+    test_net_pair, test_o_net, test_d_net))
+
+  data.frame(pair_merge(test_multi_net, "net1_net2",
+                        pair_cols = NULL,
+                        keep_od_keys = FALSE,
+                        make_cartesian = TRUE))
+},
+{
+  data.frame(
+    "DEST_VAL" = rep("DD",4),
+    "ORIG_VAL" = rep("OO",4))
+},
+info = "pair_merge with selection")
 
 # ----- check_pair_completeness -----------------------------------------------
 expect_equal({

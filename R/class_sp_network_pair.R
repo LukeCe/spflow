@@ -308,16 +308,16 @@ sp_network_pair <- function(
 
   # when the data is provided there must be valid key columns...
   assert_inherits(pair_data, "data.frame")
-  od_key_cols <- c(orig_key_column, dest_key_column)
-  assert(all(od_key_cols %in% colnames(pair_data)), "
+  do_key_cols <- c(dest_key_column,orig_key_column)
+  assert(all(do_key_cols %in% colnames(pair_data)), "
          The origin and destination key columns are
          not found in the pair data!")
 
   # convert to factor
-  attr_key_od(pair_data) <- od_key_cols
-  od_key_data <- lapply(pair_data[od_key_cols], "factor_in_order")
-  pair_data[od_key_cols] <- od_key_data
-  pair_data <- pair_data[order(od_key_data[[1]],od_key_data[[2]]),]
+  attr_key_do(pair_data) <- do_key_cols
+  do_keys <- lapply(pair_data[do_key_cols], "factor_in_order")
+  pair_data[do_key_cols] <- do_keys
+  pair_data <- pair_data[order(do_keys[[2]],do_keys[[1]]),]
 
   network_pair@pair_data   <- pair_data
   validObject(network_pair)
