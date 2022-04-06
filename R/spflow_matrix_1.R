@@ -106,7 +106,8 @@ pull_relational_flow_data <- function(
 #' @keywords internal
 get_keycols <- function(df) {
   c(attr_key_do(df),
-    attr_key_nodes(df))
+    attr_key_nodes(df),
+    attr_coord_col(df))
 }
 
 #' @keywords internal
@@ -121,12 +122,13 @@ subset_keycols <- function(df, drop_keys = TRUE) {
 pull_neighborhood_data <-  function(sp_multi_network, network_pair_id) {
 
   od_id <- id(sp_multi_network@network_pairs[[network_pair_id]])
-  neighbor_mats <- named_list(c("OW","DW"))
-  neighbor_mats[["OW"]] <- neighborhood(sp_multi_network, od_id["orig"])
-  neighbor_mats[["DW"]] <- neighborhood(sp_multi_network, od_id["dest"])
+  neighbor_mats <- lapply(c("OW" = "orig", "DW" = "dest"), function(.key) {
+    m <- neighborhood(sp_multi_network, od_id[.key])
+    dimnames(m) <- list(NULL,NULL)
+    return(m)
+  })
 
   return(compact(neighbor_mats))
-
 }
 
 #' @keywords internal
@@ -162,11 +164,8 @@ derive_flow_constants <- function(
     OW = NULL,
     DW = NULL) {
 
-  if (!use_global_const & !use_intra_const)
-    return(NULL)
-
   c_terms <- named_list("const","const_intra")
-  c_terms[["const"]] <- `attr_inst_status<-`(1, FALSE) %T% use_global_const
+  c_terms[["const"]] <- `attr_inst_status<-`(1, !use_global_const)
 
   if (!use_intra_const)
     return(c_terms["const"])
@@ -195,7 +194,7 @@ derive_flow_constants <- function(
 }
 
 
-
+#' @keywords internal
 derive_variables_use <- function(
     formula_part,
     data_source) {

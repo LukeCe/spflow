@@ -22,7 +22,7 @@ compute_spflow_moments <- function(
   variable_order <- c("const","const_intra","D_","O_","I_","G_")
   is_instrument <- rapply(model_matrices[variable_order],f = attr_inst_status)
   Z_index <- !as.logical(is_instrument)
-  ZZ <- UU[Z_index, Z_index]
+  ZZ <- UU[Z_index, Z_index ,drop = FALSE]
 
 
   ## ---- derive moments from the response (UY, ZY, TSS)

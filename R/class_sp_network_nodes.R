@@ -259,7 +259,8 @@ sp_network_nodes <- function(
   node_neighborhood = NULL,
   node_data = NULL,
   node_key_column,
-  derive_coordinates = TRUE,
+  node_coord_columns,
+  derive_coordinates = missing(node_coord_columns),
   prefer_lonlat = TRUE) {
 
 
@@ -292,6 +293,11 @@ sp_network_nodes <- function(
   attr_key_nodes(node_data) <- node_key_column
   node_data[[node_key_column]] <- factor_in_order(node_data[[node_key_column]])
 
+  # coordinates
+  if (missing(node_coord_columns))
+    node_coord_columns <- attr_coord_col(node_data)
+  attr_coord_col(node_data) <- node_coord_columns
+
 
   nodes@node_data <- node_data
   validObject(nodes)
@@ -311,6 +317,18 @@ attr_key_nodes <- function(df) {
          The node_key_column musst unquily identfy one
          column name of in the node_data!")
   attr(df, "node_key_column") <- value
+  df
+}
+
+attr_coord_col <- function(df, value) {
+  attr(df, "coord_columns")
+}
+
+`attr_coord_col<-` <- function(df, value) {
+  assert(sum(value %in% names(df)) == length(value), "
+         The coord_columns musst unquily identfy the corresponding
+         column names in the node_data!")
+  attr(df, "coord_columns") <- value
   df
 }
 
@@ -339,16 +357,20 @@ simplfy2df <- function(df, derive_coord_cols = TRUE, prefer_lonlat = TRUE) {
       coords <- suppressWarnings(sf::st_point_on_surface(coords))
       if (!is.na(sf::st_crs(coords)) & prefer_lonlat)
         coords <- sf::st_transform(coords, "WGS84")
-      is_lonlat <- sf::st_is_longlat(coords)
-      coords <- data.frame(sf::st_coordinates(coords))
 
+      coords <- prefix_columns(data.frame(sf::st_coordinates(coords)), "COORD_")
       df <- cbind(sf::st_drop_geometry(df), coords)
-      attr_coord_col(df) <- names(coords)
-      attr_coord_lonlat(df) <- is_lonlat
+      names(df) <- make.names(names = names(df), unique = TRUE)
+      attr_coord_col(df) <- rev(names(df))[seq(ncol(coords), 1)]
     } else {
       df <- as.data.frame(df)
       df <- Filter("is.atomic", df)
     }
   }
+
+  if (inherits(df, "data.table") && require("data.table"))
+    df <- data.table::copy(df)
+
+
   return(as.data.frame(df))
 }

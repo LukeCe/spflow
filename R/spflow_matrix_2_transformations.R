@@ -33,11 +33,13 @@ flowdata_transformations <- function(
 
     this_source <- formulas2sources[.key]
     this_source <- subset_keycols(data_sources[[this_source]], drop_keys = TRUE)
+    row.names(this_source) <- NULL
     this_mat <- flow_conform_model_matrix(this_formula, this_source)
 
     lost_cases <- nrow(this_mat) < nrow(this_source)
     assert(.na_rm || !lost_cases, "
-           The transforumations specifyed in formula part %s(...) NA values!")
+           The transformations specifyed in formula part %s(...) NA values!",
+           .key)
     return(this_mat)
   }
 
@@ -47,7 +49,8 @@ flowdata_transformations <- function(
 
   # ...if there are lost observations in the node matrices
   # ...we can directly remove the corresponding pairs
-  do_indicators <- get_do_indexes(data_sources[["pair"]])
+  do_keys <- get_do_indexes(data_sources[["pair"]])
+  do_keys <- get_do_keys(data_sources[["pair"]])
   if (na_rm) {
     rows2index <- function(x) as.integer(row.names(x))
     node_obs_indicators <- lapply(node_formulas, function(.f) {
@@ -63,8 +66,8 @@ flowdata_transformations <- function(
     if (!is.null(node_obs_indicators[["D_"]])) {
       keep_dest <- rep(FALSE, nrow(data_sources[["dest"]]))
       keep_dest[node_obs_indicators[["D_"]]] <- TRUE
-      keep_dest <- keep_dest[do_indicators[,1]]
-      do_indicators <- do_indicators[keep_dest,, drop = FALSE]
+      keep_dest <- keep_dest[do_keys[,1]]
+      do_keys <- do_keys[keep_dest,, drop = FALSE]
       data_sources[["pair"]] <- data_sources[["pair"]][keep_dest,, drop = FALSE]
 
     }
@@ -72,17 +75,16 @@ flowdata_transformations <- function(
     if (!is.null(node_obs_indicators[["O_"]])) {
       keep_orig <- rep(FALSE, nrow(data_sources[["orig"]]))
       keep_orig[node_obs_indicators[["O_"]]] <- TRUE
-      keep_orig <- keep_orig[do_indicators[,2]]
-      do_indicators <- do_indicators[keep_orig,, drop = FALSE]
+      keep_orig <- keep_orig[do_keys[,2]]
+      do_keys <- do_keys[keep_orig,, drop = FALSE]
       data_sources[["pair"]] <- data_sources[["pair"]][keep_orig,, drop = FALSE]
-
     }
 
     if (!is.null(node_obs_indicators[["I_"]])) {
       keep_intra <- rep(FALSE, nrow(data_sources[["orig"]]))
       keep_intra[node_obs_indicators[["I_"]]] <- TRUE
-      keep_intra <- keep_intra[do_indicators[,2]] | keep_intra[do_indicators[,1]]
-      do_indicators <- do_indicators[keep_intra,, drop = FALSE]
+      keep_intra <- keep_intra[do_keys[,2]] | keep_intra[do_keys[,1]]
+      do_keys <- do_keys[keep_intra,, drop = FALSE]
       data_sources[["pair"]] <- data_sources[["pair"]][keep_intra,, drop = FALSE]
     }
   }
@@ -93,22 +95,20 @@ flowdata_transformations <- function(
   na_wt <- is.na(wt)
   if (any(na_wt)) {
     assert(na_rm, "The weights contain NA values!")
-    obs_pairs <- cbind(obs_pairs, wt)[na_wt,,drop = FALSE]
+    do_keys <- cbind(do_keys, wt)[na_wt,,drop = FALSE]
   }
 
   G_matrices <- transform_in_source("G_")
-  if (na_rm && nrow(G_matrices) < nrow(data_sources[["pair"]])) {
-    obs_pairs <- rows2index(G_matrices)
-    do_indicators <- do_indicators[obs_pairs,,drop = FALSE]
-    data_sources[["pair"]] <- data_sources[["pair"]][obs_pairs,,drop = FALSE]
+  if (na_rm && isTRUE(nrow(G_matrices) < nrow(data_sources[["pair"]]))) {
+    do_keys <- do_keys[rows2index(G_matrices),,drop = FALSE]
+    data_sources[["pair"]] <- data_sources[["pair"]][rows2index(G_matrices),,drop = FALSE]
   }
 
   Y_matrices <- transform_in_source("Y_", na_rm)
-  if (na_rm & nrow(Y_matrices) < nrow(data_sources[["pair"]])) {
-    obs_pairs <- rows2index(Y_matrices)
-    do_indicators <- do_indicators[obs_pairs,,drop = FALSE]
-    G_matrices <- G_matrices[obs_pairs,,drop = FALSE]
-    data_sources[["pair"]] <- data_sources[["pair"]][obs_pairs,,drop = FALSE]
+  if (na_rm && isTRUE(nrow(Y_matrices) < nrow(data_sources[["pair"]]))) {
+    do_keys <- do_keys[rows2index(Y_matrices),,drop = FALSE]
+    G_matrices <- G_matrices[rows2index(Y_matrices),,drop = FALSE]
+    data_sources[["pair"]] <- data_sources[["pair"]][rows2index(Y_matrices),,drop = FALSE]
   }
 
 
@@ -116,8 +116,8 @@ flowdata_transformations <- function(
   nobs_sources <- unlist(lapply(data_sources,"nrow"))
   non_cartesian <- prod(nobs_sources[c("orig", "dest")]) > nobs_sources["pair"]
   flow_indicator <- matrix_format_d_o(
-    dest_index = do_indicators[,1],
-    orig_index = do_indicators[,2],
+    dest_index = as.integer(do_keys[,1]),
+    orig_index = as.integer(do_keys[,2]),
     num_dest = nobs_sources[["dest"]],
     num_orig = nobs_sources[["orig"]]) %T% non_cartesian
 
@@ -131,7 +131,7 @@ flowdata_transformations <- function(
       nd <- nobs_sources[["dest"]]
       no <- nobs_sources[["orig"]]
       mat0 <- matrix(0, nrow = nd, ncol = no)
-      pairobs_index <- do_indicators[,1] + (do_indicators[,2] - 1L) * no
+      pairobs_index <- as.integer(row.names(do_keys))
       function(vec) {
         mat0[pairobs_index] <- vec
         return(mat0)}}
@@ -141,16 +141,17 @@ flowdata_transformations <- function(
       function(vec) {
         return(matrix(vec, nrow = nd, ncol = no))}})
 
-  G_matrices <- apply(G_matrices, 2, mat_formatter, simplify = FALSE)
-  Y_matrices <- apply(Y_matrices, 2, mat_formatter, simplify = FALSE)
-  weights_var <- weights_var %|!|% mat_formatter(do_indicators[,3])
+  mform_cols <- function(x) apply(x, 2, mat_formatter, simplify = FALSE)
+  G_matrices <- G_matrices %|!|% mform_cols
+  Y_matrices <- Y_matrices %|!|% mform_cols
+  weights_var <- weights_var %|!|% mat_formatter(do_keys[,3])
 
   result <- c(node_matrices, list(
     "G_" = G_matrices,
     "Y_" = Y_matrices,
     "weights" = weights_var,
     "flow_indicator" = flow_indicator,
-    "do_indicators" = do_indicators[,1:2, drop = FALSE]))
+    "do_keys" = do_keys[,1:2, drop = FALSE]))
 
   return(result)
 }

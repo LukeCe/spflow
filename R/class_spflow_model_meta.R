@@ -1,6 +1,6 @@
-# ---- Class definition -------------------------------------------------------
 #' @include class_generics_and_maybes.R
 
+# ---- Class definition -------------------------------------------------------
 #' @title Class spflow_model
 #'
 #' @description
@@ -72,16 +72,16 @@ setClass("spflow_model",
            N = "numeric",
            sd_error = "numeric",
            R2_corr = "maybe_numeric",
-           resid = "maybe_numeric",
-           fitted = "maybe_numeric",
+           resid = "maybe_any_matrix",
+           fitted = "maybe_any_matrix",
            spatial_filter_matrix = "maybe_any_matrix",
            design_matrix = "maybe_list",
            model_moments = "maybe_list",
-           fit_diagnostics = "maybe_list"))
+           fit_diagnostics = "maybe_list",
+           node_coords = "maybe_data.frame"))
 
 
 # ---- Methods ----------------------------------------------------------------
-
 
 # ---- ... add_details --------------------------------------------------------
 #' @title Internal method to add details to a [spflow_model-class()]
@@ -105,10 +105,12 @@ setMethod(
   function(object,
            model_matrices,
            flow_control,
-           model_moments) {
+           model_moments,
+           node_coords) {
 
     object@design_matrix <- drop_instruments(model_matrices)
     object@model_moments <- model_moments
+    object@node_coords <- node_coords
 
     # add fitted values , residuals, and goodness-of-fit
     nb_rho <- spatial_model_order(flow_control$model)
@@ -122,15 +124,10 @@ setMethod(
       type = flow_control$fitted_value_method,
       approx_expectation = flow_control$approx_expectation,
       expectation_approx_order = flow_control$approx_expectation,
-      keep_matrix_form = FALSE)
+      keep_matrix_form = TRUE)
 
-    true_vals <- as.vector(object@design_matrix$Y_[[1]])
-    flow_indicators <- as.vector(object@design_matrix$flow_indicator)
-    if (!is.null(flow_indicators))
-      true_vals <- true_vals[flow_indicators]
-
-    object@resid <- object@fitted - true_vals
-    object@R2_corr <- cor(object@fitted, true_vals)^2
+    object@resid <- object@fitted - actual(object, "M")
+    object@R2_corr <- cor(fitted(object, "V"), actual(object, "V"))^2
     return(object)
   })
 
@@ -167,15 +164,63 @@ setMethod(
 # ---- ... fitted -------------------------------------------------------------
 #' @title Extract a vector of fitted values from a spatial interaction model
 #' @param object A [spflow_model()]
+#' @param type
+#'  A character indicating the format of the returned values:
+#'  -  "V" leads to an atomic vector
+#'  -  "M" leads to a OD matrix where missing data is replaced by zeros
+#'  -  "OD" leads to a data.frame with columns being the the values
+#'      and the id's of the destinations and the origins
+#'
 #' @rdname spflow_model-class
+#' @name fitted
 #' @export
 setMethod(
   f = "fitted",
   signature = "spflow_model",
-  function(object) {
-    return(object@fitted)
+  function(object, type = "V") {
+    vec_format_d_o(
+      mat = object@fitted,
+      do_keys = object@design_matrix$do_keys,
+      type = type,
+      name = "FITTED")
   })
 
+
+# ---- ... flow_map -----------------------------------------------------------
+#' @title Plot the map of flows
+#' @name flow_map
+#' @rdname spflow_model-class
+setMethod(
+  f = "flow_map",
+  signature = "spflow_model",
+  function(object,
+           ...,
+           flow_type = "resid",
+           add_title = TRUE) {
+
+    assert_is_single_x(flow_type, "character")
+
+    type_options <- c(
+      "resid" = "Residuals",
+      "fitted" = "Fitted values",
+      "actual" = "True values")
+    assert_valid_case(flow_type, names(type_options))
+
+    do_flows <- match.fun(flow_type)(object, "OD")
+    args <- list(
+      "y" = abs(do_flows[[3]]),
+      "index_o" = do_flows[[2]],
+      "index_d" = do_flows[[1]])
+    args <- c(args, list(...))
+
+    if (is.null(args[["coords_s"]]))
+      args[["coords_s"]] <- object@node_coords
+
+
+    do.call("map_flows", args)
+    if (add_title)
+      title(type_options[flow_type])
+  })
 
 # ---- ... nobs ---------------------------------------------------------------
 #' @title Access the number if observations of a spatial interaction model
@@ -188,6 +233,59 @@ setMethod(
   function(object) {
     return(object@N)
   })
+
+
+# ---- ... pair_corr ----------------------------------------------------------
+#' @rdname spflow_model-class
+#' @export
+setMethod(
+  f = "pair_corr",
+  signature = "spflow_model",
+  function(object, type = "fit") {
+
+    type_options <- c("fit", "empiric")
+    assert_valid_case(type, type_options)
+
+    TCORR_fit <- object@model_moments$TCORR
+    if (type == "fit")
+      return(TCORR_fit)
+
+    if (is.null(object@design_matrix$weights))
+      TCORR_empric <- TCORR_fit
+
+    stop("no emprical version implemented")
+    })
+
+
+# ---- ... plot ---------------------------------------------------------------
+#' @rdname spflow_model-class
+#' @export
+setMethod(
+  f = "plot",
+  signature = "spflow_model",
+  function(x, ...) {
+
+    qqnorm(y = resid(x), main = "Normal QQ-Plot of Residuals")
+    qqline(resid(x), col = 2)
+
+    plot(x = fitted(x, "V"), xlab = "Fitted",
+         y = resid(x, "V"),  ylab = "Residual",
+         main = "Residual vs Fitted")
+    abline(a = 0, b = 0, col = "red")
+
+    plot(x = fitted(x, "V"), xlab = "Fitted",
+         y = actual(x, "V"), ylab = "Actual",
+         main = "Actual vs Fitted")
+    abline(a = 0, b = 1, col = "red")
+
+    if (!is.null(x@node_coords)) {
+      x_or_25_percent <- min(50,nobs(res) / 4)
+      keep_x_at_most <- (nobs(res) - x_or_25_percent)  / nobs(res)
+      flow_map(res, flow_type = "fitted", filter_lowest = keep_x_at_most, legend = "bottomright")
+      flow_map(res, flow_type = "resid", filter_lowest = keep_x_at_most, legend = "bottomright")
+    }
+
+    corr_map(pair_corr(x),main = "Pairwise Correlations")})
 
 
 # ---- ... predict ------------------------------------------------------------
@@ -281,14 +379,18 @@ setMethod(
 #' @title Extract the vector of residuals values from a [spflow_model()]
 #'
 #' @param object A [spflow_model()]
+#' @inheritParams fitted
 #' @rdname spflow_model-class
 #' @export
 setMethod(
   f = "resid",
   signature = "spflow_model",
-  function(object) {
-    return(object@resid)
-  })
+  function(object, type = "V") {
+    return(vec_format_d_o(
+      mat = object@resid,
+      do_keys = object@design_matrix$do_keys,
+      type = type,
+      name = "RESID"))})
 
 # ---- ... results ------------------------------------------------------------
 #' @section Main results:
@@ -350,7 +452,6 @@ setMethod(
     cat(sprintf("\nSpatial correlation structure: %s (%s)",
                 cntrl$spatial_type,
                 cntrl$model))
-    cat("\nObservations:", nobs(object), collapse = " ")
 
     cat("\n\n")
     cat(print_line(50))
@@ -362,6 +463,7 @@ setMethod(
     cat("\n")
     cat(print_line(50))
     cat("\nR2_corr:", object@R2_corr, collapse = " ")
+    cat("\nObservations:", nobs(object), collapse = " ")
 
 
     invisible(object)
@@ -397,7 +499,8 @@ spflow_model <- function(
     spatial_filter_matrix = NULL,
     design_matrix = NULL,
     model_moments = NULL,
-    fit_diagnostics = NULL) {
+    fit_diagnostics = NULL,
+    node_coords = NULL) {
 
   est <- flow_control$estimation_method
   model_class <- paste0("spflow_model_", est)
@@ -414,7 +517,8 @@ spflow_model <- function(
         fitted = fitted,
         spatial_filter_matrix = spatial_filter_matrix,
         design_matrix = design_matrix,
-        fit_diagnostics = fit_diagnostics)
+        fit_diagnostics = fit_diagnostics,
+        node_coords = node_coords)
 
   # model specific arguments
   dot_args <- list(...)
@@ -523,5 +627,37 @@ create_results <- function(...) {
   return(results)
 }
 
+#' @keywords internal
+vec_format_d_o <- function(mat, do_keys, type = "M", name = "FITTED") {
 
+  if (type == "M")
+    return(mat)
 
+  is_cartesian <- nrow(do_keys) == length(mat)
+  if (is_cartesian)
+    vec <- as.vector(mat)
+
+  if (inherits(mat, "Matrix"))
+    vec <- as.vector(mat@x)
+
+  if (!is_cartesian & inherits(mat, "matrix"))
+    vec <- mat[as.integer(colnames(do_keys))]
+
+  if (type == "V")
+    return(vec)
+
+  do_keys[[name]] <- vec
+  if (type == "OD")
+    return(do_keys)
+
+  stop('Agument type musst be equal to "V", "M", or "OD"!')
+
+}
+
+#' @keywords internal
+actual <- function(object, type = "V"){
+  vec_format_d_o(
+  mat = object@design_matrix$Y_[[1]],
+  do_keys = object@design_matrix$do_keys,
+  type = type,
+  name = "ACTUAL")}

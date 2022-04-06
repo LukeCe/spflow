@@ -122,29 +122,6 @@ setMethod(
   })
 
 
-# ---- ... get_keys -----------------------------------------------------------
-#' @rdname sp_network_pair-class
-#' @export
-#' @examples
-#' ## access the two columns identifying the origin-destination pairs
-#'
-#'
-#' net_pair_ge_ge <- pull_member(multi_net_usa_ge,"ge_ge")
-#' get_keys(net_pair_ge_ge)
-#'
-setMethod(
-  f = "get_keys",
-  signature = "sp_network_pair",
-  function(object) {
-
-    if (is.null(object@pair_data))
-      return(NULL)
-
-    od_key_cols <- attr_key_od(object@pair_data)
-    od_key_cols <- object@pair_data[,od_key_cols]
-    return(od_key_cols)
-  })
-
 # ---- ... nnodes -------------------------------------------------------------
 #' @rdname sp_network_pair-class
 #' @export
@@ -411,6 +388,13 @@ attr_key_do <- function(df) {
 }
 
 #' @keywords internal
+get_do_keys <- function(df, do_keys = attr_key_do(df)) {
+  df <- df[,do_keys, drop = FALSE]
+  row.names(df) <- as.integer(df[[1]]) + nlevels(df[[1]]) * (as.integer(df[[2]]) - 1)
+  return(df)
+}
+
+#' @keywords internal
 get_do_indexes <- function(df, do_keys = attr_key_do(df)) {
   Reduce("cbind", lapply(df[do_keys], "as.integer"), init = NULL)
 }
@@ -419,9 +403,9 @@ get_do_indexes <- function(df, do_keys = attr_key_do(df)) {
 get_pair_index <- function(
   df,
   do_keys = attr_key_do(df),
-  n_o = nlevels(df[[do_keys[1]]])) {
+  n_d = nlevels(df[[do_keys[1]]])) {
 
   do_ind <- get_do_indexes(df, do_keys)
-  do_ind[,1] + n_o * (do_ind[,2] - 1)
+  do_ind[,1] + n_d * (do_ind[,2] - 1)
 }
 

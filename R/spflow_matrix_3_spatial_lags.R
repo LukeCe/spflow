@@ -16,7 +16,7 @@ flowdata_spatiallag <- function(
   claculate_node_lags <- function(.key) {
 
     X_lag <- flowmodel_matrices[[.key]]
-    if (is.null(flowmodel_matrices[[.key]]))
+    if (is.null(X_lag))
       return(NULL)
 
     .Wkey <- c("I_" = "OW", "D_" = "DW", "O_" = "OW")[.key]
@@ -27,8 +27,8 @@ flowdata_spatiallag <- function(
       WX <- WX[obs_index, obs_index, drop = FALSE]
     }
 
-    lag_num <- variable_usage[[.key]]["num_lags"]
-    lag_num <- lookup(as.integer(lag_num),row.names(lag_num))
+    lag_num <- variable_usage[[.key]]
+    lag_num <- lookup(as.integer(lag_num[["num_lags"]]),row.names(lag_num))
     X_lag <- add_lagged_cols(X_lag, WX, lag_num)
 
     is_inst <- unlist(variable_usage[[.key]][["inst_attr"]])
@@ -46,7 +46,7 @@ flowdata_spatiallag <- function(
     if (nrow(X_lag) == n_obs)
       return(X_lag)
 
-    X_lag_a <- matrix(0, nrow(WX), ncol = X_lag)
+    X_lag_a <- matrix(0, n_obs, ncol(X_lag))
     X_lag_a[obs_index,] <- X_lag
     colnames(X_lag_a) <- colnames(X_lag)
     attr_inst_status(X_lag_a) <- attr_inst_status(X_lag)

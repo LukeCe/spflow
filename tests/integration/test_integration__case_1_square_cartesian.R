@@ -394,3 +394,23 @@ expect_zero_diff(target_matrices[["Y9_"]][[2]], actual_matrices[["Y_"]][[2]])
 expect_zero_diff(target_matrices[["Y9_"]][[3]], actual_matrices[["Y_"]][[3]])
 expect_zero_diff(target_matrices[["Y9_"]][[4]], actual_matrices[["Y_"]][[4]])
 rm(res_model_9_mcmc)
+
+# ---- ... incomplete models --------------------------------------------------
+expect_spflow_model <- function(formula, m = "model_9") expect_inherits(
+  spflow(formula, multi_net_usa_ge, "ge_ge",
+         flow_control = list("model" = "model_9")), "spflow_model")
+
+expect_spflow_model(y9 ~ + G_(DISTANCE))
+expect_spflow_model(y9 ~ + G_(DISTANCE) - 1)
+expect_spflow_model(y9 ~ + G_(DISTANCE) - 1 - I_(-1))
+expect_spflow_model(y1 ~ + G_(DISTANCE) - 1 - I_(-1), "model_1")
+expect_spflow_model(y9 ~ + D_(X) + O_(X) -1)
+expect_spflow_model(y9 ~ + D_(X) + -1)
+expect_spflow_model(y9 ~ + O_(X) + -1)
+expect_spflow_model(y9 ~ + D_(X) + I_(-1) - 1)
+expect_spflow_model(y9 ~ + O_(X) + I_(-1) - 1)
+expect_spflow_model(y9 ~ + I_(X) + -1)
+expect_spflow_model(y9 ~ + I_(X-1) + -1)
+expect_spflow_model(y9 ~ + I_(-1))
+
+

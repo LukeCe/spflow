@@ -18,6 +18,7 @@ setClassUnion("maybe_mcmc"      , c("NULL", "mcmc"))
 
 
 # ---- New Generics -----------------------------------------------------------
+
 # ---- ... add_details --------------------------------------------------------
 #' @name add_details
 #' @rdname add_details
@@ -27,9 +28,9 @@ setGeneric(
   def = function(object, ...) standardGeneric("add_details"))
 
 # ---- ... complete_pairs -----------------------------------------------------
-#' @name add_details
-#' @rdname add_details
-#' @keywords internal
+#' @name complete_pairs
+#' @rdname sp_multi_network-class
+#' @export
 setGeneric(
   name = "complete_pairs",
   def = function(object, ...) standardGeneric("complete_pairs"))
@@ -79,6 +80,7 @@ setGeneric(
   name = "id",
   def = function(object, ...) standardGeneric("id"))
 
+
 # ---- ... id<- ---------------------------------------------------------------
 #' @param value A character replacing the existing id
 #' @rdname id
@@ -88,16 +90,16 @@ setGeneric(
   name = "id<-",
   def = function(object, ..., value) standardGeneric("id<-"))
 
-# ---- ... get_keys -----------------------------------------------------------
-#' @title Get the keys for identifying origins, destinations, or od-pairs
+
+# ---- ... flow_map -----------------------------------------------------------
+#' @title Graphical representation of flows
 #' @param value A character replacing the existing id
-#' @param object One of [sp_network_nodes-class()], [sp_network_pair-class()]
-#' @seealso
+#' @rdname flow_map
+#' @name flow_map
 #' @export
 setGeneric(
-  name = "get_keys",
-  def = function(object) standardGeneric("get_keys"))
-
+  name = "flow_map",
+  def = function(object, ...) standardGeneric("flow_map"))
 
 # ---- ... mcmc_results -------------------------------------------------------
 #' @title Access the sampling results of a [spflow_model_mcmc-class()]

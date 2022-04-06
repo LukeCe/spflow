@@ -188,12 +188,12 @@ drop_superfluent_nodes <- function(OW,DW,flow_indicator) {
 #' @keywords internal
 get_flow_indicator <- function(sp_net_pair) {
 
-  od_indexes <- lapply(get_keys(sp_net_pair), "as.integer")
+  do_indexes <- get_do_indexes(dat(sp_net_pair))
   n_nodes <- nnodes(sp_net_pair)
   indicator_mat <- matrix_format_d_o(
     values = NULL,
-    dest_index = od_indexes[[2]],
-    orig_index = od_indexes[[1]],
+    dest_index = do_indexes[,1],
+    orig_index = do_indexes[,2],
     num_dest = n_nodes["dest"],
     num_orig = n_nodes["orig"],
     assume_ordered = TRUE)

@@ -49,7 +49,7 @@ germany_contiguity <- listw2mat(germany_contiguity)
 germany_net <- sp_network_nodes(
   network_id = "ge",
   node_neighborhood = germany_contiguity,
-  node_data = germany_data,
+  node_data = germany_grid,
   node_key_column = "ID_STATE")
 
 germany_inputs <- list("data" = germany_data,

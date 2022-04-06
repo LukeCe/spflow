@@ -80,12 +80,21 @@ map_flows <- function(
   color_palette = sample(colors(), size = nrow(coords_s)),
   add = FALSE, max_lwd = 1, filter_lowest = 0.75, max_bar = 1,
   legend_position = "none", decimal_points = 0,
-  add_labels = FALSE, remove_intra = FALSE) {
+  add_labels = FALSE, remove_intra = FALSE, na_rm = TRUE) {
 
   # verification
   # size of the vectors
   stopifnot(length(y) == length(index_o),
             length(index_o) == length(index_d))
+
+
+  valid_y <- is.finite(y)
+  if (!all(valid_y)) {
+    assert(na_rm, "NA/NaN/Inf in y!")
+    y <- y[valid_y]
+    index_o <- index_o[valid_y]
+    index_d <- index_d[valid_y]
+    }
 
   stopifnot(legend_position %in% c("none", "bottomright", "bottom", "bottomleft",
             "left", "topleft", "top", "topright", "right", "center"))
@@ -213,14 +222,14 @@ map_flows <- function(
   }
 
   # plot the highest flows
-  ind_biggest <- which(y > quantile(y, filter_lowest))
+  ind_biggest <- which(y > quantile(y, filter_lowest, na.rm = TRUE))
   for(i in ind_biggest) {
       A <- xy_origin[as.character(index_o[i]), ]
       B <- xy_dest[as.character(index_d[i]), ]
-      xA <- A[1]
-      yA <- A[2]
-      xB <- B[1]
-      yB <- B[2]
+      xA <- A[[1]]
+      yA <- A[[2]]
+      xB <- B[[1]]
+      yB <- B[[2]]
       my_arc_don <- my_arc(xA, yA, xB, yB)
       lines(my_arc_don[, 1], my_arc_don[, 2],
             lwd = max_lwd_flows[i], col = my_col_flow[i])

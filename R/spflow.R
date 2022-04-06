@@ -206,7 +206,8 @@ spflow <- function(
     estimation_results,
     model_matrices = model_matrices,
     flow_control = flow_control,
-    model_moments = model_moments)
+    model_moments = model_moments,
+    node_coords = maybe(get_node_coords(sp_multi_network, network_pair_id)))
 
   return(estimation_results)
 }

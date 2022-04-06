@@ -86,19 +86,22 @@ var_block_alpha_I <- function(const_intra, const_intra_wt) {
 var_block_beta <- function(X,wt_odi,wt) {
 
   od_names <- c("D","O") %p% "_"
+  has_od <- !is.null(X$D_) & !is.null(X$O_)
   scalar_weights <- has_equal_elements(c(rapply(wt_odi, length),1))
+
+
   if (scalar_weights) {
     cross_prods <- Map("*", lapply(X, "crossprod"), wt_odi)
-    outer_prods <- tcrossprod(colSums(X$D_),colSums(X$O_))
-    intra_prods <- X$I_ %|!|% lapply(X[od_names], "crossprod", X$I_)
+    outer_prods <- tcrossprod(colSums(X$D_),colSums(X$O_)) %T% has_od
+    intra_prods <- X$I_ %|!|% lapply(X[od_names], "crossprod", X$I_)  %T% has_od
   }
 
   if (!scalar_weights) {
     cross_prods <- Map("*", X, lapply(wt_odi,"sqrt"))
     cross_prods <- lapply(cross_prods, "crossprod")
-    outer_prods <- crossprod(X$D_, wt) %*% X$O_
+    outer_prods <- crossprod(X$D_, wt) %*% X$O_ %T% has_od
     wt_XI <- X$I_ %|!|% wt_odi$I_ * X$I_
-    intra_prods <- wt_XI %|!|% lapply(X[od_names], "crossprod",wt_XI)
+    intra_prods <- wt_XI %|!|% lapply(X[od_names], "crossprod",wt_XI)  %T% has_od
   }
 
   # fill the block from top to bottom

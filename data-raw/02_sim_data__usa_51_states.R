@@ -66,7 +66,7 @@ usa_4_nearest_neighbours <- listw2mat(usa_4_nearest_neighbours)
 usa_net <- sp_network_nodes(
   network_id = "usa",
   node_neighborhood = usa_4_nearest_neighbours,
-  node_data = usa_data,
+  node_data = usa_grid,
   node_key_column = "ID_STATE")
 
 save(usa_net, file = "data/usa_net.rda")

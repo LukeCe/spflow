@@ -128,6 +128,35 @@ setReplaceMethod(
   })
 
 
+# ---- ... flow_map  ----------------------------------------------------------
+#' @title Plot the map of flows
+#' @name flow_map
+#' @rdname sp_multi_network-class
+setMethod(
+  f = "flow_map",
+  signature = "sp_multi_network",
+  function(object,
+           network_pair_id = id(object)[["network_pairs"]][[1]],
+           ...,
+           flow_var) {
+
+    assert(network_pair_id %in% id(object)[["network_pairs"]])
+    assert_is_single_x(flow_var, "character")
+
+    flow_data <- pull_relational_flow_data(object, network_pair_id)
+    do_indexes <- get_do_keys(flow_data[["pair"]])
+    flow_var <- flow_data[["pair"]][[flow_var]]
+    args <- list(
+      "y" = flow_var,
+      "index_o" = do_indexes[[2]],
+      "index_d" = do_indexes[[1]])
+    args <- c(args, list(...))
+
+    if (is.null(args[["coords_s"]]))
+      args[["coords_s"]] <- get_node_coords(object, network_pair_id)
+
+    do.call("map_flows", args)
+  })
 
 
 # ---- ... neighborhood -------------------------------------------------------
@@ -187,7 +216,7 @@ setMethod(
   f = "pair_corr",
   signature = "sp_multi_network",
   function(object,
-           network_pair_id =  id(object)[["network_pairs"]][[1]] ,
+           network_pair_id = id(object)[["network_pairs"]][[1]] ,
            flow_formula,
            add_lags_x = TRUE,
            add_lags_y = FALSE) {
@@ -259,11 +288,11 @@ setMethod(
   f = "pair_merge",
   signature = "sp_multi_network",
   function(object,
-           network_pair_id,
-           make_cartesian = FALSE,
+           network_pair_id = id(object)[["network_pairs"]][[1]],
            dest_cols,
            orig_cols,
            pair_cols,
+           make_cartesian = FALSE,
            keep_od_keys = TRUE) {
 
     od_ids <- id(object)[["network_pairs"]]
@@ -278,26 +307,27 @@ setMethod(
 
     select_nonid_cols <- function(.cols,.data) {
 
+
       if (missing(.cols))
-        return(subset_keycols(.data))
+        return(subset_keycols(flow_data[[.data]]))
 
       if (is.null(.cols))
         return(NULL)
 
-      assert_is(.cols, "The columns must be given as character vector!")
+      assert_is(.cols, "character")
 
-      has_cols <- .cols %in% colnames(.data)
+      has_cols <- .cols %in% colnames(flow_data[[.data]])
       assert(all(has_cols),
-             "Columns not available in data the data:",
-             paste0(.cols[!has_cols], collapse = ", "))
+             "Columns not available in the %s-data: %s",
+             .data, paste0(.cols[!has_cols], collapse = ", "))
 
-      .data <- subset_keycols(.data)
+      .data <- subset_keycols(flow_data[[.data]])
       .cols <- intersect(.cols, colnames(.data))
       return(.data[,.cols,drop = FALSE])
     }
-    pair_data <- select_nonid_cols(pair_cols, flow_data[["pair"]])
-    dest_data <- select_nonid_cols(dest_cols, flow_data[["dest"]])
-    orig_data <- select_nonid_cols(orig_cols, flow_data[["orig"]])
+    pair_data <- select_nonid_cols(pair_cols, "pair")
+    dest_data <- select_nonid_cols(dest_cols, "dest")
+    orig_data <- select_nonid_cols(orig_cols, "orig")
 
     # complete missing OD pairs (fill with NA's)
     make_cartesian <- make_cartesian & flow_infos$COMPLETENESS < 1
@@ -317,40 +347,38 @@ setMethod(
 
       if (length(pair_data) > 0) {
         pair_data_old <- pair_data
-        na_data <- lapply(pair_data[1,,drop = FALSE], "is.na<-")
-        pair_data[,] <- na_data
+        pair_data <- data.frame(row.names = seq_len(n_o * n_d))
+        na_data <- lapply(pair_data_old[1,,drop = FALSE], "is.na<-")
+        pair_data[,names(na_data)] <- na_data
         pair_data[pair_index,] <- pair_data_old
+      }
+
+      if (keep_od_keys) {
+        d_keys <- factor_in_order(levels(do_keys[[1]]))
+        o_keys <- factor_in_order(levels(do_keys[[2]]))
+        key_names <- names(do_keys)
+        do_keys <- data.frame(
+          d_keys[do_indexes[[1]]],
+          o_keys[do_indexes[[2]]])
+        colnames(do_keys) <- key_names
       }
     }
 
-    if (length(dest_data) > 0) {
-      dest_data <- prefix_columns(dest_data, "DEST_")
-      pair_data <- cbind(
-        pair_data,
-        dest_data[do_indexes[[1]],,drop = FALSE], row.names = NULL)
-    }
+    all_pair_infos <- named_list(c("ID","P","D","O"))
+    all_pair_infos[["ID"]] <- do_keys %T% keep_od_keys
+    all_pair_infos[["P"]] <- pair_data %||% NULL
+    all_pair_infos[["D"]] <-
+      prefix_columns(dest_data, "DEST_")[do_indexes[[1]],,drop = FALSE] %T%
+      (length(dest_data) > 0)
+    all_pair_infos[["O"]] <-
+      prefix_columns(orig_data, "ORIG_")[do_indexes[[2]],,drop = FALSE] %T%
+      (length(orig_data) > 0)
 
-    if (length(orig_data) > 0) {
-      orig_data <- prefix_columns(orig_data, "ORIG_")
-      pair_data <- cbind(
-        pair_data,
-        orig_data[do_indexes[[1]],,drop = FALSE], row.names = NULL)
-    }
+    pair_data <- Reduce("cbind", all_pair_infos)
+    row.names(pair_data) <- NULL
+    if (keep_od_keys)
+      attr_key_do(pair_data) <- colnames(do_keys)
 
-    if (!keep_od_keys)
-      return(pair_data)
-
-    if (make_cartesian) {
-      d_keys <- factor_in_order(levels(do_keys[[1]]))
-      o_keys <- factor_in_order(levels(do_keys[[2]]))
-      key_names <- names(do_keys)
-      do_keys <- data.frame(
-        d_keys[do_indexes[[1]]],
-        o_keys[do_indexes[[2]]])
-      colnames(do_keys) <- key_names
-    }
-    pair_data <- cbind(do_keys, pair_data)
-    attr_key_do(pair_data) <- colnames(do_keys)
     return(pair_data)
   })
 
@@ -489,7 +517,6 @@ setValidity("sp_multi_network", function(object) {
 })
 
 
-
 # ---- Constructors -----------------------------------------------------------
 
 #' Create an S4 class that contains [sp_network_nodes()] and [sp_network_pair()] for one or multiple networks
@@ -529,19 +556,19 @@ sp_multi_network <- function(...) {
   # 2. the order of observations is important for calculations
   error_template <- "
   In the network pair with id %s, it is not possible to identify
-  all of the %ss with the nodes in the %s network."
+  all %ss with the nodes in the %s network!"
 
   pair_ids <- lapply(sp_network_pairs, "id")
 
   for (i in seq_along(pair_ids)) {
 
     net_pair <- pair_ids[[i]]["pair"]
-    pair_keys <- get_keys(sp_network_pairs[[net_pair]])
+    do_keys <- dat(sp_network_pairs[[net_pair]]) %|!|% get_do_keys
     wrong_od_order <- FALSE
 
     # check for origins
     orig_net <- pair_ids[[i]]["orig"]
-    orig_keys <- orig_keys_od <- unique(pair_keys[[1]])
+    orig_keys <- orig_keys_od <- unique(do_keys[[2]])
     if (orig_net %in% names(sp_networks)) {
       orig_keys <- subset_keycols(dat(sp_networks[[orig_net]]), drop_keys = FALSE)[[1]]
       assert(all(as.character(orig_keys_od) %in% as.character(orig_keys)),
@@ -553,7 +580,7 @@ sp_multi_network <- function(...) {
     }
 
     dest_net <- pair_ids[[i]]["dest"]
-    dest_keys <- dest_keys_od <- unique(pair_keys[[2]])
+    dest_keys <- dest_keys_od <- unique(do_keys[[1]])
     if (dest_net %in% names(sp_networks)) {
       dest_keys <- subset_keycols(dat(sp_networks[[dest_net]]), drop_keys = FALSE)[[1]]
       assert(all(as.character(dest_keys_od) %in% as.character(dest_keys)),
@@ -567,15 +594,14 @@ sp_multi_network <- function(...) {
       The od-pairs in the network pair object with id %s
       were reordered to match the order of the nodes in the networks."
       assert(FALSE, warn_template, net_pair, warn = TRUE)
-      pair_keys[[1]] <- factor(pair_keys[[1]], levels(orig_keys))
-      pair_keys[[2]] <- factor(pair_keys[[2]], levels(dest_keys))
-      od_order <- order(pair_keys[[1]], pair_keys[[2]])
-      od_key_cols <- names(pair_keys)
+      do_keys[[1]] <- factor(do_keys[[1]], levels(dest_keys))
+      do_keys[[2]] <- factor(do_keys[[2]], levels(orig_keys))
+      od_order <- order(do_keys[[2]], do_keys[[1]])
 
       new_key_data <- dat(sp_network_pairs[[net_pair]])
-      new_key_data[od_key_cols[1]] <- pair_keys[[1]]
-      new_key_data[od_key_cols[2]] <- pair_keys[[2]]
-      dat(sp_network_pairs[[net_pair]]) <- new_key_data[od_order,]
+      new_key_data[names(do_keys)[1]] <- do_keys[[1]]
+      new_key_data[names(do_keys)[2]] <- do_keys[[2]]
+      dat(sp_network_pairs[[net_pair]]) <- new_key_data[od_order,, drop = FALSE]
     }
   }
 
@@ -637,37 +663,6 @@ check_node_infos <- function(sp_net) {
 }
 
 
-
-#' @keywords internal
-validate_od_keys <- function(o_keys, d_keys, od_keys) {
-
-  error_template <- "The %s must be unique!"
-  assert(has_distinct_elements(o_keys),
-         "The %s keys must be unique!", "origin")
-  assert(has_distinct_elements(d_keys),
-         "The %s keys must be unique!", "destination")
-
-
-}
-
-#' @keywords internal
-pull_node_coords <- function(sp_dat) {
-  sp_dat[attr_coord_col(sp_dat)] %||% NULL
-}
-
-#' @keywords internal
-pull_od_levels <- function(sp_net_pair, o_vs_d = "orig") {
-  get_key <- match.fun("attr_key_" %p% o_vs_d)
-  key <- get_key(sp_net_pair)
-  levels(dat(sp_net_pair)[[key]])
-}
-
-#' @keywords internal
-id_part <- function(.id, o_vs_d) {
-  o_vs_d <- c("orig" = 1, "dest" = 2)[o_vs_d]
-  unlist(strsplit(.id,"_"))[o_vs_d]
-}
-
 #' @keywords internal
 compute_pair_index_do <- function(d_index, o_index, n_d) {
   pair_index <- d_index + (o_index - 1) * n_d
@@ -678,4 +673,24 @@ compute_pair_index_do <- function(d_index, o_index, n_d) {
 derive_pair_index <- function(pair_dat, n_d) {
   od_indexes <-  pair_dat[,attr_key_od(pair_dat), drop = FALSE]
   compute_pair_index_do(od_indexes[[1]], od_indexes[[2]], n_d)
+}
+
+#' @keywords internal
+get_node_coords <- function(sp_multi, net_pair_id) {
+
+  od_ids <- id(pull_member(sp_multi, net_pair_id))
+
+  orig_coords <- subset_keycols(dat(sp_multi, od_ids["orig"]), drop_keys = FALSE)
+  assert(ncol(orig_coords) == 3, "No valid coordinates!")
+
+  if (od_ids["orig"] == od_ids["dest"])
+    return(data.frame(orig_coords[,-1], row.names = orig_coords[,1]))
+
+  dest_coords <- subset_keycols(dat(sp_multi, od_ids["dest"]), drop_keys = FALSE)
+  assert(ncol(dest_coords) == 3, "No valid coordinates!")
+  colnames(dest_coords) <- colnames(orig_coords)
+
+
+  node_coords <- unique(rbind(orig_coords, dest_coords))
+  return(data.frame(node_coords[,-1], row.names = node_coords[,1]))
 }
