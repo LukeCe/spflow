@@ -321,6 +321,7 @@ setMethod(
              "Columns not available in the %s-data: %s",
              .data, paste0(.cols[!has_cols], collapse = ", "))
 
+      attr_coord_col(flow_data[[.data]]) <- NULL
       .data <- subset_keycols(flow_data[[.data]])
       .cols <- intersect(.cols, colnames(.data))
       return(.data[,.cols,drop = FALSE])
