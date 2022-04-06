@@ -21,8 +21,8 @@ suffix_columns <- function(obj,suffix){
 }
 
 #' @title Simple computation of the great circle distance
-#' @details Unit is meter
-#' @keywords internal
+#' @details Unit is kilometer
+#' @export
 haversine_distance <- function(lon1, lat1, lon2, lat2) {
   lon1 <- degree2radian(lon1)
   lat1 <- degree2radian(lat1)
@@ -31,13 +31,11 @@ haversine_distance <- function(lon1, lat1, lon2, lat2) {
 
   diff_lon <- lon2 - lon1
   diff_lat <- lat2 - lat1
-  earth_radius_m <- 6378137
+  earth_radius_km <- 6378.137
 
-  arc <- sin(diff_lat/2)^2 + cos(lat1) * cos(lat2) * sin(diff_lon/2)^2
-  s_arc <- (arc <= 1)
-  arc[s_arc] <- 1
-  arc[!s_arc] <- sqrt(arc[!s_arc])
-  return(earth_radius_m * 2 * asin(arc))
+  a <- sin(diff_lat/2)^2 + cos(lat1) * cos(lat2) * sin(diff_lon/2)^2
+  c <- 2 * asin(pmin(1,sqrt(a)))
+  return(earth_radius_km * c)
 }
 
 #' @keywords internal
