@@ -8,8 +8,7 @@
 # ---- Maybe Classes ----------------------------------------------------------
 # allow NULL slots during instantiation of classes
 setOldClass("mcmc")
-setOldClass("data.table")
-setClassUnion("maybe_data.frame", c("NULL", "data.frame", "data.table"))
+setClassUnion("maybe_data.frame", c("NULL", "data.frame"))
 setClassUnion("maybe_Matrix"    , c("NULL", "Matrix"))
 setClassUnion("maybe_matrix"    , c("NULL", "matrix"))
 setClassUnion("maybe_any_matrix", c("NULL", "matrix", "Matrix"))
@@ -101,6 +100,17 @@ setGeneric(
 setGeneric(
   name = "flow_map",
   def = function(object, ...) standardGeneric("flow_map"))
+
+# ---- ... flow_moran_plots ---------------------------------------------------
+#' @title Graphical representation of flows
+#' @param value A character replacing the existing id
+#' @rdname flow_moran_plots
+#' @name flow_moran_plots
+#' @export
+setGeneric(
+  name = "flow_moran_plots",
+  def = function(object, ...) standardGeneric("flow_moran_plots"))
+
 
 # ---- ... mcmc_results -------------------------------------------------------
 #' @title Access the sampling results of a [spflow_model_mcmc-class()]

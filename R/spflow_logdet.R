@@ -9,7 +9,7 @@ derive_logdet_calculator <- function(
   is_cartesian,
   flow_indicator) {
 
-  if (is_cartesian) {
+  if (is.null(flow_indicator)) {
 
     # TODO remove scaling once simulations are conclusive
     scaling <- 1
@@ -32,6 +32,7 @@ derive_logdet_calculator <- function(
     approx_logdet <- generate_approxldet_noncartesian2(
       OW = OW,
       DW = DW,
+      flow_indicator = flow_indicator,
       n_o = n_o,
       n_d = n_d,
       model = model)
@@ -144,8 +145,8 @@ generate_approxldet_noncartesian2 <- function(
 
   tracevals <- c(trace_dd,trace_oo,trace_ww) / 2
   logdet_calculator_123456789 <- function(rho) {
-    logdet_val <- -as.numeric(sum(rho^2 * tracevals))
-    return(logdet_val)
+    logdet_val <- as.numeric(sum(rho^2 * tracevals))
+    return(-logdet_val)
   }
   return(logdet_calculator_123456789)
 }

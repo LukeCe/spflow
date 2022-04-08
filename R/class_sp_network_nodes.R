@@ -346,7 +346,7 @@ simplfy2df <- function(df, derive_coord_cols = TRUE, prefer_lonlat = TRUE) {
     if (require("sf")) {
       df <- sf::st_as_sf(df)
     } else {
-      df <- df@data
+      df <- as.data.frame(df@data)
     }
   }
 
@@ -369,8 +369,8 @@ simplfy2df <- function(df, derive_coord_cols = TRUE, prefer_lonlat = TRUE) {
   }
 
   if (inherits(df, "data.table") && require("data.table"))
-    df <- data.table::copy(df)
+    data.table::setDF(df)
 
 
-  return(as.data.frame(df))
+  return(df)
 }

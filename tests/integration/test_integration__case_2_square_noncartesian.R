@@ -491,11 +491,12 @@ expect_equal({
 rm(res_model_9_s2sls_narm)
 
 
+# ---- test logdet approx -----------------------------------------------------
+expect_spflow_model <- function(ap_order = 10) expect_inherits(
+  spflow(y9 ~ . + G_(DISTANCE), multi_net_usa_ge, "usa_usa",
+         flow_control = list(logdet_approx_order = ap_order)), "spflow_model")
 
-
-
-
-
-
-
-
+expect_spflow_model(20)
+expect_spflow_model(10)
+expect_spflow_model(4)
+expect_spflow_model(2)

@@ -127,6 +127,36 @@ setReplaceMethod(
     return(object)
   })
 
+# ---- ... flow_moran_plot  ---------------------------------------------------
+#' @title Plot the map of flows
+#' @name flow_map
+#' @rdname sp_multi_network-class
+setMethod(
+  f = "flow_map",
+  signature = "sp_multi_network",
+  function(object,
+           network_pair_id = id(object)[["network_pairs"]][[1]],
+           ...,
+           flow_var) {
+
+    assert(network_pair_id %in% id(object)[["network_pairs"]])
+    assert_is_single_x(flow_var, "character")
+
+    flow_data <- pull_relational_flow_data(object, network_pair_id)
+    do_indexes <- get_do_keys(flow_data[["pair"]])
+    flow_var <- flow_data[["pair"]][[flow_var]]
+    args <- list(
+      "y" = flow_var,
+      "index_o" = do_indexes[[2]],
+      "index_d" = do_indexes[[1]])
+    args <- c(args, list(...))
+
+    if (is.null(args[["coords_s"]]))
+      args[["coords_s"]] <- get_node_coords(object, network_pair_id)
+
+    do.call("map_flows", args)
+  })
+
 
 # ---- ... flow_map  ----------------------------------------------------------
 #' @title Plot the map of flows

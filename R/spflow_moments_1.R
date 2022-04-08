@@ -44,14 +44,14 @@ compute_spflow_moments <- function(
   diag(TCORR[-1,-1]) <- 1
 
 
-  is_2sls <- flow_control[["estimation_method"]] == "s2sls"
+  has_instruments <- any(!Z_index)
   model_moments <- compact(list(
     "n_d"   = n_d,
     "n_o"   = n_o,
     "N"     = N,
-    "UU"    = UU %T% is_2sls,   # only for s2sls
+    "UU"    = UU,
     "ZZ"    = ZZ,
-    "UY"    = UY %T% is_2sls,   # only for s2sls
+    "UY"    = UY,
     "ZY"    = ZY,
     "TSS"   = TSS,
     "TCORR" = TCORR))

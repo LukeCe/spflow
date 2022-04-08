@@ -185,7 +185,6 @@ setMethod(
       name = "FITTED")
   })
 
-
 # ---- ... flow_map -----------------------------------------------------------
 #' @title Plot the map of flows
 #' @name flow_map
@@ -222,6 +221,46 @@ setMethod(
       title(type_options[flow_type])
   })
 
+
+# ---- ... flow_moran_plots  --------------------------------------------------
+#' @title Plot the map of flows
+#' @name flow_moran_plots
+#' @rdname spflow_model-class
+setMethod(
+  f = "flow_moran_plots",
+  signature = "spflow_model",
+  function(object, model, DW, OW, add_lines = TRUE) {
+
+    if (missing(model)) model <- object@estimation_control[["model"]]
+    if (missing(DW)) DW <- object@design_matrix[["DW"]]
+    if (missing(OW)) OW <- object@design_matrix[["OW"]]
+
+    assert(model != "model_1", "The Moran plot is for spatial models!")
+
+    # recompute the moments pretending the errors are the flows
+    # with flows becoming exogenous variables
+    E_ <- lag_flow_matrix(
+      Y = resid(object, "M"),
+      model = model,
+      OW = OW,
+      DW = DW,
+      name = "ERROR",
+      flow_indicator = object@design_matrix[["flow_indicator"]])
+
+    E_x <- vec_format_d_o(E_[[1]],object@design_matrix$do_keys, "V")
+    for (i in seq_len(length(E_) - 1)) {
+      E_y <- vec_format_d_o(E_[[i + 1]], object@design_matrix$do_keys, "V")
+      ii <- sub("ERROR.",replacement = "", names(E_)[i + 1])
+
+      plot(y = E_y, x = E_x,
+           main = "Moran scatterplot of residuals",
+           xlab = expression(residual),
+           ylab = bquote(W[.(ii)] %.% "resdiual (lag)"))
+      if (add_lines)
+        abline(lm.fit(x = cbind(1,E_x), y = E_y), col = "red") ; abline(0,0)
+    }
+  })
+
 # ---- ... nobs ---------------------------------------------------------------
 #' @title Access the number if observations of a spatial interaction model
 #' @param object A [spflow_model()]
@@ -241,19 +280,59 @@ setMethod(
 setMethod(
   f = "pair_corr",
   signature = "spflow_model",
-  function(object, type = "fit") {
+  function(object, type = "fit", add_errors = FALSE, model) {
 
     type_options <- c("fit", "empiric")
     assert_valid_case(type, type_options)
 
-    TCORR_fit <- object@model_moments$TCORR
-    if (type == "fit")
-      return(TCORR_fit)
+    new_mat <- object@design_matrix
+    new_mom <- object@model_moments
+    keep_moments <- type == "fit" || is.null(new_mat[["weights"]])
+    new_mat[["weights"]] <- NULL
+    if (!keep_moments) {
+      new_mom <- compute_spflow_moments(
+        model_matrices = new_mat,
+        flow_control = object@estimation_control,
+        ignore_na = TRUE)
+    }
 
-    if (is.null(object@design_matrix$weights))
-      TCORR_empric <- TCORR_fit
+    if (!add_errors)
+      return(new_mom$TCORR)
 
-    stop("no emprical version implemented")
+    if (missing(model))
+      model <- object@estimation_control[["model"]]
+
+    # recompute the moments pretending the errors are the flows
+    # with flows becoming exogenous variables
+    E_ <- lag_flow_matrix(
+      Y = resid(object, "M"),
+      model = model,
+      OW = new_mat[["OW"]],
+      DW = new_mat[["DW"]],
+      name = "ERROR",
+      flow_indicator = new_mat[["flow_indicator"]])
+
+    new_mat[["G_"]] <- c(new_mat[["G_"]], new_mat[["Y_"]])
+    new_mat[["weights"]] <- NULL
+    JE <- lapply(E_, "moment_empirical_covar", new_mat)
+    JE <- Reduce("cbind", JE)
+    colnames(JE) <- names(E_)
+
+    N <- new_mom[["N"]]
+    UU <- new_mom[["UU"]]
+    UY <- new_mom[["UY"]]
+    TSS <- new_mom[["TSS"]]
+
+    UU <- rbind(cbind(UU,UY), cbind(t(UY), TSS))
+    UY <- JE
+    TSS <- crossproduct_mat_list(E_)
+
+    # covariance matrix
+    TCORR <- rbind(cbind(UU,UY), cbind(t(UY), TSS))
+    TCORR <- TCORR - (outer(TCORR[1,], TCORR[1,])/N)
+    TCORR <- TCORR / outer(sqrt(diag(TCORR)), sqrt(diag(TCORR)))
+    diag(TCORR[-1,-1]) <- 1
+    return(TCORR)
     })
 
 
@@ -268,10 +347,12 @@ setMethod(
     qqnorm(y = resid(x), main = "Normal QQ-Plot of Residuals")
     qqline(resid(x), col = 2)
 
-    plot(x = fitted(x, "V"), xlab = "Fitted",
-         y = resid(x, "V"),  ylab = "Residual",
+    fitted_x <- fitted(x, "V")
+    resid_x <- resid(x, "V")
+    plot(x = fitted_x, xlab = "Fitted",
+         y = resid_x,  ylab = "Residual",
          main = "Residual vs Fitted")
-    abline(a = 0, b = 0, col = "red")
+    abline(lm.fit(resid_x, fitted_x), col = "red") ; abline(a = 0, b = 0)
 
     plot(x = fitted(x, "V"), xlab = "Fitted",
          y = actual(x, "V"), ylab = "Actual",
@@ -284,6 +365,11 @@ setMethod(
       flow_map(res, flow_type = "fitted", filter_lowest = keep_x_at_most, legend = "bottomright")
       flow_map(res, flow_type = "resid", filter_lowest = keep_x_at_most, legend = "bottomright")
     }
+
+    flow_moran_plots(x)
+
+    if (inherits(x, "spflow_model_mcmc"))
+      plot(mcmc_results(a),density = FALSE, ask = FALSE)
 
     corr_map(pair_corr(x),main = "Pairwise Correlations")})
 
@@ -637,11 +723,8 @@ vec_format_d_o <- function(mat, do_keys, type = "M", name = "FITTED") {
   if (is_cartesian)
     vec <- as.vector(mat)
 
-  if (inherits(mat, "Matrix"))
-    vec <- as.vector(mat@x)
-
-  if (!is_cartesian & inherits(mat, "matrix"))
-    vec <- mat[as.integer(colnames(do_keys))]
+  if (!is_cartesian)
+    vec <- mat[as.integer(rownames(do_keys))]
 
   if (type == "V")
     return(vec)
@@ -651,7 +734,6 @@ vec_format_d_o <- function(mat, do_keys, type = "M", name = "FITTED") {
     return(do_keys)
 
   stop('Agument type musst be equal to "V", "M", or "OD"!')
-
 }
 
 #' @keywords internal
