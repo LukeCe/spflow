@@ -76,11 +76,20 @@
 #'           remove_intra = TRUE)
 #'
 map_flows <- function(
-  y, index_o, index_d, coords_s,
-  color_palette = sample(colors(), size = nrow(coords_s)),
-  add = FALSE, max_lwd = 1, filter_lowest = 0.75, max_bar = 1,
-  legend_position = "none", decimal_points = 0,
-  add_labels = FALSE, remove_intra = FALSE, na_rm = TRUE) {
+  y,
+  index_o,
+  index_d,
+  coords_s,
+  color_palette = sample(colors(), size = nrow(coords_s), replace = nrow(coords_s) > length(colors())),
+  add = FALSE,
+  max_lwd = 1,
+  filter_lowest = 0.75,
+  max_bar = 1,
+  legend_position = "none",
+  decimal_points = 0,
+  add_labels = FALSE,
+  remove_intra = FALSE,
+  na_rm = TRUE) {
 
   # verification
   # size of the vectors
@@ -116,10 +125,11 @@ map_flows <- function(
     y[index_o == index_d] <- 0
   }
 
-  # coords must have rownames corresponding with S
-  site_s <- rownames(coords_s)
+
   # Check on the spatial coordinates data
-  stopifnot(all(S %in% site_s))
+  stopifnot(all(S %in% rownames(coords_s)))
+  coords_s <- coords_s[rownames(coords_s) %in% S, , drop = FALSE]
+  site_s <- rownames(coords_s)
 
   # initialisation
   rownames(coords_s) <- site_s

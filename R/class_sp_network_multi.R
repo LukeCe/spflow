@@ -127,12 +127,12 @@ setReplaceMethod(
     return(object)
   })
 
-# ---- ... flow_moran_plot  ---------------------------------------------------
+# ---- ... flow_moran_plots  ---------------------------------------------------
 #' @title Plot the map of flows
-#' @name flow_map
+#' @name flow_moran_plots
 #' @rdname sp_multi_network-class
 setMethod(
-  f = "flow_map",
+  f = "flow_moran_plots",
   signature = "sp_multi_network",
   function(object,
            network_pair_id = id(object)[["network_pairs"]][[1]],
@@ -171,11 +171,14 @@ setMethod(
            flow_var) {
 
     assert(network_pair_id %in% id(object)[["network_pairs"]])
-    assert_is_single_x(flow_var, "character")
-
     flow_data <- pull_relational_flow_data(object, network_pair_id)
+
+    assert_is_single_x(flow_var, "character")
+    assert(flow_var %in% names(flow_data[["pair"]]),
+           "Variable %s not found in network pair %s!", flow_var, network_pair_id)
+
     do_indexes <- get_do_keys(flow_data[["pair"]])
-    flow_var <- flow_data[["pair"]][[flow_var]]
+    flow_var <- flow_data[["pair"]][,flow_var]
     args <- list(
       "y" = flow_var,
       "index_o" = do_indexes[[2]],
@@ -622,8 +625,7 @@ sp_multi_network <- function(...) {
 
     if (wrong_od_order) {
       warn_template <- "
-      The od-pairs in the network pair object with id %s
-      were reordered to match the order of the nodes in the networks."
+      The od-pairs in the network pair object with id %s were reordered!"
       assert(FALSE, warn_template, net_pair, warn = TRUE)
       do_keys[[1]] <- factor(do_keys[[1]], levels(dest_keys))
       do_keys[[2]] <- factor(do_keys[[2]], levels(orig_keys))
