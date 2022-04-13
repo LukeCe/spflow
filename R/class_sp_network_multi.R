@@ -136,25 +136,70 @@ setMethod(
   signature = "sp_multi_network",
   function(object,
            network_pair_id = id(object)[["network_pairs"]][[1]],
-           ...,
-           flow_var) {
+           flow_var,
+           model = "model_9",
+           DW,
+           OW,
+           add_lines = TRUE) {
 
-    assert(network_pair_id %in% id(object)[["network_pairs"]])
+
+
+    if (missing(DW) | missing(OW)){
+      nb_dat <- pull_neighborhood_data(object,network_pair_id)
+      if (missing(OW)) OW <- nb_dat[["OW"]]
+      if (missing(DW)) DW <- nb_dat[["DW"]]
+    }
+
+    assert(model != "model_1", "The Moran plot is for spatial models!")
     assert_is_single_x(flow_var, "character")
+    assert(flow_var %in% names(dat(object, network_pair_id)),
+           "Variable %s not found in network pair %s!", flow_var, network_pair_id)
 
-    flow_data <- pull_relational_flow_data(object, network_pair_id)
-    do_indexes <- get_do_keys(flow_data[["pair"]])
-    flow_var <- flow_data[["pair"]][[flow_var]]
-    args <- list(
-      "y" = flow_var,
-      "index_o" = do_indexes[[2]],
-      "index_d" = do_indexes[[1]])
-    args <- c(args, list(...))
+    # create lags for the flow_var in matrix form
+    flows_v <- dat(object, network_pair_id)[[flow_var]]
+    valid_flows <- is.finite(flows_v)
+    flows_v <- flows_v[valid_flows]
 
-    if (is.null(args[["coords_s"]]))
-      args[["coords_s"]] <- get_node_coords(object, network_pair_id)
+    do_keys <- get_do_keys(dat(object, network_pair_id))[valid_flows,,drop = FALSE]
+    flows_indicator <- matrix_format_d_o(
+      dest_index = as.integer(do_keys[,1]),
+      orig_index = as.integer(do_keys[,2]),
+      num_dest = nlevels(do_keys[,1]),
+      num_orig = nlevels(do_keys[,2]),
+      assume_ordered = TRUE)
 
-    do.call("map_flows", args)
+    flows_m <- matrix_format_d_o(
+      flows_v,
+      dest_index = as.integer(do_keys[,1]),
+      orig_index = as.integer(do_keys[,2]),
+      num_dest = nlevels(do_keys[,1]),
+      num_orig = nlevels(do_keys[,2]),
+      assume_ordered = TRUE)
+
+    flows_lag <- lag_flow_matrix(
+      Y = flows_m,
+      model = model,
+      OW = OW,
+      DW = DW,
+      name = flow_var,
+      flow_indicator = flows_indicator)
+
+    flow_lag <- lapply(
+      flows_lag,
+      FUN = "vec_format_d_o",
+      do_keys = do_keys,
+      type = "V")
+
+    for (i in seq_along(flow_lag)) {
+      Wi <- sub(paste0(flow_var, "."),replacement = "", names(flow_lag)[i])
+
+      plot(y = flow_lag[[i]], x = flows_v,
+           main = "Moran scatterplot",
+           xlab = flow_var,
+           ylab = bquote(W[.(Wi)] %*% .(flow_var) (lag)))
+      if (add_lines)
+        abline(lm.fit(x = cbind(1,flows_v), y = flow_lag[[i]]), col = "red")
+    }
   })
 
 
