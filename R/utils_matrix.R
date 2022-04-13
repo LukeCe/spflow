@@ -97,9 +97,11 @@ matrix_format_d_o <- function(
          for the dimension of the matrix representation!")
 
   if (fill_ratio < .5) {
-    args <- compact(list(
-      i = dest_index, j = orig_index, x = values,
-      dims = c(num_dest, num_orig)))
+    args <- named_list(c("i","j","x","dims"))
+    args[["i"]] <- dest_index
+    args[["j"]] <- orig_index
+    args[["x"]] <- values
+    args[["dims"]] <- c(num_dest, num_orig)
     return(do.call("sparseMatrix", args))
   }
 
@@ -109,7 +111,7 @@ matrix_format_d_o <- function(
 
   if (fill_ratio <= 1) {
     result_mat <- matrix(0, nrow = num_dest, ncol = num_orig)
-    result_mat[cbind(dest_index, orig_index)] <- values
+    result_mat[dest_index + num_dest * (orig_index - 1)] <- values
     return(result_mat)
   }
 

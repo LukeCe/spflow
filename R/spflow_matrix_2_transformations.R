@@ -121,7 +121,7 @@ flowdata_transformations <- function(
     num_dest = nobs_sources[["dest"]],
     num_orig = nobs_sources[["orig"]]) %T% non_cartesian
 
-  mat_formatter <- switch(EXPR = class(flow_indicator)
+  mat_formatter <- switch(EXPR = class(flow_indicator)[1]
     , "ngCMatrix" = {
       imat <- as(flow_indicator,"dgCMatrix")
       function(vec) {

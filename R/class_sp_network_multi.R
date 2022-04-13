@@ -185,7 +185,7 @@ setMethod(
       flow_indicator = flows_indicator)
 
     flow_lag <- lapply(
-      flows_lag,
+      flows_lag[-1],
       FUN = "vec_format_d_o",
       do_keys = do_keys,
       type = "V")
@@ -268,20 +268,20 @@ setMethod(
 
 
 # ---- ... pair_corr ----------------------------------------------------------
-#' @title Compute a correlation matrix for OD pairs
-#' @description
-#' The method computes person correlations for all variables available for the
-#' the origins, destinations, and OD-pairs inside for a given network pair.
-#' The variables can be adjusted using the formula argument.
-#'
 #' @param object
 #'   A [sp_multi_network-class()]
 #' @param network_pair_id
 #'   A character indicating the id of a [sp_network_pair-class()]
 #' @param flow_formula
+#'   A formula specifying how variables should be used
+#'   (for details see section Formula interface in the help page of [spflow()])
+#' @param add_lags_x
+#'   A logical, indicating whether spatial lags of the exogenous variables
+#'   should be included.
+#' @param add_lags_y
+#'   A logical, indicating whether spatial lags of the dependent variables
+#'   should be included.
 #'
-#'
-#' @return A matrix of pairwise correlations between variables.
 #' @rdname pair_corr
 #' @export
 #' @examples

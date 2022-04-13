@@ -98,9 +98,10 @@ sandwich_prod <- function(w1,mat,w2=w1){
   return(w_mat_w)
 }
 
+#' @title Graphic display for correlation matrices
 #' @importFrom grDevices hcl.colors
 #' @importFrom graphics axis image text
-#' @keywords internal
+#' @export
 corr_map <- function(cor_mat, main = NULL) {
 
   cor_mat[!is.finite(cor_mat)] <- NA

@@ -187,16 +187,20 @@ setGeneric(
 
 
 # ---- ... pair_corr ----------------------------------------------------------
-#' @title Generic for creating a matrix correlations for OD data
-#'   pairs inside [spflow network classes][spflow_network_classes()]
-#' @description For details on the methods see the documentation of the
-#'   corresponding classes.
+#' @title Correlation matrices for OD data
+#'
+#' @description
+#' The method computes person correlations for all variables available for the
+#' the origins, destinations, and OD-pairs.
+#' The OD-pairs information can be either come from a
+#' [sp_multi_network][sp_multi_network-class()] or a
+#' [spflow_models][spflow_model-class()].
+#'
 #' @rdname pair_corr
 #' @name pair_corr
-#' @param object A [sp_multi_network-class()]
-#' @param ... Arguments to be passed to methods
-#' @seealso [sp_multi_network-class()]
+#' @seealso [sp_multi_network-class()], [spflow_model-class()]
 #' @export
+#' @return A matrix of pairwise person correlations between all variables
 setGeneric(
   name = "pair_corr",
   def = function(object, ...) standardGeneric("pair_corr"))

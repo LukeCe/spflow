@@ -249,10 +249,9 @@ double_lag_matrix <- function(
 #' @keywords internal
 add_lagged_cols <- function(df, W, col_lags) {
 
-  available_lags <- intersect(colnames(df), names(col_lags))
-  col_lags <- Filter(function(x) x >= 1, col_lags[available_lags])
-
-  if (length(col_lags) == 0 | is.null(W))
+  cols2lag <- Filter(function(x) x >= 1, col_lags)
+  cols2lag <- cols2lag[names(cols2lag) %in% colnames(df)]
+  if (length(cols2lag) == 0 | is.null(W))
     return(df)
 
   lagged_cols <- Map(
@@ -267,10 +266,11 @@ add_lagged_cols <- function(df, W, col_lags) {
       colnames(.lags)[-1] <- paste0(.var, ".lag", seq_len(.lag_num))
       as.matrix(.lags)
     },
-    .lag_num = col_lags,
-    .var = names(col_lags))
+    .lag_num = cols2lag,
+    .var = names(cols2lag))
 
-  non_lags <- setdiff(colnames(df), available_lags)
+
+  non_lags <- !colnames(df) %in% names(cols2lag)
   return(Reduce("cbind", lagged_cols, init = df[,non_lags, drop = FALSE]))
 }
 

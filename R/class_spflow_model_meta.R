@@ -247,17 +247,17 @@ setMethod(
       name = "ERROR",
       flow_indicator = object@design_matrix[["flow_indicator"]])
 
-    E_x <- vec_format_d_o(E_[[1]],object@design_matrix$do_keys, "V")
+    E_ <- lapply(E_, vec_format_d_o, do_keys = object@design_matrix$do_keys, type = "V")
+    E_1 <- cbind(1,E_[[1]])
     for (i in seq_len(length(E_) - 1)) {
-      E_y <- vec_format_d_o(E_[[i + 1]], object@design_matrix$do_keys, "V")
       ii <- sub("ERROR.",replacement = "", names(E_)[i + 1])
 
-      plot(y = E_y, x = E_x,
+      plot(y = E_[[i]], x = E_[[1]],
            main = "Moran scatterplot of residuals",
            xlab = expression(residual),
            ylab = bquote(W[.(ii)] %.% "resdiual (lag)"))
       if (add_lines)
-        abline(lm.fit(x = cbind(1,E_x), y = E_y), col = "red") ; abline(0,0)
+        abline(lm.fit(x = E_1 , y = E_[[i]]), col = "red") ; abline(0,0)
     }
   })
 
@@ -275,12 +275,24 @@ setMethod(
 
 
 # ---- ... pair_corr ----------------------------------------------------------
-#' @rdname spflow_model-class
+#' @param type
+#'   A character, that should indicate one of `c("fir", "empric")`
+#'   - "fit" will use the moments that have been used during the estimation
+#'   - "empric" will recompute these moments ignoring the weights
+#' @param add_residuals
+#'   A logical, indicating whether the model residuals should be added to the
+#'   correlation matrix
+#' @param model
+#'  A character that should indicate one of `paste0("model_", 1:9)`.
+#'  The option specifies different correlation structures that are detailed in
+#'  the help page of [spflow_control()]
+#'
+#' @rdname pair_corr
 #' @export
 setMethod(
   f = "pair_corr",
   signature = "spflow_model",
-  function(object, type = "fit", add_errors = FALSE, model) {
+  function(object, type = "fit", add_residuals = TRUE, model) {
 
     type_options <- c("fit", "empiric")
     assert_valid_case(type, type_options)
@@ -296,7 +308,7 @@ setMethod(
         ignore_na = TRUE)
     }
 
-    if (!add_errors)
+    if (!add_residuals)
       return(new_mom$TCORR)
 
     if (missing(model))
@@ -315,7 +327,7 @@ setMethod(
     new_mat[["G_"]] <- c(new_mat[["G_"]], new_mat[["Y_"]])
     new_mat[["weights"]] <- NULL
     JE <- lapply(E_, "moment_empirical_covar", new_mat)
-    JE <- Reduce("cbind", JE)
+    JE <- Reduce("cbind", JE, matrix(nrow = length(JE[[1]]), ncol = 0))
     colnames(JE) <- names(E_)
 
     N <- new_mom[["N"]]
