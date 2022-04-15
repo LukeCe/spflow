@@ -104,7 +104,13 @@ setReplaceMethod(
   signature = "sp_network_nodes",
   function(object,value) {
 
-    object@node_neighborhood <- value %|!|% try_coercion(value,"Matrix")
+
+    if (!is.null(value)) {
+      value <- try_coercion(value,"Matrix")
+      attr_spectral_character(value) <- charactrize_spectrum(value)
+    }
+
+    object@node_neighborhood <- value
     validObject(object)
     return(object)
   })
@@ -167,58 +173,61 @@ setValidity(
   Class = "sp_network_nodes",
   function(object) {
 
-    # check the id
-    if (!valid_network_id(id(object))) {
-      error_msg <- "The network id must contain only alphanumeric characters!"
-      return(error_msg)
-    }
+    check <- "The network id must contain only alphanumeric characters!"
+    if (!valid_network_id(id(object)))
+      return(check)
 
-    # check dimensions of nb matrix
+    # verify details of the neighborhood
     dim_nb <- dim(neighborhood(object))
-    if (!has_equal_elements(dim_nb)) {
-      error_msg <- "The neighborhood matrix must be a square matrix!"
-      return(error_msg)
+    if (!is.null(dim_nb)) {
+
+      check <- "The neighborhood matrix must be a square!"
+      if (!has_equal_elements(dim_nb))
+        return(check)
+
+      check <- "The neighborhood matrix must have zeros on the main diagonal!"
+      if (any(diag(neighborhood(object)) != 0))
+        return(check)
+
+
+      check <- "The neighborhood matrix should be normalized!"
+      spectral_radius <- attr_spectral_character(neighborhood(object))
+      spectral_radius <- abs(spectral_radius[["LM"]])
+      if (spectral_radius > 1)
+        return(check)
+      if (spectral_radius < 1) {
+        byrow_norm <- all(abs(rowSums(neighborhood(object)) - .5) == .5)
+        if (!byrow_norm)
+          return(check)
+      }
     }
 
-    # check content of nb matrix
-    if (!is.null(neighborhood(object))
-        && any(diag(neighborhood(object)) != 0)) {
-      error_msg <- "
-      The neighborhood matrix must have zeros on the main diagonal!"
-      return(sprintfwrap(error_msg))
-    }
+    # verify details of the node data
+    nnodes <- nrow(dat(object))
+    if (!is.null(nnodes)) {
 
-    # check dimensions of data and matrix
-    if (!has_equal_elements(c(nrow(dat(object)), dim_nb))) {
-      error_msg <- "
-      The row number of the node_data does not match the dimensions
-      of the neighborhood matrix!"
-      return(sprintfwrap(error_msg))
-    }
+      check <- "The dimension of the neighborhood musst match the number of nodes!"
+      if (!has_equal_elements(c(nnodes, dim_nb)))
+        return(check)
 
-    # check details of the data
-    if (is.null(dat(object)))
-      return(TRUE)
+      check <- "The data musst have a key column!"
+      node_id_col <- attr_key_nodes(dat(object))
+      if (is.null(node_id_col))
+        return(check)
 
-    node_id_col <- attr_key_nodes(dat(object))
-    if (is.null(node_id_col)) {
-      error_msg <- "The data musst have a key column!"
-      return(error_msg)
-    }
+      check <- "The key-column musst be a factor!"
+      node_ids <- dat(object)[[node_id_col]]
+      if (!is.factor(node_ids))
+        return(check)
 
-    node_ids <- dat(object)[[node_id_col]]
-    duplicated_ids <- length(unique(node_ids)) != length(node_ids)
-    wrong_id_type <- !is.factor(node_ids)
-    if (duplicated_ids | wrong_id_type ) {
-      error_msg <- "
-      The nodes are not correctly identifyed!<br>
-      Please ensure that all entries in the id-column are unique!"
-      return(sprintfwrap(error_msg))
-    }
+      check <- "All entries in the key-column musst be unique!"
+      if (has_distinct_elements(node_ids))
+        return(check)
 
-    if (is.unsorted(node_ids)) {
-      error_msg <- "The node data is not ordered correctly!"
-      return(error_msg)
+      check <- "The node data musst be ordered according to the key-column!"
+      if (is.unsorted(node_ids))
+        return(check)
+
     }
 
     # object is valid
@@ -261,17 +270,21 @@ sp_network_nodes <- function(
   node_key_column,
   node_coord_columns,
   derive_coordinates = missing(node_coord_columns),
-  prefer_lonlat = TRUE) {
+  prefer_lonlat = TRUE,
+  normalize_neighborhood = FALSE,
+  normalize_byrow = TRUE) {
 
 
   # checks for validity of dimensions are done before the return
-  node_neighborhood <- node_neighborhood %|!|%
-    try_coercion(node_neighborhood,"Matrix")
+  if (!is.null(node_neighborhood)) {
+    node_neighborhood <- try_coercion(node_neighborhood,"Matrix")
 
-  dim_neighborhood <- dim(node_neighborhood)
-  dim_node_data <- dim(node_data)
-  nnodes <- c(dim_node_data[1],dim_neighborhood)
-  nnodes <- unique(nnodes)[[1]]
+    if (normalize_neighborhood)
+      node_neighborhood <- normalize_neighborhood(node_neighborhood, normalize_byrow)
+
+    if (!normalize_neighborhood)
+      attr_spectral_character(node_neighborhood) <- charactrize_spectrum(node_neighborhood)
+  }
 
   nodes <- new(
     "sp_network_nodes",
@@ -320,10 +333,12 @@ attr_key_nodes <- function(df) {
   df
 }
 
+#' @keywords internal
 attr_coord_col <- function(df, value) {
   attr(df, "coord_columns")
 }
 
+#' @keywords internal
 `attr_coord_col<-` <- function(df, value) {
   assert(sum(value %in% names(df)) == length(value), "
          The coord_columns musst unquily identfy the corresponding
@@ -331,6 +346,17 @@ attr_coord_col <- function(df, value) {
   attr(df, "coord_columns") <- value
   df
 }
+
+#' @keywords internal
+attr_spectral_character <- function(mat) {
+  attr(df, "spectral_character")
+}
+
+#' @keywords internal
+`attr_spectral_character<-` <- function(mat, value) {
+  attr(df, "spectral_character") <- value
+}
+
 
 #' @keywords internal
 valid_network_id <- function(key) {
@@ -373,4 +399,45 @@ simplfy2df <- function(df, derive_coord_cols = TRUE, prefer_lonlat = TRUE) {
 
 
   return(df)
+}
+
+
+#' @keywords internal
+normalize_neighborhood <- function(mat, by_row = TRUE) {
+
+  assert(has_equal_elements(dim(mat)),
+         "Neighborhood matrices musst be square!")
+
+  diag(mat) <- 0
+  if (by_row) {
+    m_scale <- rowSums(mat)
+    m_scale[m_scale == 0] <- 1
+    mat <- mat / m_scale
+  }
+
+  c_spec <- charactrize_spectrum(mat)
+  spectral_radius <- abs(c_spec["LM"])
+  if (!by_row & spectral_radius != 1) {
+    c_spec <- c_spec / spectral_radius
+    mat <- mat / spectral_radius
+  }
+
+  attr_spectral_character(mat) <- c_spec
+  return(mat)
+}
+
+
+#' @importFrom RSpectra eigs
+#' @keywords internal
+charactrize_spectrum <- function(mat) {
+
+  eigenvalues <- c(
+    "LM" = "Largest magnitude",
+    "LR" = "Largest real",
+    "SR" = "Smallest real")
+
+  evs <- unlist(lapply(
+    lookup(names(eigenvalues)),
+    function(.w) eigs(mat,which = .w, k = 1, opts = list(retvec = FALSE))[["values"]]))
+  return(evs)
 }

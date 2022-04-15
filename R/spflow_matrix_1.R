@@ -46,10 +46,18 @@ spflow_model_matrix <- function(
   ignore_na = FALSE) {
 
 
-  # transform by sources = c("pair", "orig", "dest")
   od_data_sources <- pull_relational_flow_data(
     sp_multi_network,
     network_pair_id)
+
+  od_neighborhoods <- pull_neighborhood_data(
+    sp_multi_network = sp_multi_network,
+    network_pair_id = network_pair_id)
+
+  od_neighborhoods <- valdiate_od_neighborhoods(
+    od_neighborhoods = od_neighborhoods,
+    model = flow_control[["model"]],
+    do_normalisation = flow_control[["neighborhood_do_normalisation"]])
 
   formula_parts <- interpret_flow_formula(
     flow_formula,
@@ -64,10 +72,6 @@ spflow_model_matrix <- function(
   variable_usage <- define_lags_and_instruments(
     formula_parts,
     lapply(od_data_sources, "subset_keycols" , drop_keys = TRUE))
-
-  od_neighborhoods <- pull_neighborhood_data(
-    sp_multi_network = sp_multi_network,
-    network_pair_id = network_pair_id)
 
   flowmodel_matrices <- flowdata_spatiallag(
     variable_usage = variable_usage,
@@ -221,6 +225,44 @@ derive_variables_use <- function(
 
   var_use_df[["inst_attr"]] <- I(inst_attr)
   var_use_df
+}
 
+#' @keywords interal
+valdiate_od_neighborhoods <- function(
+  od_neighborhoods,
+  model,
+  do_normalisation = TRUE) {
+
+  model_num <- as.numeric(substr(model,7,7))
+  req_OW <- model_num %in% c(3:9)
+  req_DW <- model_num %in% c(2,4:9)
+
+  assert(!req_OW  || !is.null(od_neighborhoods[["OW"]]),
+         "For model_%s you the origin neighborhood musst be available!",
+         model_num)
+  assert(!req_DW || !is.null(od_neighborhoods[["DW"]]),
+         "For model_%s you the destination neighborhood musst be available!",
+         model_num)
+
+  spectral_radi <- lapply(od_neighborhoods, function(.XW) abs(attr_spectral_character(.XV)["LM"]))
+  if (all(unlist(spectral_radi) == 1))
+    return(od_neighborhoods)
+
+  row_sums <- lapply(od_neighborhoods, rowSums)
+  row_normalized <- lapply(row_sums, function(.rs) all(abs(.rs - .5) == .5))
+  if (all(unlist(row_normalized)))
+    return(od_neighborhoods)
+
+  assert(do_normalisation, "The neighborhood matrices should be normalized!")
+  od_neighborhoods <- Map(
+    function(.XW, .sr) {
+      .XW <- .XW / .sr
+      attr_spectral_character(.XW) <- attr_spectral_character(.WX) / .sr
+      .XW
+    },
+    .WX = od_neighborhoods,
+    .sr = spectral_radi)
+
+  return(od_neighborhoods)
 }
 

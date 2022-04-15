@@ -136,6 +136,8 @@ spflow_control <- function(
     use_intra = TRUE,
     sdm_variables = "same",
     weight_variable = NULL,
+    neighborhood_do_normalisation = TRUE,
+    neighborhood_normalize_by_row = FALSE,
     approx_parameter_space = TRUE,
     fitted_value_method = "TS",
     approx_expectation = TRUE,
@@ -201,13 +203,16 @@ spflow_control <- function(
   assert_is_single_x(expectation_approx_order, "numeric")
   assert_is_single_x(fitted_value_method, "character")
   assert_valid_case(fitted_value_method, c("TS","TC", "BP"))
-
+  assert_is_single_x(neighborhood_do_normalisation, "logical")
+  assert_is_single_x(neighborhood_normalize_by_row, "logical")
 
   general_control <- c(general_control, list(
     "approx_parameter_space" = approx_parameter_space,
     "approx_expectation" = approx_expectation,
     "expectation_approx_order" = expectation_approx_order,
-    "fitted_value_method" = fitted_value_method))
+    "fitted_value_method" = fitted_value_method,
+    "neighborhood_do_normalisation" = neighborhood_do_normalisation,
+    "neighborhood_normalize_by_row" = neighborhood_normalize_by_row))
 
   # ---- ... s2sls -----------------------------------------------------------
   if (estimation_method == "s2sls") {
@@ -272,6 +277,7 @@ spflow_control <- function(
     return(c(general_control,mcmc_control))
   }
 }
+
 
 #' @title Enhance the flow_control object for estimation
 #' @description

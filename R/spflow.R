@@ -294,25 +294,74 @@ spflow_nbfunctions <- function(
   if (flow_control[["estimation_method"]] == "ols")
     return(NULL)
 
-  nbfunctions <- named_list(c("logdet_calculator", "pspace_validator"))
-  if (flow_control[["estimation_method"]] %in% c("mle", "mcmc")) {
-    nbfunctions[["logdet_calculator"]] <- derive_logdet_calculator(
-      OW = OW,
-      DW = DW,
-      model = flow_control[["model"]],
-      n_o = flow_control[["mat_ncols"]],
-      n_d = flow_control[["mat_nrows"]],
-      approx_order = flow_control[["logdet_approx_order"]],
-      is_cartesian = is.null(flow_indicator) | flow_control[["logdet_simplify2cartesian"]],
-      flow_indicator = flow_indicator)
+  pspace_validator <- derive_pspace_validator(
+    OW_character = attr_spectral_character(OW),
+    DW_character = attr_spectral_character(DW),
+    model = flow_control[["model"]],
+    estimation_method = flow_control[["estimation_method"]])
+
+  if (flow_control[["estimation_method"]] == "s2sls")
+    return(list("pspace_validator" = pspace_validator))
+
+  logdet_calculator <- derive_logdet_calculator(
+    OW = OW,
+    DW = DW,
+    model = flow_control[["model"]],
+    n_o = flow_control[["mat_ncols"]],
+    n_d = flow_control[["mat_nrows"]],
+    approx_order = flow_control[["logdet_approx_order"]],
+    is_cartesian = is.null(flow_indicator) | flow_control[["logdet_simplify2cartesian"]],
+    flow_indicator = flow_indicator)
+
+  return(list("logdet_calculator" = logdet_calculator,
+              "pspace_validator" = pspace_validator))
   }
 
 
+#' @keywords internal
+derive_pspace_validator <- function(
+  OW_character,
+  DW_character,
+  model,
+  estimation_method) {
 
-  # TODO finish the parameter space...
-  # nbfunctions[["pspace_validator"]] <- derive_param_space_validator(
-  #   OW = ,DW = ,model = ,)
-  # )
+  model_num <- as.numeric(substr(model,7,7))
+  if (model_num == 1)
+    return(NULL)
 
-  return(compact(nbfunctions))
+  req_OW <- model_num %in% c(3:9)
+  req_DW <- model_num %in% c(2,4:9)
+
+  # For now when eigenvalues are complex we cannot validate the
+  # parameter space
+  has_complex_evs <- function(x) any(Im(x[c("LR","SR")]) != 0)
+  if (req_OW & has_complex_evs(OW_character))
+    return(function(...) FALSE)
+
+  if (req_DW & has_complex_evs(DW_character))
+    return(function(...) FALSE)
+
+  DWmax <- Re(DW_character["LR"]) %T% req_DW
+  DWmin <- Re(DW_character["SR"]) %T% req_DW
+  OWmax <- Re(OW_character["LR"]) %T% req_OW
+  OWmin <- Re(OW_character["SR"]) %T% req_OW
+  WF_eigen_part <- rbind(
+    "max_max" = c("rho_d" = DWmax, "rho_o" = OWmax, "rho_w" =  OWmax*DWmax),
+    "max_min" = c("rho_d" = DWmax, "rho_o" = OWmin, "rho_w" =  OWmin*DWmax),
+    "min_max" = c("rho_d" = DWmin, "rho_o" = OWmax, "rho_w" =  OWmax*DWmin),
+    "min_min" = c("rho_d" = DWmin, "rho_o" = OWmin, "rho_w" =  OWmin*DWmin))
+
+
+  mod_params <- switch(model, "model_5" = "model_7", "model_6" = "model_9", model)
+  rho_names <- define_spatial_lag_params(mod_params)
+  rho_scale <- switch(model, "model_5" = 1/2, "model_6" = 1/3, 1)
+
+  validate_fun <- function(rho){
+    rho <- lookup(rho_names, rho * rho_scale) # trick for model 5 and 6
+    WF_eigen_range <- range(rowSums(WF_eigen_part[,names] %*% diag(rho)))
+    valid_upper_bound <- WF_eigen_range[2] < 1
+    valid_lower_bound <- WF_eigen_range[1] > -1 | estimation_method == "s2sls"
+    return(valid_upper_bound & valid_lower_bound)
+  }
+  return(validate_fun)
 }
