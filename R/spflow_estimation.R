@@ -49,6 +49,14 @@ spflow_model_estimation <- function(
       logdet_calculator = nb_functions[["logdet_calculator"]]
     )})
 
+
+  if (flow_control$estimation_method != "ols") {
+    pspace_diagnostic <- nb_functions[["pspace_validator"]]
+    pspace_diagnostic <- pspace_diagnostic(coef(estimation_results ,"rho"))
+    pspace_diagnostic <- list("Model coherence:" = ifelse(pspace_diagnostic, "Validated", "Unknown"))
+    estimation_results@fit_diagnostics <- c(estimation_results@fit_diagnostics , pspace_diagnostic)
+  }
+
   return(estimation_results)
 }
 

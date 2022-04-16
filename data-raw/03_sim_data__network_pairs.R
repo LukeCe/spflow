@@ -26,6 +26,8 @@ all_dist <- as.matrix(dist(
   x = rbind(coordinates(as_Spatial(germany_grid)),
             coordinates(as_Spatial(usa_grid[,"ID_STATE"])))
   ))
+diag(all_dist) <- .5
+all_dist <- log(all_dist)
 
 n_ge <- nnodes(germany_net)
 n_usa <- nnodes(usa_net)

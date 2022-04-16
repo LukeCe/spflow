@@ -341,10 +341,10 @@ derive_pspace_validator <- function(
   if (req_DW & has_complex_evs(DW_character))
     return(function(...) FALSE)
 
-  DWmax <- Re(DW_character["LR"]) %T% req_DW
-  DWmin <- Re(DW_character["SR"]) %T% req_DW
-  OWmax <- Re(OW_character["LR"]) %T% req_OW
-  OWmin <- Re(OW_character["SR"]) %T% req_OW
+  DWmax <- as.numeric(Re(DW_character["LR"])) %T% req_DW
+  DWmin <- as.numeric(Re(DW_character["SR"])) %T% req_DW
+  OWmax <- as.numeric(Re(OW_character["LR"])) %T% req_OW
+  OWmin <- as.numeric(Re(OW_character["SR"])) %T% req_OW
   WF_eigen_part <- rbind(
     "max_max" = c("rho_d" = DWmax, "rho_o" = OWmax, "rho_w" =  OWmax*DWmax),
     "max_min" = c("rho_d" = DWmax, "rho_o" = OWmin, "rho_w" =  OWmin*DWmax),
@@ -357,8 +357,8 @@ derive_pspace_validator <- function(
   rho_scale <- switch(model, "model_5" = 1/2, "model_6" = 1/3, 1)
 
   validate_fun <- function(rho){
-    rho <- lookup(rho_names, rho * rho_scale) # trick for model 5 and 6
-    WF_eigen_range <- range(rowSums(WF_eigen_part[,names] %*% diag(rho)))
+    rho <- lookup(values = rho * rho_scale, names = rho_names) # trick for model 5 and 6
+    WF_eigen_range <- range(rowSums(WF_eigen_part %*% diag(rho, length(rho))))
     valid_upper_bound <- WF_eigen_range[2] < 1
     valid_lower_bound <- WF_eigen_range[1] > -1 | estimation_method == "s2sls"
     return(valid_upper_bound & valid_lower_bound)

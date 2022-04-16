@@ -170,6 +170,30 @@ spatial_model_order <- function(model = "model_9") {
 
 
 
+#' @keywords internal
+normalize_neighborhood <- function(mat, by_row = FALSE) {
+
+  assert(has_equal_elements(dim(mat)),
+         "Neighborhood matrices musst be square!")
+
+  diag(mat) <- 0
+  if (by_row) {
+    m_scale <- rowSums(mat)
+    m_scale[m_scale == 0] <- 1
+    mat <- mat / m_scale
+  }
+
+  c_spec <- charactrize_spectrum(mat)
+  spectral_radius <- abs(c_spec["LM"])
+  if (!by_row & spectral_radius != 1) {
+    c_spec <- c_spec / spectral_radius
+    mat <- mat / spectral_radius
+  }
+
+  attr_spectral_character(mat) <- c_spec
+  return(mat)
+}
+
 
 # ---- helpers ----------------------------------------------------------------
 #' @title Remove origins or destinations from the neighborhood matrix that do
@@ -199,3 +223,48 @@ get_flow_indicator <- function(sp_net_pair) {
     assume_ordered = TRUE)
   return(indicator_mat)
 }
+
+#' @importMethodsFrom Matrix isSymmetric
+#' @importFrom RSpectra eigs
+#' @keywords internal
+charactrize_spectrum <- function(mat) {
+
+  stopifnot(nrow(mat) == ncol(mat))
+
+  eigenvalues <- c(
+    "LM" = "Largest magnitude",
+    "LR" = "Largest real",
+    "SR" = "Smallest real")
+
+  if (nrow(mat) < 3){
+    ev_obs <- eigen(mat)$values
+    eigenvalues[1:3] <- ev_obs[1]
+    eigenvalues[2:3] <- ev_obs
+    return(eigenvalues)
+  }
+
+
+
+  ev_methods <- lookup(names(eigenvalues))
+  if (isSymmetric(mat))
+    ev_methods[2:3] <- c("LA","SA")
+
+  eigenvalues <- unlist(lapply(
+    ev_methods,
+    function(.w) eigs(mat,which = .w, k = 1, opts = list(retvec = FALSE))[["values"]]))
+
+  return(eigenvalues)
+  }
+
+
+#' @keywords internal
+attr_spectral_character <- function(mat) {
+  attr(mat, "spectral_character")
+}
+
+#' @keywords internal
+`attr_spectral_character<-` <- function(mat, value) {
+  attr(mat, "spectral_character") <- value
+  mat
+}
+

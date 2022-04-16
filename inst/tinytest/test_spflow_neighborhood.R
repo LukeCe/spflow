@@ -46,3 +46,27 @@ expect_equivalent({
 info = "neighborhood expansion (model_9 + non-cartesian + rectangular)")
 
 
+# ---- normalize_neighborhood -------------------------------------------------
+expect_equal({
+  a <- matrix(1:25,5,5)
+  diag(a) <- 0
+  a / rowSums(a)
+  }, {
+  normalize_neighborhood(matrix(1:25,5,5),by_row = TRUE)
+  }
+  , check.attributes = FALSE
+  , info = "Row standardized neighborhood.")
+
+
+expect_equal({
+  a <- matrix(1:25,5,5)
+  diag(a) <- 0
+  a / abs(eigen(a)$values[1])
+}, {
+  normalize_neighborhood(matrix(1:25,5,5),by_row = FALSE)
+}
+, check.attributes = FALSE
+, info = "Row standardized neighborhood.")
+
+
+

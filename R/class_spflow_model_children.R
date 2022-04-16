@@ -57,36 +57,38 @@ setClassUnion("spflow_model_mle_s2sls_ols",
                 "spflow_model_mle",
                 "spflow_model_s2sls"))
 
+setClassUnion("spflow_model_spatial",
+              c("spflow_model_mcmc",
+                "spflow_model_mle",
+                "spflow_model_s2sls"))
+
 # ---- Methods ----------------------------------------------------------------
 
+# ---- ... logLik -------------------------------------------------------------
 #' @param object A [spflow_model-class()]
 #' @rdname spflow_model-class
 #' @export
 setMethod(
   f = "logLik",
   signature = "spflow_model_mle",
-  function(object) { # ---- logLik --------------------------------------------
-    return(object@ll)
-  })
+  function(object) return(object@ll))
 
+# ---- ... varcov -------------------------------------------------------------
 #' @param object A [spflow_model-class()]
 #' @rdname spflow_model-class
 setMethod(
   f = "varcov",
   signature = "spflow_model_mle_s2sls_ols",
-  function(object){ # ---- varcov ---------------------------------------------
-    return(object@varcov)
-  })
+  function(object) return(object@varcov))
 
 
+# ---- ... mcmc_results ------------------------------------------------------
 #' @param object A [spflow_model-class()]
 #' @rdname spflow_model-class
 setMethod(
   f = "mcmc_results",
   signature = "spflow_model_mcmc",
-  function(object){ # ---- mcmc_results ---------------------------------------
-    return(object@mcmc_results)
-  })
+  function(object) return(object@mcmc_results))
 
 
 

@@ -93,20 +93,23 @@ setReplaceMethod(
 setMethod(
   f = "neighborhood",
   signature = "sp_network_nodes",
-  function(object) {
-    return(object@node_neighborhood)
-  })
+  function(object) return(object@node_neighborhood))
 
 # ---- ... neighborhood <- ----------------------------------------------------
 #' @rdname sp_network_nodes-class
 setReplaceMethod(
   f = "neighborhood",
   signature = "sp_network_nodes",
-  function(object,value) {
+  function(object, value) {
 
 
     if (!is.null(value)) {
       value <- try_coercion(value,"Matrix")
+
+      assert(has_equal_elements(c(dim(value), nnodes(object))),
+             "Replacement neighborhood musst have %s rows and %s columns!",
+             nnodes(object), nnodes(object))
+
       attr_spectral_character(value) <- charactrize_spectrum(value)
     }
 
@@ -189,17 +192,22 @@ setValidity(
       if (any(diag(neighborhood(object)) != 0))
         return(check)
 
-
-      check <- "The neighborhood matrix should be normalized!"
-      spectral_radius <- attr_spectral_character(neighborhood(object))
-      spectral_radius <- abs(spectral_radius[["LM"]])
-      if (spectral_radius > 1)
+      check <- "The neighborhood matrix must have non-negative entries!"
+      if (any(neighborhood(object) < 0))
         return(check)
-      if (spectral_radius < 1) {
-        byrow_norm <- all(abs(rowSums(neighborhood(object)) - .5) == .5)
-        if (!byrow_norm)
-          return(check)
-      }
+
+      # TODO Should normalization of the nb matrix be required in sp_network_nodes?
+      # check <- "The neighborhood matrix should be normalized!"
+      # spectral_radius <- attr_spectral_character(neighborhood(object))
+      # spectral_radius <- abs(spectral_radius[["LM"]])
+      # tol <- sqrt(.Machine$double.eps)
+      # if ((spectral_radius - tol) > 1)
+      #   return(check)
+      # if ((spectral_radius + tol) < 1) {
+      #   byrow_norm <- all(abs(rowSums(neighborhood(object)) - .5) == .5)
+      #   if (!byrow_norm)
+      #     return(check)
+      # }
     }
 
     # verify details of the node data
@@ -221,7 +229,7 @@ setValidity(
         return(check)
 
       check <- "All entries in the key-column musst be unique!"
-      if (has_distinct_elements(node_ids))
+      if (!has_distinct_elements(node_ids))
         return(check)
 
       check <- "The node data musst be ordered according to the key-column!"
@@ -348,17 +356,6 @@ attr_coord_col <- function(df, value) {
 }
 
 #' @keywords internal
-attr_spectral_character <- function(mat) {
-  attr(df, "spectral_character")
-}
-
-#' @keywords internal
-`attr_spectral_character<-` <- function(mat, value) {
-  attr(df, "spectral_character") <- value
-}
-
-
-#' @keywords internal
 valid_network_id <- function(key) {
   is_single_character(key) && grepl("^[[:alnum:]]+$",key)
 }
@@ -401,43 +398,3 @@ simplfy2df <- function(df, derive_coord_cols = TRUE, prefer_lonlat = TRUE) {
   return(df)
 }
 
-
-#' @keywords internal
-normalize_neighborhood <- function(mat, by_row = TRUE) {
-
-  assert(has_equal_elements(dim(mat)),
-         "Neighborhood matrices musst be square!")
-
-  diag(mat) <- 0
-  if (by_row) {
-    m_scale <- rowSums(mat)
-    m_scale[m_scale == 0] <- 1
-    mat <- mat / m_scale
-  }
-
-  c_spec <- charactrize_spectrum(mat)
-  spectral_radius <- abs(c_spec["LM"])
-  if (!by_row & spectral_radius != 1) {
-    c_spec <- c_spec / spectral_radius
-    mat <- mat / spectral_radius
-  }
-
-  attr_spectral_character(mat) <- c_spec
-  return(mat)
-}
-
-
-#' @importFrom RSpectra eigs
-#' @keywords internal
-charactrize_spectrum <- function(mat) {
-
-  eigenvalues <- c(
-    "LM" = "Largest magnitude",
-    "LR" = "Largest real",
-    "SR" = "Smallest real")
-
-  evs <- unlist(lapply(
-    lookup(names(eigenvalues)),
-    function(.w) eigs(mat,which = .w, k = 1, opts = list(retvec = FALSE))[["values"]]))
-  return(evs)
-}

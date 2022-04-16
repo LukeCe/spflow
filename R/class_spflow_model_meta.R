@@ -563,6 +563,10 @@ setMethod(
     cat("\nR2_corr:", object@R2_corr, collapse = " ")
     cat("\nObservations:", nobs(object), collapse = " ")
 
+    pspace <- "Model coherence:"
+    pspace_res <- object@fit_diagnostics[[pspace]]
+    if (!is.null(pspace_res))
+      cat(sprintf("\n%s %s", pspace, pspace_res))
 
     invisible(object)
   })

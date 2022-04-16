@@ -8,9 +8,10 @@ expect_inherits({
 
 expect_equal({
   test_neighborhood <- matrix(c(0,1,0,.5,0,.5,0,1,0),3,3,TRUE)
-  sp_network_nodes("net1",test_neighborhood)@node_neighborhood
+  neighborhood(sp_network_nodes("net1",node_neighborhood = test_neighborhood))
   },
   {Matrix(c(0,1,0,.5,0,.5,0,1,0),3,3,TRUE)},
+  check.attributes = FALSE,
   info = "neighborhood matrix is transformed for efficiency")
 
 expect_equal({
@@ -109,6 +110,7 @@ expect_equal({
   neighborhood(test_sp_nodes) <- matrix(c(0,1,0,.5,0,.5,0,1,0),3,3,TRUE)
   neighborhood(test_sp_nodes)
   }, Matrix(c(0,1,0,.5,0,.5,0,1,0),3,3,TRUE),
+  check.attributes = FALSE,
   info = "replacement method coserves efficiency coversion")
 
 expect_error({
@@ -119,8 +121,18 @@ expect_error({
   too_small_neighborhood <- matrix(0,2,2)
   neighborhood(test_sp_nodes) <- too_small_neighborhood
   },
-  pattern = "invalid class",
   info = "replacement is rejected for wrong dimensions")
+
+expect_error({
+  test_node_data <- data.frame(key = factor(LETTERS[seq(3)]), val = seq(3))
+  test_neighborhood <- matrix(c(0,1,0,.5,0,.5,0,1,0),3,3,TRUE)
+  test_sp_nodes <-
+    sp_network_nodes("net1",test_neighborhood,test_node_data,"key")
+  too_small_neighborhood <- matrix(0,2,2)
+  test_sp_nodes@node_neighborhood <- too_small_neighborhood
+  validObject(test_sp_nodes)
+},
+info = "replacement is rejected for wrong dimensions")
 
 # ... invalid because non-zero diagonal
 invalid_neighborhhod <- matrix(1,3,3)

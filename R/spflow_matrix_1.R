@@ -244,23 +244,26 @@ valdiate_od_neighborhoods <- function(
          "For model_%s you the destination neighborhood musst be available!",
          model_num)
 
-  spectral_radi <- lapply(od_neighborhoods, function(.XW) abs(attr_spectral_character(.XV)["LM"]))
-  if (all(unlist(spectral_radi) == 1))
+  spectral_radi <- lapply(od_neighborhoods, function(.XW) abs(attr_spectral_character(.XW)["LM"]))
+  tol <- sqrt(.Machine$double.eps)
+  unit_radi <- all(abs(unlist(spectral_radi) - 1) < tol)
+  if (unit_radi)
     return(od_neighborhoods)
 
   row_sums <- lapply(od_neighborhoods, rowSums)
-  row_normalized <- lapply(row_sums, function(.rs) all(abs(.rs - .5) == .5))
-  if (all(unlist(row_normalized)))
+  row_sums_0or1 <- lapply(row_sums, function(.rs) all(abs(abs(.rs - .5) - .5) < tol))
+  row_normalized <- all(unlist(row_sums_0or1))
+  if (row_normalized)
     return(od_neighborhoods)
 
   assert(do_normalisation, "The neighborhood matrices should be normalized!")
   od_neighborhoods <- Map(
-    function(.XW, .sr) {
-      .XW <- .XW / .sr
-      attr_spectral_character(.XW) <- attr_spectral_character(.WX) / .sr
-      .XW
+    function(.W, .sr) {
+      .W <- .W / .sr
+      attr_spectral_character(.W) <- attr_spectral_character(.W) / .sr
+      .W
     },
-    .WX = od_neighborhoods,
+    .W = od_neighborhoods,
     .sr = spectral_radi)
 
   return(od_neighborhoods)

@@ -30,6 +30,7 @@ expect_equal({
   {
     spflow:::named_list(c("OW","DW"),Matrix(c(0,1,1,0),2,2))
   },
+  check.attributes = FALSE,
   info = "neigborhood matrices of origins and destinations as list")
 
 # ---- define_lags_and_instruments --------------------------------------------
