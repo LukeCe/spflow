@@ -244,6 +244,7 @@ valdiate_od_neighborhoods <- function(
          "For model_%s you the destination neighborhood musst be available!",
          model_num)
 
+
   spectral_radi <- lapply(od_neighborhoods, function(.XW) abs(attr_spectral_character(.XW)["LM"]))
   tol <- sqrt(.Machine$double.eps)
   unit_radi <- all(abs(unlist(spectral_radi) - 1) < tol)

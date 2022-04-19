@@ -335,7 +335,7 @@ expect_equal(names(target_results$mu9_input), names(coef(res_model_9_mle)))
 expect_equal(target_results$mu9_input / coef(res_model_9_mle),
              rep(1,9), tolerance = 0.3, check.names = FALSE)
 expect_equal(target_results$sigma_input / sd_error(res_model_9_mle),
-             rep(1,1), tolerance = 0.1, check.names = FALSE)
+             rep(1,1), tolerance = 0.2, check.names = FALSE)
 
 # test moments
 actual_moments <- res_model_9_mle@model_moments
@@ -395,7 +395,7 @@ expect_equal(names(target_results$mu9_input), names(coef(res_model_9_mcmc)))
 expect_equal(target_results$mu9_input / coef(res_model_9_mcmc),
              rep(1,9), tolerance = 0.3, check.names = FALSE)
 expect_equal(target_results$sigma_input / sd_error(res_model_9_mcmc),
-             rep(1,1), tolerance = 0.1, check.names = FALSE)
+             rep(1,1), tolerance = 0.2, check.names = FALSE)
 
 # test moments
 actual_moments <- res_model_9_mcmc@model_moments
