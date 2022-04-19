@@ -102,7 +102,7 @@ sandwich_prod <- function(w1,mat,w2=w1){
 #' @importFrom grDevices hcl.colors
 #' @importFrom graphics axis image text
 #' @export
-corr_map <- function(cor_mat, main = NULL) {
+corr_map <- function(cor_mat) {
 
   cor_mat[!is.finite(cor_mat)] <- NA
   assert(all(c(diag(cor_mat) == 1, cor_mat <= 1),na.rm = TRUE),
@@ -149,8 +149,7 @@ corr_map <- function(cor_mat, main = NULL) {
     useRaster = FALSE,
     axes = FALSE,
     col = col_pal,
-    breaks = col_breaks,
-    main = main)
+    breaks = col_breaks)
   axis(side = 2, # left
        at = seq(from = 0, to = 1, length.out = ncol(cor_mat)),
        labels = left_labels %||% backup_labels,

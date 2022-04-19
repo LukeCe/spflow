@@ -252,12 +252,14 @@ setMethod(
     for (i in seq_len(length(E_) - 1)) {
       ii <- sub("ERROR.",replacement = "", names(E_)[i + 1])
 
-      plot(y = E_[[i]], x = E_[[1]],
-           main = "Moran scatterplot of residuals",
+
+      title_expr <- bquote(paste("Moran scatterplot of residuals (",  W[.(ii)], " - lag)"))
+      plot(y = E_[[i + 1]], x = E_[[1]],
+           main = title_expr,
            xlab = expression(residual),
-           ylab = bquote(W[.(ii)] %.% "resdiual (lag)"))
+           ylab = bquote(W[.(ii)] %.% "resdiual"))
       if (add_lines)
-        abline(lm.fit(x = E_1 , y = E_[[i]]), col = "red") ; abline(0,0)
+        abline(lm.fit(x = E_1 , y = E_[[i + 1]]), col = "red") ; abline(0,0)
     }
   })
 
@@ -357,33 +359,38 @@ setMethod(
   function(x, ...) {
 
     qqnorm(y = resid(x), main = "Normal QQ-Plot of Residuals")
-    qqline(resid(x), col = 2)
+    qqline(resid(x), col = "red")
 
     fitted_x <- fitted(x, "V")
     resid_x <- resid(x, "V")
     plot(x = fitted_x, xlab = "Fitted",
          y = resid_x,  ylab = "Residual",
          main = "Residual vs Fitted")
-    abline(lm.fit(resid_x, fitted_x), col = "red") ; abline(a = 0, b = 0)
+    abline(lm.fit(cbind(1,fitted_x), resid_x), col = "red") ; abline(a = 0, b = 0)
 
-    plot(x = fitted(x, "V"), xlab = "Fitted",
-         y = actual(x, "V"), ylab = "Actual",
+    actual_x <- actual(x, "V")
+    plot(x = fitted_x, xlab = "Fitted",
+         y = actual_x, ylab = "Actual",
          main = "Actual vs Fitted")
-    abline(a = 0, b = 1, col = "red")
+    abline(lm.fit(cbind(1,fitted_x), actual_x), col = "red") ; abline(a = 0, b = 1)
+
 
     if (!is.null(x@node_coords)) {
-      x_or_25_percent <- min(50,nobs(res) / 4)
-      keep_x_at_most <- (nobs(res) - x_or_25_percent)  / nobs(res)
-      flow_map(res, flow_type = "fitted", filter_lowest = keep_x_at_most, legend = "bottomright")
-      flow_map(res, flow_type = "resid", filter_lowest = keep_x_at_most, legend = "bottomright")
+      x_or_25_percent <- min(50,nobs(x) / 4)
+      keep_x_at_most <- (nobs(x) - x_or_25_percent)  / nobs(x)
+      flow_map(x, flow_type = "fitted", filter_lowest = keep_x_at_most, legend = "bottomright")
+      flow_map(x, flow_type = "resid", filter_lowest = keep_x_at_most, legend = "bottomright")
     }
 
-    flow_moran_plots(x)
+    if (!inherits(x, "spflow_model_ols"))
+      flow_moran_plots(x)
 
     if (inherits(x, "spflow_model_mcmc"))
       plot(mcmc_results(a),density = FALSE, ask = FALSE)
 
-    corr_map(pair_corr(x),main = "Pairwise Correlations")})
+    corr_map(pair_corr(x))
+    title(x = "Pairwise correlations")
+    })
 
 
 # ---- ... predict ------------------------------------------------------------
