@@ -367,9 +367,9 @@ setMethod(
   signature = "sp_multi_network",
   function(object,
            network_pair_id = id(object)[["network_pairs"]][[1]],
-           dest_cols,
-           orig_cols,
-           pair_cols,
+           dest_cols = NULL,
+           orig_cols = NULL,
+           pair_cols = NULL,
            make_cartesian = FALSE,
            keep_od_keys = TRUE) {
 

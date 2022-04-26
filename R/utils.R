@@ -47,6 +47,11 @@ haversine_distance <- function(lonlat1, lonlat2) {
   assert(all(dim(lonlat1) == dim(lonlat2)) & ncol(lonlat1) == 2,
          "Dimension of the coordiantes not valid!")
 
+  if (!is.matrix(lonlat1))
+    lonlat1 <- as.matrix(lonlat1)
+  if (!is.matrix(lonlat2))
+    lonlat2 <- as.matrix(lonlat2)
+
   dg2rad_half <- pi/360
   sin_diff_lonlat <- sin((lonlat1 - lonlat2) * dg2rad_half)^2
 
