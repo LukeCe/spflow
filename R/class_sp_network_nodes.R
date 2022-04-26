@@ -365,13 +365,14 @@ valid_network_id <- function(key) {
 #' @export
 simplfy2df <- function(df, derive_coord_cols = TRUE, prefer_lonlat = TRUE) {
 
-  if (inherits(df, "Spatial")) {
-    if (require("sf")) {
-      df <- sf::st_as_sf(df)
-    } else {
-      df <- as.data.frame(df@data)
-    }
-  }
+
+  dt_used <- inherits(df, "data.table")
+  sf_convertible <- inherits(df, "Spatial") || inherits(df, "sfc") || any(sapply(df, inherits, "sfc"))
+
+  if (sf_convertible && require("sf"))
+    df <- sf::st_as_sf(df)
+  if (inherits(df, "Spatial"))
+    df <- as.data.frame(df@data)
 
   if (inherits(df, "sf")) {
 
@@ -391,10 +392,9 @@ simplfy2df <- function(df, derive_coord_cols = TRUE, prefer_lonlat = TRUE) {
     }
   }
 
-  if (inherits(df, "data.table") && require(data.table))
+  if (dt_used && require(data.table))
     return(data.table::as.data.table(df))
   if (inherits(df, "data.frame"))
     return(df)
   stop("Data cannot be converted to a data.frame!")
 }
-
