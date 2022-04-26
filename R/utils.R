@@ -38,7 +38,14 @@ haversine_distance2 <- function(lon1, lat1, lon2, lat2) {
 #' @details Unit is kilometer
 #' @export
 haversine_distance <- function(lonlat1, lonlat2) {
-  stopifnot(all(dim(lonlat1) == dim(lonlat2)), ncol(lonlat1) == 2)
+
+  if (all(dim(lonlat1) == c(1,2)))
+    lonlat1 <- lonlat1[rep(1,nrow(lonlat2)),]
+  if (all(dim(lonlat2) == c(1,2)))
+    lonlat2 <- lonlat2[rep(1,nrow(lonlat1)),]
+
+  assert(all(dim(lonlat1) == dim(lonlat2)) & ncol(lonlat1) == 2,
+         "Dimension of the coordiantes not valid!")
 
   dg2rad_half <- pi/360
   sin_diff_lonlat <- sin((lonlat1 - lonlat2) * dg2rad_half)^2
@@ -51,10 +58,10 @@ haversine_distance <- function(lonlat1, lonlat2) {
   return(d)
 }
 
-#' @keywords internal
+#' @export
 euclidean_distance <- function(coord_a, coord_b) {
   stopifnot(identical(dim(coord_a), dim(coord_b)))
-  rowSums((coord_a - coord_b)^2)^(1/ncol(x))
+  rowSums((coord_a - coord_b)^2)^(1/ncol(coord_a))
 }
 
 
@@ -88,7 +95,7 @@ distance_matrix <- function(
   n_o <- nrow(coord_b)
   index_o <- rep(seq_len(n_o), each = n_d)
   index_d <- rep(seq_len(n_d), times = n_o)
-  dist_mat <- dfun(coord_a[index_d,, drop = FALSE], coord_a[index_o,, drop = FALSE])
+  dist_mat <- dfun(coord_a[index_d,, drop = FALSE], coord_b[index_o,, drop = FALSE])
   dim(dist_mat) <- c(n_d, n_o)
   return(dist_mat)
 }

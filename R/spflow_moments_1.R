@@ -43,8 +43,6 @@ compute_spflow_moments <- function(
   TCORR <- TCORR / outer(sqrt(diag(TCORR)), sqrt(diag(TCORR)))
   diag(TCORR[-1,-1]) <- 1
 
-
-  has_instruments <- any(!Z_index)
   model_moments <- compact(list(
     "n_d"   = n_d,
     "n_o"   = n_o,
@@ -60,8 +58,8 @@ compute_spflow_moments <- function(
     error_msg <- "
     The estimation is aborted because the %s variables contain
     infinite values or NA's!
-    <br>Please check that all variables are well defined and that all
-    tranformations are valid (e.g avoid logarithms of 0)."
+    <br>Check that all variables are well defined and that all
+    tranformations are valid (e.g. avoid logarithms of 0)."
     assert(all(is.finite(UU)),error_msg, "explanatory")
     assert(all(is.finite(UY)), error_msg, "response")
   }

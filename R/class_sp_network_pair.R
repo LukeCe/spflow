@@ -291,10 +291,14 @@ sp_network_pair <- function(
          not found in the pair data!")
 
   # convert to factor
-  attr_key_do(pair_data) <- do_key_cols
   do_keys <- lapply(pair_data[do_key_cols], "factor_in_order")
   pair_data[do_key_cols] <- do_keys
-  pair_data <- pair_data[order(do_keys[[2]],do_keys[[1]]),]
+
+  order_names <- c(do_key_cols, setdiff(names(pair_data), do_key_cols))
+  pair_data <- pair_data[order(do_keys[[2]],do_keys[[1]]), order_names]
+  attr_key_do(pair_data) <- do_key_cols
+  if (inherits(pair_data, "data.table") && require("data.table"))
+    pair_data <- data.table::as.data.table(pair_data)
 
   network_pair@pair_data   <- pair_data
   validObject(network_pair)

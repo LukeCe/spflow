@@ -345,16 +345,19 @@ derive_pspace_validator <- function(
   DWmin <- as.numeric(Re(DW_character["SR"])) %T% req_DW
   OWmax <- as.numeric(Re(OW_character["LR"])) %T% req_OW
   OWmin <- as.numeric(Re(OW_character["SR"])) %T% req_OW
+  mod_params <- switch(model, "model_5" = "model_7", "model_6" = "model_9", model)
+  rho_names <- define_spatial_lag_params(mod_params)
+  rho_scale <- switch(model, "model_5" = 1/2, "model_6" = 1/3, 1)
+
   WF_eigen_part <- rbind(
     "max_max" = c("rho_d" = DWmax, "rho_o" = OWmax, "rho_w" =  OWmax*DWmax),
     "max_min" = c("rho_d" = DWmax, "rho_o" = OWmin, "rho_w" =  OWmin*DWmax),
     "min_max" = c("rho_d" = DWmin, "rho_o" = OWmax, "rho_w" =  OWmax*DWmin),
-    "min_min" = c("rho_d" = DWmin, "rho_o" = OWmin, "rho_w" =  OWmin*DWmin))
+    "min_min" = c("rho_d" = DWmin, "rho_o" = OWmin, "rho_w" =  OWmin*DWmin)
+    )[,rho_names, drop = FALSE]
 
 
-  mod_params <- switch(model, "model_5" = "model_7", "model_6" = "model_9", model)
-  rho_names <- define_spatial_lag_params(mod_params)
-  rho_scale <- switch(model, "model_5" = 1/2, "model_6" = 1/3, 1)
+
 
   validate_fun <- function(rho){
     rho <- lookup(values = rho * rho_scale, names = rho_names) # trick for model 5 and 6

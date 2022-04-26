@@ -189,6 +189,7 @@ setMethod(
 #' @title Plot the map of flows
 #' @name flow_map
 #' @rdname spflow_model-class
+#' @export
 setMethod(
   f = "flow_map",
   signature = "spflow_model",
@@ -244,13 +245,13 @@ setMethod(
       model = model,
       OW = OW,
       DW = DW,
-      name = "ERROR",
+      name = "RESID",
       flow_indicator = object@design_matrix[["flow_indicator"]])
 
     E_ <- lapply(E_, vec_format_d_o, do_keys = object@design_matrix$do_keys, type = "V")
     E_1 <- cbind(1,E_[[1]])
     for (i in seq_len(length(E_) - 1)) {
-      ii <- sub("ERROR.",replacement = "", names(E_)[i + 1])
+      ii <- sub("RESID.",replacement = "", names(E_)[i + 1])
 
 
       title_expr <- bquote(paste("Moran scatterplot of residuals (",  W[.(ii)], " - lag)"))
@@ -294,12 +295,13 @@ setMethod(
 setMethod(
   f = "pair_corr",
   signature = "spflow_model",
-  function(object, type = "fit", add_residuals = TRUE, model) {
+  function(object, type = "fit", add_fitted = TRUE, add_resid = TRUE, model) {
 
     type_options <- c("fit", "empiric")
     assert_valid_case(type, type_options)
 
     new_mat <- object@design_matrix
+    new_mat[["const"]] <- 1
     new_mom <- object@model_moments
     keep_moments <- type == "fit" || is.null(new_mat[["weights"]])
     new_mat[["weights"]] <- NULL
@@ -310,7 +312,7 @@ setMethod(
         ignore_na = TRUE)
     }
 
-    if (!add_residuals)
+    if (!add_resid & !add_fitted)
       return(new_mom$TCORR)
 
     if (missing(model))
@@ -318,19 +320,33 @@ setMethod(
 
     # recompute the moments pretending the errors are the flows
     # with flows becoming exogenous variables
-    E_ <- lag_flow_matrix(
-      Y = resid(object, "M"),
-      model = model,
-      OW = new_mat[["OW"]],
-      DW = new_mat[["DW"]],
-      name = "ERROR",
-      flow_indicator = new_mat[["flow_indicator"]])
-
     new_mat[["G_"]] <- c(new_mat[["G_"]], new_mat[["Y_"]])
     new_mat[["weights"]] <- NULL
-    JE <- lapply(E_, "moment_empirical_covar", new_mat)
+    new_mat[["Y_"]] <- NULL
+
+
+    if (add_fitted) {
+      new_mat[["Y_"]] <- list(fitted(object, "M"))
+      names(new_mat[["Y_"]]) <- paste0(names(object@design_matrix[["Y_"]])[1], ".fit")
+    }
+
+    if (add_resid) {
+      new_mat[["Y_"]] <- c(
+        new_mat[["Y_"]],
+        lag_flow_matrix(
+          Y = resid(object, "M"),
+          model = model,
+          OW = new_mat[["OW"]],
+          DW = new_mat[["DW"]],
+          name = "RESID",
+          flow_indicator = new_mat[["flow_indicator"]]
+        ))
+    }
+
+
+    JE <- lapply(new_mat[["Y_"]], "moment_empirical_covar", new_mat)
     JE <- Reduce("cbind", JE, matrix(nrow = length(JE[[1]]), ncol = 0))
-    colnames(JE) <- names(E_)
+    colnames(JE) <- names(new_mat[["Y_"]])
 
     N <- new_mom[["N"]]
     UU <- new_mom[["UU"]]
@@ -339,7 +355,7 @@ setMethod(
 
     UU <- rbind(cbind(UU,UY), cbind(t(UY), TSS))
     UY <- JE
-    TSS <- crossproduct_mat_list(E_)
+    TSS <- crossproduct_mat_list(new_mat[["Y_"]])
 
     # covariance matrix
     TCORR <- rbind(cbind(UU,UY), cbind(t(UY), TSS))

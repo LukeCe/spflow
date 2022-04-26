@@ -67,7 +67,7 @@ spflow_model_matrix <- function(
     formula_parts = formula_parts,
     data_sources = od_data_sources,
     na_rm = ignore_na,
-    weights_var = flow_control[["weights"]])
+    weights_var = flow_control[["weight_variable"]])
 
   variable_usage <- define_lags_and_instruments(
     formula_parts,
@@ -100,7 +100,7 @@ pull_relational_flow_data <- function(
 
   source_ids <- as.list(id(sp_multi_net@network_pairs[[pair_id]]))
   flow_data <- lapply(source_ids, function(.id){
-    source_data <- as.data.frame(dat(sp_multi_net, .id))
+    source_data <- dat(sp_multi_net, .id)
     row.names(source_data) <- NULL
     source_data
     })

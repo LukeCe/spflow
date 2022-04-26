@@ -51,7 +51,7 @@ setMethod(
   signature = "sp_multi_network",
   function(
     object,
-    network_pair_ids = id(object)[["network_pairs"]][[1]]) {
+    network_pair_ids = id(object)[["network_pairs"]]) {
 
     assert_is(network_pair_ids, "character")
     od_infos <- lapply(network_pair_ids, check_pair_completeness, object)
@@ -458,6 +458,9 @@ setMethod(
     if (keep_od_keys)
       attr_key_do(pair_data) <- colnames(do_keys)
 
+    if (any(sapply(flow_data, inherits, "data.table")) && require("data.table"))
+      pair_data <- data.table::as.data.table(pair_data)
+
     return(pair_data)
   })
 
@@ -664,22 +667,21 @@ sp_multi_network <- function(...) {
       dest_keys <- subset_keycols(dat(sp_networks[[dest_net]]), drop_keys = FALSE)[[1]]
       assert(all(as.character(dest_keys_od) %in% as.character(dest_keys)),
              error_template, net_pair, "destination", "destination")
-      wrong_od_order <- any(c(wrong_od_order,
-                              levels(dest_keys_od) != levels(dest_keys)))
-      }
+      wrong_od_order <- any(c(wrong_od_order, levels(dest_keys_od) != levels(dest_keys)))
+    }
 
     if (wrong_od_order) {
       warn_template <- "
-      The od-pairs in the network pair object with id %s were reordered!"
+      The the data in the network pair %s is reordered!"
       assert(FALSE, warn_template, net_pair, warn = TRUE)
-      do_keys[[1]] <- factor(do_keys[[1]], levels(dest_keys))
-      do_keys[[2]] <- factor(do_keys[[2]], levels(orig_keys))
-      od_order <- order(do_keys[[2]], do_keys[[1]])
-
-      new_key_data <- dat(sp_network_pairs[[net_pair]])
-      new_key_data[names(do_keys)[1]] <- do_keys[[1]]
-      new_key_data[names(do_keys)[2]] <- do_keys[[2]]
-      dat(sp_network_pairs[[net_pair]]) <- new_key_data[od_order,, drop = FALSE]
+      do_key_cols <- names(do_keys)
+      do_keys <- Map(factor, x = do_keys, levels = list(dest_keys, orig_keys))
+      pdat_new <- dat(sp_network_pairs[[net_pair]])
+      pdat_new[do_key_cols] <- do_keys
+      pdat_new <- pdat_new[order(do_keys[[2]], do_keys[[1]]),,drop = FALSE]
+      if (inherits(pdat_new, "data.table") && require("data.table"))
+        pdat_new <- data.table::as.data.table(pdat_new)
+      dat(sp_network_pairs[[net_pair]]) <- pdat_new
     }
   }
 

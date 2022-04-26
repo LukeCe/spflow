@@ -49,7 +49,6 @@ flowdata_transformations <- function(
 
   # ...if there are lost observations in the node matrices
   # ...we can directly remove the corresponding pairs
-  do_keys <- get_do_indexes(data_sources[["pair"]])
   do_keys <- get_do_keys(data_sources[["pair"]])
   if (na_rm) {
     rows2index <- function(x) as.integer(row.names(x))
@@ -91,11 +90,15 @@ flowdata_transformations <- function(
 
 
   # transform pair variables
-  wt <- weights_var %|!|% data_sources[["pair"]][[weights_var]]
-  na_wt <- is.na(wt)
-  if (any(na_wt)) {
-    assert(na_rm, "The weights contain NA values!")
-    do_keys <- cbind(do_keys, wt)[na_wt,,drop = FALSE]
+  wt <- weights_var %|!|% as.numeric(data_sources[["pair"]][[weights_var]])
+  if (!is.null(wt)) {
+
+    wt_finite <- is.finite(wt)
+    wt_pos <- wt > 0
+    assert(na_rm || all(wt_finite), "The weights contain NA/NaN/Inf values!")
+
+    do_keys <- cbind(do_keys, wt)[wt_finite & wt_pos,,drop = FALSE]
+    data_sources[["pair"]] <- data_sources[["pair"]][wt_finite & wt_pos,,drop = FALSE]
   }
 
   G_matrices <- transform_in_source("G_")

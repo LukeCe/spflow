@@ -140,7 +140,7 @@ generate_approxldet_noncartesian2 <- function(
   trace_oo <- if (model_num %in% c(3,5:9))
     sum(flow_indicator * (flow_indicator %*% ((OW * t(OW)))))
 
-  trace_ww <- if (model_num %in% c(3,5:9))
+  trace_ww <- if (model_num %in% c(3,5,6,8,9))
     sum(flow_indicator * ((DW * t(DW)) %*% flow_indicator %*% ((OW * t(OW)))))
 
   tracevals <- c(trace_dd,trace_oo,trace_ww) / 2

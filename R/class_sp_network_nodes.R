@@ -308,17 +308,18 @@ sp_network_nodes <- function(
     derive_coord_cols = derive_coordinates,
     prefer_lonlat = prefer_lonlat)
 
-  # identfyer
+  # identfyers for nodes and coordinates
   if (missing(node_key_column))
     node_key_column <- attr_key_nodes(node_data)
-  attr_key_nodes(node_data) <- node_key_column
   node_data[[node_key_column]] <- factor_in_order(node_data[[node_key_column]])
+  attr_key_nodes(node_data) <- node_key_column
 
-  # coordinates
   if (missing(node_coord_columns))
     node_coord_columns <- attr_coord_col(node_data)
   attr_coord_col(node_data) <- node_coord_columns
 
+  if (inherits(node_data, "data.table") && require(data.table))
+    node_data <- data.table::as.data.table(node_data)
 
   nodes@node_data <- node_data
   validObject(nodes)
@@ -360,12 +361,11 @@ valid_network_id <- function(key) {
   is_single_character(key) && grepl("^[[:alnum:]]+$",key)
 }
 
-
-#' @keywords internal
+#' @title Convert spatial data frame to simple data.frame
+#' @export
 simplfy2df <- function(df, derive_coord_cols = TRUE, prefer_lonlat = TRUE) {
 
   if (inherits(df, "Spatial")) {
-
     if (require("sf")) {
       df <- sf::st_as_sf(df)
     } else {
@@ -391,10 +391,10 @@ simplfy2df <- function(df, derive_coord_cols = TRUE, prefer_lonlat = TRUE) {
     }
   }
 
-  if (inherits(df, "data.table") && require("data.table"))
-    data.table::setDF(df)
-
-
-  return(df)
+  if (inherits(df, "data.table") && require(data.table))
+    return(data.table::as.data.table(df))
+  if (inherits(df, "data.frame"))
+    return(df)
+  stop("Data cannot be converted to a data.frame!")
 }
 
