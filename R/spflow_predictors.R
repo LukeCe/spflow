@@ -1,51 +1,91 @@
 #' @importFrom Matrix Diagonal
 #' @keywords internal
-compute_signal <- function(model_matrices, delta) {
+compute_signal <- function(
+    delta,
+    spflow_matrices,
+    spflow_indicators = NULL,
+    keep_matrix_form = TRUE) {
 
-  number_of_coefs <- compact(list(
-    "const" = model_matrices$const %|!|% length,
-    "const_intra" = model_matrices$const_intra %|!|% length,
-    "D_" = model_matrices$D_ %|!|% curry(seq, ncol),
-    "O_" = model_matrices$O_ %|!|% curry(seq, ncol),
-    "I_" = model_matrices$I_ %|!|% curry(seq, ncol),
-    "G_" = model_matrices$G_ %|!|% curry(seq, length)))
-  id_coefs <- sequentialize_index(number_of_coefs)
-  id_coefs <- lapply(id_coefs, function(x) as.numeric(delta[x]))
+  obs <- spflow_indicators %|!|% spflow_indicators2obs
+  is_cartesian <- is.null(spflow_indicators) || obs[["N_cart"]] == obs[["N_pred"]]
+  req_intra <- !all(is.null(spflow_matrices[["I_"]]), is.null(spflow_matrices[["CONST"]][["(Intra)"]]))
 
-  # add the components of the signal
-  # the flow indicator (fi) accounts for sparsity
-  vmult <- function(.id) as.vector(model_matrices[[.id]] %*% id_coefs[[.id]])
-  n_d <- nrow(model_matrices$Y_[[1]])
-  fi <- model_matrices$flow_indicator
-  sig <- 0
+  if (is_cartesian) {
+    n_o <- unique(c(
+      ncol(spflow_matrices[["CONST"]][["(Intra)"]]),
+      ncol(spflow_matrices[["G_"]][[1]]),
+      ncol(spflow_matrices[["Y_"]][[1]]),
+      nrow(spflow_matrices[["OX"]]),
+      nrow(spflow_matrices[["IX"]])))
+    assert_is_single_x(n_o, "numeric")
 
-  cf <- "const"
-  if (!is.null(id_coefs[[cf]]))
-    sig <- sig + id_coefs[[cf]] * (fi %||% 1)
+    n_d <- unique(c(
+      nrow(spflow_matrices[["CONST"]][["(Intra)"]]),
+      nrow(spflow_matrices[["G_"]][[1]]),
+      nrow(spflow_matrices[["Y_"]][[1]]),
+      nrow(spflow_matrices[["DX"]]),
+      nrow(spflow_matrices[["IX"]])))
+    assert_is_single_x(n_d, "numeric")
 
-  cf <- "const_intra"
-  if (!is.null(id_coefs[[cf]]))
-    sig <- sig + model_matrices[[cf]][[1]] * id_coefs[[cf]]
 
-  cf <- "D_"
-  if (!is.null(id_coefs[[cf]]))
-    sig <- sig + vmult(cf) * (fi %||% 1)
+    o_index <- rep(seq(n_o), each = n_d)
+    d_index <- rep(seq(n_d), times = n_o)
+    intra_i <- as.vector(diag(n_o)) %T% (req_intra)
+  }
 
-  cf <- "O_"
-  if (!is.null(id_coefs[[cf]]) & is.null(fi))
-    sig <- sig + matrix(rep(vmult(cf),n_d),nrow = n_d,byrow = TRUE)
-  if (!is.null(id_coefs[[cf]]) & !is.null(fi))
-    sig <- sig + t(vmult(cf) * t(fi))
+  if (!is_cartesian) {
+    filter_sig <- spflow_indicators[["HAS_SIG"]] %||% TRUE
+    spflow_indicators <- spflow_indicators[filter_sig,,drop = FALSE]
+    n_o <- obs[["n_orig"]]
+    n_d <- obs[["n_dest"]]
+    o_index <- as.numeric(spflow_indicators[[2]])
+    d_index <- as.numeric(spflow_indicators[[1]])
+    intra_i <- as.numeric(spflow_indicators[[1]] == spflow_indicators[[2]]) %T% req_intra
+  }
 
-  cf <- "I_"
-  if (!is.null(id_coefs[[cf]]))
-    sig <- sig + Diagonal(n_d, vmult(cf) * (diag(fi) %||% 1))
+  SIG <- 0
+  id_coef <- 0
+  if (!is.null(spflow_matrices[["CONST"]][["(Intercept)"]])) {
+    id_coef <- id_coef + 1
+    SIG <- SIG + delta[id_coef]
+  }
 
-  cf <- "G_"
-  if (!is.null(id_coefs[[cf]]))
-    sig <- sig + Reduce("+", Map("*", model_matrices[[cf]], id_coefs[[cf]]))
+  if (!is.null(spflow_matrices[["CONST"]][["(Intra)"]])) {
+    id_coef <- id_coef + 1
+    SIG <- SIG + delta[id_coef] * intra_i
+  }
 
-  return(sig)
+  if (!is.null(spflow_matrices[["D_"]])) {
+    id_coef <- seq_len(ncol(spflow_matrices[["D_"]])) + max(id_coef)
+    SIG <- SIG + (spflow_matrices[["D_"]]  %*%  delta[id_coef])[d_index]
+  }
+
+  if (!is.null(spflow_matrices[["O_"]])) {
+    id_coef <- seq_len(ncol(spflow_matrices[["O_"]])) + max(id_coef)
+    SIG <- SIG + (spflow_matrices[["O_"]]  %*%  delta[id_coef])[o_index]
+  }
+
+  if (!is.null(spflow_matrices[["I_"]])) {
+    id_coef <- seq_len(ncol(spflow_matrices[["I_"]])) + max(id_coef)
+    SIG_I <- spflow_matrices[["I_"]]  %*%  delta[id_coef]
+    SIG <- SIG + (SIG_I[o_index] * intra_i)
+  }
+
+  if (!is.null(spflow_matrices[["G_"]])) {
+    id_coef <- seq_along(spflow_matrices[["G_"]]) + max(id_coef)
+
+    SIG_G <- Reduce("+", Map("*", spflow_matrices[["G_"]], delta[id_coef]))
+    if (keep_matrix_form & is_cartesian)
+      SIG <- matrix(SIG, nrow = n_d, ncol = n_o)
+    if (keep_matrix_form & !is_cartesian)
+      SIG <- spflow_indicators2mat(spflow_indicators, do_filter = "HAS_SIG", do_values = SIG)
+    if (!keep_matrix_form & !is_cartesian)
+      SIG_G <- SIG_G[spflow_indicators2pairindex(spflow_indicators, do_filter = "HAS_SIG")]
+    if (!keep_matrix_form & is_cartesian)
+      SIG_G <- as.vector(SIG_G)
+    SIG <- SIG + SIG_G
+  }
+  return(SIG)
 }
 
 
@@ -56,49 +96,48 @@ compute_expectation <- function(
   OW,
   rho,
   model,
-  flow_indicator = NULL,
+  M_indicator = NULL,
   approximate = TRUE,
-  max_it = 10) {
+  max_it = 10,
+  keep_matrix_form = TRUE) {
 
 
   if (approximate) {
 
     update_signal <- function(signal_matrix) {
-
-
       decomposed_signal <- lag_flow_matrix(
         Y = signal_matrix,
-        flow_indicator = flow_indicator,
+        M_indicator = M_indicator,
         model = model,
         OW = OW,
         DW = DW,
         name = "SIG")
 
-      tau <- c(1, -rho)
-      signal <- Reduce("+", Map("*",decomposed_signal, tau))
+      signal <- Reduce("+", Map("*",decomposed_signal[-1], rho))
       return(signal)
-
     }
 
-    signal_sum <- signal_update <- signal_matrix
+    Yhat <- signal_update <- signal_matrix
     for (i in seq(max_it)) {
-
       signal_update <- update_signal(signal_update)
-      signal_sum <- signal_sum + signal_update
+      Yhat <- Yhat + signal_update
     }
-
-    return(signal_sum)
   }
 
+  if (!approximate) {
+    WF_parts <- expand_spflow_neighborhood(DW = DW, OW = OW, model = model)
+    A <- spatial_filter(weight_matrices = WF_parts, autoreg_parameters = rho)
+    yhat <- solve(A, as.vector(signal_matrix))
+    Yhat <- matrix(yhat, nrow = nrow(signal_matrix), ncol = ncol(signal_matrix))
+  }
 
-  # exact expectation
-  assert(is.null(flow_indicator),
-         "The exact expectation is not yet implemented for non-cartesian flows.")
-  WF_parts <- expand_flow_neighborhood(DW = DW, OW = OW, model = model)
-  A <- spatial_filter(weight_matrices = WF_parts, autoreg_parameters = rho)
-  yhat <- solve(A, as.vector(signal_matrix))
-  Yhat <- matrix(yhat, nrow = nrow(signal_matrix), ncol = ncol(signal_matrix))
-  return(Yhat)
+  if (keep_matrix_form)
+    return(Yhat)
+
+  if (is.null(M_indicator))
+    return(as.vector(M_indicator))
+
+  return(Y_hat[as.logical(M_indicator)])
 }
 
 

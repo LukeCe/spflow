@@ -73,7 +73,6 @@ matrix2binary <- function(mat) {
   }
 }
 
-
 #' @importFrom Matrix sparseMatrix
 #' @keywords internal
 matrix_format_d_o <- function(
@@ -115,9 +114,7 @@ matrix_format_d_o <- function(
     return(result_mat)
   }
 
-  stop("No result could be obtained.
-       Please check that your indexes are integer vectors!")
-
+  stop("Failed to generate matrix format. Make sure that the indexes are integers!")
 }
 
 

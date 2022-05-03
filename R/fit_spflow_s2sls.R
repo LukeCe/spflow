@@ -1,11 +1,11 @@
 #' @keywords internal
-spflow_s2sls <- function(UU,UY,ZZ,ZY,TSS,N,TCORR,flow_control) {
+spflow_s2sls <- function(UU,UY,ZZ,ZY,TSS,N,TCORR,pspace_validator,estimation_control) {
 
   # number of auto-regressive parameters and model coefficients and total
   nb_rho <- ncol(UY) - 1
   nb_delta <- ncol(ZZ)
   size_mu <- nb_rho + nb_delta
-  mu_names <- c(define_spatial_lag_params(flow_control[["model"]]),
+  mu_names <- c(define_spatial_lag_params(estimation_control[["model"]]),
                 colnames(ZZ))
 
   # generate the moments of the second stage
@@ -50,21 +50,18 @@ spflow_s2sls <- function(UU,UY,ZZ,ZY,TSS,N,TCORR,flow_control) {
     "est" = mu,
     "sd" = sd_mu)
 
-  diagnostics <- NULL
-  if (isTRUE(flow_control[["track_condition_numbers"]])) {
-    diagnostics <- list("rcond" = rcond(ZZ),
-                        "rcond_stage1" = rcond(UU),
-                        "rcond_stage2" = rcond(stage2_ZZ))
-  }
-
+  rho <- mu[index_rho]
+  estimation_diagnostics <- list(
+    "sd_error" = sqrt(sigma2),
+    "varcov" = varcov,
+    "Model coherence:" = ifelse(pspace_validator(rho), "Validated", "Unknown"))
+  if (isTRUE(estimation_control[["track_condition_numbers"]]))
+    estimation_diagnostics <- c(estimation_diagnostics, "rcond" = rcond(ZZ), "rcond_stage1" = rcond(UU), "rcond_stage2" = rcond(stage2_ZZ))
 
   estimation_results <- spflow_model(
-    varcov = varcov,
     estimation_results = results_df,
-    flow_control = flow_control,
-    sd_error = sqrt(sigma2),
-    N = N,
-    fit_diagnostics = diagnostics)
+    estimation_control = estimation_control,
+    estimation_diagnostics = estimation_diagnostics)
 
   return(estimation_results)
 }

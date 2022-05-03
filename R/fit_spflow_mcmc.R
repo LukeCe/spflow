@@ -8,13 +8,14 @@ spflow_mcmc <- function(
   n_d,
   n_o,
   TCORR,
-  flow_control,
+  estimation_control,
+  pspace_validator,
   logdet_calculator) {
 
-  model <- flow_control$model
-  nb_draw <- flow_control$mcmc_iterations
-  nb_burn_in <- flow_control$mcmc_burn_in
-  resampling_limit <- flow_control$mcmc_resampling_limit
+  model <- estimation_control$model
+  nb_draw <- estimation_control$mcmc_iterations
+  nb_burn_in <- estimation_control$mcmc_burn_in
+  resampling_limit <- estimation_control$mcmc_resampling_limit
 
   ## initialize rho for M-H sampling
   nb_rho <- ncol(ZY) - 1
@@ -165,20 +166,21 @@ spflow_mcmc <- function(
     sd = apply(mcmc_results, 2, sd)
   )
 
-  diagnostics <- NULL
-  if (isTRUE(flow_control[["track_condition_numbers"]]))
-    diagnostics <- list("rcond" = rcond(ZZ))
 
-  N <- n_o * n_d
   id_sd <- nrow(results_df)
-  estimation_results <- spflow_model(
-    mcmc_results = as.mcmc(mcmc_results),
-    estimation_results = results_df[-id_sd, ],
-    flow_control = flow_control,
-    sd_error = sqrt(results_df$est[id_sd]),
-    N = N,
-    fit_diagnostics = diagnostics)
+  rho <- results_df$est[seq_len(ncol(collect_rho))]
+  estimation_diagnostics <- list(
+    "sd_error" = sqrt(results_df$est[id_sd]),
+    "varcov" = cor(mcmc_results[-seq_len(nb_burn_in),, drop = FALSE]),
+    "Model coherence:" = ifelse(pspace_validator(rho), "Validated", "Unknown"))
+  if (isTRUE(estimation_control[["track_condition_numbers"]]))
+    estimation_diagnostics <- c(estimation_diagnostics, "rcond" = rcond(ZZ))
 
+
+  estimation_results <- spflow_model(
+    estimation_results = results_df[-id_sd,,drop = FALSE],
+    estimation_control = estimation_control,
+    estimation_diagnostics = estimation_diagnostics)
 
   return(estimation_results)
 }

@@ -21,14 +21,13 @@
 #' @family spflow simulation functions
 #' @importFrom Matrix Diagonal bdiag drop0
 #' @export
-expand_flow_neighborhood <- function(
+expand_spflow_neighborhood <- function(
   OW,
   DW,
   n_o = nrow(OW),
   n_d = nrow(DW),
   flow_indicator = NULL,
   model = "model_9") {
-
 
   model_number <- as.integer(substr(model,7,7))
   require_Wd <- model_number %in% c(2,5:9)
@@ -193,6 +192,63 @@ normalize_neighborhood <- function(mat, by_row = FALSE) {
   attr_spectral_character(mat) <- c_spec
   return(mat)
 }
+
+
+#' @keywords internal
+pull_spflow_neighborhood <-  function(sp_multi_network, network_pair_id) {
+  od_id <- id(sp_multi_network@network_pairs[[network_pair_id]])
+  neighbor_mats <- lapply(c("OW" = "orig", "DW" = "dest"), function(.key) {
+    m <- neighborhood(sp_multi_network, od_id[.key])
+    dimnames(m) <- list(NULL,NULL)
+    return(m)
+  })
+
+  return(compact(neighbor_mats))
+}
+
+#' @keywords interal
+valdiate_spflow_neighborhood <- function(
+    spflow_neighborhood,
+    model,
+    do_normalisation = TRUE) {
+
+  model_num <- as.numeric(substr(model,7,7))
+  req_OW <- model_num %in% c(3:9)
+  req_DW <- model_num %in% c(2,4:9)
+
+  assert(!req_OW  || !is.null(spflow_neighborhood[["OW"]]),
+         "For model_%s you the origin neighborhood musst be available!",
+         model_num)
+  assert(!req_DW || !is.null(spflow_neighborhood[["DW"]]),
+         "For model_%s you the destination neighborhood musst be available!",
+         model_num)
+
+
+  spectral_radi <- lapply(spflow_neighborhood, function(.XW) abs(attr_spectral_character(.XW)["LM"]))
+  tol <- sqrt(.Machine$double.eps)
+  unit_radi <- all(abs(unlist(spectral_radi) - 1) < tol)
+  if (unit_radi)
+    return(spflow_neighborhood)
+
+  row_sums <- lapply(spflow_neighborhood, rowSums)
+  row_sums_0or1 <- lapply(row_sums, function(.rs) all(abs(abs(.rs - .5) - .5) < tol))
+  row_normalized <- all(unlist(row_sums_0or1))
+  if (row_normalized)
+    return(spflow_neighborhood)
+
+  assert(do_normalisation, "The neighborhood matrices should be normalized!")
+  spflow_neighborhood <- Map(
+    function(.W, .sr) {
+      .W <- .W / .sr
+      attr_spectral_character(.W) <- attr_spectral_character(.W) / .sr
+      .W
+    },
+    .W = spflow_neighborhood,
+    .sr = spectral_radi)
+
+  return(spflow_neighborhood)
+}
+
 
 
 # ---- helpers ----------------------------------------------------------------

@@ -1,27 +1,27 @@
 #' @keywords internal
-flowdata_spatiallag <- function(
+lag_spflow_matrices <- function(
     variable_usage,
-    flowmodel_matrices,
-    nb_matrices,
+    spflow_matrices,
+    spflow_indicators,
+    spflow_neighborhood,
     model,
     decorrelate_instruments,
     reduce_pair_instruments) {
 
 
-  num_nodes <- dim(flowmodel_matrices[["Y_"]][[1]])
-  names(num_nodes) <- c("DW", "OW")
+  dim_nbs <- c("DW" = nlevels(spflow_indicators[[1]]), "OW" = nlevels(spflow_indicators[[2]]))
   formula_names <- c("D_" = "DEST_","O_" = "ORIG_", "I_" = "INTRA_")
-  node_matrices <- intersect(names(formula_names), names(flowmodel_matrices))
+  node_matrices <- intersect(names(formula_names), names(spflow_matrices))
 
   claculate_node_lags <- function(.key) {
 
-    X_lag <- flowmodel_matrices[[.key]]
+    X_lag <- spflow_matrices[[.key]]
     if (is.null(X_lag))
       return(NULL)
 
     .Wkey <- c("I_" = "OW", "D_" = "DW", "O_" = "OW")[.key]
-    WX <- nb_matrices[[.Wkey]]
-    n_obs <- num_nodes[.Wkey]
+    WX <- spflow_neighborhood[[.Wkey]]
+    n_obs <- dim_nbs[.Wkey]
     if (nrow(X_lag) < n_obs) {
       obs_index <- as.integer(row.names(X_lag))
       WX <- WX[obs_index, obs_index, drop = FALSE]
@@ -52,37 +52,38 @@ flowdata_spatiallag <- function(
     attr_inst_status(X_lag_a) <- attr_inst_status(X_lag)
     return(X_lag_a)
   }
-  flowmodel_matrices[node_matrices] <-
+  spflow_matrices[node_matrices] <-
     lapply(lookup(node_matrices), claculate_node_lags)
 
 
+  Y_indicator <- spflow_indicators2mat(spflow_indicators, do_filter = "HAS_Y")
+  G_indicator <- spflow_indicators2mat(spflow_indicators, do_filter = "HAS_SIG")
   G_lags <- variable_usage[["G_"]]
-  flowmodel_matrices[["G_"]] <-
+  spflow_matrices[["G_"]] <-
     Reduce("c", lapply(row.names(G_lags),  function(.var) {
       double_lag_matrix(
-        M = flowmodel_matrices[["G_"]][[.var]],
-        DW = nb_matrices[["DW"]],
-        OW = nb_matrices[["OW"]],
+        M = spflow_matrices[["G_"]][[.var]],
+        DW = spflow_neighborhood[["DW"]],
+        OW = spflow_neighborhood[["OW"]],
         name = .var,
         key = "G",
-        flow_indicator = flowmodel_matrices[["flow_indicator"]],
+        M_indicator = Y_indicator %||% G_indicator,
         lag_order = G_lags[.var,"num_lags"],
         return_all_lags = !reduce_pair_instruments,
         lags_are_instruments = TRUE
       )}))
 
 
-  flowmodel_matrices[["Y_"]] <-
+  spflow_matrices[["Y_"]] <-
     Reduce("c", Map(
       f = "lag_flow_matrix",
-      Y = flowmodel_matrices[["Y_"]],
-      name = names(flowmodel_matrices[["Y_"]]),
+      Y = spflow_matrices[["Y_"]],
+      name = names(spflow_matrices[["Y_"]]),
       MoreArgs = c(
-        nb_matrices,
-        list("flow_indicator" = flowmodel_matrices[["flow_indicator"]],
-             "model" = model))))
+        spflow_neighborhood,
+        list("M_indicator" = Y_indicator, "model" = model))))
 
-  return(c(flowmodel_matrices, nb_matrices))
+  return(spflow_matrices)
 }
 
 # ---- lag computations -------------------------------------------------------
@@ -94,7 +95,7 @@ lag_flow_matrix <- function(
     OW,
     DW,
     name = "Y",
-    flow_indicator = NULL) {
+    M_indicator = NULL) {
 
 
   if (model == "model_1")
@@ -130,8 +131,8 @@ lag_flow_matrix <- function(
                    "2" = list(" " = Y, ".d"   = WY),
                    "1" = list(" " = Y))
   names(Y_lags) <- strwrap(paste0(name, names(Y_lags)))
-  if (!is.null(flow_indicator) & length(Y_lags) > 1)
-    Y_lags[-1] <- lapply(Y_lags[-1], "*", flow_indicator)
+  if (!is.null(M_indicator) & length(Y_lags) > 1)
+    Y_lags[-1] <- lapply(Y_lags[-1], "*", M_indicator)
 
 
   return(Y_lags)
@@ -162,7 +163,7 @@ double_lag_matrix <- function(
     OW,
     name = "G",
     key = "G",
-    flow_indicator = NULL,
+    M_indicator = NULL,
     symmetric_lags = FALSE,
     lag_order = 2,
     return_all_lags = FALSE,
@@ -189,14 +190,16 @@ double_lag_matrix <- function(
   symmetric_lags <- symmetric_lags & double_lag
   return_all_lags <- return_all_lags | !double_lag
 
+  if (!is.null(M_indicator))
+    M <- M * M_indicator
   wM <- (DW %*% M) %T% left_lag
   wMw <- tcrossprod(wM, OW) %T% double_lag
   # skip right lags if not needed
   Mw <- t(wM) %T% (symmetric_lags & right_lag & return_all_lags)
   Mw <- Mw %||% tcrossprod(M, OW) %T% (right_lag & return_all_lags)
 
-  if (!is.null(flow_indicator)) {
-    account_for_sparsity <- function(x) x * flow_indicator
+  if (!is.null(M_indicator)) {
+    account_for_sparsity <- function(x) x * M_indicator
     wMw <- wMw %|!|% account_for_sparsity
     Mw <- Mw %|!|% account_for_sparsity
 
@@ -236,7 +239,7 @@ double_lag_matrix <- function(
   lags_2[["ww%sww"]] <- wwMww
   names(lags_2) <- paste0(name, ".", sprintf(names(lags_2), key))
 
-  if (!is.null(flow_indicator))
+  if (!is.null(M_indicator))
     lags_2 <- lapply(lags_2, "account_for_sparsity")
 
   if (lags_are_instruments)

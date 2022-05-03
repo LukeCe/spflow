@@ -1,61 +1,58 @@
 #' @keywords internal
 spflow_model_estimation <- function(
-  model_moments,
-  nb_functions,
-  flow_control) {
+  spflow_moments,
+  spflow_nbfunctions,
+  estimation_control) {
 
-  estimation_results <- switch(flow_control$estimation_method,
+  estimation_results <- switch(estimation_control[["estimation_method"]],
     "ols" = {
       spflow_ols(
-        ZZ  = model_moments[["ZZ"]],
-        ZY  = model_moments[["ZY"]],
-        TSS = model_moments[["TSS"]],
-        N   = model_moments[["N"]],
-        TCORR = model_moments[["TCORR"]],
-        flow_control = flow_control
+        ZZ  = spflow_moments[["ZZ"]],
+        ZY  = spflow_moments[["ZY"]],
+        TSS = spflow_moments[["TSS"]],
+        N   = spflow_moments[["N"]],
+        TCORR = spflow_moments[["TCORR"]],
+        estimation_control = estimation_control
       )},
     "s2sls" = {
       spflow_s2sls(
-        UU  = model_moments[["UU"]],
-        UY  = model_moments[["UY"]],
-        ZZ  = model_moments[["ZZ"]],
-        ZY  = model_moments[["ZY"]],
-        TSS = model_moments[["TSS"]],
-        N   = model_moments[["N"]],
-        TCORR = model_moments[["TCORR"]],
-        flow_control = flow_control
-      )},
+        UU  = spflow_moments[["UU"]],
+        UY  = spflow_moments[["UY"]],
+        ZZ  = spflow_moments[["ZZ"]],
+        ZY  = spflow_moments[["ZY"]],
+        TSS = spflow_moments[["TSS"]],
+        N   = spflow_moments[["N"]],
+        TCORR = spflow_moments[["TCORR"]],
+        pspace_validator = spflow_nbfunctions[["pspace_validator"]],
+        estimation_control = estimation_control
+        )},
     "mle" = {
       spflow_mle(
-        ZZ    = model_moments[["ZZ"]],
-        ZY    = model_moments[["ZY"]],
-        TSS   = model_moments[["TSS"]],
-        N     = model_moments[["N"]],
-        n_d   = model_moments[["n_d"]],
-        n_o   = model_moments[["n_o"]],
-        TCORR = model_moments[["TCORR"]],
-        flow_control = flow_control,
-        logdet_calculator = nb_functions[["logdet_calculator"]]
+        ZZ    = spflow_moments[["ZZ"]],
+        ZY    = spflow_moments[["ZY"]],
+        TSS   = spflow_moments[["TSS"]],
+        N     = spflow_moments[["N"]],
+        n_d   = spflow_moments[["n_d"]],
+        n_o   = spflow_moments[["n_o"]],
+        TCORR = spflow_moments[["TCORR"]],
+        estimation_control = estimation_control,
+        pspace_validator = spflow_nbfunctions[["pspace_validator"]],
+        logdet_calculator = spflow_nbfunctions[["logdet_calculator"]]
       )},
-    "mcmc" = {spflow_mcmc(
-      ZZ  = model_moments[["ZZ"]],
-      ZY  = model_moments[["ZY"]],
-      TSS = model_moments[["TSS"]],
-      N   = model_moments[["N"]],
-      n_d = model_moments[["n_d"]],
-      n_o = model_moments[["n_o"]],
-      TCORR = model_moments[["TCORR"]],
-      flow_control = flow_control,
-      logdet_calculator = nb_functions[["logdet_calculator"]]
-    )})
+    "mcmc" = {
+      spflow_mcmc(
+        ZZ  = spflow_moments[["ZZ"]],
+        ZY  = spflow_moments[["ZY"]],
+        TSS = spflow_moments[["TSS"]],
+        N   = spflow_moments[["N"]],
+        n_d = spflow_moments[["n_d"]],
+        n_o = spflow_moments[["n_o"]],
+        TCORR = spflow_moments[["TCORR"]],
+        estimation_control = estimation_control,
+        pspace_validator = spflow_nbfunctions[["pspace_validator"]],
+        logdet_calculator = spflow_nbfunctions[["logdet_calculator"]]
+      )})
 
-
-  if (flow_control$estimation_method != "ols") {
-    pspace_diagnostic <- nb_functions[["pspace_validator"]]
-    pspace_diagnostic <- pspace_diagnostic(coef(estimation_results ,"rho"))
-    pspace_diagnostic <- list("Model coherence:" = ifelse(pspace_diagnostic, "Validated", "Unknown"))
-    estimation_results@fit_diagnostics <- c(estimation_results@fit_diagnostics , pspace_diagnostic)
-  }
 
   return(estimation_results)
 }

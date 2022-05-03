@@ -7,7 +7,7 @@
 #' origin-destination flows with spatial autocorrelation.
 #'
 #' By default the estimation will include spatial dependence in the dependent
-#' variable and the explanatory variables which leads to the spatial Durbin
+#' variable and the explanatory variables, which leads to the spatial Durbin
 #' model (SDM) \insertCite{Anselin1988}{spflow}.
 #' Moreover, the model includes an additional set of parameters for intra
 #' regional flows that start and end in the same geographic site (as proposed
@@ -164,8 +164,8 @@ spflow <- function(
     na_rm = FALSE) {
 
   ## check for abusive inputs and correct ids
-  assert_is(flow_formula,"formula")
-  assert_is(sp_multi_network,"sp_multi_network")
+  assert_is(flow_formula, "formula")
+  assert_is(sp_multi_network, "sp_multi_network")
 
   pair_ids <- id(sp_multi_network)[["network_pairs"]]
   assert_is_single_x(network_pair_id, "character")
@@ -173,41 +173,59 @@ spflow <- function(
          'The the network pair id "%s" is not available!',
          network_pair_id)
 
-  flow_control <- enhance_flow_control(
-    flow_control = flow_control,
-    net_pair = pull_member(sp_multi_network, network_pair_id))
 
-  model_matrices <- spflow_model_matrix(
-    sp_multi_network,
-    network_pair_id,
+  od_id <- id(pull_member(sp_multi_network, network_pair_id))
+  estimation_control <- enhance_spflow_control(
+    flow_control = flow_control,
+    is_within = od_id["orig"] == od_id["dest"])
+
+  spflow_data <- pull_spflow_data(sp_multi_network, network_pair_id)
+  spflow_neighborhood <- pull_spflow_neighborhood(sp_multi_network, network_pair_id)
+  spflow_neighborhood <- valdiate_spflow_neighborhood(
+    spflow_neighborhood = spflow_neighborhood,
+    model = estimation_control[["model"]],
+    do_normalisation = TRUE)
+
+  spflow_matrices <- derive_spflow_matrices(
+    spflow_data = spflow_data,
+    spflow_neighborhood = spflow_neighborhood,
     flow_formula,
-    flow_control,
-    ignore_na = na_rm)
+    estimation_control,
+    na_rm = na_rm)
+  spflow_indicators <- spflow_matrices[["spflow_indicators"]]
+  spflow_matrices[["spflow_indicators"]] <- NULL
+  spflow_obs <- spflow_indicators2obs(spflow_indicators)
 
-  model_moments <- compute_spflow_moments(
-    model_matrices = model_matrices,
-    flow_control = flow_control)
+  spflow_nbfunctions <- derive_spflow_nbfunctions(
+    OW = spflow_neighborhood[["OW"]],
+    DW = spflow_neighborhood[["DW"]],
+    estimation_control = estimation_control,
+    spflow_indicators = spflow_indicators)
 
-  # (if required)
-  # Functions to validate the parameter space
-  # and to calculate the log determinant
-  spatial_nbfunctions <- spflow_nbfunctions(
-    OW = model_matrices[["OW"]],
-    DW = model_matrices[["DW"]],
-    flow_control = flow_control,
-    flow_indicator = model_matrices[["flow_indicator"]])
+  wt <- spflow_indicators2mat(spflow_indicators, do_filter = "HAS_Y", do_values = "WEIGHTS")
+  spflow_moments <- compute_spflow_moments(
+    spflow_matrices = spflow_matrices,
+    n_o = spflow_obs[["N_orig"]],
+    n_d = spflow_obs[["N_dest"]],
+    N = spflow_obs[["N_fit"]],
+    wt = wt,
+    na_rm = na_rm)
 
+
+  ## ---- derive moments from the covariates (Z,H)
+  wt <- spflow_indicators2mat(spflow_indicators, do_values = "WEIGHTS")
   estimation_results <- spflow_model_estimation(
-    model_moments = model_moments,
-    flow_control = flow_control,
-    nb_functions = spatial_nbfunctions)
+    spflow_moments = spflow_moments,
+    spflow_nbfunctions = spflow_nbfunctions,
+    estimation_control = estimation_control)
 
   estimation_results <- add_details(
     estimation_results,
-    model_matrices = model_matrices,
-    flow_control = flow_control,
-    model_moments = model_moments,
-    node_coords = maybe(get_node_coords(sp_multi_network, network_pair_id)))
+    spflow_matrices = spflow_matrices,
+    spflow_moments = spflow_moments,
+    spflow_indicators = spflow_indicators,
+    spflow_data = spflow_data,
+    spflow_neighborhood = spflow_neighborhood)
 
   return(estimation_results)
 }
@@ -239,14 +257,9 @@ parameter_names <- function(
 #' @keywords internal
 drop_instruments <- function(model_matrices) {
 
-  filter_inst_single <-
-    function(x) { if (isFALSE(attr_inst_status(x))) x }
-  mm <- "const"
-  model_matrices[[mm]] <- filter_inst_single(model_matrices[[mm]])
-
   filter_inst_list <-
     function(l) { Filter(Negate(attr_inst_status), model_matrices[[mm]]) }
-  mm <- "const_intra"
+  mm <- "CONST"
   model_matrices[[mm]] <- filter_inst_list(model_matrices[[mm]])
   mm <- "G_"
   model_matrices[[mm]] <- filter_inst_list(model_matrices[[mm]])
@@ -284,34 +297,33 @@ sp_model_type <- function(cntrl) {
 
 
 #' @keywords internal
-spflow_nbfunctions <- function(
+derive_spflow_nbfunctions <- function(
     OW,
     DW,
-    flow_control,
-    flow_indicator) {
+    estimation_control,
+    spflow_indicators) {
 
 
-  if (flow_control[["estimation_method"]] == "ols")
+  if (estimation_control[["model"]] == "model_1")
     return(NULL)
 
   pspace_validator <- derive_pspace_validator(
     OW_character = attr_spectral_character(OW),
     DW_character = attr_spectral_character(DW),
-    model = flow_control[["model"]],
-    estimation_method = flow_control[["estimation_method"]])
+    model = estimation_control[["model"]],
+    estimation_method = estimation_control[["estimation_method"]])
 
-  if (flow_control[["estimation_method"]] == "s2sls")
+  if (estimation_control[["estimation_method"]] == "s2sls")
     return(list("pspace_validator" = pspace_validator))
 
   logdet_calculator <- derive_logdet_calculator(
     OW = OW,
     DW = DW,
-    model = flow_control[["model"]],
-    n_o = flow_control[["mat_ncols"]],
-    n_d = flow_control[["mat_nrows"]],
-    approx_order = flow_control[["logdet_approx_order"]],
-    is_cartesian = is.null(flow_indicator) | flow_control[["logdet_simplify2cartesian"]],
-    flow_indicator = flow_indicator)
+    model = estimation_control[["model"]],
+    n_o = nlevels(spflow_indicators[[2]]),
+    n_d = nlevels(spflow_indicators[[1]]),
+    approx_order = estimation_control[["logdet_approx_order"]],
+    flow_indicator = spflow_indicators2mat(spflow_indicators, "HAS_Y"))
 
   return(list("logdet_calculator" = logdet_calculator,
               "pspace_validator" = pspace_validator))

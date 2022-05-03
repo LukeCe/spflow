@@ -14,22 +14,19 @@
 #' @references \insertAllCited{}
 #' @importFrom Matrix forceSymmetric rowSums colSums diag
 #' @keywords internal
-moment_empirical_var <- function(model_matrices,N,n_d,n_o) {
-
-  ## ---- prepare weighting of the model matrices
-  wt <- model_matrices$weights %||% model_matrices$flow_indicator
+spflow_moment_var <- function(spflow_matrices, wt,N,n_d,n_o) {
 
   # prepare weighted neighborhood matrices
-  const_global <- model_matrices[["const"]]
-  const_intra <- model_matrices[["const_intra"]]
+  const_global <- spflow_matrices[["CONST"]][["(Intercept)"]]
+  const_intra <- spflow_matrices[["CONST"]][-1]
   const_intra_wt <- wt %|!|% lapply(const_intra, "*", wt)
 
   # prepare the moment weighting for the site attributes (D,O,I)
-  X <- compact(model_matrices[c("D_","O_","I_")])
+  X <- compact(spflow_matrices[c("D_","O_","I_")])
   wt_odi <- derive_weights_DOI(wt,n_o = n_o,n_d = n_d)[names(X)]
 
   # prepare weighted pair attributes
-  G_wt <- wt %|!|% lapply(model_matrices$G_, "*", wt)
+  G_wt <- wt %|!|% lapply(spflow_matrices$G_, "*", wt)
 
 
   ## ---- compute the 10 moment blocks
@@ -41,7 +38,7 @@ moment_empirical_var <- function(model_matrices,N,n_d,n_o) {
     var_block_alpha(wt, N),
     var_block_alpha_alpha_I(const_intra_wt %||% const_intra),
     var_block_alpha_beta(X,wt_odi),
-    var_block_alpha_gamma(G_wt %||% model_matrices$G_)))
+    var_block_alpha_gamma(G_wt %||% spflow_matrices$G_)))
 
 
   # [alpha_I] blocks (7/10)
@@ -50,18 +47,18 @@ moment_empirical_var <- function(model_matrices,N,n_d,n_o) {
     var_block_alpha_I(const_intra,const_intra_wt),
     var_block_alpha_I_beta(const_intra_wt %||% const_intra,X),
     var_block_alpha_I_gamma(const_intra_wt %||% const_intra,
-                            model_matrices$G)))
+                            spflow_matrices$G)))
 
   # [beta] blocks (9/10)
   beta_blocks <- X %|!|% Reduce("cbind",list(
     namerows(ulapply(X,"colnames")),
     var_block_beta(X,wt_odi,wt),
-    var_block_beta_gamma(X, G_wt %||% model_matrices$G)))
+    var_block_beta_gamma(X, G_wt %||% spflow_matrices$G)))
 
   # [gamma] block (10/10)
-  gamma_block <- model_matrices$G %|!|% cbind(
-    namerows(names(model_matrices$G)),
-    var_block_gamma(model_matrices$G, G_wt))
+  gamma_block <- spflow_matrices$G %|!|% cbind(
+    namerows(names(spflow_matrices$G)),
+    var_block_gamma(spflow_matrices$G, G_wt))
 
   combined_blocks <- list(alpha_blocks,alpha_I_blocks,beta_blocks,gamma_block)
   combined_blocks <- rbind_fill_left(compact(combined_blocks))
@@ -183,9 +180,8 @@ var_block_beta_gamma <- function(X,G) {
 }
 
 # ---- Covariance Moments -----------------------------------------------------
-
 #' @keywords internal
-moment_empirical_covar <- function(Y, model_matrices) {
+spflow_moment_cov <- function(Y, model_matrices) {
 
   order_keys <- c("D","O","I") %p% "_"
   X <- compact(model_matrices[order_keys])
@@ -193,8 +189,8 @@ moment_empirical_covar <- function(Y, model_matrices) {
     Y <- Y * model_matrices$weights
 
   result <- Reduce("c", c(
-    cov_moment_alpha(Y) %T% (1 == model_matrices[["const"]]),
-    cov_moment_alpha_I(Y, model_matrices[["const_intra"]]),
+    cov_moment_alpha(Y),
+    cov_moment_alpha_I(Y, model_matrices[["CONST"]][-1] %||% NULL),
     cov_moment_beta(Y, X),
     cov_moment_gamma(Y, model_matrices$G)
   ))

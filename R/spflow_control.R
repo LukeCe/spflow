@@ -70,10 +70,6 @@
 #' @param logdet_approx_order
 #'   A numeric indicating the order of the Taylor expansion used to approximate
 #'   the value of the log-determinant term.
-#' @param logdet_simplify2cartesian
-#'   A logical indicating whether the log-determinant approximation should be
-#'   based on the spatial filter matrix of the cartesian model even when the
-#'   actual flows are non-cartesian.
 #' @param mle_hessian_method
 #'   A character which indicates the method for Hessian calculation
 #' @param mle_optim_limit
@@ -143,7 +139,6 @@ spflow_control <- function(
     approx_expectation = TRUE,
     expectation_approx_order = 10,
     logdet_approx_order = 10,
-    logdet_simplify2cartesian = TRUE,
     mle_hessian_method = "mixed",
     mle_optim_limit = 100,
     mcmc_iterations = 5500,
@@ -152,7 +147,8 @@ spflow_control <- function(
     twosls_instrumental_variables = "same",
     twosls_decorrelate_instruments = FALSE,
     twosls_reduce_pair_instruments = TRUE,
-    track_condition_numbers = FALSE) {
+    track_condition_numbers = FALSE,
+    reduce_size = FALSE) {
 
 
   available_estimators <- c("s2sls", "mle","mcmc","ols")
@@ -183,6 +179,7 @@ spflow_control <- function(
          "The weight_variable must be a character of length one!")
 
   assert_is_single_x(track_condition_numbers, "logical")
+  assert_is_single_x(reduce_size, "logical")
 
   # control parameter used in all cases
   general_control <- list(
@@ -191,7 +188,8 @@ spflow_control <- function(
     "use_intra" = use_intra,
     "sdm_variables" = sdm_variables,
     "weight_variable" = weight_variable,
-    "track_condition_numbers" = track_condition_numbers
+    "track_condition_numbers" = track_condition_numbers,
+    "reduce_size" = reduce_size
   )
 
   if (estimation_method == "ols")
@@ -231,13 +229,10 @@ spflow_control <- function(
 
   # ---- ... likelihood -------------------------------------------------------
   assert_is_single_x(logdet_approx_order, "numeric")
-  assert_is_single_x(logdet_simplify2cartesian, "logical")
-  assert(logdet_approx_order >= 2,
-         "The logdet_approx_order must be two or larger!")
+  assert(logdet_approx_order >= 2, "The logdet_approx_order must be two or larger!")
 
   general_control <- c(general_control, list(
-    "logdet_approx_order" = as.integer(logdet_approx_order),
-    "logdet_simplify2cartesian" = logdet_simplify2cartesian))
+    "logdet_approx_order" = as.integer(logdet_approx_order)))
 
   # ---- ... ... mle ----------------------------------------------------------
   if (estimation_method == "mle") {
@@ -279,29 +274,23 @@ spflow_control <- function(
 }
 
 
+
 #' @title Enhance the flow_control object for estimation
 #' @description
 #' Validate the input to flow control and add additional information related
 #' to the matrix form expression of the model.
 #' @keywords internal
-enhance_flow_control <- function(
-    flow_control,
-    net_pair) {
+enhance_spflow_control <- function(flow_control, is_within) {
 
   # validate by calling again
   flow_control <- do.call("spflow_control", flow_control)
   flow_control <- c(
     flow_control,
-    matrix_form_control(net_pair),
-    list("spatial_type" = sp_model_type(flow_control)))
+    "spatial_type" = sp_model_type(flow_control),
+    "is_within" = as.logical(is_within))
 
-  if (flow_control$mat_nrows != flow_control$mat_ncols)
-    flow_control$use_intra <- FALSE
-
-  requires_logdet <- !is.null(flow_control$logdet_simplify2cartesian)
-  if (requires_logdet & (flow_control$mat_complet == 1))
-    flow_control$logdet_simplify2cartesian <- TRUE
-
+  if (!is_within) flow_control[["use_intra"]] <- FALSE
   return(flow_control)
 }
+
 

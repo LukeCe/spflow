@@ -1,6 +1,5 @@
 #' @include class_generics_and_maybes.R class_sp_network_nodes.R class_sp_network_pair.R
 
-
 #' @title Class sp_multi_network
 #'
 #' @description
@@ -15,9 +14,10 @@
 #' @family spflow network classes
 #' @name sp_multi_network-class
 #' @export
-setClass("sp_multi_network",
-         slots = c(networks = "list",
-                   network_pairs = "list"))
+setClass("sp_multi_network", slots = c(
+  networks = "list",
+  network_pairs = "list"))
+setClassUnion("maybe_sp_multi_network", c("NULL", "sp_multi_network"))
 
 
 # ---- Methods ----------------------------------------------------------------
@@ -66,6 +66,7 @@ setMethod(
         object,
         network_pair_id = p_id,
         make_cartesian = TRUE,
+        pair_cols = names(dat(object, p_id)),
         dest_cols = NULL,
         orig_cols = NULL)
     }
@@ -145,7 +146,7 @@ setMethod(
 
 
     if (missing(DW) | missing(OW)){
-      nb_dat <- pull_neighborhood_data(object,network_pair_id)
+      nb_dat <- pull_spflow_neighborhood(object,network_pair_id)
       if (missing(OW)) OW <- nb_dat[["OW"]]
       if (missing(DW)) DW <- nb_dat[["DW"]]
     }
@@ -216,7 +217,7 @@ setMethod(
            flow_var) {
 
     assert(network_pair_id %in% id(object)[["network_pairs"]])
-    flow_data <- pull_relational_flow_data(object, network_pair_id)
+    flow_data <- pull_spflow_data(object, network_pair_id)
 
     assert_is_single_x(flow_var, "character")
     assert(flow_var %in% names(flow_data[["pair"]]),
@@ -315,7 +316,7 @@ setMethod(
       flow_control = flow_control,
       net_pair = pull_member(object, network_pair_id))
 
-    mat <- spflow_model_matrix(
+    mat <- derive_spflow_matrices(
       sp_multi_network = object,
       network_pair_id = network_pair_id,
       flow_formula = flow_formula,
@@ -378,7 +379,7 @@ setMethod(
            "No network pair with id %s!", network_pair_id)
     assert_is_single_x(make_cartesian, "logical")
 
-    flow_data <- pull_relational_flow_data(object, network_pair_id)
+    flow_data <- pull_spflow_data(object, network_pair_id)
     flow_infos <- check_pair_completeness(network_pair_id, object)
     do_keys <- subset_keycols(flow_data[["pair"]], drop_keys = FALSE)
     do_indexes <- lapply(do_keys, "as.integer")
@@ -614,7 +615,6 @@ setValidity("sp_multi_network", function(object) {
 sp_multi_network <- function(...) {
 
   input_nets <- unlist(list(...)) %||% list()
-
 
   warn_template <- "
   All supplied objects which are not of class

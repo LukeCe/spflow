@@ -176,7 +176,7 @@ extract_formula_specials <- function(formula,specials) {
 
 # ---- split the formula by "special" functions -------------------------------
 #' @keywords internal
-split_forumla_specials <- function(
+split_formula_specials <- function(
   formula, specials) {
   assert_formula(formula)
   assert_is(specials,"character")

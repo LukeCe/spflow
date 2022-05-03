@@ -1,4 +1,4 @@
-# ---- pull_neighborhood_data -------------------------------------------------
+# ---- pull_spflow_neighborhood -------------------------------------------------
 expect_equal({
 
   test_o_net <- sp_network_nodes(
@@ -25,7 +25,7 @@ expect_equal({
 
 
   test_mult_net <- sp_multi_network(test_o_net,test_d_net, test_net_pair)
-  spflow:::pull_neighborhood_data(test_mult_net,"net1_net2")
+  spflow:::pull_spflow_neighborhood(test_mult_net,"net1_net2")
   },
   {
     spflow:::named_list(c("OW","DW"),Matrix(c(0,1,1,0),2,2))

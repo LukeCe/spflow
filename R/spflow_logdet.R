@@ -11,20 +11,13 @@ derive_logdet_calculator <- function(
 
   if (is.null(flow_indicator)) {
 
-    # TODO remove scaling once simulations are conclusive
-    scaling <- 1
-    if (!is.null(flow_indicator))
-      scaling <- nnzero(flow_indicator) / (n_o * n_d)
-
-
     approx_logdet <- generate_approxldet_cartesian(
       OW = OW,
       DW = DW,
       n_o = n_o,
       n_d = n_d,
       model = model,
-      approx_order = approx_order,
-      scaling = scaling)
+      approx_order = approx_order)
     return(approx_logdet)
   }
 
@@ -40,7 +33,7 @@ derive_logdet_calculator <- function(
   }
 
 
-  W_flow <- expand_flow_neighborhood(
+  W_flow <- expand_spflow_neighborhood(
     OW = OW,
     DW = DW,
     n_o = n_o,
@@ -68,8 +61,7 @@ generate_approxldet_cartesian <- function(
   n_o,
   n_d,
   model,
-  approx_order,
-  scaling = 1) {
+  approx_order) {
 
   # the first trace is allways zero
   powers_2p <- seq(2, approx_order)
@@ -89,7 +81,7 @@ generate_approxldet_cartesian <- function(
     logdet_calculator_234 <- function(rho) {
       rho_xt <- rho^powers_2p
       logdet_val <- -as.numeric(sum(rho_xt * tWx_traces))
-      return(logdet_val * scaling)
+      return(logdet_val)
     }
     return(logdet_calculator_234)
   }
@@ -104,7 +96,7 @@ generate_approxldet_cartesian <- function(
 
       logdet_val_d <- -as.numeric(sum(rho_dt * tWd_traces))
       logdet_val_o <- -as.numeric(sum(rho_ot * tWo_traces))
-      return((logdet_val_d + logdet_val_o) * scaling)
+      return(logdet_val_d + logdet_val_o)
     }
     return(logdet_calculator_8)
   }
@@ -424,14 +416,14 @@ trace_template_nc <- function() {
 }
 
 #' @keywords  internal
-tracevals2approxldet <- function(tracevals, scaling = 1) {
+tracevals2approxldet <- function(tracevals) {
 
   approxldet <- function(rho) {
 
     powers <- subset(tracevals, select = -TRACE_VAL)
     param_vals <- Reduce("*", Map("^", rho, powers))
     logdet_val <- -as.numeric(sum(param_vals * tracevals$TRACE_VAL))
-    return(logdet_val * scaling)
+    return(logdet_val)
   }
 
   return(approxldet)

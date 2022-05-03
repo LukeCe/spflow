@@ -161,13 +161,13 @@ expect_error(spflow:::extract_transformed_varnames(
 expect_error(spflow:::extract_transformed_varnames(
   formula = ~ not_available + Species, data = iris))
 
-# ---- split_forumla_specials -------------------------------------------------
-expect_error(spflow:::split_forumla_specials(NULL   ,NULL))
-expect_error(spflow:::split_forumla_specials(NULL   ,c("A_","B_")))
-expect_error(spflow:::split_forumla_specials(~ y - a,NULL))
+# ---- split_formula_specials -------------------------------------------------
+expect_error(spflow:::split_formula_specials(NULL   ,NULL))
+expect_error(spflow:::split_formula_specials(NULL   ,c("A_","B_")))
+expect_error(spflow:::split_formula_specials(~ y - a,NULL))
 
 expect_equal({
-  spflow:::split_forumla_specials(
+  spflow:::split_formula_specials(
     ~ D_(a) + O_(b) + I_(c) + G_(d),
     c("D_","O_","I_","G_"))
   }, {
@@ -175,16 +175,16 @@ expect_equal({
   },
   info = "split into named list")
 
-expect_equal(spflow:::split_forumla_specials(~ .,c("D_","O_","I_","G_")),
+expect_equal(spflow:::split_formula_specials(~ .,c("D_","O_","I_","G_")),
              spflow:::named_list(c("D_","O_","I_","G_"),  ~ . ),
              info = "preserves dot shortcut")
 
-expect_equal(spflow:::split_forumla_specials(~ . - 1 ,c("D_","O_","I_","G_")),
+expect_equal(spflow:::split_formula_specials(~ . - 1 ,c("D_","O_","I_","G_")),
              spflow:::named_list(c("D_","O_","I_","G_"),  ~ . - 1 ),
              info = "preserves intercept removal")
 
 expect_equal({
-  spflow:::split_forumla_specials(~ . + a + b + c + G_(d),
+  spflow:::split_formula_specials(~ . + a + b + c + G_(d),
                                   c("D_","O_","I_","G_"))
   },
   {

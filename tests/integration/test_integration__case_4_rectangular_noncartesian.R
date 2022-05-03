@@ -216,20 +216,20 @@ res_model_1_ols <- spflow(
 
 # test results
 expect_inherits(res_model_1_ols, "spflow_model_ols")
-expect_true(res_model_1_ols@R2_corr > 0)
+expect_true(res_model_1_ols@estimation_diagnostics[["R2_corr"]] > 0)
 expect_equal(target_results$delta1_ols, coef(res_model_1_ols))
 expect_equal(target_results$sigma1_ols, sd_error(res_model_1_ols))
 
 
 # test moments
-actual_moments <- res_model_1_ols@model_moments
+actual_moments <- res_model_1_ols@spflow_moments
 expect_zero_diff(target_moments[["ZZ"]], actual_moments[["ZZ"]])
 expect_zero_diff(target_moments[["ZY1"]], actual_moments[["ZY"]])
 expect_zero_diff(target_moments[["TSS1"]], actual_moments[["TSS"]])
 
 # test model matrices
-actual_matrices <- res_model_1_ols@design_matrix
-expect_zero_diff(target_matrices[["OW"]], actual_matrices[["OW"]])
+actual_matrices <- res_model_1_ols@spflow_matrices
+
 expect_zero_diff(target_matrices[["D_"]], actual_matrices[["D_"]])
 expect_zero_diff(target_matrices[["O_"]], actual_matrices[["O_"]])
 expect_zero_diff(target_matrices[["G_"]][[1]], actual_matrices[["G_"]][[1]])
@@ -247,7 +247,7 @@ expect_equal(target_results$mu2_s2sls, coef(res_model_2_s2sls))
 expect_equal(target_results$sigma2_s2sls, sd_error(res_model_2_s2sls))
 
 # test moments
-actual_moments <- res_model_2_s2sls@model_moments
+actual_moments <- res_model_2_s2sls@spflow_moments
 expect_zero_diff(target_moments[["ZZ"]], actual_moments[["ZZ"]])
 expect_zero_diff(target_moments[["UU"]], actual_moments[["UU"]])
 expect_zero_diff(target_moments[["ZY2"]], actual_moments[["ZY"]])
@@ -255,8 +255,8 @@ expect_zero_diff(target_moments[["UY2"]], actual_moments[["UY"]])
 expect_zero_diff(target_moments[["TSS2"]], actual_moments[["TSS"]])
 
 # test model matrices
-actual_matrices <- res_model_2_s2sls@design_matrix
-expect_zero_diff(target_matrices[["OW"]], actual_matrices[["OW"]])
+actual_matrices <- res_model_2_s2sls@spflow_matrices
+
 expect_zero_diff(target_matrices[["D_"]], actual_matrices[["D_"]])
 expect_zero_diff(target_matrices[["O_"]], actual_matrices[["O_"]])
 expect_zero_diff(target_matrices[["G_"]][[1]], actual_matrices[["G_"]][[1]])
@@ -275,7 +275,7 @@ expect_equal(target_results$mu9_s2sls, coef(res_model_9_s2sls))
 expect_equal(target_results$sigma9_s2sls, sd_error(res_model_9_s2sls))
 
 # test moments
-actual_moments <- res_model_9_s2sls@model_moments
+actual_moments <- res_model_9_s2sls@spflow_moments
 expect_zero_diff(target_moments[["ZZ"]], actual_moments[["ZZ"]])
 expect_zero_diff(target_moments[["UU"]], actual_moments[["UU"]])
 expect_zero_diff(target_moments[["ZY9"]], actual_moments[["ZY"]])
@@ -283,8 +283,8 @@ expect_zero_diff(target_moments[["UY9"]], actual_moments[["UY"]])
 expect_zero_diff(target_moments[["TSS9"]], actual_moments[["TSS"]])
 
 # test model matrices
-actual_matrices <- res_model_9_s2sls@design_matrix
-expect_zero_diff(target_matrices[["OW"]], actual_matrices[["OW"]])
+actual_matrices <- res_model_9_s2sls@spflow_matrices
+
 expect_zero_diff(target_matrices[["D_"]], actual_matrices[["D_"]])
 expect_zero_diff(target_matrices[["O_"]], actual_matrices[["O_"]])
 expect_zero_diff(target_matrices[["G_"]][[1]], actual_matrices[["G_"]][[1]])
@@ -309,14 +309,14 @@ expect_equal(target_results$sigma_input / sd_error(res_model_2_mle),
              rep(1,1), tolerance = 0.2, check.names = FALSE)
 
 # test moments
-actual_moments <- res_model_2_mle@model_moments
+actual_moments <- res_model_2_mle@spflow_moments
 expect_zero_diff(target_moments[["ZZ"]],   actual_moments[["ZZ"]])
 expect_zero_diff(target_moments[["ZY2"]],  actual_moments[["ZY"]])
 expect_zero_diff(target_moments[["TSS2"]], actual_moments[["TSS"]])
 
 # test model matrices
-actual_matrices <- res_model_2_mle@design_matrix
-expect_zero_diff(target_matrices[["OW"]], actual_matrices[["OW"]])
+actual_matrices <- res_model_2_mle@spflow_matrices
+
 expect_zero_diff(target_matrices[["D_"]], actual_matrices[["D_"]])
 expect_zero_diff(target_matrices[["O_"]], actual_matrices[["O_"]])
 expect_zero_diff(target_matrices[["G_"]][[1]], actual_matrices[["G_"]][[1]])
@@ -338,14 +338,14 @@ expect_equal(target_results$sigma_input / sd_error(res_model_9_mle),
              rep(1,1), tolerance = 0.2, check.names = FALSE)
 
 # test moments
-actual_moments <- res_model_9_mle@model_moments
+actual_moments <- res_model_9_mle@spflow_moments
 expect_zero_diff(target_moments[["ZZ"]],   actual_moments[["ZZ"]])
 expect_zero_diff(target_moments[["ZY9"]],  actual_moments[["ZY"]])
 expect_zero_diff(target_moments[["TSS9"]], actual_moments[["TSS"]])
 
 # test model matrices
-actual_matrices <- res_model_9_mle@design_matrix
-expect_zero_diff(target_matrices[["OW"]], actual_matrices[["OW"]])
+actual_matrices <- res_model_9_mle@spflow_matrices
+
 expect_zero_diff(target_matrices[["D_"]], actual_matrices[["D_"]])
 expect_zero_diff(target_matrices[["O_"]], actual_matrices[["O_"]])
 expect_zero_diff(target_matrices[["G_"]][[1]], actual_matrices[["G_"]][[1]])
@@ -369,14 +369,14 @@ expect_equal(target_results$sigma_input / sd_error(res_model_2_mcmc),
              rep(1,1), tolerance = 0.1, check.names = FALSE)
 
 # test moments
-actual_moments <- res_model_2_mcmc@model_moments
+actual_moments <- res_model_2_mcmc@spflow_moments
 expect_zero_diff(target_moments[["ZZ"]],   actual_moments[["ZZ"]])
 expect_zero_diff(target_moments[["ZY2"]],  actual_moments[["ZY"]])
 expect_zero_diff(target_moments[["TSS2"]], actual_moments[["TSS"]])
 
 # test model matrices
-actual_matrices <- res_model_2_mcmc@design_matrix
-expect_zero_diff(target_matrices[["OW"]], actual_matrices[["OW"]])
+actual_matrices <- res_model_2_mcmc@spflow_matrices
+
 expect_zero_diff(target_matrices[["D_"]], actual_matrices[["D_"]])
 expect_zero_diff(target_matrices[["O_"]], actual_matrices[["O_"]])
 expect_zero_diff(target_matrices[["G_"]][[1]], actual_matrices[["G_"]][[1]])
@@ -398,14 +398,14 @@ expect_equal(target_results$sigma_input / sd_error(res_model_9_mcmc),
              rep(1,1), tolerance = 0.2, check.names = FALSE)
 
 # test moments
-actual_moments <- res_model_9_mcmc@model_moments
+actual_moments <- res_model_9_mcmc@spflow_moments
 expect_zero_diff(target_moments[["ZZ"]],   actual_moments[["ZZ"]])
 expect_zero_diff(target_moments[["ZY9"]],  actual_moments[["ZY"]])
 expect_zero_diff(target_moments[["TSS9"]], actual_moments[["TSS"]])
 
 # test model matrices
-actual_matrices <- res_model_9_mcmc@design_matrix
-expect_zero_diff(target_matrices[["OW"]], actual_matrices[["OW"]])
+actual_matrices <- res_model_9_mcmc@spflow_matrices
+
 expect_zero_diff(target_matrices[["D_"]], actual_matrices[["D_"]])
 expect_zero_diff(target_matrices[["O_"]], actual_matrices[["O_"]])
 expect_zero_diff(target_matrices[["G_"]][[1]], actual_matrices[["G_"]][[1]])
@@ -443,14 +443,13 @@ expect_equal(target_results$mu9_s2sls, coef(res_model_9_s2sls_narm))
 expect_equal(target_results$sigma9_s2sls, sd_error(res_model_9_s2sls_narm))
 
 # test moments
-actual_moments <- res_model_9_s2sls_narm@model_moments
+actual_moments <- res_model_9_s2sls_narm@spflow_moments
 expect_zero_diff(target_moments[["ZZ"]],   actual_moments[["ZZ"]])
 expect_zero_diff(target_moments[["ZY9"]],  actual_moments[["ZY"]])
 expect_zero_diff(target_moments[["TSS9"]], actual_moments[["TSS"]])
 
 # test model matrices
-actual_matrices <- res_model_9_s2sls_narm@design_matrix
-expect_zero_diff(target_matrices[["OW"]], actual_matrices[["OW"]])
+actual_matrices <- res_model_9_s2sls_narm@spflow_matrices
 expect_zero_diff(target_matrices[["D_"]], actual_matrices[["D_"]])
 expect_zero_diff(target_matrices[["O_"]], actual_matrices[["O_"]])
 expect_zero_diff(target_matrices[["G_"]][[1]], actual_matrices[["G_"]][[1]])

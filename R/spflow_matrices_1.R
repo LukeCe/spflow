@@ -33,68 +33,53 @@
 #'   (see \insertCite{Dargel2021}{spflow}).
 #'
 #' @references \insertAllCited{}
-#' @inheritParams sp_network_pair
-#' @inheritParams spflow
-#' @name spflow_model_matrix
+#' @name derive_spflow_matrices
 #' @keywords internal
 #' @return A list of design matrices for the spatial interaction model
-spflow_model_matrix <- function(
-  sp_multi_network,
-  network_pair_id,
-  flow_formula,
-  flow_control,
-  ignore_na = FALSE) {
+derive_spflow_matrices <- function(
+  spflow_data,
+  spflow_neighborhood,
+  spflow_formula,
+  spflow_control,
+  na_rm = FALSE) {
 
 
-  od_data_sources <- pull_relational_flow_data(
-    sp_multi_network,
-    network_pair_id)
-
-  od_neighborhoods <- pull_neighborhood_data(
-    sp_multi_network = sp_multi_network,
-    network_pair_id = network_pair_id)
-
-  od_neighborhoods <- valdiate_od_neighborhoods(
-    od_neighborhoods = od_neighborhoods,
-    model = flow_control[["model"]],
-    do_normalisation = flow_control[["neighborhood_do_normalisation"]])
-
-  formula_parts <- interpret_flow_formula(
-    flow_formula,
-    flow_control)
-
-  flowmodel_matrices <- flowdata_transformations(
+  formula_parts <- interpret_spflow_formula(
+    spflow_formula,
+    spflow_control)
+  spflow_matrices <- transform_spflow_data(
     formula_parts = formula_parts,
-    data_sources = od_data_sources,
-    na_rm = ignore_na,
-    weights_var = flow_control[["weight_variable"]])
+    spflow_data = spflow_data,
+    na_rm = na_rm,
+    weights_var = spflow_control[["weight_variable"]],
+    is_within = spflow_control[["is_within"]])
+
 
   variable_usage <- define_lags_and_instruments(
     formula_parts,
-    lapply(od_data_sources, "subset_keycols" , drop_keys = TRUE))
-
-  flowmodel_matrices <- flowdata_spatiallag(
+    lapply(spflow_data, "subset_keycols" , drop_keys = TRUE))
+  spflow_matrices <- lag_spflow_matrices(
     variable_usage = variable_usage,
-    flowmodel_matrices = flowmodel_matrices,
-    nb_matrices = od_neighborhoods,
-    model = flow_control[["model"]],
-    decorrelate_instruments = isTRUE(flow_control[["twosls_decorrelate_instruments"]]),
-    reduce_pair_instruments = isTRUE(flow_control[["twosls_reduce_pair_instruments"]]))
+    spflow_matrices = spflow_matrices,
+    spflow_neighborhood = spflow_neighborhood,
+    spflow_indicators = spflow_matrices[["spflow_indicators"]],
+    model = spflow_control[["model"]],
+    decorrelate_instruments = isTRUE(spflow_control[["twosls_decorrelate_instruments"]]),
+    reduce_pair_instruments = isTRUE(spflow_control[["twosls_reduce_pair_instruments"]]))
 
-  constants <- derive_flow_constants(
+
+  constants <- list("CONST" = derive_spflow_constants(
     use_global_const = formula_parts[["constants"]][["global"]],
     use_intra_const = isTRUE(formula_parts[["constants"]][["intra"]]),
-    use_instruments = flow_control[["estimation_method"]] == "s2sls",
-    flow_indicator = flowmodel_matrices[["flow_indicator"]],
-    OW = od_neighborhoods[["OW"]],
-    DW = od_neighborhoods[["DW"]])
-
-
-  return(c(constants, flowmodel_matrices))
+    use_instruments = spflow_control[["estimation_method"]] == "s2sls",
+    spflow_indicators = spflow_matrices[["spflow_indicators"]],
+    OW = spflow_neighborhood[["OW"]],
+    DW = spflow_neighborhood[["DW"]]))
+  return(c(constants, spflow_matrices))
 }
 
 #' @keywords internal
-pull_relational_flow_data <- function(
+pull_spflow_data <- function(
   sp_multi_net,
   pair_id) {
 
@@ -122,18 +107,6 @@ subset_keycols <- function(df, drop_keys = TRUE) {
   return(df[, keep_cols, drop = FALSE])
 }
 
-#' @keywords internal
-pull_neighborhood_data <-  function(sp_multi_network, network_pair_id) {
-
-  od_id <- id(sp_multi_network@network_pairs[[network_pair_id]])
-  neighbor_mats <- lapply(c("OW" = "orig", "DW" = "dest"), function(.key) {
-    m <- neighborhood(sp_multi_network, od_id[.key])
-    dimnames(m) <- list(NULL,NULL)
-    return(m)
-  })
-
-  return(compact(neighbor_mats))
-}
 
 #' @keywords internal
 define_lags_and_instruments <- function(formula_parts, data_sources) {
@@ -160,41 +133,38 @@ define_lags_and_instruments <- function(formula_parts, data_sources) {
 
 #' @importFrom Matrix Diagonal
 #' @keywords internal
-derive_flow_constants <- function(
+derive_spflow_constants <- function(
     use_global_const,
     use_intra_const,
     use_instruments,
-    flow_indicator = NULL,
+    spflow_indicators = NULL,
     OW = NULL,
     DW = NULL) {
 
-  c_terms <- named_list("const","const_intra")
-  c_terms[["const"]] <- `attr_inst_status<-`(1, !use_global_const)
 
+  c_terms <- list("(Intercept)" =  `attr_inst_status<-`(1, !use_global_const))
   if (!use_intra_const)
-    return(c_terms["const"])
+    return(c_terms)
 
-  In <- Diagonal(nrow(OW), diag(flow_indicator) %||% 1)
-  attr_inst_status(In) <- FALSE
-  c_terms[["const_intra"]] <- list("(Intra)" = In)
-
+  n <- nlevels(spflow_indicators[[1]])
+  c_terms <- c(c_terms, "(Intra)" = `attr_inst_status<-`(Diagonal(n), FALSE))
   if (!use_instruments)
     return(c_terms)
 
-  c_terms[["const_intra"]] <- double_lag_matrix(
-    M = In,
+  # for computation of instruments the indicator is based on observed Y
+  Y_indicator <- spflow_indicators2mat(spflow_indicators, do_filter = "HAS_Y")
+  intra_lags <- double_lag_matrix(
+    M = Diagonal(n),
     OW = OW,
     DW = DW,
     name = "(Intra)",
     key = "I",
-    flow_indicator = flow_indicator,
-    symmetric_lags = is.null(flow_indicator),
+    M_indicator = Y_indicator,
+    symmetric_lags = is.null(Y_indicator),
     lag_order = 2,
     return_all_lags = TRUE,
-    lags_are_instruments = TRUE
-  )
-
-  return(c_terms)
+    lags_are_instruments = TRUE)
+  return(c(c_terms, intra_lags[-1]))
 }
 
 
@@ -226,47 +196,3 @@ derive_variables_use <- function(
   var_use_df[["inst_attr"]] <- I(inst_attr)
   var_use_df
 }
-
-#' @keywords interal
-valdiate_od_neighborhoods <- function(
-  od_neighborhoods,
-  model,
-  do_normalisation = TRUE) {
-
-  model_num <- as.numeric(substr(model,7,7))
-  req_OW <- model_num %in% c(3:9)
-  req_DW <- model_num %in% c(2,4:9)
-
-  assert(!req_OW  || !is.null(od_neighborhoods[["OW"]]),
-         "For model_%s you the origin neighborhood musst be available!",
-         model_num)
-  assert(!req_DW || !is.null(od_neighborhoods[["DW"]]),
-         "For model_%s you the destination neighborhood musst be available!",
-         model_num)
-
-
-  spectral_radi <- lapply(od_neighborhoods, function(.XW) abs(attr_spectral_character(.XW)["LM"]))
-  tol <- sqrt(.Machine$double.eps)
-  unit_radi <- all(abs(unlist(spectral_radi) - 1) < tol)
-  if (unit_radi)
-    return(od_neighborhoods)
-
-  row_sums <- lapply(od_neighborhoods, rowSums)
-  row_sums_0or1 <- lapply(row_sums, function(.rs) all(abs(abs(.rs - .5) - .5) < tol))
-  row_normalized <- all(unlist(row_sums_0or1))
-  if (row_normalized)
-    return(od_neighborhoods)
-
-  assert(do_normalisation, "The neighborhood matrices should be normalized!")
-  od_neighborhoods <- Map(
-    function(.W, .sr) {
-      .W <- .W / .sr
-      attr_spectral_character(.W) <- attr_spectral_character(.W) / .sr
-      .W
-    },
-    .W = od_neighborhoods,
-    .sr = spectral_radi)
-
-  return(od_neighborhoods)
-}
-

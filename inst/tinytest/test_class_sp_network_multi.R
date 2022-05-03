@@ -181,7 +181,10 @@ expect_equal({
     orig_key_column = "ID_O",
     dest_key_column =  "ID_D")
   test_multi_net <- sp_multi_network(test_net_pair,test_o_net,test_d_net)
-  data.frame(pair_merge(test_multi_net, "net1_net2"))
+  data.frame(pair_merge(test_multi_net, "net1_net2",
+                        pair_cols = "DIST",
+                        orig_cols = "VAL",
+                        dest_cols = "VAL"))
   },
   {
     data.frame("ID_D" = factor(c("C","D","C","D")),
@@ -219,15 +222,13 @@ expect_equal({
   test_multi_net <- suppressWarnings(sp_multi_network(
     test_net_pair, test_o_net, test_d_net))
 
-  data.frame(pair_merge(test_multi_net, "net1_net2", make_cartesian = TRUE))
+  data.frame(pair_merge(test_multi_net, "net1_net2", make_cartesian = TRUE, pair_cols = "DIST"))
   },
   {
     data.frame(
       "ID_D" = factor(c("D", "C", "D", "C"), levels = c("D","C")),
       "ID_O" = factor(c("B", "B","A", "A"), levels = c("B","A")),
-      "DIST" = c(4, NA, NA, 1),
-      "DEST_VAL" = "DD",
-      "ORIG_VAL" = "OO"
+      "DIST" = c(4, NA, NA, 1)
     )
   },
   info = "merging origin and destination infos to the pairs
@@ -262,7 +263,9 @@ expect_equal({
 
   data.frame(pair_merge(test_multi_net, "net1_net2",
                         pair_cols = NULL,
-                        keep_od_keys = FALSE,
+                        orig_cols = "VAL",
+                        dest_cols = "VAL",
+                         keep_od_keys = FALSE,
                         make_cartesian = TRUE))
 },
 {

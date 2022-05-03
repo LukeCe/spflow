@@ -1,4 +1,4 @@
-#' @include class_generics_and_maybes.R
+#' @include class_generics_and_maybes.R class_sp_network_multi.R
 
 # ---- Class definition -------------------------------------------------------
 #' @title Class spflow_model
@@ -17,29 +17,15 @@
 #' @slot estimation_control
 #'   A list that contains all control parameters of the estimation
 #'   (see [spflow_control()])
-#' @slot N
-#'   A numeric that corresponds to the number of origin-destination pairs
-#'   (the sample size in this model)
-#' @slot sd_error
-#'   A numeric representing the standard deviation of the residual
-#' @slot R2_corr
-#'   A numeric that serves as a goodness of fit criterion.
-#'   The R2_corr is computed as squared correlation between the fitted values
-#'   and the observed values of the dependent variable.
-#' @slot resid
-#'   A numeric vector of regression residuals
-#' @slot fitted
-#'   A numeric vector of fitted values computed as the in sample prediction
-#'   trend signal (TS) prediction described by @Goulard2017
-#' @slot spatial_filter_matrix A matrix (can be sparse) or NULL
-#' @slot design_matrix A list or NULL
-#' @slot fit_diagnostics A list or NULL
+#' @slot estimation_diagnostics
+#'   A list of further indicators about the estimation
+#' @slot spflow_matrices A list or NULL
 #'
 #' @name spflow_model-class
 #' @seealso [spflow()], [spflow_network_classes()]
 #' @examples
 #'
-#' spflow_results <- spflow(y9 ~ . + G_(DISTANCE),multi_net_usa_ge)
+#' spflow_results <- spflow(y9 ~ . + G_(DISTANCE), multi_net_usa_ge)
 #'
 #' # General methods
 #' results(spflow_results) # data.frame of main results
@@ -65,24 +51,32 @@
 #' results(spflow_results)
 #' mcmc_results(spflow_results_mcmc) # parameter values during the mcmc sampling
 #'
-setClass("spflow_model",
-         slots = c(
-           estimation_results = "data.frame",
-           estimation_control = "list",
-           N = "numeric",
-           sd_error = "numeric",
-           R2_corr = "maybe_numeric",
-           resid = "maybe_any_matrix",
-           fitted = "maybe_any_matrix",
-           spatial_filter_matrix = "maybe_any_matrix",
-           design_matrix = "maybe_list",
-           model_moments = "maybe_list",
-           fit_diagnostics = "maybe_list",
-           node_coords = "maybe_data.frame"))
+setClass("spflow_model", slots = c(
+  estimation_results = "data.frame",
+  estimation_control = "list",
+  estimation_diagnostics = "list",
+  spflow_data = "maybe_list",
+  spflow_neighborhood = "maybe_list",
+  spflow_formula = "maybe_formula",
+  spflow_moments = "maybe_list",
+  spflow_matrices = "maybe_list",
+  spflow_indicators = "maybe_data.frame"))
 
+
+setClass("spflow_model_ols", contains = "spflow_model")
+setClass("spflow_model_mle", contains = "spflow_model")
+setClass("spflow_model_s2sls", contains = "spflow_model")
+setClass("spflow_model_mcmc", contains = "spflow_model")
+setClassUnion("spflow_model_varcov",
+              c("spflow_model_ols",
+                "spflow_model_mle",
+                "spflow_model_s2sls"))
+setClassUnion("spflow_model_spatial",
+              c("spflow_model_mcmc",
+                "spflow_model_mle",
+                "spflow_model_s2sls"))
 
 # ---- Methods ----------------------------------------------------------------
-
 # ---- ... add_details --------------------------------------------------------
 #' @title Internal method to add details to a [spflow_model-class()]
 #'
@@ -92,43 +86,75 @@ setClass("spflow_model",
 #' It also calculates the fitted values and the residuals as well as a
 #' goodness-of-fit measure.
 #'
-#' @param object A [spflow_model-class()]
-#' @param model_matrices A list as returned by [spflow_model_matrix()]
-#' @param flow_control A list as returned by [spflow_control()]
-#' @param model_moments A list as returned by [spflow_model_moments()]
-#' @name add_details
 #' @return An object of class spflow_model
+#' @name add_details
 #' @keywords  internal
 setMethod(
   f = "add_details",
   signature = "spflow_model",
   function(object,
-           model_matrices,
-           flow_control,
-           model_moments,
-           node_coords) {
-
-    object@design_matrix <- drop_instruments(model_matrices)
-    object@model_moments <- model_moments
-    object@node_coords <- node_coords
+           spflow_data,
+           spflow_indicators,
+           spflow_moments,
+           spflow_neighborhood,
+           spflow_matrices) {
 
     # add fitted values , residuals, and goodness-of-fit
-    nb_rho <- spatial_model_order(flow_control$model)
+    model <- object@estimation_control[["model"]]
+    nb_rho <- spatial_model_order(model)
     mu <- coef(object)
     rho <- mu[seq_len(nb_rho)]
     delta <- mu[!names(mu) %in% names(rho)]
 
+    spflow_matrices <- drop_instruments(spflow_matrices)
+    signal <- compute_signal(delta, spflow_matrices, spflow_indicators, keep_matrix_form = FALSE)
+    spflow_indicators <- cbind(spflow_indicators, SIGNAL = NA, FITTED = NA)
 
-    object@fitted <- predict(
-      object,
-      type = flow_control$fitted_value_method,
-      approx_expectation = flow_control$approx_expectation,
-      expectation_approx_order = flow_control$approx_expectation,
-      keep_matrix_form = TRUE)
+    filter_x <- spflow_indicators[["HAS_SIG"]] %||% TRUE
+    filter_y <- spflow_indicators[["HAS_Y"]] %||% filter_x
+    spflow_indicators[filter_x, "SIGNAL"] <- signal
 
-    object@resid <- object@fitted - actual(object, "M")
-    object@R2_corr <- cor(fitted(object, "V"), actual(object, "V"))^2
+    fit_method <- object@estimation_control[["fitted_value_method"]]
+    fit_method <- ifelse(model == "model_1", yes = "LIN", fit_method)
+    if (fit_method == "LIN") {
+      filter_y <- spflow_indicators[["HAS_Y"]] %||% TRUE
+      spflow_indicators[filter_y, "FITTED"] <- spflow_indicators[filter_y, "SIGNAL"]
+    }
+    if (fit_method == "TS") {
+      y_ind <- spflow_indicators2pairindex(spflow_indicators, "HAS_Y")
+      trend <- Reduce("+", Map("*", rho, spflow_matrices[["Y_"]][-1]))[y_ind]
+      spflow_indicators[filter_y, "FITTED"] <- trend + spflow_indicators[filter_y, "SIGNAL"]
+    }
+    if (fit_method == "TC") {
+      EY <- compute_expectation(
+        signal_matrix = signal,
+        DW = object@spflow_neighborhood$DW,
+        OW = object@spflow_neighborhood$OW,
+        rho = rho,
+        model = model,
+        M_indicator = spflow_indicators2pairindex(spflow_indicators, "HAS_Y"),
+        approximate = object@estimation_control[["approx_expectation"]],
+        max_it = object@estimation_control[["expectation_approx_order"]],
+        keep_matrix_form = FALSE)
+      spflow_indicators[filter_y, "FITTED"] <- EY
+    }
+
+    R2_corr <- cor(spflow_indicators[["FITTED"]], spflow_indicators[["ACTUAL"]], use = "complete.obs")
+    object@estimation_diagnostics <- c(
+      object@estimation_diagnostics,
+      spflow_indicators2obs(spflow_indicators),
+      R2_corr = as.numeric(R2_corr^2))
+
+    object@spflow_neighborhood <- spflow_neighborhood
+    object@spflow_indicators <- spflow_indicators
+    object@spflow_moments <- spflow_moments
+    if (!object@estimation_control[["reduce_size"]]) {
+      object@spflow_matrices <- spflow_matrices
+      object@spflow_data <- spflow_data
+    }
+
     return(object)
+
   })
 
 
@@ -161,6 +187,29 @@ setMethod(
     return(res)
   })
 
+
+# ---- ... coord --------------------------------------------------------------
+#' @keywords internal
+setMethod(
+  f = "coord",
+  signature = "spflow_model",
+  function(object) {
+
+    if (is.null(object@spflow_data))
+      return(NULL)
+
+    cc <- lapply(compact(object@spflow_data[c("orig", "dest")]), function(.d) {
+      cc <- .d[,get_keycols(.d)]
+      if (!isTRUE(ncol(cc) == 3))
+        return(NULL)
+      row.names(cc) <- cc[[1]]
+      cc[[1]] <- NULL
+      colnames(cc) <- c("COORD_X","COORD_Y")
+      cc
+      })
+    unique(Reduce("rbind",cc))
+  })
+
 # ---- ... fitted -------------------------------------------------------------
 #' @title Extract a vector of fitted values from a spatial interaction model
 #' @param object A [spflow_model()]
@@ -178,11 +227,8 @@ setMethod(
   f = "fitted",
   signature = "spflow_model",
   function(object, type = "V") {
-    vec_format_d_o(
-      mat = object@fitted,
-      do_keys = object@design_matrix$do_keys,
-      type = type,
-      name = "FITTED")
+    do_k <- object@spflow_indicators
+    spflow_indicators2format(do_k[,c(names(do_k)[1:2],"FITTED")], type, do_k[["HAS_Y"]])
   })
 
 # ---- ... flow_map -----------------------------------------------------------
@@ -213,9 +259,10 @@ setMethod(
       "index_d" = do_flows[[1]])
     args <- c(args, list(...))
 
-    if (is.null(args[["coords_s"]]))
-      args[["coords_s"]] <- object@node_coords
 
+    if (is.null(args[["coords_s"]])) {
+      args[["coords_s"]] <- coord(object)
+    }
 
     do.call("map_flows", args)
     if (add_title)
@@ -233,22 +280,24 @@ setMethod(
   function(object, model, DW, OW, add_lines = TRUE) {
 
     if (missing(model)) model <- object@estimation_control[["model"]]
-    if (missing(DW)) DW <- object@design_matrix[["DW"]]
-    if (missing(OW)) OW <- object@design_matrix[["OW"]]
+    if (missing(DW)) DW <- object@spflow_neighborhood[["DW"]]
+    if (missing(OW)) OW <- object@spflow_neighborhood[["OW"]]
 
     assert(model != "model_1", "The Moran plot is for spatial models!")
 
     # recompute the moments pretending the errors are the flows
     # with flows becoming exogenous variables
+
+    M_indicator <- spflow_indicators2mat(object@spflow_indicators)
     E_ <- lag_flow_matrix(
       Y = resid(object, "M"),
       model = model,
       OW = OW,
       DW = DW,
       name = "RESID",
-      flow_indicator = object@design_matrix[["flow_indicator"]])
+      M_indicator = M_indicator)
 
-    E_ <- lapply(E_, vec_format_d_o, do_keys = object@design_matrix$do_keys, type = "V")
+    E_ <- lapply(E_, vec_format_d_o, do_keys = object@spflow_indicators, type = "V")
     E_1 <- cbind(1,E_[[1]])
     for (i in seq_len(length(E_) - 1)) {
       ii <- sub("RESID.",replacement = "", names(E_)[i + 1])
@@ -264,6 +313,23 @@ setMethod(
     }
   })
 
+# ---- ... logLik -------------------------------------------------------------
+#' @param object A [spflow_model-class()]
+#' @rdname spflow_model-class
+#' @export
+setMethod(
+  f = "logLik",
+  signature = "spflow_model_mle",
+  function(object) return(object@estimation_diagnostics[["ll"]]))
+
+# ---- ... mcmc_results ------------------------------------------------------
+#' @param object A [spflow_model-class()]
+#' @rdname spflow_model-class
+setMethod(
+  f = "mcmc_results",
+  signature = "spflow_model_mcmc",
+  function(object) return(object@estimation_diagnostics[["mcmc_results"]]))
+
 # ---- ... nobs ---------------------------------------------------------------
 #' @title Access the number of observations inside a [spflow_model]
 #' @param object A [spflow_model()]
@@ -272,8 +338,9 @@ setMethod(
 setMethod(
   f = "nobs",
   signature = "spflow_model",
-  function(object) {
-    return(object@N)
+  function(object, which = "fit") {
+    assert_valid_case(which, c("fit", "cart", "pred", "pair", "orig", "dest"))
+    return(object@estimation_diagnostics[[paste0("N_", which)]])
   })
 
 
@@ -300,10 +367,10 @@ setMethod(
     type_options <- c("fit", "empiric")
     assert_valid_case(type, type_options)
 
-    new_mat <- object@design_matrix
-    new_mat[["const"]] <- 1
-    new_mom <- object@model_moments
-    keep_moments <- type == "fit" || is.null(new_mat[["weights"]])
+    new_mat <- object@spflow_matrices
+    new_mat[["CONST"]][["(Intercept)"]] <- 1
+    new_mom <- object@spflow_moments
+    keep_moments <- type == "fit" || is.null(object@estimation_control[["weight_variable"]])
     new_mat[["weights"]] <- NULL
     if (!keep_moments) {
       new_mom <- compute_spflow_moments(
@@ -321,30 +388,30 @@ setMethod(
     # recompute the moments pretending the errors are the flows
     # with flows becoming exogenous variables
     new_mat[["G_"]] <- c(new_mat[["G_"]], new_mat[["Y_"]])
-    new_mat[["weights"]] <- NULL
     new_mat[["Y_"]] <- NULL
 
 
     if (add_fitted) {
       new_mat[["Y_"]] <- list(fitted(object, "M"))
-      names(new_mat[["Y_"]]) <- paste0(names(object@design_matrix[["Y_"]])[1], ".fit")
+      names(new_mat[["Y_"]]) <- paste0(names(object@spflow_matrices[["Y_"]])[1], ".fit")
     }
 
+    M_indicator <- spflow_indicators2mat(object@spflow_indicators)
     if (add_resid) {
       new_mat[["Y_"]] <- c(
         new_mat[["Y_"]],
         lag_flow_matrix(
           Y = resid(object, "M"),
           model = model,
-          OW = new_mat[["OW"]],
-          DW = new_mat[["DW"]],
+          OW = object@spflow_neighborhood[["OW"]],
+          DW = object@spflow_neighborhood[["DW"]],
           name = "RESID",
-          flow_indicator = new_mat[["flow_indicator"]]
+          M_indicator = M_indicator
         ))
     }
 
 
-    JE <- lapply(new_mat[["Y_"]], "moment_empirical_covar", new_mat)
+    JE <- lapply(new_mat[["Y_"]], "spflow_moment_cov", new_mat)
     JE <- Reduce("cbind", JE, matrix(nrow = length(JE[[1]]), ncol = 0))
     colnames(JE) <- names(new_mat[["Y_"]])
 
@@ -391,11 +458,12 @@ setMethod(
     abline(lm.fit(cbind(1,fitted_x), actual_x), col = "red") ; abline(a = 0, b = 1)
 
 
-    if (!is.null(x@node_coords)) {
+    coords_s <- list(...)[["coords_s"]] %||% coord(x)
+    if (!is.null(coords_s)) {
       x_or_25_percent <- min(50,nobs(x) / 4)
       keep_x_at_most <- (nobs(x) - x_or_25_percent)  / nobs(x)
-      flow_map(x, flow_type = "fitted", filter_lowest = keep_x_at_most, legend = "bottomright")
-      flow_map(x, flow_type = "resid", filter_lowest = keep_x_at_most, legend = "bottomright")
+      flow_map(x, coords_s = coords_s, flow_type = "fitted", filter_lowest = keep_x_at_most, legend = "bottomright")
+      flow_map(x, coords_s= coords_s, flow_type = "resid", filter_lowest = keep_x_at_most, legend = "bottomright")
     }
 
     if (!inherits(x, "spflow_model_ols"))
@@ -427,10 +495,11 @@ setMethod(
   function(object,
            ...,
            new_data = NULL,
-           type = "TS",
+           in_sample = is.null(new_data),
+           method = "TC",
            approx_expectation = TRUE,
            expectation_approx_order = 10,
-           keep_matrix_form = FALSE) {
+           return_type = "OD") {
 
 
     # extract coefficients and compute the signal
@@ -438,30 +507,42 @@ setMethod(
     rho <- coef(object, "rho")
     delta <- coef(object, "delta")
 
-    # compute fitted values
-    if (is.null(new_data)) {
+    if (!is.null(new_data))
+      stop("Data update not yet implmented!")
 
-      signal <- compute_signal(object@design_matrix, delta)
+    spflow_indicators <- object@spflow_indicators
+    filter_case <- spflow_indicators[["HAS_SIG"]] %||% TRUE
+    if (in_sample)
+      filter_case <- filter_case & (spflow_indicators[["HAS_Y"]] %||% TRUE)
+    spflow_indicators <- spflow_indicators[filter_case,,drop = FALSE]
+    spflow_matrices <- object@spflow_matrices
 
-      if (model == "model_1")
-        type <- "LIN"
+    signal <- compute_signal(
+      delta = delta,
+      spflow_matrices = spflow_matrices,
+      spflow_indicators = spflow_indicators,
+      keep_matrix_form = TRUE)
 
-      Y_hat <- switch(
-        type,
+    if (model == "model_1")
+      return_type <- "LIN"
+
+    M_indicator <- spflow_indicators2mat(spflow_indicators)
+    Y_hat <- switch(
+        method,
         "LIN" = signal,
         "TC" =  {
           compute_expectation(
             signal_matrix = signal,
-            DW = object@design_matrix$DW,
-            OW = object@design_matrix$OW,
+            DW = object@spflow_neighborhood$DW,
+            OW = object@spflow_neighborhood$OW,
             rho = rho,
             model = model,
-            flow_indicator = object@design_matrix$flow_indicator,
+            M_indicator = M_indicator,
             approximate = approx_expectation,
             max_it = expectation_approx_order
           )},
         "TS" = {
-          trend <- Reduce("+", Map("*", object@design_matrix$Y_[-1], rho))
+          trend <- Reduce("+", Map("*", object@spflow_matrices$Y_[-1], rho))
           trend + signal
         },
         "BP" = {
@@ -476,24 +557,30 @@ setMethod(
           # )
         }
       )
-    }
 
-    # compute predictions
-    if (!is.null(new_data)) {
-      stop("Predictions for new data are not yet implemented!")
-    }
-
-
-    if (keep_matrix_form)
-      return(Y_hat)
-
-    flow_indicators <- as.vector(object@design_matrix$flow_indicator)
-    if (is.null(flow_indicators))
-      return(as.vector(Y_hat))
-
-    return(as.vector(Y_hat)[flow_indicators])
-
+  return(vec_format_d_o(
+    mat = Y_hat,
+    do_keys =  spflow_indicators,
+    type =  return_type,
+    name =  "PREDICTION"))
   })
+
+# ---- ... preds --------------------------------------------------------------
+#' #' @title Extract the vector of residuals values from a [spflow_model()]
+#' #'
+#' #' @param object A [spflow_model()]
+#' #' @inheritParams fitted
+#' #' @rdname spflow_model-class
+#' #' @export
+#' setMethod(
+#'   f = "preds",
+#'   signature = "spflow_model",
+#'   function(object, type = "V") {
+#'     return(vec_format_d_o(
+#'       mat = object@resid,
+#'       do_keys = object@spflow_matrices$do_keys,
+#'       type = type,
+#'       name = "RESID"))})
 
 
 # ---- ... resid --------------------------------------------------------------
@@ -507,11 +594,10 @@ setMethod(
   f = "resid",
   signature = "spflow_model",
   function(object, type = "V") {
-    return(vec_format_d_o(
-      mat = object@resid,
-      do_keys = object@design_matrix$do_keys,
-      type = type,
-      name = "RESID"))})
+    do_k <- object@spflow_indicators
+    do_k[["RESID"]] <- do_k[["FITTED"]] - do_k[["ACTUAL"]]
+    spflow_indicators2format(do_k[,c(names(do_k)[1:2],"RESID")], type, do_k[["HAS_Y"]])
+    })
 
 # ---- ... results ------------------------------------------------------------
 #' @section Main results:
@@ -555,11 +641,12 @@ setMethod(
   f = "sd_error",
   signature = "spflow_model",
   function(object){
-    return(object@sd_error)
-  })
+    return(object@estimation_diagnostics[["sd_error"]])
+    })
 
 
 # ---- ... show ---------------------------------------------------------------
+#' @noRd
 #' @keywords internal
 setMethod(
   f = "show",
@@ -583,16 +670,27 @@ setMethod(
 
     cat("\n")
     cat(print_line(50))
-    cat("\nR2_corr:", object@R2_corr, collapse = " ")
+    cat("\nR2_corr:", object@estimation_diagnostics[["R2_corr"]], collapse = " ")
     cat("\nObservations:", nobs(object), collapse = " ")
 
     pspace <- "Model coherence:"
-    pspace_res <- object@fit_diagnostics[[pspace]]
+    pspace_res <- object@estimation_diagnostics[[pspace]]
     if (!is.null(pspace_res))
       cat(sprintf("\n%s %s", pspace, pspace_res))
 
     invisible(object)
   })
+
+
+
+# ---- ... varcov -------------------------------------------------------------
+#' @param object A [spflow_model-class()]
+#' @rdname spflow_model-class
+setMethod(
+  f = "varcov",
+  signature = "spflow_model_varcov",
+  function(object) return(object@estimation_diagnostics[["varcov"]]))
+
 
 # ---- Constructors -----------------------------------------------------------
 #' @title Internal function to construct a [spflow_model-class()]
@@ -605,7 +703,7 @@ setMethod(
 #' @param resid A numeric vector of regression residuals
 #' @param fitted A numeric vector of fitted values
 #' @param spatial_filter_matrix A matrix which represents the spatial filter
-#' @param design_matrix The design matrix/matrices of the model
+#' @param spflow_matrices The design matrix/matrices of the model
 #' @param ...
 #'   Further arguments passed to more specific classes in accordance to the
 #'   estimation method
@@ -615,46 +713,25 @@ setMethod(
 spflow_model <- function(
     ...,
     estimation_results,
-    flow_control,
-    N,
-    sd_error,
-    R2_corr = NULL,
-    resid = NULL,
-    fitted = NULL,
-    spatial_filter_matrix = NULL,
-    design_matrix = NULL,
-    model_moments = NULL,
-    fit_diagnostics = NULL,
-    node_coords = NULL) {
+    estimation_control,
+    estimation_diagnostics,
+    spflow_indicators = NULL,
+    spflow_neighborhood = NULL,
+    spflow_data = NULL,
+    spflow_matrices = NULL,
+    spflow_moments = NULL) {
 
-  est <- flow_control$estimation_method
-  model_class <- paste0("spflow_model_", est)
-
-  # fill generic arguments
-  model_results <-
-    new(model_class,
-        estimation_results = estimation_results,
-        estimation_control = flow_control,
-        N = N,
-        sd_error = sd_error,
-        R2_corr = R2_corr,
-        resid = resid,
-        fitted = fitted,
-        spatial_filter_matrix = spatial_filter_matrix,
-        design_matrix = design_matrix,
-        fit_diagnostics = fit_diagnostics,
-        node_coords = node_coords)
-
-  # model specific arguments
-  dot_args <- list(...)
-  slot_ids <- names(dot_args)
-  for (s in seq_along(dot_args)) {
-    slot(model_results,slot_ids[s]) <- dot_args[[s]]
-  }
-
-
+  model_class <- paste0("spflow_model_", estimation_control[["estimation_method"]])
+  model_results <- new(
+    model_class,
+    estimation_results = estimation_results,
+    estimation_control = estimation_control,
+    estimation_diagnostics = estimation_diagnostics,
+    spflow_indicators = spflow_indicators,
+    spflow_data = spflow_data,
+    spflow_matrices = spflow_matrices,
+    spflow_moments = spflow_moments)
   return(model_results)
-
 }
 
 # ---- Helper functions -------------------------------------------------------
@@ -709,8 +786,8 @@ vec_format_d_o <- function(mat, do_keys, type = "M", name = "FITTED") {
 
 #' @keywords internal
 actual <- function(object, type = "V"){
-  vec_format_d_o(
-  mat = object@design_matrix$Y_[[1]],
-  do_keys = object@design_matrix$do_keys,
-  type = type,
-  name = "ACTUAL")}
+  do_k <- object@spflow_indicators
+  spflow_indicators2format(do_k[,c(names(do_k)[1:2],"ACTUAL")], type, do_k[["HAS_Y"]])
+}
+
+

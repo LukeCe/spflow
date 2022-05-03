@@ -7,30 +7,28 @@ spflow_mle <- function(
   n_d,
   n_o,
   TCORR,
-  flow_control,
-  logdet_calculator) {
+  logdet_calculator,
+  pspace_validator,
+  estimation_control) {
 
-  model <- flow_control$model
-  hessian_method <- flow_control$mle_hessian_method
+  model <- estimation_control[["model"]]
+  hessian_method <- estimation_control[["mle_hessian_method"]]
 
   # compute the decomposed coefficients to obtain the decomposed RSS
   delta_t <- solve_savely(ZZ, ZY, TCORR)
   RSS <- TSS - crossprod(ZY,delta_t)
 
-  ## OPTIMIZE the concentrated likelihood ----
-  optim_part_LL <- function(rho) {
-    # invert the signs (minimize the negative)
-    tau <- c(1, -rho)
-    rss_part <- N * log(tau %*% RSS %*% tau) / 2
-    return(rss_part - logdet_calculator(rho))
-  }
-
-  # initialization
+  # initialization for optimization
   nb_rho <- ncol(ZY) - 1
   rho_tmp <- draw_initial_guess(nb_rho)
   optim_results <- structure(rho_tmp,class = "try-error")
   optim_count <- 1
-  optim_limit <- flow_control[["mle_optim_limit"]]
+  optim_limit <- estimation_control[["mle_optim_limit"]]
+  optim_part_LL <- function(rho) {
+    tau <- c(1, -rho)
+    rss_part <- N * log(tau %*% RSS %*% tau) / 2
+    return(rss_part - logdet_calculator(rho))
+  }
 
   while (is(optim_results,"try-error") & (optim_count < optim_limit)) {
 
@@ -52,6 +50,7 @@ spflow_mle <- function(
   rho <- lookup(optim_results$par, define_spatial_lag_params(model))
   tau <- c(1, -rho)
   delta <- (delta_t %*% tau)[,1]
+  mu <- c(rho, delta)
 
   # inference
   sigma2 <-  as.numeric(1 / N * (tau %*% RSS %*% tau))
@@ -69,8 +68,6 @@ spflow_mle <- function(
   }
 
   hessian <- spflow_hessian(hessian_method, hessian_inputs)
-
-  mu <- c(rho, delta)
   varcov <- -solve(hessian)
   sd_mu <- sqrt(diag(varcov))
 
@@ -78,26 +75,21 @@ spflow_mle <- function(
   ll_partial <- -optim_results$value
   loglik_value <- ll_partial + ll_const_part
 
-  drop_sigma <- length(sd_mu)
-  results_df <- create_results(
-    est = mu,
-    sd = sd_mu[-drop_sigma])
+  id_sigma <- length(sd_mu)
+  results_df <- create_results(est = mu, sd = sd_mu[-id_sigma])
 
-
-
-  diagnostics <- NULL
-  if (isTRUE(flow_control[["track_condition_numbers"]])) {
-    diagnostics <- list("rcond" = rcond(ZZ))
-  }
+  estimation_diagnostics <- list(
+    "sd_error" = sqrt(sigma2),
+    "varcov" = varcov,
+    "ll" = loglik_value,
+    "Model coherence:" = ifelse(pspace_validator(rho), "Validated", "Unknown"))
+  if (isTRUE(estimation_control[["track_condition_numbers"]]))
+    estimation_diagnostics <- c(estimation_diagnostics, "rcond" = rcond(ZZ))
 
   estimation_results <- spflow_model(
-    varcov = varcov,
-    ll = loglik_value,
     estimation_results = results_df,
-    flow_control = flow_control,
-    sd_error = sqrt(sigma2),
-    N = N,
-    fit_diagnostics = diagnostics)
+    estimation_control = estimation_control,
+    estimation_diagnostics = estimation_diagnostics)
 
   return(estimation_results)
 }

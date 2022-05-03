@@ -9,13 +9,13 @@
 # allow NULL slots during instantiation of classes
 setOldClass("mcmc")
 setClassUnion("maybe_data.frame", c("NULL", "data.frame"))
+setClassUnion("maybe_list"      , c("NULL", "list"))
+setClassUnion("maybe_formula"   , c("NULL", "formula"))
 setClassUnion("maybe_Matrix"    , c("NULL", "Matrix"))
 setClassUnion("maybe_matrix"    , c("NULL", "matrix"))
 setClassUnion("maybe_any_matrix", c("NULL", "matrix", "Matrix"))
-setClassUnion("maybe_list"      , c("NULL", "list"))
-setClassUnion("maybe_numeric"   , c("NULL", "numeric"))
 setClassUnion("maybe_mcmc"      , c("NULL", "mcmc"))
-
+setClassUnion("maybe_numeric"   , c("NULL", "numeric"))
 
 # ---- New Generics -----------------------------------------------------------
 
@@ -34,6 +34,12 @@ setGeneric(
 setGeneric(
   name = "complete_pairs",
   def = function(object, ...) standardGeneric("complete_pairs"))
+
+# ---- ... coord --------------------------------------------------------------
+#' @keywords internal
+setGeneric(
+  name = "coord",
+  def = function(object, ...) standardGeneric("coord"))
 
 # ---- ... dat ----------------------------------------------------------------
 #' @title Generic for accessing the data inside

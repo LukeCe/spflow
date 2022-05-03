@@ -156,7 +156,7 @@ expect_equal({
 expect_equal({
   Y  <- matrix(c(0,1,1,1),2,2)
   W <- matrix(1:4,2,2)
-  Y_lags <- spflow:::lag_flow_matrix(Y, model = "model_9", W, W,flow_indicator = Y)
+  Y_lags <- spflow:::lag_flow_matrix(Y, model = "model_9", W, W,M_indicator = Y)
   lapply(Y_lags, "!=", 0)
 
   },
