@@ -213,13 +213,12 @@ spflow <- function(
 
 
   ## ---- derive moments from the covariates (Z,H)
-  wt <- spflow_indicators2mat(spflow_indicators, do_values = "WEIGHTS")
-  estimation_results <- spflow_model_estimation(
+  estimation_results <- spflow_estimation(
     spflow_moments = spflow_moments,
     spflow_nbfunctions = spflow_nbfunctions,
     estimation_control = estimation_control)
 
-  estimation_results <- add_details(
+  estimation_results <- spflow_post_estimation(
     estimation_results,
     spflow_matrices = spflow_matrices,
     spflow_moments = spflow_moments,

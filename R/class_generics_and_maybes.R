@@ -19,14 +19,6 @@ setClassUnion("maybe_numeric"   , c("NULL", "numeric"))
 
 # ---- New Generics -----------------------------------------------------------
 
-# ---- ... add_details --------------------------------------------------------
-#' @name add_details
-#' @rdname add_details
-#' @keywords internal
-setGeneric(
-  name = "add_details",
-  def = function(object, ...) standardGeneric("add_details"))
-
 # ---- ... complete_pairs -----------------------------------------------------
 #' @name complete_pairs
 #' @rdname sp_multi_network-class

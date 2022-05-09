@@ -58,19 +58,20 @@ transform_spflow_data <- function(
     lost[as.integer(row.names(trans))] <- FALSE
     return(lost)
     }
-  lost_nodes <- compact(lapply(node_formulas, function(.f) get_lostobs(
+  lost_nodes <- lapply(lookup(node_formulas), function(.f) get_lostobs(
     pre = spflow_data[[formulas2sources[.f]]],
-    trans = node_matrices[[.f]]))) %||% NULL
+    trans = node_matrices[[.f]]))
+  node_matrices <- Map(impute_lost_cases, node_matrices, lost_nodes)
+  lost_nodes <- compact(lost_nodes) %||% NULL
 
   # ...we will not be able to compute the signal for the corresponding pair
   wt <- weights_var %|!|% as.numeric(spflow_data[["pair"]][[weights_var]])
   spflow_indicators <- get_do_keys(spflow_data[["pair"]])
   HAS_SIG <- NULL
-  HAS_Y <- NULL
-  if (!is.null(lost_nodes) & na_rm) {
+  if (!is.null(lost_nodes)) {
     pair_indexes <- c("D_" = 1,"O_" = 2, "I_" = 2)[names(lost_nodes)]
     pair_indexes <- spflow_indicators[,as.numeric(pair_indexes), drop = FALSE]
-    HAS_SIG <- Map(function(.l, .i) .l[as.numeric(.i)], .l = lost_nodes, .i = pair_indexes)
+    HAS_SIG <- Map(function(.l, .i) (!.l)[as.numeric(.i)], .l = lost_nodes, .i = pair_indexes)
     HAS_SIG <- Reduce("&", HAS_SIG)
   }
 
@@ -82,10 +83,12 @@ transform_spflow_data <- function(
   }
 
   # transform y variables
+  # when there is no signal we cannot use y....
+  HAS_Y <- HAS_SIG
   if (!is.null(wt)) {
     wt_valid <- (is.finite(wt) & wt > 0)
     assert(na_rm || all(wt_valid), "The weights contain NA/NaN/Inf/negative values!")
-    HAS_Y <- if (is.null(HAS_SIG)) wt_valid else wt_valid & HAS_SIG
+    HAS_Y <- if (is.null(HAS_Y)) wt_valid else wt_valid & HAS_Y
   }
 
   Y_matrices <- transform_in_source("Y_", na_rm, filter = HAS_Y)
@@ -100,8 +103,8 @@ transform_spflow_data <- function(
   # also store the dependent variables to compute residuals later
   Y_cases <- HAS_Y %||% TRUE
   G_cases <- HAS_SIG %||% TRUE
-  extra_indicators <- cbind(HAS_SIG, HAS_Y, WEIGHT = wt, ACTUAL = NA)
-  spflow_indicators <- cbind(spflow_indicators, extra_indicators)
+  extra_indicators <- cbind(WEIGHT = wt, ACTUAL = NA)
+  spflow_indicators <- cbind(spflow_indicators, HAS_SIG, HAS_Y, extra_indicators)
   spflow_indicators[["ACTUAL"]][Y_cases] <- Y_matrices
 
   # matrix format pair variables

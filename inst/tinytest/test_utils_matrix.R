@@ -21,6 +21,14 @@ expect_equal({
         cbind(c(0,0),c(0,0),matrix(1:2,nrow = 2)))
 })
 
+# ---- impute_lost_cases ------------------------------------------------------
+expect_equal({
+  m <- matrix(1:4, nrow = 2, ncol = 2, dimnames = list(NULL, c("A","B")))
+  rbind(m[1,,drop = FALSE],0,m[2,,drop = FALSE])
+},
+impute_lost_cases(matrix(1:4, nrow = 2, ncol = 2, dimnames = list(NULL, c("A","B"))),lost_cases = c(F,T,F))
+)
+
 
 # ---- stack_columns ----------------------------------------------------------
 expect_equal({

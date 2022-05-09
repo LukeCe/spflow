@@ -117,6 +117,20 @@ matrix_format_d_o <- function(
   stop("Failed to generate matrix format. Make sure that the indexes are integers!")
 }
 
+#' @keywords internal
+impute_lost_cases <- function(mat_trans, lost_cases, imp = 0) {
+
+  if (is.null(lost_cases))
+    return(mat_trans)
+
+  assert(is.logical(lost_cases) & length(lost_cases >= nrow(mat_trans)))
+  if (sum(lost_cases) == nrow(mat_trans))
+    return(mat_trans)
+
+  xmat <- matrix(imp, nrow = length(lost_cases), ncol = ncol(mat_trans), dimnames = list(NULL, colnames(mat_trans)))
+  xmat[!lost_cases, ] <- mat_trans
+  return(xmat)
+}
 
 #' @keywords internal
 matrix_format_o_d <- function(
