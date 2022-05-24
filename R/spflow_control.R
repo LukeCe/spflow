@@ -148,7 +148,9 @@ spflow_control <- function(
     twosls_decorrelate_instruments = FALSE,
     twosls_reduce_pair_instruments = TRUE,
     track_condition_numbers = FALSE,
-    reduce_size = FALSE) {
+    reduce_size = FALSE,
+    na_rm = FALSE,
+    na_border2zero = TRUE) {
 
 
   available_estimators <- c("s2sls", "mle","mcmc","ols")
@@ -180,6 +182,10 @@ spflow_control <- function(
 
   assert_is_single_x(track_condition_numbers, "logical")
   assert_is_single_x(reduce_size, "logical")
+  assert_is_single_x(na_rm, "logical")
+  assert_is_single_x(na_border2zero, "logical")
+
+
 
   # control parameter used in all cases
   general_control <- list(
@@ -189,8 +195,9 @@ spflow_control <- function(
     "sdm_variables" = sdm_variables,
     "weight_variable" = weight_variable,
     "track_condition_numbers" = track_condition_numbers,
-    "reduce_size" = reduce_size
-  )
+    "reduce_size" = reduce_size,
+    "na_rm" = na_rm,
+    "na_border2zero" = na_border2zero)
 
   if (estimation_method == "ols")
     return(general_control)
