@@ -118,10 +118,10 @@ setMethod(
       return(NULL)
 
     cc <- lapply(compact(object@spflow_data[c("orig", "dest")]), function(.d) {
-      cc <- .d[,get_keycols(.d)]
-      if (!isTRUE(ncol(cc) == 3))
+      cc <- as.data.frame(.d[,get_keycols(.d)])
+      if (isFALSE(ncol(cc) == 3))
         return(NULL)
-      row.names(cc) <- cc[[1]]
+      rownames(cc) <- as.character(cc[[1]])
       cc[[1]] <- NULL
       colnames(cc) <- c("COORD_X","COORD_Y")
       cc
@@ -132,7 +132,7 @@ setMethod(
 # ---- ... fitted -------------------------------------------------------------
 #' @title Extract a vector of fitted values from a spatial interaction model
 #' @param object A [spflow_model()]
-#' @param type
+#' @param return_type
 #'  A character indicating the format of the returned values:
 #'  -  "V" leads to an atomic vector
 #'  -  "M" leads to a OD matrix where missing data is replaced by zeros
@@ -145,9 +145,9 @@ setMethod(
 setMethod(
   f = "fitted",
   signature = "spflow_model",
-  function(object, type = "V") {
+  function(object, return_type = "V") {
     do_k <- object@spflow_indicators
-    spflow_indicators2format(do_k[,c(names(do_k)[1:2],"FITTED")], type, do_k[["HAS_Y"]])
+    spflow_indicators2format(do_k[,c(names(do_k)[1:2],"FITTED")], return_type, do_k[["HAS_Y"]])
   })
 
 # ---- ... flow_map -----------------------------------------------------------
@@ -216,7 +216,7 @@ setMethod(
       name = "RESID",
       M_indicator = M_indicator)
 
-    E_ <- lapply(E_, vec_format_d_o, do_keys = object@spflow_indicators, type = "V")
+    E_ <- lapply(E_, spflow_mat2format, do_keys = object@spflow_indicators, return_type = "V")
     E_1 <- cbind(1,E_[[1]])
     for (i in seq_len(length(E_) - 1)) {
       ii <- sub("RESID.",replacement = "", names(E_)[i + 1])
@@ -373,6 +373,7 @@ setMethod(
     actual_x <- actual(x, "V")
     plot(x = fitted_x, xlab = "Fitted",
          y = actual_x, ylab = "Actual",
+         asp = 1,
          main = "Actual vs Fitted")
     abline(lm.fit(cbind(1,fitted_x), actual_x), col = "red") ; abline(a = 0, b = 1)
 
@@ -414,11 +415,11 @@ setMethod(
   function(object,
            ...,
            new_data = NULL,
-           in_sample = is.null(new_data),
            method = "TC",
            approx_expectation = TRUE,
            expectation_approx_order = 10,
-           return_type = "OD") {
+           return_type = "OD",
+           out_of_sample = FALSE) {
 
 
     # extract coefficients and compute the signal
@@ -431,19 +432,17 @@ setMethod(
 
     spflow_indicators <- object@spflow_indicators
     filter_case <- spflow_indicators[["HAS_SIG"]] %||% TRUE
-    if (in_sample)
+    if (!out_of_sample)
       filter_case <- filter_case & (spflow_indicators[["HAS_Y"]] %||% TRUE)
     spflow_indicators <- spflow_indicators[filter_case,,drop = FALSE]
-    spflow_matrices <- object@spflow_matrices
-
     signal <- compute_signal(
       delta = delta,
-      spflow_matrices = spflow_matrices,
+      spflow_matrices = object@spflow_matrices,
       spflow_indicators = spflow_indicators,
       keep_matrix_form = TRUE)
 
     if (model == "model_1")
-      return_type <- "LIN"
+      method <- "LIN"
 
     M_indicator <- spflow_indicators2mat(spflow_indicators)
     Y_hat <- switch(
@@ -477,30 +476,20 @@ setMethod(
         }
       )
 
-  return(vec_format_d_o(
-    mat = Y_hat,
-    do_keys =  spflow_indicators,
-    type =  return_type,
-    name =  "PREDICTION"))
+
+    result <- spflow_mat2format(
+      mat = Y_hat,
+      do_keys =  spflow_indicators,
+      return_type =  return_type,
+      name =  "PREDICTION")
+
+    if (return_type == "OD" & !isTRUE(filter_case)) {
+      result2 <- cbind(object@spflow_indicators, PREDICTION = NA)
+      result2[filter_case, "PREDICTION"] <- result[,"PREDICTION"]
+      return(result2)
+    }
+    return(result)
   })
-
-# ---- ... preds --------------------------------------------------------------
-#' #' @title Extract the vector of residuals values from a [spflow_model()]
-#' #'
-#' #' @param object A [spflow_model()]
-#' #' @inheritParams fitted
-#' #' @rdname spflow_model-class
-#' #' @export
-#' setMethod(
-#'   f = "preds",
-#'   signature = "spflow_model",
-#'   function(object, type = "V") {
-#'     return(vec_format_d_o(
-#'       mat = object@resid,
-#'       do_keys = object@spflow_matrices$do_keys,
-#'       type = type,
-#'       name = "RESID"))})
-
 
 # ---- ... resid --------------------------------------------------------------
 #' @title Extract the vector of residuals values from a [spflow_model()]
@@ -512,10 +501,10 @@ setMethod(
 setMethod(
   f = "resid",
   signature = "spflow_model",
-  function(object, type = "V") {
+  function(object, return_type = "V") {
     do_k <- object@spflow_indicators
     do_k[["RESID"]] <- do_k[["FITTED"]] - do_k[["ACTUAL"]]
-    spflow_indicators2format(do_k[,c(names(do_k)[1:2],"RESID")], type, do_k[["HAS_Y"]])
+    spflow_indicators2format(do_k[,c(names(do_k)[1:2],"RESID")], return_type, do_k[["HAS_Y"]])
     })
 
 # ---- ... results ------------------------------------------------------------
@@ -680,33 +669,11 @@ create_results <- function(...) {
   return(results)
 }
 
-#' @keywords internal
-vec_format_d_o <- function(mat, do_keys, type = "M", name = "FITTED") {
-
-  if (type == "M")
-    return(mat)
-
-  is_cartesian <- nrow(do_keys) == length(mat)
-  if (is_cartesian)
-    vec <- as.vector(mat)
-
-  if (!is_cartesian)
-    vec <- mat[as.integer(rownames(do_keys))]
-
-  if (type == "V")
-    return(vec)
-
-  do_keys[[name]] <- vec
-  if (type == "OD")
-    return(do_keys)
-
-  stop('Agument type musst be equal to "V", "M", or "OD"!')
-}
 
 #' @keywords internal
-actual <- function(object, type = "V"){
+actual <- function(object, return_type = "V"){
   do_k <- object@spflow_indicators
-  spflow_indicators2format(do_k[,c(names(do_k)[1:2],"ACTUAL")], type, do_k[["HAS_Y"]])
+  spflow_indicators2format(do_k[,c(names(do_k)[1:2],"ACTUAL")], return_type, do_k[["HAS_Y"]])
 }
 
 

@@ -187,7 +187,7 @@ setMethod(
 
     flow_lag <- lapply(
       flows_lag[-1],
-      FUN = "vec_format_d_o",
+      FUN = "spflow_mat2format",
       do_keys = do_keys,
       type = "V")
 

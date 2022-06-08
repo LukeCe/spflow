@@ -27,7 +27,7 @@ data("multi_net_usa_ge")
 data("simulation_params")
 
 test_dir <- ""
-test_dir <- "tests/integration/" # uncomment for interactive check
+# test_dir <- "tests/integration/" # uncomment for interactive check
 usa_usa_vec_data <-
   readRDS(paste0(test_dir,"vec_data_usa_ge.Rds"))[["usa_usa"]]
 usa_usa_pairnb <-
@@ -457,9 +457,11 @@ res_model_9_s2sls_narm <- spflow(
 
 
 # test results
+new_input <- target_results$mu9_input
+names(new_input)[length(new_input)] <- "DISTANCE2"
 expect_inherits(res_model_9_s2sls_narm, "spflow_model")
-expect_equal(names(target_results$mu9_input), names(coef(res_model_9_s2sls_narm)))
-expect_equal(target_results$mu9_s2sls, coef(res_model_9_s2sls_narm))
+expect_equal(names(new_input), names(coef(res_model_9_s2sls_narm)))
+expect_equal(target_results$mu9_s2sls, coef(res_model_9_s2sls_narm), check.attributes = FALSE)
 expect_equal(target_results$sigma9_s2sls, sd_error(res_model_9_s2sls_narm))
 
 # test moments
@@ -473,7 +475,7 @@ actual_matrices <- res_model_9_s2sls_narm@spflow_matrices
 expect_zero_diff(target_matrices[["D_"]], actual_matrices[["D_"]])
 expect_zero_diff(target_matrices[["O_"]], actual_matrices[["O_"]])
 expect_zero_diff(target_matrices[["I_"]], actual_matrices[["I_"]])
-expect_zero_diff(target_matrices[["G_"]][[1]], actual_matrices[["G_"]][[1]])
+expect_zero_diff(0, target_matrices[["G_"]][[1]] * (target_matrices[["G_"]][[1]] - actual_matrices[["G_"]][[1]]))
 expect_zero_diff(target_matrices[["Y9_"]][[1]], actual_matrices[["Y_"]][[1]])
 expect_zero_diff(target_matrices[["Y9_"]][[2]], actual_matrices[["Y_"]][[2]])
 expect_zero_diff(target_matrices[["Y9_"]][[3]], actual_matrices[["Y_"]][[3]])
@@ -485,7 +487,7 @@ expect_zero_diff(results(res_model_9_s2sls_narm), results(spflow(y9 ~ . + G_(DIS
 expect_equal(fitted(res_model_9_s2sls_narm),
              predict(res_model_9_s2sls_narm, return_type = "V", method = "TS"))
 expect_equal(npairs(multi_net_usa_ge2, "usa_usa"),
-             length(predict(res_model_9_s2sls_narm, return_type = "V", method = "TC", in_sample = FALSE)))
+             length(predict(res_model_9_s2sls_narm, return_type = "V", method = "TC", out_of_sample = TRUE)))
 rm(res_model_9_s2sls_narm)
 
 
