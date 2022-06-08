@@ -41,8 +41,6 @@ lag_spflow_matrices <- function(
     if (decorrelate_instruments)
       X_lag <- orthoginolize_instruments(X_lag)
 
-    formula_names
-
     if (nrow(X_lag) == n_obs)
       return(X_lag)
 

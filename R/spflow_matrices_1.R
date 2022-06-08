@@ -47,6 +47,51 @@ derive_spflow_matrices <- function(
   formula_parts <- interpret_spflow_formula(
     spflow_formula,
     spflow_control)
+
+  spflow_matrices <- named_list(c("CONST","D_","O_","I_","G_","Y_"))
+
+  spflow_matrices[["CONST"]] <- derive_spflow_constants(
+    use_global_const = formula_parts[["constants"]][["global"]],
+    use_intra_const = isTRUE(formula_parts[["constants"]][["intra"]]),
+    use_instruments = spflow_control[["estimation_method"]] == "s2sls",
+    spflow_indicators = spflow_matrices[["spflow_indicators"]],
+    OW = spflow_neighborhood[["OW"]],
+    DW = spflow_neighborhood[["DW"]])
+
+  spflow_matrices[["D_"]] <- transform_node_data(
+    data_source = subset_keycols(spflow_data[["dest"]]),
+    threepart_formula = formula_parts[["D_"]],
+    W = spflow_neighborhood[["DW"]],
+    na_border2zero = spflow_control[["na_border2zero"]])
+
+  spflow_matrices[["O_"]] <- transform_node_data(
+    data_source = subset_keycols(spflow_data[["orig"]]),
+    threepart_formula = formula_parts[["O_"]],
+    W = spflow_neighborhood[["OW"]],
+    na_border2zero = spflow_control[["na_border2zero"]])
+
+  spflow_matrices[["I_"]] <- transform_node_data(
+    data_source = subset_keycols(spflow_data[["orig"]]),
+    threepart_formula = formula_parts[["I_"]],
+    W = spflow_neighborhood[["OW"]],
+    na_border2zero = spflow_control[["na_border2zero"]])
+
+  spflow_matrices[["G_"]] <- transform_pair_data(
+    data_source = subset_keycols(spflow_data[["pair"]]),
+    threepart_formula = formula_parts[["G_"]],
+    OW = spflow_neighborhood[["DW"]],
+    OW = spflow_neighborhood[["DW"]],
+    na_border2zero = spflow_control[["na_border2zero"]],)
+
+  spflow_matrices[["Y_"]] <- transform_flow_data(
+    data_source = subset_keycols(spflow_data[["pair"]]),
+    threepart_formula = formula_parts[["Y_"]],
+    OW = spflow_neighborhood[["DW"]],
+    OW = spflow_neighborhood[["DW"]],
+    na_border2zero = spflow_control[["na_border2zero"]],)
+
+
+
   spflow_matrices <- transform_spflow_data(
     formula_parts = formula_parts,
     spflow_data = spflow_data,
