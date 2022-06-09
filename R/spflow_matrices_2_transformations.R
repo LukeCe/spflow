@@ -141,7 +141,12 @@ transform_node_data <- function(
   threepart_formula,
   node_df,
   W,
-  na_border2zero) {
+  na_border2zero,
+  prefix = "") {
+
+
+  if (is.null(threepart_formula) | is.null(node_df))
+    return(NULL)
 
   # transformation according to the formula
   combined_formula <- combine_rhs_formulas(threepart_formula)
@@ -159,8 +164,9 @@ transform_node_data <- function(
     node_mat[lostobs,] <- NA
 
   inst_status2var <- unlist(var_use[["inst_attr"]])
-  inst_order2var <- cbind(which(inst_status2var),which(!inst_status2var))
-  node_mat <- node_mat[inst_order2var,,drop = FALSE]
+  inst_order2var <- c(which(!inst_status2var),which(inst_status2var))
+  node_mat <- node_mat[,inst_order2var,drop = FALSE]
+  colnames(node_mat) <- paste0(prefix, colnames(node_mat))
   attr_inst_status(node_mat) <- sort(inst_status2var)
 
   return(node_mat)
@@ -171,12 +177,14 @@ transform_node_data <- function(
 transform_pair_data <- function(
   threepart_formula,
   pair_df,
-  M_indicator,
+  spflow_indicators,
   OW,
   DW,
   na_border2zero,
   reduce_pair_instruments) {
 
+  if (is.null(threepart_formula) | is.null(pair_df))
+    return(NULL)
 
   # transformation according to the formula and concert to matrix-list format
   combined_formula <- combine_rhs_formulas(threepart_formula)
@@ -197,40 +205,14 @@ transform_pair_data <- function(
         OW = DW,
         name = .var,
         key = "G",
-        M_indicator = M_indicator,
+        M_indicator = spflow_indicators2mat(spflow_indicators),
         lag_order = lag_num2var[.var],
         return_all_lags = !reduce_pair_instruments,
-        lags_are_instruments = TRUE
+        lags_are_instruments = TRUE,
+        na_border2zero = na_border2zero
       )}))
 
-  # return matrices and indicate where data is missing due to NA's
-  if (is.null(lostobs))
-    return(pair_mat)
-
-  set_na0 <- function(mat_list) lapply(mat_list, function(.m) {
-
-    if (inherits(.m, "Matrix")) {
-      .m@x[is.na(.m@x)] <- 0
-      return(drop0(.m))
-    }
-
-    .m[is.na(.m)] <- 0
-    return(.m)
-  })
-  if (na_border2zero | max(lag_num2var) == 0) {
-    pair_mat <- lapply(pair_mat, set_na0)
-    return(c(pair_mat, HAS_SIG = !lostobs))
-  }
-
-  if (!na_border2zero) {
-    get_lostobs_lags <- function(mat_list) Reduce("&", lapply(mat_list[-1], is.na))
-    lostobs_lags <- lapply(pair_mat, length) > 1
-    lostobs_lags <- Reduce("&", lapply(pair_mat[lostobs_lags], get_lostobs_lags))
-    lostobs_lags <- lostobs_lags[M_indicator] & lostobs
-
-    pair_mat <- lapply(pair_mat, set_na0)
-    return(c(pair_mat, HAS_SIG = !lostobs_lags))
-  }
+  return(pair_mat)
 }
 
 
@@ -238,11 +220,14 @@ transform_pair_data <- function(
 transform_flow_data <- function(
   threepart_formula,
   flow_df,
-  M_indicator,
+  spflow_indicators,
   OW,
   DW,
   model,
   na_border2zero) {
+
+  if (is.null(threepart_formula) | is.null(flow_df))
+    return(NULL)
 
 
   # transformation according to the formula and concert to matrix-list format
@@ -257,43 +242,15 @@ transform_flow_data <- function(
   flow_mat <-
     Reduce("c", lapply(lookup(names(flow_mat)),  function(.var) {
       lag_flow_matrix(
-        M = flow_mat[[.var]],
+        Y = flow_mat[[.var]],
         model = model,
         DW = OW,
         OW = DW,
         name = .var,
-        M_indicator = M_indicator)}))
+        M_indicator = spflow_indicators2mat(spflow_indicators))}))
 
-  # return matrices and indicate where data is missing due to NA's
-  if (is.null(lostobs))
-    return(flow_mat)
-
-  set_na0 <- function(mat_list) lapply(mat_list, function(.m) {
-
-    if (inherits(.m, "Matrix")) {
-      .m@x[is.na(.m@x)] <- 0
-      return(drop0(.m))
-    }
-
-    .m[is.na(.m)] <- 0
-    return(.m)
-  })
-  if (na_border2zero | max(lag_num2var) == 0) {
-    flow_mat <- lapply(flow_mat, set_na0)
-    return(c(flow_mat, HAS_Y = !lostobs))
-  }
-
-  if (!na_border2zero) {
-    get_lostobs_lags <- function(mat_list) Reduce("&", lapply(mat_list[-1], is.na))
-    lostobs_lags <- lapply(flow_mat, length) > 1
-    lostobs_lags <- Reduce("&", lapply(flow_mat[lostobs_lags], get_lostobs_lags))
-    lostobs_lags <- lostobs_lags[M_indicator] & lostobs
-
-    flow_mat <- lapply(flow_mat, set_na0)
-    return(c(flow_mat, HAS_Y = !lostobs_lags))
-  }
+  return(flow_mat)
 }
-
 
 #' @keywords internal
 get_lostobs <- function(pre, trans) {

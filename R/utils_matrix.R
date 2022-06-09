@@ -43,6 +43,23 @@ sort_columns <- function(mat) {
   mat[,sort(colnames(mat))]
 }
 
+#' @keywords internal
+#' @importFrom Matrix drop0
+drop_na <- function(x) {
+
+  if (is.numeric(x)) {
+    x[is.na(x)] <- 0
+    return(x)
+  }
+
+  if (inherits(x, "Matrix")) {
+    x@x[is.na(x@x)] <- 0
+    return(drop0(x))
+  }
+
+  stop("Input musst be numeric or Matrix!")
+}
+
 #' @keywords  internal
 stack_columns <- function(mat ,rows = "row", cols = "col", value = "value") {
   vec_form <- cbind(

@@ -46,7 +46,7 @@ dat(multi_net_usa_ge_copy@networks$usa) <- usa_data_with_lag
 # extract the exogenous variables and add intraregional ones
 pair_ids <- spflow:::lookup(id(multi_net_usa_ge)[["network_pairs"]])
 pair_variables <- lapply(pair_ids, function(.id) {
-  .dat <- pair_merge(multi_net_usa_ge_copy,.id)
+  .dat <- pair_merge(multi_net_usa_ge_copy,.id, orig_cols = TRUE, dest_cols = TRUE, pair_cols = TRUE)
   .dat[["(Intercept)"]] <- 1
   .dat
   })
@@ -67,7 +67,7 @@ pair_neighborhoods <- lapply(spflow:::lookup(pair_ids), function(.id) {
   net_pair <- pull_member(multi_net_usa_ge_copy, .id)
   net_pair_ids <- id(net_pair)
 
-  spflow:::expand_flow_neighborhood(
+  spflow:::expand_spflow_neighborhood(
     OW = neighborhood(multi_net_usa_ge_copy, net_pair_ids["orig"]),
     DW = neighborhood(multi_net_usa_ge_copy, net_pair_ids["dest"]),
     flow_indicator = spflow:::get_flow_indicator(net_pair))

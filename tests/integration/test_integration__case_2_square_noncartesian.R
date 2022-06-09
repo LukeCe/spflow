@@ -441,7 +441,7 @@ distm <- distance_matrix(coords)
 diag(distm) <- .5
 dat(multi_net_usa_ge2, "usa_usa")[["DISTANCE2"]] <- as.vector(log(distm))
 
-dist_usa_usa <- pair_merge(multi_net_usa_ge,"usa_usa",orig_cols = )
+dist_usa_usa <- pair_merge(multi_net_usa_ge,"usa_usa",orig_cols = TRUE)
 
 expect_equal(npairs(multi_net_usa_ge2, "usa_usa"), 51^2)
 expect_error(spflow(
@@ -450,9 +450,9 @@ expect_error(spflow(
 
 
 res_model_9_s2sls_narm <- spflow(
-  flow_formula = y9 ~ . + G_(DISTANCE2), multi_net_usa_ge2,
+  flow_formula = y9 ~ . + G_(DISTANCE), multi_net_usa_ge2,
   network_pair_id =  "usa_usa",
-  flow_control = spflow_control(estimation_method = "s2sls", model = "model_9"),
+  flow_control = spflow_control(estimation_method = "s2sls", model = "model_9", na_border2zero = TRUE),
   na_rm = TRUE)
 
 

@@ -93,16 +93,20 @@ lag_flow_matrix <- function(
     OW,
     DW,
     name = "Y",
-    M_indicator = NULL) {
+    M_indicator = NULL,
+    na_border2zero = FALSE) {
 
 
+  Y_lag0 <- named_list(name, Y)
   if (model == "model_1")
-    return(named_list(name, Y))
+    return(Y_lag0)
 
   names_rho <- define_spatial_lag_params(model)
   need_d <- any(names_rho %in% c("rho_d","rho_od","rho_odw"))
   need_o <- any(names_rho %in% c("rho_o","rho_od","rho_odw"))
   need_w <- any(names_rho %in% c("rho_w","rho_odw"))
+  if (na_border2zero)
+    Y <- drop_na(Y)
 
   if (need_d)
     WY <- DW %*% Y
@@ -118,22 +122,23 @@ lag_flow_matrix <- function(
       WYW <-  DW %*% tcrossprod(Y,OW)
   }
 
-  Y_lags <- switch(substr(model, 7, 7),   # (8.15) in LeSage book
-                   "9" = list(" " = Y, ".d"   = WY, ".o" = YW, ".w" = WYW),
-                   "8" = list(" " = Y, ".d"   = WY, ".o" = YW, ".w" = WYW),
-                   "7" = list(" " = Y, ".d"   = WY, ".o" = YW),
-                   "6" = list(" " = Y, ".odw" = (WY + YW + WYW)/3),
-                   "5" = list(" " = Y, ".od"  = (WY + YW)/2),
-                   "4" = list(" " = Y, ".w"   = WYW),
-                   "3" = list(" " = Y, ".o"   = YW),
-                   "2" = list(" " = Y, ".d"   = WY),
-                   "1" = list(" " = Y))
-  names(Y_lags) <- strwrap(paste0(name, names(Y_lags)))
-  if (!is.null(M_indicator) & length(Y_lags) > 1)
-    Y_lags[-1] <- lapply(Y_lags[-1], "*", M_indicator)
+  Y_lag1 <- switch(substr(model, 7, 7),   # (8.15) in LeSage book
+    "9" = list(".d"   = WY, ".o" = YW, ".w" = WYW),
+    "8" = list(".d"   = WY, ".o" = YW, ".w" = WYW),
+    "7" = list(".d"   = WY, ".o" = YW),
+    "6" = list(".odw" = (WY + YW + WYW)/3),
+    "5" = list(".od"  = (WY + YW)/2),
+    "4" = list(".w"   = WYW),
+    "3" = list(".o"   = YW),
+    "2" = list(".d"   = WY))
 
 
-  return(Y_lags)
+  names(Y_lag1) <- strwrap(paste0(name, names(Y_lag1)))
+  if (!is.null(M_indicator))
+    Y_lag1 <- lapply(Y_lag1, "*", M_indicator)
+
+
+  return(c(Y_lag0, Y_lag1))
 }
 
 #' @keywords internal
@@ -165,12 +170,13 @@ double_lag_matrix <- function(
     symmetric_lags = FALSE,
     lag_order = 2,
     return_all_lags = FALSE,
-    lags_are_instruments = TRUE) {
+    lags_are_instruments = TRUE,
+    na_border2zero = FALSE) {
 
   if (is.null(M))
     return(NULL)
 
-  ### order 1 lag ###
+  ### order 0 lag ###
   lags_0 <- named_list(name, M)
   if (lags_are_instruments)
     attr_inst_status(lags_0[[1]]) <- FALSE
@@ -188,8 +194,12 @@ double_lag_matrix <- function(
   symmetric_lags <- symmetric_lags & double_lag
   return_all_lags <- return_all_lags | !double_lag
 
+  if (na_border2zero)
+    M <- drop_na(M)
   if (!is.null(M_indicator))
     M <- M * M_indicator
+
+
   wM <- (DW %*% M) %T% left_lag
   wMw <- tcrossprod(wM, OW) %T% double_lag
   # skip right lags if not needed

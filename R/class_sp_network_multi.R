@@ -345,12 +345,15 @@ setMethod(
 #' @param dest_cols
 #'   A character, indicating the columns to be kept in the final data.frame
 #'   that contain information on the nodes in the destination network.
+#'   (TRUE is a shortcut for everything).
 #' @param orig_cols
 #'   A character, indicating the columns to be kept in the final data.frame
 #'   that contain information on the nodes in the origin network.
+#'   (TRUE is a shortcut for everything).
 #' @param pair_cols
 #'   A character, indicating the columns to be kept in the final data.frame
 #'   that contain information on the origin-destination pairs.
+#'   (TRUE is a shortcut for everything).
 #' @param keep_od_keys
 #'   A logical, indicating whether the id of the od should be included.
 #'
@@ -387,7 +390,7 @@ setMethod(
     select_nonid_cols <- function(.cols,.data) {
 
 
-      if (missing(.cols))
+      if (isTRUE(.cols))
         return(subset_keycols(flow_data[[.data]]))
 
       if (is.null(.cols))
