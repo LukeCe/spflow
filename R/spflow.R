@@ -160,8 +160,7 @@ spflow <- function(
     flow_formula,
     sp_multi_network,
     network_pair_id = id(sp_multi_network)[["network_pairs"]][[1]],
-    flow_control = spflow_control(),
-    na_rm = FALSE) {
+    flow_control = spflow_control()) {
 
   ## check for abusive inputs and correct ids
   assert_is(flow_formula, "formula")
@@ -191,7 +190,7 @@ spflow <- function(
     spflow_neighborhood = spflow_neighborhood,
     flow_formula,
     estimation_control,
-    na_rm = na_rm)
+    na_rm = estimation_control[["na_rm"]])
   spflow_indicators <- spflow_matrices[["spflow_indicators"]]
   spflow_matrices[["spflow_indicators"]] <- NULL
   spflow_obs <- spflow_indicators2obs(spflow_indicators)
@@ -209,7 +208,7 @@ spflow <- function(
     n_d = spflow_obs[["N_dest"]],
     N = spflow_obs[["N_fit"]],
     wt = wt,
-    na_rm = na_rm)
+    na_rm = estimation_control[["na_rm"]])
 
 
   ## ---- derive moments from the covariates (Z,H)

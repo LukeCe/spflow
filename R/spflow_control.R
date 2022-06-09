@@ -148,19 +148,19 @@ spflow_control <- function(
     twosls_decorrelate_instruments = FALSE,
     twosls_reduce_pair_instruments = TRUE,
     track_condition_numbers = FALSE,
+    ignore_border_effects = TRUE,
     reduce_size = FALSE,
-    na_rm = FALSE,
-    na_border2zero = TRUE) {
+    na_rm = FALSE) {
 
 
   available_estimators <- c("s2sls", "mle","mcmc","ols")
   assert(estimation_method %in% available_estimators,
-         'The estimation_method must one string among c("%s")!',
+         'The estimation_method must be one string among c("%s")!',
          paste0(available_estimators, collapse = ", "))
 
   possible_models <- ("model_" %p% 1:9)
   assert(model %in% possible_models,
-         'The model must one string among c("%s")!',
+         'The model must be one string among c("%s")!',
          paste0(possible_models, collapse = ", "))
 
   if (estimation_method == "ols" | model == "model_1") {
@@ -183,7 +183,7 @@ spflow_control <- function(
   assert_is_single_x(track_condition_numbers, "logical")
   assert_is_single_x(reduce_size, "logical")
   assert_is_single_x(na_rm, "logical")
-  assert_is_single_x(na_border2zero, "logical")
+  assert_is_single_x(ignore_border_effects, "logical")
 
 
 
@@ -197,7 +197,7 @@ spflow_control <- function(
     "track_condition_numbers" = track_condition_numbers,
     "reduce_size" = reduce_size,
     "na_rm" = na_rm,
-    "na_border2zero" = na_border2zero)
+    "ignore_border_effects" = ignore_border_effects)
 
   if (estimation_method == "ols")
     return(general_control)

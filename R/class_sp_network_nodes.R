@@ -27,7 +27,7 @@
 setClass("sp_network_nodes",
          slots = c(
            network_id        = "character",
-           node_neighborhood = "maybe_any_matrix",
+           node_neighborhood = "maybe_Matrix",
            node_data         = "maybe_data.frame"))
 
 # ---- Methods ----------------------------------------------------------------

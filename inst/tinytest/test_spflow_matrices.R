@@ -81,3 +81,56 @@ expect_equal({
   },
   info = "collect all variables by role and the way it is used in the model")
 
+# ---- flow_conform_model_matrix ----------------------------------------------
+expect_equal(
+  spflow:::flow_conform_model_matrix(~ . , data.frame("A" = 1:2, "B" = 3:4)),
+  model.matrix(~ . , data.frame("A" = 1:2, "B" = 3:4))[,c("A","B")],
+  info = "handles intercept removal",
+  check.attributes = FALSE)
+
+expect_equal(
+  spflow:::flow_conform_model_matrix(~ . - 1 , data.frame("A" = 1:2, "B" = 3:4)),
+  model.matrix(~ . - 1, data.frame("A" = 1:2, "B" = 3:4)),
+  info = "handles intercept removal",
+  check.attributes = FALSE)
+
+expect_equal({
+  spflow:::flow_conform_model_matrix(
+    ~ . - 1,
+    data.frame("A" = 1:2,
+               "B" = 3:4,
+               "C" = factor(c("D","F")))
+  )
+},
+{
+  model.matrix(
+    ~ . - 1,
+    data.frame("A" = 1:2,
+               "B" = 3:4,
+               "C" = factor(c("D","F")))
+  )[,c("A","B","CF")]
+},
+info = "handles one factor (dont expand all levels)",
+check.attributes = FALSE)
+
+expect_equal({
+  spflow:::flow_conform_model_matrix(
+    ~ . - 1,
+    data.frame("A" = 1:4,
+               "B" = 3:6,
+               "C" = factor(c("D","F")),
+               "H" = factor(c("G","I","K","K")))
+  )
+},
+{
+  model.matrix(
+    ~ .,
+    data.frame("A" = 1:4,
+               "B" = 3:6,
+               "C" = factor(c("D","F")),
+               "H" = factor(c("G","I","K","K")))
+  )[,c("A","B","CF","HI","HK")]
+},
+info = "handles two factor (dont expand all levels)",
+check.attributes = FALSE)
+
