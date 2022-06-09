@@ -95,9 +95,15 @@ transform_spflow_data <- function(
   # also store the dependent variables to compute residuals later
   Y_cases <- HAS_Y %||% TRUE
   G_cases <- HAS_SIG %||% TRUE
-  extra_indicators <- cbind(WEIGHT = wt, ACTUAL = NA)
-  spflow_indicators <- cbind(spflow_indicators, HAS_SIG, HAS_Y, extra_indicators)
-  spflow_indicators[["ACTUAL"]][Y_cases] <- Y_matrices
+  extra_indicators <- data.frame(ACTUAL = NA)
+  if (!is.null(wt))
+    extra_indicators <- cbind(extra_indicators, WEIGHT = wt)
+  if (!is.null(HAS_SIG))
+    extra_indicators <- cbind(extra_indicators, HAS_SIG)
+  if (!is.null(HAS_Y))
+    extra_indicators <- cbind(extra_indicators, HAS_Y)
+  spflow_indicators <- cbind(spflow_indicators, extra_indicators)
+  spflow_indicators[,"ACTUAL"][Y_cases] <- Y_matrices
 
   # matrix format pair variables
   Y_matrices <- Y_matrices %|!|% spflow_indicators2matlist(cbind(spflow_indicators[Y_cases, 1:2, drop = FALSE], Y_matrices))

@@ -77,16 +77,18 @@ spflow_indicators2mat <- function(do_keys, do_filter = NULL, do_values = NULL) {
 }
 
 #' @keywords internal
-spflow_indicators2format <-  function(do_keys_val, type = "V", do_filter = NULL) {
+spflow_indicators2format <-  function(do_keys_val, return_type = "V", do_filter = NULL) {
 
-  if (type == "OD")
+  assert_valid_case(return_type, c("V","M", "OD"))
+
+  if (return_type == "OD")
     return(do_keys_val)
 
   do_keys_val <- do_keys_val[do_filter %||% TRUE,]
-  if (type == "V")
+  if (return_type == "V")
     return(do_keys_val[[3]])
 
-  if (type == "M")
+  if (return_type == "M")
     return(matrix_format_d_o(
       values = do_keys_val[[3]],
       dest_index = as.numeric(do_keys_val[[1]]),
@@ -94,5 +96,28 @@ spflow_indicators2format <-  function(do_keys_val, type = "V", do_filter = NULL)
       num_dest = nlevels(do_keys_val[[1]]),
       num_orig = nlevels(do_keys_val[[2]])))
 
-  stop("Argument format musst be V, OD or M!")
+}
+
+
+#' @keywords internal
+spflow_mat2format <- function(mat, do_keys, return_type = "M", name = "OD_VAR") {
+
+  assert_valid_case(return_type, c("V","M", "OD"))
+
+  if (return_type == "M")
+    return(mat)
+
+  is_cartesian <- nrow(do_keys) == length(mat)
+  if (is_cartesian)
+    vec <- as.vector(mat)
+
+  if (!is_cartesian)
+    vec <- mat[as.integer(rownames(do_keys))]
+
+  if (return_type == "V")
+    return(vec)
+
+  do_keys[[name]] <- vec
+  if (return_type == "OD")
+    return(do_keys)
 }

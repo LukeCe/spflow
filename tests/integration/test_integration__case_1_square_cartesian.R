@@ -210,8 +210,7 @@ expect_zero_diff(target_matrices[["Y1_"]][[1]], actual_matrices[["Y_"]][[1]])
 # test residuals and goodness of fit
 expectied_signal <- as.vector(Z %*% target_results$delta1_ols)
 expect_zero_diff(expectied_signal, fitted(res_model_1_ols))
-
-
+expect_zero_diff(expectied_signal, predict(res_model_1_ols, return_type = "V"))
 rm(res_model_1_ols)
 
 # ---- ... s2sls - model 2 ----------------------------------------------------

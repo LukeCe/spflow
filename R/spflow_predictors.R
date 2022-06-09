@@ -113,29 +113,29 @@ compute_expectation <- function(
         DW = DW,
         name = "SIG")
 
-      signal <- Reduce("+", Map("*",decomposed_signal[-1], rho))
+      signal <- Reduce("+", Map("*",decomposed_signal[-1], -rho))
       return(signal)
     }
 
-    Yhat <- signal_update <- signal_matrix
+    Yhat <- new_sig <- signal_matrix
     for (i in seq(max_it)) {
-      signal_update <- update_signal(signal_update)
-      Yhat <- Yhat + signal_update
+      new_sig <- new_sig + update_signal(new_sig)
+      Yhat <- Yhat + new_sig
     }
   }
 
   if (!approximate) {
     WF_parts <- expand_spflow_neighborhood(DW = DW, OW = OW, model = model)
     A <- spatial_filter(weight_matrices = WF_parts, autoreg_parameters = rho)
-    yhat <- solve(A, as.vector(signal_matrix))
-    Yhat <- matrix(yhat, nrow = nrow(signal_matrix), ncol = ncol(signal_matrix))
+    Yhat <- solve(A, as.vector(signal_matrix))
+    Yhat <- matrix(Yhat, nrow = nrow(signal_matrix), ncol = ncol(signal_matrix))
   }
 
   if (keep_matrix_form)
     return(Yhat)
 
   if (is.null(M_indicator))
-    return(as.vector(M_indicator))
+    return(as.vector(Yhat))
 
   return(Y_hat[as.logical(M_indicator)])
 }
