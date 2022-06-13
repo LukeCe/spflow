@@ -33,6 +33,7 @@
 #'   (see \insertCite{Dargel2021}{spflow}).
 #'
 #' @references \insertAllCited{}
+#' @importFrom Matrix drop0
 #' @name derive_spflow_matrices
 #' @keywords internal
 #' @return A list of design matrices for the spatial interaction model
@@ -49,7 +50,6 @@ derive_spflow_matrices <- function(
 
   spflow_matrices <- named_list(c("CONST","D_","O_","I_","G_","Y_"))
   spflow_indicators <- subset_keycols(spflow_data[["pair"]], drop_keys = FALSE)
-  stop("indiactors are wrong!")
 
   spflow_matrices[["CONST"]] <- derive_spflow_constants(
     use_global_const = fourmulas_by_part[["constants"]][["global"]],
@@ -76,7 +76,6 @@ derive_spflow_matrices <- function(
     threepart_formula = fourmulas_by_source[["D_"]],
     node_df = subset_keycols(spflow_data[["dest"]]),
     W = spflow_neighborhood[["DW"]],
-    ignore_border_effects = spflow_control[["ignore_border_effects"]],
     prefix = "DEST_")
   obs_D <- complete_nodeobs("D_")
 
@@ -85,7 +84,6 @@ derive_spflow_matrices <- function(
     threepart_formula = fourmulas_by_source[["O_"]],
     node_df = subset_keycols(spflow_data[["orig"]]),
     W = spflow_neighborhood[["OW"]],
-    ignore_border_effects = spflow_control[["ignore_border_effects"]],
     prefix = "ORIG_")
   obs_O <- complete_nodeobs("O_")
 
@@ -94,19 +92,40 @@ derive_spflow_matrices <- function(
     threepart_formula = fourmulas_by_source[["I_"]],
     node_df = subset_keycols(spflow_data[["orig"]]),
     W = spflow_neighborhood[["OW"]],
-    ignore_border_effects = spflow_control[["ignore_border_effects"]],
     prefix = "INTRA_")
   obs_I <- complete_nodeobs("I_")
 
 
   ### transform and lag od-pair data
+  # G ...
   incomplete_pairobs <- function(matrix_key) {
-    na_cases <- Reduce("&", lapply(spflow_matrices[[matrix_key]], is.na))
-    if (!any(na_cases))
+
+    miss_X <- lapply(spflow_matrices[[matrix_key]], is.na)
+    miss_X <- Reduce("|", miss_X)
+
+    if (!any(miss_X))
       return(NULL)
 
     assert_NA(matrix_key)
-    return(na_cases)
+    return(miss_X)
+  }
+  remove_na_pairs <- function(na_pos, matrix_list) {
+
+    if (is.null(na_pos) | is.null(matrix_list))
+      return(matrix_list)
+
+
+    matrix_list <- lapply(matrix_list, function(mat) {
+
+      attr_inst <- attr_inst_status(mat)
+      mat <- na2zero(mat)
+      is_sparse <- (nnzero(mat) * 2) < length(mat)
+      mat <- as(mat, ifelse(is_sparse, "Matrix", "matrix"))
+      attr_inst_status(mat) <- attr_inst
+      mat
+    })
+
+    return(matrix_list)
   }
 
   spflow_matrices[["G_"]] <- transform_pair_data(
@@ -115,21 +134,22 @@ derive_spflow_matrices <- function(
     spflow_indicators = spflow_indicators,
     OW = spflow_neighborhood[["OW"]],
     DW = spflow_neighborhood[["DW"]],
-    ignore_border_effects = spflow_control[["ignore_border_effects"]],
     reduce_pair_instruments = isTRUE(spflow_control[["twosls_reduce_pair_instruments"]]))
   na_G <- incomplete_pairobs("G_")
+  spflow_matrices[["G_"]] <- remove_na_pairs(na_G, spflow_matrices[["G_"]])
 
+  # Y ...
   spflow_matrices[["Y_"]] <- transform_flow_data(
     threepart_formula = fourmulas_by_source[["Y_"]],
     flow_df = subset_keycols(spflow_data[["pair"]]),
     spflow_indicators = spflow_indicators,
     OW = spflow_neighborhood[["OW"]],
     DW = spflow_neighborhood[["DW"]],
-    model = spflow_control[["model"]],
-    ignore_border_effects = spflow_control[["ignore_border_effects"]])
+    model = spflow_control[["model"]])
   na_Y <- incomplete_pairobs("Y_")
+  spflow_matrices[["Y_"]] <- remove_na_pairs(na_Y, spflow_matrices[["Y_"]])
 
-  # identify which information sets are available for each od pair
+  ### identify which information sets are available for each od pair
   # ... predictions require signal
   update_conditions <- function(pre,add) if (is.null(pre)) add else pre & add
   HAS_SIG <- NULL
@@ -147,21 +167,32 @@ derive_spflow_matrices <- function(
     HAS_SIG <- update_conditions(HAS_SIG, !(na_G[do_indexes]))
 
 
-  # ... model fitting requires signal, y, y_lags, and non-zero weights
+
+  # ... model fitting requires signal, y, and non-zero weights
   HAS_Y <- HAS_SIG
   if (!is.null(na_Y))
     HAS_Y <- update_conditions(HAS_Y, !(na_Y[do_indexes]))
 
-  WEIGHT <- spflow_control[["weight_var"]]
+
+  WEIGHT <- spflow_control[["weight_variable"]]
   if (!is.null(WEIGHT) ) {
-    WEIGHT <- spflow_data[[WEIGHT]]
+    WEIGHT <- spflow_data[["pair"]][[WEIGHT]]
     WEIGHT[WEIGHT <= 0] <- NA
     HAS_Y <- update_conditions(HAS_Y, is.finite(WEIGHT))
     WEIGHT[!HAS_Y] <- 0
   }
 
-  extra_indicators <- cbind(HAS_SIG, HAS_Y, WEIGHT, ACTUAL = spflow_matrices[["Y_"]][[1]][do_indexes])
-  spflow_indicators <- cbind(spflow_indicators, extra_indicators)
+
+
+  spflow_indicators <- list2df(
+    spflow_indicators,
+    HAS_SIG = HAS_SIG,
+    HAS_Y = HAS_Y,
+    WEIGHT = WEIGHT,
+    ACTUAL = spflow_matrices[["Y_"]][[1]][do_indexes])
+  # if (!is.null(HAS_Y))
+  #   spflow_indicators[!HAS_Y, "ACTUAL"] <- NA
+
   return(c(spflow_matrices, list(spflow_indicators = spflow_indicators)))
 }
 
@@ -209,7 +240,6 @@ transform_node_data <- function(
   threepart_formula,
   node_df,
   W,
-  ignore_border_effects,
   prefix = "") {
 
 
@@ -221,15 +251,12 @@ transform_node_data <- function(
   node_df <- subset_keycols(node_df, drop_keys = TRUE)
   node_mat <- flow_conform_model_matrix(combined_formula, node_df)
   lostobs <- get_lostobs(node_df, node_mat)
-  node_mat <- impute_lost_cases(node_mat, lostobs, ifelse(ignore_border_effects, 0, NA))
+  node_mat <- impute_lost_cases(node_mat, lostobs, NA)
 
   # spatial lags for sdm and instrument parts
   var_use <- derive_variables_use(threepart_formula, node_df)
   lag_num2var <- lookup(as.integer(var_use[["num_lags"]]), row.names(var_use))
   node_mat <- add_lagged_cols(node_mat, W, lag_num2var)
-  revert_zero_imputation <- ignore_border_effects & !is.null(lostobs)
-  if (revert_zero_imputation)
-    node_mat[lostobs,] <- NA
 
   inst_status2var <- unlist(var_use[["inst_attr"]])
   inst_order2var <- c(which(!inst_status2var),which(inst_status2var))
@@ -248,7 +275,6 @@ transform_pair_data <- function(
   spflow_indicators,
   OW,
   DW,
-  ignore_border_effects,
   reduce_pair_instruments) {
 
   if (is.null(threepart_formula) | is.null(pair_df))
@@ -258,9 +284,8 @@ transform_pair_data <- function(
   combined_formula <- combine_rhs_formulas(threepart_formula)
   pair_mat <- flow_conform_model_matrix(combined_formula, pair_df)
   lostobs <- get_lostobs(pair_df, pair_mat)
-  pair_mat <- impute_lost_cases(pair_mat, lostobs, ifelse(ignore_border_effects, 0, NA))
-  pair_mat <- spflow_indicators2matlist(cbind(spflow_indicators[,1:2], pair_mat))
-
+  pair_mat <- impute_lost_cases(pair_mat, lostobs, NA)
+  pair_mat <- spflow_indicators2matlist(cbind(spflow_indicators, pair_mat))
 
   # spatial lags for instrument parts
   var_use <- derive_variables_use(threepart_formula, pair_df)
@@ -269,20 +294,14 @@ transform_pair_data <- function(
     Reduce("c", lapply(lookup(names(pair_mat)),  function(.var) {
       double_lag_matrix(
         M = pair_mat[[.var]],
-        DW = OW,
-        OW = DW,
+        DW = DW,
+        OW = OW,
         name = .var,
         key = "G",
         M_indicator = spflow_indicators2mat(spflow_indicators),
         lag_order = lag_num2var[.var],
         return_all_lags = !reduce_pair_instruments,
         lags_are_instruments = TRUE)}))
-
-  revert_zero_imputation <- ignore_border_effects & !is.null(lostobs)
-  if (revert_zero_imputation) {
-      na_pos <- Reduce("cbind", lapply(spflow_indicators[lostobs,1:2], "as.integer"))
-      for (m in seq_along(flow_mat)) pair_mat[[m]][na_pos] <- NA
-  }
 
   return(pair_mat)
 }
@@ -294,8 +313,7 @@ transform_flow_data <- function(
   spflow_indicators,
   OW,
   DW,
-  model,
-  ignore_border_effects) {
+  model) {
 
   if (is.null(threepart_formula) | is.null(flow_df))
     return(NULL)
@@ -304,27 +322,20 @@ transform_flow_data <- function(
   combined_formula <- combine_rhs_formulas(threepart_formula)
   flow_mat <- flow_conform_model_matrix(combined_formula, flow_df)
   lostobs <- get_lostobs(flow_df, flow_mat)
-  flow_mat <- impute_lost_cases(flow_mat, lostobs, ifelse(ignore_border_effects, 0, NA))
-  flow_mat <- spflow_indicators2matlist(cbind(spflow_indicators[,1:2], flow_mat))
+  flow_mat <- impute_lost_cases(flow_mat, lostobs, NA)
+  flow_mat <- spflow_indicators2matlist(cbind(spflow_indicators, flow_mat))
 
 
   flow_mat <- Reduce("c", Map(function(.var, .mat) {
     lag_flow_matrix(
       Y = .mat,
       model = model,
-      DW = OW,
-      OW = DW,
+      DW = DW,
+      OW = OW,
       name = .var,
       M_indicator = spflow_indicators2mat(spflow_indicators))},
     .var = names(flow_mat),
     .mat = flow_mat))
-
-  revert_zero_imputation <- ignore_border_effects & !is.null(lostobs)
-  if (revert_zero_imputation) {
-    na_pos <- Reduce("cbind", lapply(spflow_indicators[lostobs,1:2], "as.integer"))
-    for (m in seq_along(flow_mat)) flow_mat[[m]][na_pos] <- NA
-  }
-
 
   return(flow_mat)
 }
@@ -406,3 +417,21 @@ derive_variables_use <- function(
   var_use_df
 }
 
+
+#' @keywords internal
+list2df <- function(...) {
+  data.frame(Filter(function(x) length(x) != 0, list(...)))
+}
+
+
+#' @keywords internal
+na2zero <- function(x) {
+
+  if (is.atomic(x))
+    x[is.na(x)] <- 0
+
+  if (inherits(x,"Matrix"))
+    x@x[is.na(x@x)] <- 0
+
+  return(x)
+}

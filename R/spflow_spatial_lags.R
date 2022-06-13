@@ -66,6 +66,9 @@ double_lag_matrix <- function(
   if (is.null(M))
     return(NULL)
 
+  if (!is.null(M_indicator))
+    M <- M * M_indicator
+
   ### order 0 lag ###
   lags_0 <- named_list(name, M)
   if (lags_are_instruments)
@@ -84,10 +87,6 @@ double_lag_matrix <- function(
   symmetric_lags <- symmetric_lags & double_lag
   return_all_lags <- return_all_lags | !double_lag
 
-  if (!is.null(M_indicator))
-    M <- M * M_indicator
-
-
   wM <- (DW %*% M) %T% left_lag
   wMw <- tcrossprod(wM, OW) %T% double_lag
   # skip right lags if not needed
@@ -98,10 +97,7 @@ double_lag_matrix <- function(
     account_for_sparsity <- function(x) x * M_indicator
     wMw <- wMw %|!|% account_for_sparsity
     Mw <- Mw %|!|% account_for_sparsity
-
-    # skip sparsity if not returned
-    if (lag_order >= 1)
-      wM <- wM %|!|% account_for_sparsity
+    wM <- wM %|!|% account_for_sparsity
   }
 
   lags_1[["w%s"]]  <- wM %T% return_all_lags

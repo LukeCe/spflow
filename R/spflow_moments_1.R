@@ -9,8 +9,14 @@ compute_spflow_moments <- function(
     wt,
     na_rm = FALSE) {
 
+
+
+
   ## ---- derive moments from the covariates (Z,H)
   UU <- spflow_moment_var(spflow_matrices, wt, N, n_d, n_o)
+  assert(is.null(wt) || nnzero(wt) > ncol(UU), "
+         Estimation aborted!
+         There are too few complete observations to identifiy the parameters.")
 
   # subset ZZ
   variable_order <- c("CONST", "D_", "O_", "I_", "G_")

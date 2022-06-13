@@ -52,7 +52,7 @@ expect_equal({
   diag(a) <- 0
   a / rowSums(a)
   }, {
-  normalize_neighborhood(matrix(1:25,5,5),by_row = TRUE)
+  spflow:::normalize_neighborhood(matrix(1:25,5,5),by_row = TRUE)
   }
   , check.attributes = FALSE
   , info = "Row standardized neighborhood.")
@@ -63,7 +63,7 @@ expect_equal({
   diag(a) <- 0
   a / abs(eigen(a)$values[1])
 }, {
-  normalize_neighborhood(matrix(1:25,5,5),by_row = FALSE)
+  spflow:::normalize_neighborhood(matrix(1:25,5,5),by_row = FALSE)
 }
 , check.attributes = FALSE
 , info = "Row standardized neighborhood.")

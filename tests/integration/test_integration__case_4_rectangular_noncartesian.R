@@ -418,29 +418,36 @@ options(opts)
 
 
 # ---- test NA's handling -----------------------------------------------------
-multi_net_usa_ge2 <- complete_pairs(
-  multi_net_usa_ge,
-  network_pair_ids = net_pair)
+multi_net_usa_ge2 <- complete_pairs(multi_net_usa_ge, network_pair_ids = net_pair)
 
 
 expect_equal(npairs(multi_net_usa_ge2, net_pair), 51*16)
 expect_error(spflow(
   y9 ~ . + G_(DISTANCE), multi_net_usa_ge2, net_pair,
-  spflow_control(estimation_method = "s2sls", model = "model_9")))
+  spflow_control(estimation_method = "s2sls", model = "model_9")),
+  pattern = "NA's")
+expect_error(spflow(
+  y9 ~ . + G_(DISTANCE), multi_net_usa_ge2, net_pair,
+  spflow_control(estimation_method = "s2sls", model = "model_9", na_rm = TRUE)),
+  pattern = "too few complete observations")
 
+na_y9 <- is.na(dat(multi_net_usa_ge2, net_pair)[["y9"]])
+dat(multi_net_usa_ge2, net_pair)[["wt_9"]] <- 1 - na_y9
+dat(multi_net_usa_ge2, net_pair)[["y9i"]] <- na2zero(dat(multi_net_usa_ge2, net_pair)[["y9"]])
+dat(multi_net_usa_ge2, net_pair)[["DISTANCEi"]] <- na2zero(dat(multi_net_usa_ge2, net_pair)[["DISTANCE"]])
 
 res_model_9_s2sls_narm <- spflow(
-  flow_formula = y9 ~ . + G_(DISTANCE), multi_net_usa_ge2,
+  flow_formula = y9i ~ . + G_(DISTANCEi), multi_net_usa_ge2,
   network_pair_id =  net_pair,
-  flow_control = spflow_control(estimation_method = "s2sls", model = "model_9"),
-  na_rm = TRUE)
+  flow_control = spflow_control(estimation_method = "s2sls", model = "model_9", weight_variable = "wt_9"))
 
 
 # test results
+new_target <- target_results$mu9_input
+names(new_target)[length(new_target)] <- "DISTANCEi"
 expect_inherits(res_model_9_s2sls_narm, "spflow_model")
-expect_equal(names(target_results$mu9_input), names(coef(res_model_9_s2sls_narm)))
-expect_equal(target_results$mu9_s2sls, coef(res_model_9_s2sls_narm))
-expect_equal(target_results$sigma9_s2sls, sd_error(res_model_9_s2sls_narm))
+expect_equal(new_target, coef(res_model_9_s2sls_narm), tol = .1)
+expect_equal(target_results$sigma9_s2sls, sd_error(res_model_9_s2sls_narm), tol = .1)
 
 # test moments
 actual_moments <- res_model_9_s2sls_narm@spflow_moments
@@ -453,20 +460,6 @@ actual_matrices <- res_model_9_s2sls_narm@spflow_matrices
 expect_zero_diff(target_matrices[["D_"]], actual_matrices[["D_"]])
 expect_zero_diff(target_matrices[["O_"]], actual_matrices[["O_"]])
 expect_zero_diff(target_matrices[["G_"]][[1]], actual_matrices[["G_"]][[1]])
-expect_zero_diff(target_matrices[["Y9_"]][[1]], actual_matrices[["Y_"]][[1]])
-expect_zero_diff(target_matrices[["Y9_"]][[2]], actual_matrices[["Y_"]][[2]])
-expect_zero_diff(target_matrices[["Y9_"]][[3]], actual_matrices[["Y_"]][[3]])
-expect_zero_diff(target_matrices[["Y9_"]][[4]], actual_matrices[["Y_"]][[4]])
-
-expect_equal({
-  results(spflow(
-    y9 ~ . + G_(DISTANCE), multi_net_usa_ge, net_pair,
-    spflow_control(estimation_method = "s2sls", model = "model_9")))
-},
-{
-  results(res_model_9_s2sls_narm)
-})
-
 rm(res_model_9_s2sls_narm)
 
 
