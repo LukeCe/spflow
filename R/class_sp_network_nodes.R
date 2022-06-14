@@ -318,7 +318,7 @@ sp_network_nodes <- function(
     node_coord_columns <- attr_coord_col(node_data)
   attr_coord_col(node_data) <- node_coord_columns
 
-  if (inherits(node_data, "data.table") && require(data.table))
+  if (inherits(node_data, "data.table") && requireNamespace("data.table", quietly = TRUE))
     node_data <- data.table::as.data.table(node_data)
 
   nodes@node_data <- node_data
@@ -369,14 +369,14 @@ simplfy2df <- function(df, derive_coord_cols = TRUE, prefer_lonlat = TRUE) {
   dt_used <- inherits(df, "data.table")
   sf_convertible <- inherits(df, "Spatial") || inherits(df, "sfc") || any(sapply(df, inherits, "sfc"))
 
-  if (sf_convertible && require("sf"))
+  if (sf_convertible && requireNamespace("sf", quietly = TRUE))
     df <- sf::st_as_sf(df)
   if (inherits(df, "Spatial"))
     df <- as.data.frame(df@data)
 
   if (inherits(df, "sf")) {
 
-    if (derive_coord_cols && require("sf")) {
+    if (derive_coord_cols && requireNamespace("sf", quietly = TRUE)) {
       coords <- sf::st_geometry(df)
       coords <- suppressWarnings(sf::st_point_on_surface(coords))
       if (!is.na(sf::st_crs(coords)) & prefer_lonlat)
@@ -392,7 +392,7 @@ simplfy2df <- function(df, derive_coord_cols = TRUE, prefer_lonlat = TRUE) {
     }
   }
 
-  if (dt_used && require(data.table))
+  if (dt_used && requireNamespace("data.table", quietly = TRUE))
     return(data.table::as.data.table(df))
   if (inherits(df, "data.frame"))
     return(df)

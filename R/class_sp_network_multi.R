@@ -128,116 +128,6 @@ setReplaceMethod(
     return(object)
   })
 
-# ---- ... flow_moran_plots  ---------------------------------------------------
-#' @title Plot the map of flows
-#' @name flow_moran_plots
-#' @rdname sp_multi_network-class
-setMethod(
-  f = "flow_moran_plots",
-  signature = "sp_multi_network",
-  function(object,
-           network_pair_id = id(object)[["network_pairs"]][[1]],
-           flow_var,
-           model = "model_9",
-           DW,
-           OW,
-           add_lines = TRUE) {
-
-
-
-    if (missing(DW) | missing(OW)){
-      nb_dat <- pull_spflow_neighborhood(object,network_pair_id)
-      if (missing(OW)) OW <- nb_dat[["OW"]]
-      if (missing(DW)) DW <- nb_dat[["DW"]]
-    }
-
-    assert(model != "model_1", "The Moran plot is for spatial models!")
-    assert_is_single_x(flow_var, "character")
-    assert(flow_var %in% names(dat(object, network_pair_id)),
-           "Variable %s not found in network pair %s!", flow_var, network_pair_id)
-
-    # create lags for the flow_var in matrix form
-    flows_v <- dat(object, network_pair_id)[[flow_var]]
-    valid_flows <- is.finite(flows_v)
-    flows_v <- flows_v[valid_flows]
-
-    do_keys <- get_do_keys(dat(object, network_pair_id))[valid_flows,,drop = FALSE]
-    flows_indicator <- matrix_format_d_o(
-      dest_index = as.integer(do_keys[,1]),
-      orig_index = as.integer(do_keys[,2]),
-      num_dest = nlevels(do_keys[,1]),
-      num_orig = nlevels(do_keys[,2]),
-      assume_ordered = TRUE)
-
-    flows_m <- matrix_format_d_o(
-      flows_v,
-      dest_index = as.integer(do_keys[,1]),
-      orig_index = as.integer(do_keys[,2]),
-      num_dest = nlevels(do_keys[,1]),
-      num_orig = nlevels(do_keys[,2]),
-      assume_ordered = TRUE)
-
-    flows_lag <- lag_flow_matrix(
-      Y = flows_m,
-      model = model,
-      OW = OW,
-      DW = DW,
-      name = flow_var,
-      flow_indicator = flows_indicator)
-
-    flow_lag <- lapply(
-      flows_lag[-1],
-      FUN = "spflow_mat2format",
-      do_keys = do_keys,
-      type = "V")
-
-    for (i in seq_along(flow_lag)) {
-      Wi <- sub(paste0(flow_var, "."),replacement = "", names(flow_lag)[i])
-
-      plot(y = flow_lag[[i]], x = flows_v,
-           main = "Moran scatterplot",
-           xlab = flow_var,
-           ylab = bquote(W[.(Wi)] %*% .(flow_var) (lag)))
-      if (add_lines)
-        abline(lm.fit(x = cbind(1,flows_v), y = flow_lag[[i]]), col = "red")
-    }
-  })
-
-
-# ---- ... flow_map  ----------------------------------------------------------
-#' @title Plot the map of flows
-#' @name flow_map
-#' @rdname sp_multi_network-class
-setMethod(
-  f = "flow_map",
-  signature = "sp_multi_network",
-  function(object,
-           network_pair_id = id(object)[["network_pairs"]][[1]],
-           ...,
-           flow_var) {
-
-    assert(network_pair_id %in% id(object)[["network_pairs"]])
-    flow_data <- pull_spflow_data(object, network_pair_id)
-
-    assert_is_single_x(flow_var, "character")
-    assert(flow_var %in% names(flow_data[["pair"]]),
-           "Variable %s not found in network pair %s!", flow_var, network_pair_id)
-
-    do_indexes <- get_do_keys(flow_data[["pair"]])
-    flow_var <- flow_data[["pair"]][,flow_var]
-    args <- list(
-      "y" = flow_var,
-      "index_o" = do_indexes[[2]],
-      "index_d" = do_indexes[[1]])
-    args <- c(args, list(...))
-
-    if (is.null(args[["coords_s"]]))
-      args[["coords_s"]] <- get_node_coords(object, network_pair_id)
-
-    do.call("map_flows", args)
-  })
-
-
 # ---- ... neighborhood -------------------------------------------------------
 #' @rdname sp_multi_network-class
 setMethod(
@@ -311,19 +201,29 @@ setMethod(
     flow_control <- list(
       model = ifelse(add_lags_y,"model_9", "model_1"),
       sdm_variables = ifelse(add_lags_x,"same", "none"))
-
-    flow_control <- enhance_flow_control(
+    flow_control <- enhance_spflow_control(
       flow_control = flow_control,
-      net_pair = pull_member(object, network_pair_id))
+      is_within = od_ids["orig"] == od_ids["dest"])
 
     mat <- derive_spflow_matrices(
-      sp_multi_network = object,
-      network_pair_id = network_pair_id,
-      flow_formula = flow_formula,
-      flow_control = flow_control,
-      ignore_na = TRUE)
+      spflow_data = pull_spflow_data(object, network_pair_id),
+      spflow_neighborhood = pull_spflow_neighborhood(object, network_pair_id),
+      spflow_formula = flow_formula,
+      spflow_control = flow_control,
+      na_rm = TRUE)
 
-    mom <- compute_spflow_moments(mat, flow_control,ignore_na = TRUE)
+    spflow_indicators <- spflow_matrices[["spflow_indicators"]]
+    spflow_matrices[["spflow_indicators"]] <- NULL
+    spflow_obs <- spflow_indicators2obs(spflow_indicators)
+    wt <- spflow_indicators2mat(spflow_indicators, do_filter = "HAS_Y", do_values = "WEIGHTS")
+    mom <- compute_spflow_moments(
+      spflow_matrices = mat,
+      n_o = spflow_obs[["N_orig"]],
+      n_d = spflow_obs[["N_dest"]],
+      N = spflow_obs[["N_fit"]],
+      wt = wt,
+      na_rm = TRUE)
+
     return(mom[["TCORR"]][-1,-1, drop = FALSE])
   })
 
@@ -462,7 +362,7 @@ setMethod(
     if (keep_od_keys)
       attr_key_do(pair_data) <- colnames(do_keys)
 
-    if (any(sapply(flow_data, inherits, "data.table")) && require("data.table"))
+    if (any(sapply(flow_data, inherits, "data.table")) && requireNamespace("data.table", quietly = TRUE))
       pair_data <- data.table::as.data.table(pair_data)
 
     return(pair_data)
@@ -536,6 +436,129 @@ setMethod(
 
     cat("\n")
     invisible(object)
+  })
+
+# ---- ... spflow_moran_plots  ------------------------------------------------
+#' @name spflow_moran_plots
+#' @rdname spflow_moran_plots
+#' @inheritParams spflow
+#' @param flow_var
+#'   A character, indicating one variable from the network pair
+#' @export
+#' @examples
+#'
+#'  # Used with a sp_multinetwork ...
+#'  # To check the if there is spatial correlation in any variable
+#'  spflow_moran_plots(multi_net_usa_ge, "ge_ge",flow_var = "y9")
+#'
+setMethod(
+  f = "spflow_moran_plots",
+  signature = "sp_multi_network",
+  function(object,
+           network_pair_id = id(object)[["network_pairs"]][[1]],
+           flow_var,
+           model = "model_9",
+           DW,
+           OW,
+           add_lines = TRUE) {
+
+
+
+    if (missing(DW) | missing(OW)){
+      nb_dat <- pull_spflow_neighborhood(object,network_pair_id)
+      if (missing(OW)) OW <- nb_dat[["OW"]]
+      if (missing(DW)) DW <- nb_dat[["DW"]]
+    }
+
+    assert(model != "model_1", "The Moran plot is for spatial models!")
+    assert_is_single_x(flow_var, "character")
+    assert(flow_var %in% names(dat(object, network_pair_id)),
+           "Variable %s not found in network pair %s!", flow_var, network_pair_id)
+
+    # create lags for the flow_var in matrix form
+    flows_v <- dat(object, network_pair_id)[[flow_var]]
+    valid_flows <- is.finite(flows_v)
+    flows_v <- flows_v[valid_flows]
+
+    do_keys <- get_do_keys(dat(object, network_pair_id))[valid_flows,,drop = FALSE]
+    flows_indicator <- matrix_format_d_o(
+      dest_index = as.integer(do_keys[,1]),
+      orig_index = as.integer(do_keys[,2]),
+      num_dest = nlevels(do_keys[,1]),
+      num_orig = nlevels(do_keys[,2]),
+      assume_ordered = TRUE)
+
+    flows_m <- matrix_format_d_o(
+      flows_v,
+      dest_index = as.integer(do_keys[,1]),
+      orig_index = as.integer(do_keys[,2]),
+      num_dest = nlevels(do_keys[,1]),
+      num_orig = nlevels(do_keys[,2]),
+      assume_ordered = TRUE)
+
+    flows_lag <- lag_flow_matrix(
+      Y = flows_m,
+      model = model,
+      OW = OW,
+      DW = DW,
+      name = flow_var,
+      M_indicator = flows_indicator)
+
+    flow_lag <- lapply(
+      flows_lag[-1],
+      FUN = "spflow_mat2format",
+      do_keys = do_keys,
+      return_type = "V")
+
+    for (i in seq_along(flow_lag)) {
+      Wi <- sub(paste0(flow_var, "."),replacement = "", names(flow_lag)[i])
+
+      plot(y = flow_lag[[i]], x = flows_v,
+           main = "Moran scatterplot",
+           xlab = flow_var,
+           ylab = bquote(W[.(Wi)] %*% .(flow_var) (lag)))
+      if (add_lines)
+        abline(lm.fit(x = cbind(1,flows_v), y = flow_lag[[i]]), col = "red")
+    }
+  })
+
+
+# ---- ... spflow_map  --------------------------------------------------------
+#' @name spflow_map
+#' @rdname spflow_map
+#' @export
+#' @examples
+#'
+#'  # Used with a sp_multinetwork ...
+#'  spflow_map(multi_net_usa_ge, "ge_ge",flow_var = "y9")
+#'
+setMethod(
+  f = "spflow_map",
+  signature = "sp_multi_network",
+  function(object,
+           network_pair_id = id(object)[["network_pairs"]][[1]],
+           ...,
+           flow_var) {
+
+    assert(network_pair_id %in% id(object)[["network_pairs"]])
+    flow_data <- pull_spflow_data(object, network_pair_id)
+
+    assert_is_single_x(flow_var, "character")
+    assert(flow_var %in% names(flow_data[["pair"]]),
+           "Variable %s not found in network pair %s!", flow_var, network_pair_id)
+
+    do_indexes <- get_do_keys(flow_data[["pair"]])
+    flow_var <- flow_data[["pair"]][,flow_var]
+    args <- list(
+      "y" = flow_var,
+      "index_o" = do_indexes[[2]],
+      "index_d" = do_indexes[[1]])
+    args <- c(args, list(...))
+
+    if (is.null(args[["coords_s"]]))
+      args[["coords_s"]] <- get_node_coords(object, network_pair_id)
+
+    do.call("map_flows", args)
   })
 
 
@@ -682,7 +705,7 @@ sp_multi_network <- function(...) {
       pdat_new <- dat(sp_network_pairs[[net_pair]])
       pdat_new[do_key_cols] <- do_keys
       pdat_new <- pdat_new[order(do_keys[[2]], do_keys[[1]]),,drop = FALSE]
-      if (inherits(pdat_new, "data.table") && require("data.table"))
+      if (inherits(pdat_new, "data.table") && requireNamespace("data.table", quietly = TRUE))
         pdat_new <- data.table::as.data.table(pdat_new)
       dat(sp_network_pairs[[net_pair]]) <- pdat_new
     }

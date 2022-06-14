@@ -69,5 +69,5 @@ usa_net <- sp_network_nodes(
   node_data = usa_grid,
   node_key_column = "ID_STATE")
 
-save(usa_net, file = "data/usa_net.rda")
-save(usa_grid, file = "data/usa_grid.rda")
+save(usa_net, file = "data/usa_net.rda", compress = "bzip2")
+save(usa_grid, file = "data/usa_grid.rda", compress = "bzip2")

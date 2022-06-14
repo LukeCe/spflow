@@ -57,6 +57,6 @@ germany_inputs <- list("data" = germany_data,
                        "key_column" = "ID_STATE",
                        "net_id" = "ge")
 
-save(germany_inputs, file = "tests/integration/germany_inputs.rda")
-save(germany_net, file = "data/germany_net.rda")
-save(germany_grid, file = "data/germany_grid.rda")
+save(germany_inputs, file = "tests/integration/germany_inputs.rda", compress = "bzip2")
+save(germany_net, file = "data/germany_net.rda", compress = "bzip2")
+save(germany_grid, file = "data/germany_grid.rda", compress = "bzip2")

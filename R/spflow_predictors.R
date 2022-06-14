@@ -137,7 +137,7 @@ compute_expectation <- function(
   if (is.null(M_indicator))
     return(as.vector(Yhat))
 
-  return(Y_hat[as.logical(M_indicator)])
+  return(Yhat[as.logical(M_indicator)])
 }
 
 

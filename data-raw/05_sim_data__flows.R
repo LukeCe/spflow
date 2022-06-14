@@ -99,7 +99,9 @@ for (i in seq_along(multi_net_usa_ge@network_pairs)) {
   multi_net_usa_ge@network_pairs[[i]]@pair_data[y_cols] <- flows[[i]]
 }
 
-save(multi_net_usa_ge, file = "data/multi_net_usa_ge.rda")
+save(multi_net_usa_ge, file = "data/multi_net_usa_ge.rda", compress = "bzip2")
+
+
 
 # keep the vectorized data for integration tests
 vec_data_usa_ge <- Map("cbind",flows,pair_variables_mat)

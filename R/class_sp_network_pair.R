@@ -297,7 +297,7 @@ sp_network_pair <- function(
   order_names <- c(do_key_cols, setdiff(names(pair_data), do_key_cols))
   pair_data <- pair_data[order(do_keys[[2]],do_keys[[1]]), order_names]
   attr_key_do(pair_data) <- do_key_cols
-  if (inherits(pair_data, "data.table") && require("data.table"))
+  if (inherits(pair_data, "data.table") && requireNamespace("data.table", quietly = TRUE))
     pair_data <- data.table::as.data.table(pair_data)
 
   network_pair@pair_data   <- pair_data

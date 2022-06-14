@@ -52,8 +52,6 @@ derive_logdet_calculator <- function(
 
 
 
-
-#' Fill the lookup table created by [multinom_lookup_template()] with values
 #' @keywords internal
 generate_approxldet_cartesian <- function(
   OW = NULL,
@@ -230,7 +228,7 @@ tracevals2params_c <- function(OW, DW, n_o, n_d, model, approx_order) {
 
   if (model %in% c("model_7", "model_9")) {
     tracevals <- cbind(tracevals, power_lookup[model_params])
-    tracevals <- subset(tracevals, TRACE_VAL != 0)
+    tracevals <- tracevals[tracevals$TRACE_VAL != 0,, drop = FALSE]
     return(tracevals)
   }
 
@@ -242,7 +240,7 @@ tracevals2params_c <- function(OW, DW, n_o, n_d, model, approx_order) {
   num_params <- length(model_params)
   tracevals$TRACE_VAL <- tracevals$TRACE_VAL / num_params^power_lookupSum[[1]]
   tracevals <- aggregate(tracevals, power_lookupSum, FUN = "sum")
-  tracevals <- subset(tracevals, TRACE_VAL != 0)
+  tracevals <- tracevals[tracevals$TRACE_VAL != 0,, drop = FALSE]
   return(tracevals[,c(2,1)])
 }
 
@@ -254,7 +252,7 @@ tracevals2params_nc <- function(Wd, Wo, Ww, model, approx_order) {
 
   if (model == "model_7") {
 
-    tl <- subset(tl, !grepl("w", TRACE_KEY))
+    tl <- tl[!grepl("w", tl$TRACE_KEY),,drop = FALSE]
     if (approx_order == 2) {
       tl$TRACE_VAL[tl$TRACE_KEY == "dd"] <- mprod_trace(Wd)
       tl$TRACE_VAL[tl$TRACE_KEY == "oo"] <- mprod_trace(Wo)
@@ -334,7 +332,7 @@ tracevals2params_nc <- function(Wd, Wo, Ww, model, approx_order) {
     }
   }
 
-  tl <- subset(tl, TRACE_ORDER <= approx_order)
+  tl <- tl[tl$TRACE_ORDER <= approx_order,,drop = FALSE]
   tl$TRACE_VAL <- (tl$TRACE_VAL * tl$TRACE_COEF) / tl$TRACE_ORDER
   tl$TRACE_COEF <- NULL
   tl$TRACE_ORDER <- NULL
@@ -420,7 +418,8 @@ tracevals2approxldet <- function(tracevals) {
 
   approxldet <- function(rho) {
 
-    powers <- subset(tracevals, select = -TRACE_VAL)
+    powers <- tracevals
+    powers[["TRACE_VAL"]] <- NULL
     param_vals <- Reduce("*", Map("^", rho, powers))
     logdet_val <- -as.numeric(sum(param_vals * tracevals$TRACE_VAL))
     return(logdet_val)

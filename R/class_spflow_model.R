@@ -150,88 +150,6 @@ setMethod(
     spflow_indicators2format(do_k[,c(names(do_k)[1:2],"FITTED")], return_type, do_k[["HAS_Y"]])
   })
 
-# ---- ... flow_map -----------------------------------------------------------
-#' @title Plot the map of flows
-#' @name flow_map
-#' @rdname spflow_model-class
-#' @export
-setMethod(
-  f = "flow_map",
-  signature = "spflow_model",
-  function(object,
-           ...,
-           flow_type = "resid",
-           add_title = TRUE) {
-
-    assert_is_single_x(flow_type, "character")
-
-    type_options <- c(
-      "resid" = "Residuals",
-      "fitted" = "Fitted values",
-      "actual" = "True values")
-    assert_valid_case(flow_type, names(type_options))
-
-    do_flows <- match.fun(flow_type)(object, "OD")
-    args <- list(
-      "y" = abs(do_flows[[3]]),
-      "index_o" = do_flows[[2]],
-      "index_d" = do_flows[[1]])
-    args <- c(args, list(...))
-
-
-    if (is.null(args[["coords_s"]])) {
-      args[["coords_s"]] <- coord(object)
-    }
-
-    do.call("map_flows", args)
-    if (add_title)
-      title(type_options[flow_type])
-  })
-
-
-# ---- ... flow_moran_plots  --------------------------------------------------
-#' @title Plot the map of flows
-#' @name flow_moran_plots
-#' @rdname spflow_model-class
-setMethod(
-  f = "flow_moran_plots",
-  signature = "spflow_model",
-  function(object, model, DW, OW, add_lines = TRUE) {
-
-    if (missing(model)) model <- object@estimation_control[["model"]]
-    if (missing(DW)) DW <- object@spflow_neighborhood[["DW"]]
-    if (missing(OW)) OW <- object@spflow_neighborhood[["OW"]]
-
-    assert(model != "model_1", "The Moran plot is for spatial models!")
-
-    # recompute the moments pretending the errors are the flows
-    # with flows becoming exogenous variables
-
-    M_indicator <- spflow_indicators2mat(object@spflow_indicators)
-    E_ <- lag_flow_matrix(
-      Y = resid(object, "M"),
-      model = model,
-      OW = OW,
-      DW = DW,
-      name = "RESID",
-      M_indicator = M_indicator)
-
-    E_ <- lapply(E_, spflow_mat2format, do_keys = object@spflow_indicators, return_type = "V")
-    E_1 <- cbind(1,E_[[1]])
-    for (i in seq_len(length(E_) - 1)) {
-      ii <- sub("RESID.",replacement = "", names(E_)[i + 1])
-
-
-      title_expr <- bquote(paste("Moran scatterplot of residuals (",  W[.(ii)], " - lag)"))
-      plot(y = E_[[i + 1]], x = E_[[1]],
-           main = title_expr,
-           xlab = expression(residual),
-           ylab = bquote(W[.(ii)] %.% "resdiual"))
-      if (add_lines)
-        abline(lm.fit(x = E_1 , y = E_[[i + 1]]), col = "red") ; abline(0,0)
-    }
-  })
-
 # ---- ... logLik -------------------------------------------------------------
 #' @param object A [spflow_model-class()]
 #' @rdname spflow_model-class
@@ -354,6 +272,8 @@ setMethod(
 
 # ---- ... plot ---------------------------------------------------------------
 #' @rdname spflow_model-class
+#' @importFrom graphics abline image.default par title
+#' @importFrom stats aggregate complete.cases lm.fit qnorm qqline qqnorm
 #' @export
 setMethod(
   f = "plot",
@@ -393,7 +313,7 @@ setMethod(
       plot(mcmc_results(a),density = FALSE, ask = FALSE)
 
     corr_map(pair_corr(x))
-    title(x = "Pairwise correlations")
+    title(xlab = "Pairwise correlations")
     })
 
 
@@ -589,6 +509,118 @@ setMethod(
     invisible(object)
   })
 
+
+# ---- ... spflow_map ---------------------------------------------------------
+#' @param object
+#'   A [spflow_model-class()]
+#' @param flow_type
+#'   A character indicating what to values to show.
+#'   Should be one of c("resid", "fitted", "actual").
+#' @param add_title
+#'   A logical, if `TRUE` the flow_type is added as title.
+#' @param ... further arguments passed to [map_flows()]
+#' @name spflow_map
+#' @rdname spflow_map
+#' @seealso [map_flows()]
+#' @export
+#' @examples
+#'
+#'  # Used with a model...
+#'  gravity_ge <- spflow(y1 ~ . + G_(DISTANCE), multi_net_usa_ge, "ge_ge", spflow_control(model = "model_1"))
+#'  spflow_map(gravity_ge)
+#'  spflow_map(gravity_ge, flow_type = "fitted")
+#'  spflow_map(gravity_ge, flow_type = "actual")
+#'
+setMethod(
+  f = "spflow_map",
+  signature = "spflow_model",
+  function(object,
+           ...,
+           flow_type = "resid",
+           add_title = TRUE) {
+
+    assert_is_single_x(flow_type, "character")
+
+    type_options <- c(
+      "resid" = "Residuals",
+      "fitted" = "Fitted values",
+      "actual" = "True values")
+    assert_valid_case(flow_type, names(type_options))
+
+    do_flows <- match.fun(flow_type)(object, "OD")
+    args <- list(
+      "y" = abs(do_flows[[3]]),
+      "index_o" = do_flows[[2]],
+      "index_d" = do_flows[[1]])
+    args <- c(args, list(...))
+
+
+    if (is.null(args[["coords_s"]])) {
+      args[["coords_s"]] <- coord(object)
+    }
+
+    do.call("map_flows", args)
+    if (add_title)
+      title(type_options[flow_type])
+  })
+
+
+# ---- ... spflow_moran_plots  ------------------------------------------------
+#' @inheritParams spflow_control
+#' @param DW,OW
+#'   A matrix to replace the neighborhood of the destinations (DW) and origins (OW).
+#'   Defaults to the one supplied to the model.
+#' @param add_lines
+#'   A logical, if `TRUE` regression lines are added to the Moran scatter plots.
+#' @name spflow_moran_plots
+#' @rdname spflow_moran_plots
+#' @examples
+#'
+#'  # Used with a model...
+#'  # To check the if there is spatial correlation in the residuals
+#'  gravity_ge <- spflow(y9 ~ . + G_(DISTANCE), multi_net_usa_ge, "ge_ge", spflow_control(model = "model_1"))
+#'  spflow_moran_plots(gravity_ge)
+#'
+setMethod(
+  f = "spflow_moran_plots",
+  signature = "spflow_model",
+  function(object, model = "model_9", DW, OW, add_lines = TRUE) {
+
+    if (missing(DW)) DW <- object@spflow_neighborhood[["DW"]]
+    if (missing(OW)) OW <- object@spflow_neighborhood[["OW"]]
+
+    assert(inherits(DW, "maybe_Matrix"), "The DW argument musst be of class Matrix or NULL!")
+    assert(inherits(OW, "maybe_Matrix"), "The OW argument musst be of class Matrix or NULL!")
+    assert(!all(is.null(DW), is.null(OW)), "At least one neighborhood matrix musst be given!")
+
+    # recompute the moments pretending the errors are the flows
+    # with flows becoming exogenous variables
+
+    M_indicator <- spflow_indicators2mat(object@spflow_indicators)
+    E_ <- lag_flow_matrix(
+      Y = resid(object, "M"),
+      model = model,
+      OW = OW,
+      DW = DW,
+      name = "RESID",
+      M_indicator = M_indicator)
+
+    E_ <- lapply(E_, spflow_mat2format, do_keys = object@spflow_indicators, return_type = "V")
+    E_1 <- cbind(1,E_[[1]])
+    for (i in seq_len(length(E_) - 1)) {
+      ii <- sub("RESID.",replacement = "", names(E_)[i + 1])
+
+
+      title_expr <- bquote(paste("Moran scatterplot of residuals (",  W[.(ii)], " - lag)"))
+      plot(y = E_[[i + 1]], x = E_[[1]],
+           main = title_expr,
+           xlab = expression(residual),
+           ylab = bquote(W[.(ii)] %.% "resdiual"),
+           asp = 1)
+      if (add_lines)
+        abline(lm.fit(x = E_1 , y = E_[[i + 1]]), col = "red") ; abline(0,0)
+    }
+  })
 
 
 # ---- ... varcov -------------------------------------------------------------

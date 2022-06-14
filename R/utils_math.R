@@ -178,7 +178,7 @@ multinom_table <- function(max_power, coef_names) {
   names(coef_powers) <- coef_names
 
   coef_powers[["POWER_ORDER"]] <- rowSums(coef_powers)
-  coef_powers <- subset(coef_powers, POWER_ORDER <= max_power & POWER_ORDER > 0)
+  coef_powers <- coef_powers[coef_powers$POWER_ORDER <= max_power & coef_powers$POWER_ORDER > 0,, drop = FALSE]
   coef_powers <- unique(coef_powers)
   coef_powers[["COEF_MULTINOM"]] <- multinom_coef(coef_powers[coef_names])
   row.names(coef_powers) <- NULL

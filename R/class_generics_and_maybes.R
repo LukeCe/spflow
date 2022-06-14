@@ -90,33 +90,31 @@ setGeneric(
 
 
 # ---- ... flow_map -----------------------------------------------------------
-#' @title Graphical representation of flows
-#' @param value A character replacing the existing id
-#' @rdname flow_map
-#' @name flow_map
+#' @title Geographic representation of flows
+#' @rdname spflow_map
+#' @name spflow_map
 #' @export
 setGeneric(
-  name = "flow_map",
-  def = function(object, ...) standardGeneric("flow_map"))
+  name = "spflow_map",
+  def = function(object, ...) standardGeneric("spflow_map"))
 
 # ---- ... flow_moran_plots ---------------------------------------------------
-#' @title Graphical representation of flows
-#' @param value A character replacing the existing id
-#' @rdname flow_moran_plots
-#' @name flow_moran_plots
+#' @title Moran scatter plots of interaction data
+#' @rdname spflow_moran_plots
+#' @name spflow_moran_plots
 #' @export
 setGeneric(
-  name = "flow_moran_plots",
-  def = function(object, ...) standardGeneric("flow_moran_plots"))
+  name = "spflow_moran_plots",
+  def = function(object, ...) standardGeneric("spflow_moran_plots"))
 
 
 # ---- ... mcmc_results -------------------------------------------------------
 #' @title Access the sampling results of a [spflow_model_mcmc-class()]
 #' @description For details see the documentation of the corresponding class.
 #' @name mcmc_results
-#' @param object A [spflow_model_mcmc-class()]
+#' @param object A [spflow_model-class()]
 #' @return An mcmc object, containing the draws of the sampled parameters
-#' @seealso [spflow_model_mcmc-class()]
+#' @seealso [spflow_model-class()]
 #' @export
 setGeneric(
   name = "mcmc_results",
