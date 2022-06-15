@@ -260,7 +260,15 @@ setValidity(
 #' @param prefer_lonlat
 #'   A logical indicating whether the coordinates should be transformed to
 #'   longitude and latitude.
-#'
+#' @param node_coord_columns
+#'   A character indicating the columns that represent the coordinates of the
+#'   nodes. For example `c("LON", "LAT")`.
+#' @param normalize_neighborhood
+#'   A logical indicating whether the node_neighborhood matrix should be
+#'   normalized to satisfy the usual assumptions in spatial econometrics.
+#'   This means zeros on the main diagonal and a spectral radius of one.
+#' @param normalize_byrow
+#'   A logical, if `TRUE` the neighborhood is row-normalized.
 #'
 #' @family Constructors for spflow network classes
 #' @importClassesFrom Matrix Matrix
@@ -362,7 +370,7 @@ valid_network_id <- function(key) {
 }
 
 #' @title Convert spatial data frame to simple data.frame
-#' @export
+#' @keywords internal
 simplfy2df <- function(df, derive_coord_cols = TRUE, prefer_lonlat = TRUE) {
 
 

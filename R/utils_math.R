@@ -101,7 +101,13 @@ sandwich_prod <- function(w1,mat,w2=w1){
 #' @title Graphic display for correlation matrices
 #' @importFrom grDevices hcl.colors
 #' @importFrom graphics axis image text
+#' @param cor_mat A matrix of pairwise correlations
+#' @return A graphical representation of the correlation matrix
 #' @export
+#' @examples
+#'
+#' cor_mat <- cor(matrix(rnorm(40),ncol = 4))
+#' corr_map(cor_mat)
 corr_map <- function(cor_mat) {
 
   cor_mat[!is.finite(cor_mat)] <- NA

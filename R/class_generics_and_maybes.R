@@ -20,7 +20,6 @@ setClassUnion("maybe_numeric"   , c("NULL", "numeric"))
 # ---- New Generics -----------------------------------------------------------
 
 # ---- ... complete_pairs -----------------------------------------------------
-#' @name complete_pairs
 #' @rdname sp_multi_network-class
 #' @export
 setGeneric(
@@ -89,27 +88,8 @@ setGeneric(
   def = function(object, ..., value) standardGeneric("id<-"))
 
 
-# ---- ... flow_map -----------------------------------------------------------
-#' @title Geographic representation of flows
-#' @rdname spflow_map
-#' @name spflow_map
-#' @export
-setGeneric(
-  name = "spflow_map",
-  def = function(object, ...) standardGeneric("spflow_map"))
-
-# ---- ... flow_moran_plots ---------------------------------------------------
-#' @title Moran scatter plots of interaction data
-#' @rdname spflow_moran_plots
-#' @name spflow_moran_plots
-#' @export
-setGeneric(
-  name = "spflow_moran_plots",
-  def = function(object, ...) standardGeneric("spflow_moran_plots"))
-
-
 # ---- ... mcmc_results -------------------------------------------------------
-#' @title Access the sampling results of a [spflow_model_mcmc-class()]
+#' @title Access the MCMC results of a [spflow_model-class()]
 #' @description For details see the documentation of the corresponding class.
 #' @name mcmc_results
 #' @param object A [spflow_model-class()]
@@ -168,14 +148,13 @@ setGeneric(
 
 
 # ---- ... npairs -------------------------------------------------------------
-#' @title Generic for accessing the node pairs count of a
-#'   [sp_network_pair-class()]
-#' @description For details on the method see the documentation of the
-#'   corresponding class.
-#' @param object A [sp_network_pair-class()]
+#' @title Generic for accessing the node pairs count of [sp_network-classes()]
+#' @description
+#'   For details on the method see the documentation of the
+#'   corresponding classes.
+#' @param object A [sp_network_pair-class()] or [sp_network_pair-class()]
+#' @param ... Arguments to be passed to methods
 #' @return A numeric, corresponding to the number of node-pairs
-#' @name npairs
-#' @seealso [sp_network_pair-class()]
 #' @export
 setGeneric(
   name = "npairs",
@@ -192,11 +171,10 @@ setGeneric(
 #' [sp_multi_network][sp_multi_network-class()] or a
 #' [spflow_models][spflow_model-class()].
 #'
-#' @rdname pair_corr
-#' @name pair_corr
+#' @param ... Arguments to be passed to methods
 #' @seealso [sp_multi_network-class()], [spflow_model-class()]
 #' @export
-#' @return A matrix of pairwise person correlations between all variables
+#' @return A matrix of pairwise correlations between all variables
 setGeneric(
   name = "pair_corr",
   def = function(object, ...) standardGeneric("pair_corr"))
@@ -284,6 +262,22 @@ setGeneric(
   name = "sd_error", # ---- ... sd_error --------------------------------------
   def = function(object) standardGeneric("sd_error"))
 
+# ---- ... spflow_map ---------------------------------------------------------
+#' @title Geographic representation of flows
+#' @rdname spflow_map
+#' @export
+setGeneric(
+  name = "spflow_map",
+  def = function(object, ...) standardGeneric("spflow_map"))
+
+# ---- ... spflow_moran_plots -------------------------------------------------
+#' @title Moran scatter plots of interaction data
+#' @rdname spflow_moran_plots
+#' @param ... arguments passed to methods
+#' @export
+setGeneric(
+  name = "spflow_moran_plots",
+  def = function(object, ...) standardGeneric("spflow_moran_plots"))
 
 
 #' @title Generic for accessing the variance-covariance matrix of the

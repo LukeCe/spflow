@@ -84,21 +84,26 @@ setMethod(
 
 # ---- ... id <- --------------------------------------------------------------
 #' @rdname sp_network_pair-class
+#' @param which
+#'   A character indicating which of the ids to change, should be one of
+#'   `c("origin", "destination", "pair")`.
+#'   The first characters may be used as shortcuts.
 #' @export
 setReplaceMethod(
   f = "id",
   signature = "sp_network_pair",
-  function(object, which = "pair", value) {
+  function(object, value, which = "pair") {
 
     assert_is_single_x(value, "character")
+    is_which <- function(str) grepl(which, str, fixed = TRUE)
 
-    if (which == "pair")
+    if (is_which("pair"))
       object@network_pair_id <- value
 
-    if (which == "orig")
+    if (is_which("orig"))
       object@orig_net_id <- value
 
-    if (which == "dest")
+    if (is_which("dest"))
       object@dest_net_id <- value
 
     return(object)

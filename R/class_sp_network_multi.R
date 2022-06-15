@@ -140,6 +140,9 @@ setMethod(
   })
 
 # ---- ... nnodes -------------------------------------------------------------
+#' @param .id
+#'   A character, corresponding to the id of a `sp_network_nodes()` object
+#'   contained in the `sp_multi_network`
 #' @rdname sp_multi_network-class
 setMethod(
   signature = "sp_multi_network",
@@ -159,8 +162,6 @@ setMethod(
 
 
 # ---- ... pair_corr ----------------------------------------------------------
-#' @param object
-#'   A [sp_multi_network-class()]
 #' @param network_pair_id
 #'   A character indicating the id of a [sp_network_pair-class()]
 #' @param flow_formula
@@ -176,11 +177,21 @@ setMethod(
 #' @rdname pair_corr
 #' @export
 #' @examples
-#' # long form data for flows from Germany to Germany
-#' pair_merge(multi_net_usa_ge,"ge_ge")
 #'
-#' # long form data for flows from Germany to USA
-#' pair_merge(multi_net_usa_ge,"ge_usa")
+#' # Used with a sp_multi_network ...
+#'
+#' # without transformations
+#' corr_mat <- pair_corr(multi_net_usa_ge, "ge_ge")
+#' corr_map(corr_mat)
+#'
+#' # with transformations and spatial lags
+#' corr_mat <- pair_corr(
+#'   multi_net_usa_ge,
+#'   "ge_ge",
+#'   y9 ~ . + G_(log(DISTANCE + 1) + .),
+#'   add_lags_y = TRUE)
+#' corr_map(corr_mat)
+#'
 setMethod(
   f = "pair_corr",
   signature = "sp_multi_network",
@@ -190,9 +201,10 @@ setMethod(
            add_lags_x = TRUE,
            add_lags_y = FALSE) {
 
-    od_ids <- id(object)[["network_pairs"]]
-    assert(network_pair_id %in% od_ids,
+    pair_ids <- id(object)[["network_pairs"]]
+    assert(network_pair_id %in% pair_ids,
            "Network pair with id %s was not found!", network_pair_id)
+    od_id <- id(pull_member(object, network_pair_id))
 
     if (missing(flow_formula))
       flow_formula <- 1 ~ .
@@ -203,9 +215,9 @@ setMethod(
       sdm_variables = ifelse(add_lags_x,"same", "none"))
     flow_control <- enhance_spflow_control(
       flow_control = flow_control,
-      is_within = od_ids["orig"] == od_ids["dest"])
+      is_within = od_id["orig"] == od_id["dest"])
 
-    mat <- derive_spflow_matrices(
+    spflow_matrices <- derive_spflow_matrices(
       spflow_data = pull_spflow_data(object, network_pair_id),
       spflow_neighborhood = pull_spflow_neighborhood(object, network_pair_id),
       spflow_formula = flow_formula,
@@ -217,7 +229,7 @@ setMethod(
     spflow_obs <- spflow_indicators2obs(spflow_indicators)
     wt <- spflow_indicators2mat(spflow_indicators, do_filter = "HAS_Y", do_values = "WEIGHTS")
     mom <- compute_spflow_moments(
-      spflow_matrices = mat,
+      spflow_matrices = spflow_matrices,
       n_o = spflow_obs[["N_orig"]],
       n_d = spflow_obs[["N_dest"]],
       N = spflow_obs[["N_fit"]],
@@ -438,8 +450,46 @@ setMethod(
     invisible(object)
   })
 
+
+# ---- ... spflow_map  --------------------------------------------------------
+#' @rdname spflow_map
+#' @export
+#' @examples
+#'
+#'  # Used with a sp_multi_network ...
+#'  spflow_map(multi_net_usa_ge, "ge_ge",flow_var = "y9")
+#'
+setMethod(
+  f = "spflow_map",
+  signature = "sp_multi_network",
+  function(object,
+           network_pair_id = id(object)[["network_pairs"]][[1]],
+           ...,
+           flow_var) {
+
+    assert(network_pair_id %in% id(object)[["network_pairs"]])
+    flow_data <- pull_spflow_data(object, network_pair_id)
+
+    assert_is_single_x(flow_var, "character")
+    assert(flow_var %in% names(flow_data[["pair"]]),
+           "Variable %s not found in network pair %s!", flow_var, network_pair_id)
+
+    do_indexes <- get_do_keys(flow_data[["pair"]])
+    flow_var <- flow_data[["pair"]][,flow_var]
+    args <- list(
+      "y" = flow_var,
+      "index_o" = do_indexes[[2]],
+      "index_d" = do_indexes[[1]])
+    args <- c(args, list(...))
+
+    if (is.null(args[["coords_s"]]))
+      args[["coords_s"]] <- get_node_coords(object, network_pair_id)
+
+    do.call("map_flows", args)
+  })
+
+
 # ---- ... spflow_moran_plots  ------------------------------------------------
-#' @name spflow_moran_plots
 #' @rdname spflow_moran_plots
 #' @inheritParams spflow
 #' @param flow_var
@@ -447,7 +497,7 @@ setMethod(
 #' @export
 #' @examples
 #'
-#'  # Used with a sp_multinetwork ...
+#'  # Used with a sp_multi_network ...
 #'  # To check the if there is spatial correlation in any variable
 #'  spflow_moran_plots(multi_net_usa_ge, "ge_ge",flow_var = "y9")
 #'
@@ -521,46 +571,6 @@ setMethod(
         abline(lm.fit(x = cbind(1,flows_v), y = flow_lag[[i]]), col = "red")
     }
   })
-
-
-# ---- ... spflow_map  --------------------------------------------------------
-#' @name spflow_map
-#' @rdname spflow_map
-#' @export
-#' @examples
-#'
-#'  # Used with a sp_multinetwork ...
-#'  spflow_map(multi_net_usa_ge, "ge_ge",flow_var = "y9")
-#'
-setMethod(
-  f = "spflow_map",
-  signature = "sp_multi_network",
-  function(object,
-           network_pair_id = id(object)[["network_pairs"]][[1]],
-           ...,
-           flow_var) {
-
-    assert(network_pair_id %in% id(object)[["network_pairs"]])
-    flow_data <- pull_spflow_data(object, network_pair_id)
-
-    assert_is_single_x(flow_var, "character")
-    assert(flow_var %in% names(flow_data[["pair"]]),
-           "Variable %s not found in network pair %s!", flow_var, network_pair_id)
-
-    do_indexes <- get_do_keys(flow_data[["pair"]])
-    flow_var <- flow_data[["pair"]][,flow_var]
-    args <- list(
-      "y" = flow_var,
-      "index_o" = do_indexes[[2]],
-      "index_d" = do_indexes[[1]])
-    args <- c(args, list(...))
-
-    if (is.null(args[["coords_s"]]))
-      args[["coords_s"]] <- get_node_coords(object, network_pair_id)
-
-    do.call("map_flows", args)
-  })
-
 
 
 # ---- ... validity -----------------------------------------------------------

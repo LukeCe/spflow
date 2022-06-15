@@ -35,6 +35,7 @@
 #' nobs(spflow_results) # number of observations
 #' sd_error(spflow_results) # standard deviation of the error term
 #' predict(spflow_results) # computation of the in sample predictor
+#' plot(spflow_results) # some plots for assessing the model
 #'
 #' # MLE methods
 #' logLik(spflow_results) # value of the likelihood function
@@ -131,7 +132,7 @@ setMethod(
 
 # ---- ... fitted -------------------------------------------------------------
 #' @title Extract a vector of fitted values from a spatial interaction model
-#' @param object A [spflow_model()]
+#' @param object A [spflow_model-class()]
 #' @param return_type
 #'  A character indicating the format of the returned values:
 #'  -  "V" leads to an atomic vector
@@ -140,7 +141,6 @@ setMethod(
 #'      and the id's of the destinations and the origins
 #'
 #' @rdname spflow_model-class
-#' @name fitted
 #' @export
 setMethod(
   f = "fitted",
@@ -162,6 +162,7 @@ setMethod(
 # ---- ... mcmc_results ------------------------------------------------------
 #' @param object A [spflow_model-class()]
 #' @rdname spflow_model-class
+#' @name spflow_model-class
 setMethod(
   f = "mcmc_results",
   signature = "spflow_model_mcmc",
@@ -186,9 +187,9 @@ setMethod(
 #'   A character, that should indicate one of `c("fir", "empric")`
 #'   - "fit" will use the moments that have been used during the estimation
 #'   - "empric" will recompute these moments ignoring the weights
-#' @param add_residuals
-#'   A logical, indicating whether the model residuals should be added to the
-#'   correlation matrix
+#' @param add_residuals,add_fitted
+#'   A logical, indicating whether the model residuals and fitted value
+#'   should be added to the correlation matrix
 #' @param model
 #'  A character that should indicate one of `paste0("model_", 1:9)`.
 #'  The option specifies different correlation structures that are detailed in
@@ -196,6 +197,18 @@ setMethod(
 #'
 #' @rdname pair_corr
 #' @export
+#' @examples
+#'
+#'  # Used with a model...
+#'  gravity_ge <- spflow(
+#'    y1 ~ . + G_(DISTANCE),
+#'    multi_net_usa_ge,
+#'    "ge_ge",
+#'    spflow_control(model = "model_1"))
+#'
+#'  corr_mat <- pair_corr(gravity_ge)
+#'  corr_map(corr_mat)
+#'
 setMethod(
   f = "pair_corr",
   signature = "spflow_model",
@@ -210,10 +223,15 @@ setMethod(
     keep_moments <- type == "fit" || is.null(object@estimation_control[["weight_variable"]])
     new_mat[["weights"]] <- NULL
     if (!keep_moments) {
+      # for empiric version we drop the weights
+      N <-  object@spflow_indicators
+      N <- if (is.null(N[["HAS_Y"]])) nrow(N) else sum(N[["HAS_Y"]])
       new_mom <- compute_spflow_moments(
-        model_matrices = new_mat,
-        flow_control = object@estimation_control,
-        ignore_na = TRUE)
+        spflow_matrices = new_mat,
+        n_o = new_mom[["n_o"]],
+        n_d = new_mom[["n_d"]],
+        N = N,
+        na_rm = TRUE)
     }
 
     if (!add_resid & !add_fitted)
@@ -274,6 +292,7 @@ setMethod(
 #' @rdname spflow_model-class
 #' @importFrom graphics abline image.default par title
 #' @importFrom stats aggregate complete.cases lm.fit qnorm qqline qqnorm
+#' @param x A [spflow_model-class]
 #' @export
 setMethod(
   f = "plot",
@@ -302,15 +321,15 @@ setMethod(
     if (!is.null(coords_s)) {
       x_or_25_percent <- min(50,nobs(x) / 4)
       keep_x_at_most <- (nobs(x) - x_or_25_percent)  / nobs(x)
-      flow_map(x, coords_s = coords_s, flow_type = "fitted", filter_lowest = keep_x_at_most, legend = "bottomright")
-      flow_map(x, coords_s= coords_s, flow_type = "resid", filter_lowest = keep_x_at_most, legend = "bottomright")
+      spflow_map(x, coords_s = coords_s, flow_type = "fitted", filter_lowest = keep_x_at_most, legend = "bottomright")
+      spflow_map(x, coords_s= coords_s, flow_type = "resid", filter_lowest = keep_x_at_most, legend = "bottomright")
     }
 
     if (!inherits(x, "spflow_model_ols"))
-      flow_moran_plots(x)
+      spflow_moran_plots(x)
 
     if (inherits(x, "spflow_model_mcmc"))
-      plot(mcmc_results(a),density = FALSE, ask = FALSE)
+      plot(mcmc_results(x),density = FALSE, ask = FALSE)
 
     corr_map(pair_corr(x))
     title(xlab = "Pairwise correlations")
@@ -323,8 +342,17 @@ setMethod(
 #' @param method A character indicating which method to use for computing the
 #'   predictions. Should be one of c("TS", "TC", "BP").
 #' @param new_data An object containing new data (to be revised)
-#' @param ... Further arguments passed to the prediction function
 #' @inheritParams spflow_control
+#' @param approx_expectation
+#'   A logical, if `TRUE` the expected value of the dependent variable is
+#'   approximated by a Taylor series. For spatial models this can lead to
+#'   significant performance gains.
+#' @param expectation_approx_order
+#'   A numeric, defining the order of the Taylor-series approximation.
+#' @param out_of_sample
+#'   A logical, controlling whether to use in-sample or out of sample
+#'   predictions
+#' @param ... Further arguments passed to the prediction function
 #'
 #' @importFrom Matrix crossprod diag solve
 #' @rdname spflow_model-class
@@ -413,9 +441,6 @@ setMethod(
 
 # ---- ... resid --------------------------------------------------------------
 #' @title Extract the vector of residuals values from a [spflow_model()]
-#'
-#' @param object A [spflow_model()]
-#' @inheritParams fitted
 #' @rdname spflow_model-class
 #' @export
 setMethod(
@@ -519,14 +544,17 @@ setMethod(
 #' @param add_title
 #'   A logical, if `TRUE` the flow_type is added as title.
 #' @param ... further arguments passed to [map_flows()]
-#' @name spflow_map
 #' @rdname spflow_map
 #' @seealso [map_flows()]
 #' @export
 #' @examples
 #'
 #'  # Used with a model...
-#'  gravity_ge <- spflow(y1 ~ . + G_(DISTANCE), multi_net_usa_ge, "ge_ge", spflow_control(model = "model_1"))
+#'  gravity_ge <- spflow(
+#'    y1 ~ . + G_(DISTANCE),
+#'    multi_net_usa_ge,
+#'    "ge_ge",
+#'    spflow_control(model = "model_1"))
 #'  spflow_map(gravity_ge)
 #'  spflow_map(gravity_ge, flow_type = "fitted")
 #'  spflow_map(gravity_ge, flow_type = "actual")
@@ -572,13 +600,16 @@ setMethod(
 #'   Defaults to the one supplied to the model.
 #' @param add_lines
 #'   A logical, if `TRUE` regression lines are added to the Moran scatter plots.
-#' @name spflow_moran_plots
 #' @rdname spflow_moran_plots
 #' @examples
 #'
 #'  # Used with a model...
 #'  # To check the if there is spatial correlation in the residuals
-#'  gravity_ge <- spflow(y9 ~ . + G_(DISTANCE), multi_net_usa_ge, "ge_ge", spflow_control(model = "model_1"))
+#'  gravity_ge <- spflow(
+#'    y9 ~ . + G_(DISTANCE),
+#'    multi_net_usa_ge,
+#'    "ge_ge",
+#'    spflow_control(model = "model_1"))
 #'  spflow_moran_plots(gravity_ge)
 #'
 setMethod(

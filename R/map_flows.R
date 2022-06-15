@@ -38,6 +38,7 @@
 #'    A logical, controlling whether the site names should be printed
 #' @param remove_intra
 #'    A logical that sets the intra flow to null values
+#' @inheritParams spflow_control
 #'
 #' @return Creates a graphical representation of origin-destination flows
 #' @export

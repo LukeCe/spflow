@@ -102,12 +102,22 @@
 #' @param track_condition_numbers
 #'   A logical that controls whether or not the reciprocal condition numbers
 #'   of the systems that are solved during the estimation are tracked.
+#' @param neighborhood_do_normalisation
+#'   A logical, if `TRUE` neighborhood matrices are normalized during the
+#'   estimation. Otherwise the estimation with non-normalized matrices throws
+#'   an error.
+#' @param neighborhood_normalize_by_row
+#'   A logical, if `TRUE` neighborhood matrices are row-normalized
+#' @param reduce_size
+#'   A logical, if `TRUE` large data objects in the model are not stored
+#' @param na_rm
+#'   A logical, if `FALSE` the estimation throws an error when the data
+#'   contains `NA` values. Otherwise the estimation proceeds with a sub-sample.
 #'
 #' @seealso [spflow()]
 #' @references \insertAllCited{}
 #' @return
-#'   A list of parameters used to control the model estimation with
-#'   [spflow()]
+#'   A list of parameters used to control the model estimation with [spflow()]
 #' @export
 #' @examples
 #'
