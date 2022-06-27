@@ -105,6 +105,7 @@ setMethod(
 #' @rdname sp_multi_network-class
 #' @param .id A character indicating the id of a [sp_network_nodes-class()] or a
 #'   [sp_network_pair-class()] inside the [sp_multi_network-class()].
+#' @param value A data.frame to replace the existing data
 #' @export
 #' @examples
 #' ## access the data of a network or a network_pair inside a multi_network
@@ -453,6 +454,9 @@ setMethod(
 
 # ---- ... spflow_map  --------------------------------------------------------
 #' @rdname spflow_map
+#' @inheritParams spflow
+#' @param flow_var
+#'   A character, indicating one variable from the network pair data
 #' @export
 #' @examples
 #'
@@ -493,7 +497,7 @@ setMethod(
 #' @rdname spflow_moran_plots
 #' @inheritParams spflow
 #' @param flow_var
-#'   A character, indicating one variable from the network pair
+#'   A character, indicating one variable from the network pair data
 #' @export
 #' @examples
 #'

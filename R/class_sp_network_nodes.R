@@ -369,7 +369,7 @@ valid_network_id <- function(key) {
   is_single_character(key) && grepl("^[[:alnum:]]+$",key)
 }
 
-#' @title Convert spatial data frame to simple data.frame
+#' @title Convert spatial data to a simple data.frame
 #' @keywords internal
 simplfy2df <- function(df, derive_coord_cols = TRUE, prefer_lonlat = TRUE) {
 

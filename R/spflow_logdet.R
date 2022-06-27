@@ -61,7 +61,11 @@ generate_approxldet_cartesian <- function(
   model,
   approx_order) {
 
-  # the first trace is allways zero
+  if (approx_order == 2)
+    return(generate_approxldet_cartesian2(OW = OW, DW = DW, n_o = n_o, n_d = n_d, model = model))
+
+
+  # the first trace is always zero
   powers_2p <- seq(2, approx_order)
   tseq <- function(W) trace_sequence(W, approx_order)[-1]
 
@@ -112,7 +116,35 @@ generate_approxldet_cartesian <- function(
   return(logdet_calculator_5679)
 }
 
-#' @title Order 2 approximations for non cartesian case
+
+#' @title Order 2 approximations for the cartesian case
+#' @keywords internal
+generate_approxldet_cartesian2 <- function(
+  OW = NULL,
+  DW = NULL,
+  n_o,
+  n_d,
+  model) {
+
+  model_num <- substr(model,7,7)
+
+  trace_dd <- if (model_num %in% c(2,5:9)) sum(DW * t(DW)) * n_o
+
+  trace_oo <- if (model_num %in% c(3,5:9)) sum(OW * t(OW)) * n_d
+
+  trace_ww <- if (model_num %in% c(3,5,6,8,9)) sum(OW * t(OW)) * sum(DW * t(DW))
+
+  tracevals <- c(trace_dd,trace_oo,trace_ww) / 2
+  logdet_calculator_123456789 <- function(rho) {
+    logdet_val <- as.numeric(sum(rho^2 * tracevals))
+    return(-logdet_val)
+  }
+  return(logdet_calculator_123456789)
+}
+
+
+
+#' @title Order 2 approximations for the non-cartesian case
 #' @keywords internal
 generate_approxldet_noncartesian2 <- function(
   OW = NULL,
@@ -125,7 +157,7 @@ generate_approxldet_noncartesian2 <- function(
   model_num <- substr(model,7,7)
 
   trace_dd <- if (model_num %in% c(2,5:9))
-     sum(flow_indicator * ((DW * t(DW)) %*% flow_indicator))
+    sum(flow_indicator * ((DW * t(DW)) %*% flow_indicator))
 
   trace_oo <- if (model_num %in% c(3,5:9))
     sum(flow_indicator * (flow_indicator %*% ((OW * t(OW)))))
@@ -140,7 +172,6 @@ generate_approxldet_noncartesian2 <- function(
   }
   return(logdet_calculator_123456789)
 }
-
 
 #' @title Order 4 approximations for non cartesian case
 #' @keywords internal

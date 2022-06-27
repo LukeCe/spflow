@@ -267,7 +267,7 @@ setValidity("sp_network_pair", function(object) {
 #' pair_frame <- data.frame(
 #'   ORIG_ID_STATE = rep(germany_grid$ID_STATE, times = 16),
 #'   DEST_ID_STATE = rep(germany_grid$ID_STATE, each = 16))
-#' sp_network_pair("ge","ge",pair_frame,"ORIG_ID_STATE","DEST_ID_STATE")
+#' sp_network_pair("ge","ge","ge_ge",pair_frame,"ORIG_ID_STATE","DEST_ID_STATE")
 sp_network_pair <- function(
   orig_net_id,
   dest_net_id,

@@ -20,7 +20,13 @@ setClassUnion("maybe_numeric"   , c("NULL", "numeric"))
 # ---- New Generics -----------------------------------------------------------
 
 # ---- ... complete_pairs -----------------------------------------------------
-#' @rdname sp_multi_network-class
+#' @title Generic for completing the missing od-pairs in a [sp_multi_network()]
+#' @description For details see the documentation of the corresponding class.
+#' @param object A [spflow_model-class()]
+#' @param ... Arguments passed on to methods
+#' @return A [spflow_model-class()]
+#' @seealso [spflow_model-class()]
+#' @name complete_pairs
 #' @export
 setGeneric(
   name = "complete_pairs",
@@ -89,12 +95,12 @@ setGeneric(
 
 
 # ---- ... mcmc_results -------------------------------------------------------
-#' @title Access the MCMC results of a [spflow_model-class()]
+#' @title Generic for accessing the MCMC results of a [spflow_model-class()]
 #' @description For details see the documentation of the corresponding class.
-#' @name mcmc_results
 #' @param object A [spflow_model-class()]
 #' @return An mcmc object, containing the draws of the sampled parameters
 #' @seealso [spflow_model-class()]
+#' @name mcmc_results
 #' @export
 setGeneric(
   name = "mcmc_results",
@@ -148,11 +154,11 @@ setGeneric(
 
 
 # ---- ... npairs -------------------------------------------------------------
-#' @title Generic for accessing the node pairs count of [sp_network-classes()]
+#' @title Generic for accessing the node pairs count of [spflow_network_classes()]
 #' @description
 #'   For details on the method see the documentation of the
 #'   corresponding classes.
-#' @param object A [sp_network_pair-class()] or [sp_network_pair-class()]
+#' @param object A [sp_network_pair-class()] or [sp_multi_network-class()]
 #' @param ... Arguments to be passed to methods
 #' @return A numeric, corresponding to the number of node-pairs
 #' @export
@@ -171,6 +177,7 @@ setGeneric(
 #' [sp_multi_network][sp_multi_network-class()] or a
 #' [spflow_models][spflow_model-class()].
 #'
+#' @param object A [spflow_model-class()] or a [sp_multi_network-class()]
 #' @param ... Arguments to be passed to methods
 #' @seealso [sp_multi_network-class()], [spflow_model-class()]
 #' @export
@@ -273,6 +280,7 @@ setGeneric(
 # ---- ... spflow_moran_plots -------------------------------------------------
 #' @title Moran scatter plots of interaction data
 #' @rdname spflow_moran_plots
+#' @param object A [sp_multi_network-class()] or a [spflow_model-class()]
 #' @param ... arguments passed to methods
 #' @export
 setGeneric(

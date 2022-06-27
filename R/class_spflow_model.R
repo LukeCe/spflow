@@ -20,9 +20,21 @@
 #' @slot estimation_diagnostics
 #'   A list of further indicators about the estimation
 #' @slot spflow_matrices A list or NULL
+#' @slot spflow_data
+#'   A list containing the data.frames for origins, destinations, and od-pairs
+#' @slot spflow_formula
+#'   The formula used to fit the model
+#' @slot spflow_indicators
+#'   A data.frame containing the indicators of od-pairs
+#' @slot spflow_moments
+#'   A list of moment matrices used for estimating the model
+#' @slot spflow_neighborhood
+#'   The neighborhood matrices for origins and destinations
 #'
 #' @name spflow_model-class
+#' @aliases spflow_model_mcmc, spflow_model_mle, spflow_model_s2sls, spflow_model_ols
 #' @seealso [spflow()], [spflow_network_classes()]
+#' @export
 #' @examples
 #'
 #' spflow_results <- spflow(y9 ~ . + G_(DISTANCE), multi_net_usa_ge)
@@ -160,9 +172,7 @@ setMethod(
   function(object) return(object@estimation_diagnostics[["ll"]]))
 
 # ---- ... mcmc_results ------------------------------------------------------
-#' @param object A [spflow_model-class()]
 #' @rdname spflow_model-class
-#' @name spflow_model-class
 setMethod(
   f = "mcmc_results",
   signature = "spflow_model_mcmc",
@@ -171,6 +181,9 @@ setMethod(
 # ---- ... nobs ---------------------------------------------------------------
 #' @title Access the number of observations inside a [spflow_model]
 #' @param object A [spflow_model()]
+#' @param which
+#'   A character vector indicating the subset of observations to consider
+#'   should be one of `c("fit", "cart", "pred", "pair", "orig", "dest")`.
 #' @rdname spflow_model-class
 #' @export
 setMethod(
@@ -184,10 +197,10 @@ setMethod(
 
 # ---- ... pair_corr ----------------------------------------------------------
 #' @param type
-#'   A character, that should indicate one of `c("fir", "empric")`
+#'   A character, that should indicate one of `c("fit", "empiric")`
 #'   - "fit" will use the moments that have been used during the estimation
 #'   - "empric" will recompute these moments ignoring the weights
-#' @param add_residuals,add_fitted
+#' @param add_resid,add_fitted
 #'   A logical, indicating whether the model residuals and fitted value
 #'   should be added to the correlation matrix
 #' @param model
@@ -293,6 +306,8 @@ setMethod(
 #' @importFrom graphics abline image.default par title
 #' @importFrom stats aggregate complete.cases lm.fit qnorm qqline qqnorm
 #' @param x A [spflow_model-class]
+#' @param ... Arguments passed on to other plotting functions
+#' @param y not used
 #' @export
 setMethod(
   f = "plot",
