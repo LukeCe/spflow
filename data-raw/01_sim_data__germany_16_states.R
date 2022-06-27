@@ -46,7 +46,7 @@ germany_contiguity <- poly2nb(germany_grid)
 germany_contiguity <- nb2listw(germany_contiguity)
 germany_contiguity <- listw2mat(germany_contiguity)
 
-germany_net <- sp_network_nodes(
+germany_net <- spflow_nodes(
   network_id = "ge",
   node_neighborhood = germany_contiguity,
   node_data = germany_grid,

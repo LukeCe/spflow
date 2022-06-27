@@ -1,4 +1,4 @@
-#' @include class_generics_and_maybes.R class_sp_network_multi.R
+#' @include class_generics_and_maybes.R class_spflow_multinet.R
 
 # ---- Class definition -------------------------------------------------------
 #' @title Class spflow_model

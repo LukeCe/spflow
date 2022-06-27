@@ -101,7 +101,7 @@ suppressWarnings({
 })
 
 # ---- export -----------------------------------------------------------------
-save(paris10km_neighborhood, file =  "data/paris10km_neighborhood.rda", compress = "bzip2")
+save(paris10km_neighborhood, file =  "data/paris10km_neighborhood.rda", compress = "auto")
 save(paris10km_municipalities, file =  "data/paris10km_municipalities.rda", compress = "bzip2")
 save(paris10km_commuteflows, file =  "data/paris10km_commuteflows.rda", compress = "bzip2")
-
+tools::resaveRdaFiles("data/")

@@ -6,14 +6,14 @@ expect_inherits({
     o_key = rep(LETTERS[1:3],times = 3),
     d_key = rep(LETTERS[1:3],each = 3),
     dist = 1:9)
-  sp_network_pair(
+  spflow_pairs(
     orig_net_id = "net1",
     dest_net_id = "net1",
     pair_data = test_pair_data,
     orig_key_column =  "o_key",
     dest_key_column = "d_key")
   },
-  class = "sp_network_pair")
+  class = "spflow_pairs")
 
 expect_equal({
   test_pair_data_fct <- data.frame(
@@ -21,7 +21,7 @@ expect_equal({
     d_key = rep(LETTERS[1:3],each = 3),
     dist = 1:9)
 
-  sp_network_pair(
+  spflow_pairs(
     orig_net_id = "net1",
     dest_net_id = "net1",
     pair_data = test_pair_data,
@@ -39,15 +39,15 @@ expect_equal({
 
 # ids and node counts
 expect_equal({
-  sp_network_pair("net1","net1")@orig_net_id
+  spflow_pairs("net1","net1")@orig_net_id
   },"net1")
 
 expect_equal({
-  sp_network_pair("net1","net2")@dest_net_id
+  spflow_pairs("net1","net2")@dest_net_id
   }, "net2")
 
 expect_equal({
-  sp_network_pair("net1","net2")@network_pair_id
+  spflow_pairs("net1","net2")@network_pair_id
   }, "net1_net2")
 
 expect_equal({
@@ -56,7 +56,7 @@ expect_equal({
     d_key = rep(LETTERS[1:3],each = 3),
     dist = 1:9)
 
-  npairs(sp_network_pair(
+  npairs(spflow_pairs(
     orig_net_id = "net1",
     dest_net_id = "net1",
     pair_data = test_pair_data,
@@ -72,7 +72,7 @@ expect_error({
     d_key = rep(LETTERS[1:3],each = 3),
     dist = 1:9)
 
-  test_sp_net_pair <-   sp_network_pair(
+  test_sp_net_pair <-   spflow_pairs(
     orig_net_id = "net1",
     dest_net_id = "net1",
     pair_data = test_pair_data,
@@ -90,7 +90,7 @@ expect_true({
     d_key = rep(LETTERS[1:3],each = 3),
     dist = 1:9)
 
-  test_sp_net_pair <- sp_network_pair(
+  test_sp_net_pair <- spflow_pairs(
     orig_net_id = "net1",
     dest_net_id = "net1",
     pair_data = test_pair_data,
@@ -110,7 +110,7 @@ expect_error({
     d_key = rep(LETTERS[1:3],each = 3),
     dist = 1:9)
 
-  test_sp_net_pair <- sp_network_pair(
+  test_sp_net_pair <- spflow_pairs(
     orig_net_id = "net1",
     dest_net_id = "net1",
     pair_data = test_pair_data,
@@ -131,7 +131,7 @@ expect_equal({
     d_key = rep(LETTERS[1:3],each = 3),
     dist = 1:9)
 
-  test_sp_net_pair <- sp_network_pair(
+  test_sp_net_pair <- spflow_pairs(
     orig_net_id = "net1",
     dest_net_id = "net1",
     pair_data = test_pair_data,
@@ -152,7 +152,7 @@ expect_equal({
     d_key = LETTERS[c(1:3,3)],
     dist = 1:4)
 
-  test_sp_net_pair <- sp_network_pair(
+  test_sp_net_pair <- spflow_pairs(
     orig_net_id = "net1",
     dest_net_id = "net1",
     pair_data = test_pair_data,
@@ -173,7 +173,7 @@ expect_equal({
     d_key = rep(LETTERS[1:3],each =2),
     dist = 1:6)
 
-  test_sp_net_pair <- sp_network_pair(
+  test_sp_net_pair <- spflow_pairs(
     orig_net_id = "net1",
     dest_net_id = "net1",
     pair_data = test_pair_data,

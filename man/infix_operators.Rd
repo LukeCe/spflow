@@ -18,7 +18,4 @@ x \%|!|\% y
 \description{
 Additional infix operators for more concise code
 }
-\author{
-Lukas Dargel
-}
 \keyword{internal}

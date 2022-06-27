@@ -437,7 +437,7 @@ multi_net_usa_ge2 <- complete_pairs(
   multi_net_usa_ge,
   network_pair_ids = "usa_usa")
 coords <- dat(multi_net_usa_ge, "usa")[,c("COORD_X","COORD_Y")]
-distm <- distance_matrix(coords)
+distm <- as.matrix(dist(coords))
 #diag(distm) <- .5
 dat(multi_net_usa_ge2, "usa_usa")[["DISTANCE2"]] <- as.vector((distm))
 

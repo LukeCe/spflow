@@ -8,8 +8,8 @@
 #'
 #'
 #' We provide spatial objects that contain the geography of our example,
-#' as well as two [sp_network_nodes-class()] objects.
-#' Finally, there is an [sp_multi_network-class()] containing the two networks
+#' as well as two [spflow_nodes-class()] objects.
+#' Finally, there is an [spflow_multinet-class()] containing the two networks
 #' and four network pair objects based on the same example.
 #'
 #' The simulation parameters are given as `rho` for the auto-regressive

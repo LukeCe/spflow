@@ -36,7 +36,7 @@ devtools::install_github("LukeCe/spflow")
 
 ## Example
 
-The package provides a new `sp_multi_network-class` that combines
+The package provides a new `spflow_multinet-class` that combines
 information on the origins, the destinations, and the origin-destination
 pairs. Once this object is created, we can estimate an interaction model
 with the `spflow()` function. The [package
@@ -47,11 +47,10 @@ contains a more detailed example.
 library("spflow")
 data("multi_net_usa_ge")
 
-spflow(y9 ~ . + G_(DISTANCE), multi_net_usa_ge)
+spflow(y9 ~ O_(X) + D_(X) + I(X) + G_(DISTANCE), multi_net_usa_ge)
 #> --------------------------------------------------
 #> Spatial interaction model estimated by: MLE  
 #> Spatial correlation structure: SDM (model_9)
-#> Observations: 256  
 #> 
 #> --------------------------------------------------
 #> Coefficients:
@@ -63,13 +62,15 @@ spflow(y9 ~ . + G_(DISTANCE), multi_net_usa_ge)
 #> (Intra)       9.75  1.53    6.37   0.06
 #> DEST_X        0.99  0.07   14.59   0.02
 #> DEST_X.lag1   0.53  0.11    4.64   0.09
-#> ORIG_X       -0.77  0.04  -20.37   0.02
+#> ORIG_X       -0.77  0.04  -20.38   0.02
 #> ORIG_X.lag1  -0.38  0.09   -4.14   0.10
-#> INTRA_X       2.04  0.08   24.64   0.01
+#> INTRA_I(X)    2.04  0.08   24.64   0.01
 #> DISTANCE     -2.69  0.38   -7.13   0.05
 #> 
 #> --------------------------------------------------
-#> R2_corr: 0.9921277
+#> R2_corr: 0.9921277  
+#> Observations: 256  
+#> Model coherence: Validated
 ```
 
 ## License

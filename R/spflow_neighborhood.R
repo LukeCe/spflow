@@ -195,10 +195,10 @@ normalize_neighborhood <- function(mat, by_row = FALSE) {
 
 
 #' @keywords internal
-pull_spflow_neighborhood <-  function(sp_multi_network, network_pair_id) {
-  od_id <- id(sp_multi_network@network_pairs[[network_pair_id]])
+pull_spflow_neighborhood <-  function(spflow_multinet, network_pair_id) {
+  od_id <- id(spflow_multinet@network_pairs[[network_pair_id]])
   neighbor_mats <- lapply(c("OW" = "orig", "DW" = "dest"), function(.key) {
-    m <- neighborhood(sp_multi_network, od_id[.key])
+    m <- neighborhood(spflow_multinet, od_id[.key])
     dimnames(m) <- list(NULL,NULL)
     return(m)
   })

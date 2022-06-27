@@ -3,49 +3,49 @@ library("spflow")
 
 expect_inherits({
   test_network_ids <- c("net1","net2")
-  test_nodes <- lapply(test_network_ids, "sp_network_nodes")
+  test_nodes <- lapply(test_network_ids, "spflow_nodes")
   test_pairs <- lapply(test_network_ids,
-                       function(.id) sp_network_pair(.id, .id))
-  sp_multi_network(test_nodes,test_pairs)
+                       function(.id) spflow_pairs(.id, .id))
+  spflow_multinet(test_nodes,test_pairs)
   },
-  class = "sp_multi_network")
+  class = "spflow_multinet")
 
 expect_warning({
-  test_nodes <- sp_network_nodes("net1")
-  sp_multi_network(test_nodes,data.frame(1))
+  test_nodes <- spflow_nodes("net1")
+  spflow_multinet(test_nodes,data.frame(1))
   },
   info = "warn when dropping unused classes")
 
 expect_inherits({
-  suppressWarnings(sp_multi_network(test_nodes,data.frame(1)))
+  suppressWarnings(spflow_multinet(test_nodes,data.frame(1)))
   },
-  class =  "sp_multi_network")
+  class =  "spflow_multinet")
 
 expect_error({
   test_o_net <-
-    sp_network_nodes("o1",NULL,data.frame("ID" = LETTERS[1:3]),"ID")
+    spflow_nodes("o1",NULL,data.frame("ID" = LETTERS[1:3]),"ID")
   test_pairs_wrong_orig <-
-    sp_network_pair("o1","d1",data.frame("ID_O" = rep(LETTERS[2:4],times = 3),
+    spflow_pairs("o1","d1",data.frame("ID_O" = rep(LETTERS[2:4],times = 3),
                                          "ID_D" = rep(letters[1:3],each = 3)),
                     "ID_O","ID_D")
-  sp_multi_network(test_o_net, test_pairs_wrong_orig)
+  spflow_multinet(test_o_net, test_pairs_wrong_orig)
   },
   info = "ids of origins are diffrent than node ids")
 
 expect_warning({
-  test_o_net <- sp_network_nodes(
+  test_o_net <- spflow_nodes(
     network_id = "o1",
     node_neighborhood = NULL,
     node_data = data.frame("ID" = LETTERS[1:3]),
     node_key_column = "ID")
 
-  test_d_net <- sp_network_nodes(
+  test_d_net <- spflow_nodes(
     network_id = "d1",
     node_neighborhood = NULL,
     node_data = data.frame("ID" = letters[1:3]),
     node_key_column = "ID")
 
-  test_pairs_unordered <- sp_network_pair(
+  test_pairs_unordered <- spflow_pairs(
     orig_net_id = "o1",
     dest_net_id = "d1",
     pair_data = data.frame(
@@ -54,25 +54,25 @@ expect_warning({
     orig_key_column = "ID_O",
     dest_key_column = "ID_D")
 
-  sp_multi_network(test_o_net, test_d_net, test_pairs_unordered)
+  spflow_multinet(test_o_net, test_d_net, test_pairs_unordered)
   },
   info = "wrong ordering of nodes gives a warning")
 
 
 expect_warning({
-  test_o_net <- sp_network_nodes(
+  test_o_net <- spflow_nodes(
     network_id = "o1",
     node_neighborhood = NULL,
     node_data = data.frame("ID" = LETTERS[1:3]),
     node_key_column = "ID")
 
-  test_d_net <- sp_network_nodes(
+  test_d_net <- spflow_nodes(
     network_id = "d1",
     node_neighborhood = NULL,
     node_data = data.frame("ID" = letters[1:3]),
     node_key_column = "ID")
 
-  test_pairs_unordered <- sp_network_pair(
+  test_pairs_unordered <- spflow_pairs(
     orig_net_id = "o1",
     dest_net_id = "d1",
     pair_data = data.frame(
@@ -81,24 +81,24 @@ expect_warning({
     orig_key_column = "ID_O",
     dest_key_column = "ID_D")
 
-  test_multi_net_ordered <- sp_multi_network(
+  test_multi_net_ordered <- spflow_multinet(
     test_o_net, test_d_net, test_pairs_unordered)
 }, info = "adjusts wrong ordering of od keys when possible")
 
 expect_equal({
-  test_o_net <- sp_network_nodes(
+  test_o_net <- spflow_nodes(
     network_id = "o1",
     node_neighborhood = NULL,
     node_data = data.frame("ID" = LETTERS[1:3]),
     node_key_column = "ID")
 
-  test_d_net <- sp_network_nodes(
+  test_d_net <- spflow_nodes(
     network_id = "d1",
     node_neighborhood = NULL,
     node_data = data.frame("ID" = letters[1:3]),
     node_key_column = "ID")
 
-  test_pairs_unordered <- sp_network_pair(
+  test_pairs_unordered <- spflow_pairs(
       orig_net_id = "o1",
       dest_net_id = "d1",
       pair_data = data.frame(
@@ -108,7 +108,7 @@ expect_equal({
       dest_key_column = "ID_D")
 
   suppressWarnings({test_multi_net_ordered <-
-    sp_multi_network(test_o_net, test_d_net, test_pairs_unordered)
+    spflow_multinet(test_o_net, test_d_net, test_pairs_unordered)
   })
   test_pairs_ordered <- test_multi_net_ordered@network_pairs$o1_d1@pair_data
   cbind(levels(test_pairs_ordered[["ID_O"]]),
@@ -120,10 +120,10 @@ expect_equal({
 # ---- accessing methods ------------------------------------------------------
 expect_equal({
   test_network_ids <- c("net1","net2")
-  test_nodes <- lapply(test_network_ids, "sp_network_nodes")
+  test_nodes <- lapply(test_network_ids, "spflow_nodes")
   test_pairs <- lapply(test_network_ids,
-                       function(.id) sp_network_pair(.id, .id))
-  test_multi_net <- sp_multi_network(test_nodes,test_pairs)
+                       function(.id) spflow_pairs(.id, .id))
+  test_multi_net <- spflow_multinet(test_nodes,test_pairs)
   id(test_multi_net)
   },
   list("networks" = c("net1", "net2"),
@@ -131,27 +131,27 @@ expect_equal({
   info = "acessing the id works")
 
 expect_equal({
-  test_multi_net <- sp_multi_network(sp_network_nodes("net1"))
+  test_multi_net <- spflow_multinet(spflow_nodes("net1"))
   pull_member(test_multi_net, "net1")
   },
-  sp_network_nodes("net1"),
+  spflow_nodes("net1"),
   info = "pull existing net")
 
 expect_error({
-  test_multi_net <- sp_multi_network(sp_network_nodes("net1"))
+  test_multi_net <- spflow_multinet(spflow_nodes("net1"))
   pull_member(test_multi_net, "net2")
   },
   info = "pull non-existing net")
 
 expect_equal({
-  test_multi_net <- sp_multi_network(sp_network_pair("net1","net1"))
+  test_multi_net <- spflow_multinet(spflow_pairs("net1","net1"))
   pull_member(test_multi_net, "net1_net1")
   },
-  sp_network_pair("net1","net1"),
+  spflow_pairs("net1","net1"),
   info = "pull existing pair")
 
 expect_error({
-  test_multi_net <- sp_multi_network(sp_network_pair("net1","net1"))
+  test_multi_net <- spflow_multinet(spflow_pairs("net1","net1"))
   pull_member(test_multi_net, "net2_net2")
   },
   info = "pull non-existing pair")
@@ -159,19 +159,19 @@ expect_error({
 
 # ---- pair_merge -------------------------------------------------------------
 expect_equal({
-  test_o_net <- sp_network_nodes(
+  test_o_net <- spflow_nodes(
     network_id = "net1",
     node_neighborhood =  NULL,
     node_data =  data.frame("ID" = c("A", "B"),"VAL" = "OO"),
     node_key_column = "ID")
 
-  test_d_net <- sp_network_nodes(
+  test_d_net <- spflow_nodes(
     network_id = "net2",
     node_neighborhood =  NULL,
     node_data =  data.frame("ID" = c("C","D"), "VAL" = "DD"),
     node_key_column = "ID")
 
-  test_net_pair <- sp_network_pair(
+  test_net_pair <- spflow_pairs(
     orig_net_id = "net1",
     dest_net_id = "net2",
     pair_data = data.frame(
@@ -180,7 +180,7 @@ expect_equal({
       "DIST" = 1:4),
     orig_key_column = "ID_O",
     dest_key_column =  "ID_D")
-  test_multi_net <- sp_multi_network(test_net_pair,test_o_net,test_d_net)
+  test_multi_net <- spflow_multinet(test_net_pair,test_o_net,test_d_net)
   data.frame(pair_merge(test_multi_net, "net1_net2",
                         pair_cols = "DIST",
                         orig_cols = "VAL",
@@ -197,19 +197,19 @@ expect_equal({
 
 expect_equal({
   # invert order of ids for pairs
-  test_o_net <- sp_network_nodes(
+  test_o_net <- spflow_nodes(
     network_id = "net1",
     node_neighborhood =  NULL,
     node_data =  data.frame("ID" = c("B","A"),"VAL" = "OO"),
     node_key_column = "ID")
 
-  test_d_net <- sp_network_nodes(
+  test_d_net <- spflow_nodes(
     network_id = "net2",
     node_neighborhood =  NULL,
     node_data =  data.frame("ID" = c("D", "C"), "VAL" = "DD"),
     node_key_column = "ID")
 
-  test_net_pair <- sp_network_pair(
+  test_net_pair <- spflow_pairs(
     orig_net_id = "net1",
     dest_net_id = "net2",
     pair_data = data.frame(
@@ -219,7 +219,7 @@ expect_equal({
     orig_key_column = "ID_O",
     dest_key_column =  "ID_D")
 
-  test_multi_net <- suppressWarnings(sp_multi_network(
+  test_multi_net <- suppressWarnings(spflow_multinet(
     test_net_pair, test_o_net, test_d_net))
 
   data.frame(pair_merge(test_multi_net, "net1_net2", make_cartesian = TRUE, pair_cols = "DIST"))
@@ -236,19 +236,19 @@ expect_equal({
 
 expect_equal({
   # invert order of ids for pairs
-  test_o_net <- sp_network_nodes(
+  test_o_net <- spflow_nodes(
     network_id = "net1",
     node_neighborhood =  NULL,
     node_data =  data.frame("ID" = c("B","A"),"VAL" = "OO"),
     node_key_column = "ID")
 
-  test_d_net <- sp_network_nodes(
+  test_d_net <- spflow_nodes(
     network_id = "net2",
     node_neighborhood =  NULL,
     node_data =  data.frame("ID" = c("D", "C"), "VAL" = "DD"),
     node_key_column = "ID")
 
-  test_net_pair <- sp_network_pair(
+  test_net_pair <- spflow_pairs(
     orig_net_id = "net1",
     dest_net_id = "net2",
     pair_data = data.frame(
@@ -258,7 +258,7 @@ expect_equal({
     orig_key_column = "ID_O",
     dest_key_column =  "ID_D")
 
-  test_multi_net <- suppressWarnings(sp_multi_network(
+  test_multi_net <- suppressWarnings(spflow_multinet(
     test_net_pair, test_o_net, test_d_net))
 
   data.frame(pair_merge(test_multi_net, "net1_net2",
@@ -277,7 +277,7 @@ info = "pair_merge with selection")
 
 # ----- check_pair_completeness -----------------------------------------------
 expect_equal({
-  test_o_net <- sp_network_nodes(
+  test_o_net <- spflow_nodes(
     network_id = "net1",
     node_neighborhood =  NULL,
     node_data = data.frame(
@@ -285,7 +285,7 @@ expect_equal({
       "VAL" = "OO"),
     node_key_column = "ID")
 
-  test_d_net <- sp_network_nodes(
+  test_d_net <- spflow_nodes(
     network_id = "net2",
     node_neighborhood =  NULL,
     node_data = data.frame(
@@ -293,7 +293,7 @@ expect_equal({
       "VAL" = "DD"),
     node_key_column = "ID")
 
-  test_net_pair <- sp_network_pair(
+  test_net_pair <- spflow_pairs(
     orig_net_id = "net1",
     dest_net_id = "net2",
     pair_data = data.frame(
@@ -303,7 +303,7 @@ expect_equal({
     orig_key_column = "ID_O",
     dest_key_column = "ID_D")
 
-  test_multi_net <- sp_multi_network(test_net_pair, test_o_net, test_d_net)
+  test_multi_net <- spflow_multinet(test_net_pair, test_o_net, test_d_net)
   check_infos <- c("ID_NET_PAIR", "NPAIRS", "COMPLETENESS",
                    "ID_ORIG_NET", "ORIG_NNODES",
                    "ID_DEST_NET", "DEST_NNODES")
@@ -321,7 +321,7 @@ expect_equal({
 
 # ---- show method ------------------------------------------------------------
 expect_stdout({
-  test_o_net <- sp_network_nodes(
+  test_o_net <- spflow_nodes(
     network_id = "net1",
     node_neighborhood =  NULL,
     node_data = data.frame(
@@ -329,7 +329,7 @@ expect_stdout({
       "VAL" = "OO"),
     node_key_column = "ID")
 
-  test_d_net <- sp_network_nodes(
+  test_d_net <- spflow_nodes(
     network_id = "net2",
     node_neighborhood =  NULL,
     node_data = data.frame(
@@ -337,7 +337,7 @@ expect_stdout({
       "VAL" = "DD"),
     node_key_column = "ID")
 
-  test_net_pair <- sp_network_pair(
+  test_net_pair <- spflow_pairs(
     orig_net_id = "net1",
     dest_net_id = "net2",
     pair_data = data.frame(
@@ -347,7 +347,7 @@ expect_stdout({
     orig_key_column = "ID_O",
     dest_key_column = "ID_D")
 
-  test_multi_net <- sp_multi_network(test_net_pair, test_o_net, test_d_net)
+  test_multi_net <- spflow_multinet(test_net_pair, test_o_net, test_d_net)
   test_multi_net
   },
   info = "show something on print")

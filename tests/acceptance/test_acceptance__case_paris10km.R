@@ -23,40 +23,40 @@ data("paris10km_municipalities")
 data("paris10km_neighborhood")
 
 # data.frames
-paris_net <- sp_network_nodes(
+paris_net <- spflow_nodes(
   network_id = "paris10km",
   node_neighborhood = paris10km_neighborhood[["by_contiguity"]],
   node_data = st_drop_geometry(paris10km_municipalities),
   node_key_column = "ID_MUN")
 
-paris_pairs <- sp_network_pair(
+paris_pairs <- spflow_pairs(
   orig_net_id = "paris10km",
   dest_net_id = "paris10km",
   orig_key_column = "ID_ORIG",
   dest_key_column = "ID_DEST",
   pair_data = paris10km_commuteflows)
 
-pairs_multi_net <- sp_multi_network(paris_net, paris_pairs)
+pairs_multi_net <- spflow_multinet(paris_net, paris_pairs)
 default_formula <- log(COMMUTE_FLOW+1) ~ . + G_(log(DISTANCE + 1))
 results_default <- spflow(default_formula, pairs_multi_net)
 
 expect_inherits(results_default,"spflow_model")
 
 # data.tables
-paris_net_DT <- sp_network_nodes(
+paris_net_DT <- spflow_nodes(
   network_id = "paris10km",
   node_neighborhood = paris10km_neighborhood[["by_contiguity"]],
   node_data = as.data.table(st_drop_geometry(paris10km_municipalities)),
   node_key_column = "ID_MUN")
 
-paris_pairs_DT <- sp_network_pair(
+paris_pairs_DT <- spflow_pairs(
   orig_net_id = "paris10km",
   dest_net_id = "paris10km",
   orig_key_column = "ID_ORIG",
   dest_key_column = "ID_DEST",
   pair_data = as.data.table(paris10km_commuteflows))
 
-pairs_multi_net_DT <- sp_multi_network(paris_net_DT, paris_pairs_DT)
+pairs_multi_net_DT <- spflow_multinet(paris_net_DT, paris_pairs_DT)
 default_formula <- log(COMMUTE_FLOW+1) ~ . + G_(log(DISTANCE + 1))
 results_default_DT <- spflow(default_formula, pairs_multi_net_DT)
 
@@ -64,20 +64,20 @@ expect_inherits(results_default_DT,"spflow_model")
 rm(paris_net_DT, paris_pairs_DT, pairs_multi_net_DT, results_default_DT)
 
 # tibbles
-paris_net_tib <- sp_network_nodes(
+paris_net_tib <- spflow_nodes(
   network_id = "paris10km",
   node_neighborhood = paris10km_neighborhood[["by_contiguity"]],
   node_data = as.data.table(st_drop_geometry(paris10km_municipalities)),
   node_key_column = "ID_MUN")
 
-paris_pairs_tib <- sp_network_pair(
+paris_pairs_tib <- spflow_pairs(
   orig_net_id = "paris10km",
   dest_net_id = "paris10km",
   orig_key_column = "ID_ORIG",
   dest_key_column = "ID_DEST",
   pair_data = as.data.table(paris10km_commuteflows))
 
-pairs_multi_net_tib <- sp_multi_network(paris_net_tib, paris_pairs_tib)
+pairs_multi_net_tib <- spflow_multinet(paris_net_tib, paris_pairs_tib)
 default_formula <- log(COMMUTE_FLOW+1) ~ . + G_(log(DISTANCE + 1))
 results_default_tib <- spflow(default_formula, pairs_multi_net_tib)
 

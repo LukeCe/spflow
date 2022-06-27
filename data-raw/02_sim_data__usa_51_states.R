@@ -63,7 +63,7 @@ usa_4_nearest_neighbours <- knn2nb(usa_4_nearest_neighbours)
 usa_4_nearest_neighbours <- nb2listw(usa_4_nearest_neighbours)
 usa_4_nearest_neighbours <- listw2mat(usa_4_nearest_neighbours)
 
-usa_net <- sp_network_nodes(
+usa_net <- spflow_nodes(
   network_id = "usa",
   node_neighborhood = usa_4_nearest_neighbours,
   node_data = usa_grid,

@@ -17,7 +17,7 @@ source("data-raw/04_sim_data__parameters.R")
 
 # default multi-network
  suppressWarnings({
-   multi_net_usa_ge <- sp_multi_network(
+   multi_net_usa_ge <- spflow_multinet(
      germany_net,
      usa_net,
      within_ge_pairs,
