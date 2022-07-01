@@ -1,4 +1,4 @@
-# spflow 0.1.0.9005 (development version)
+# spflow 0.1.0.9006 (development version)
 
 ## New functions
 
