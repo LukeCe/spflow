@@ -34,20 +34,20 @@ expect_error({
 
 expect_warning({
   test_o_net <- spflow_nodes(
-    network_id = "o1",
+    "o1",
     node_neighborhood = NULL,
     node_data = data.frame("ID" = LETTERS[1:3]),
     node_key_column = "ID")
 
   test_d_net <- spflow_nodes(
-    network_id = "d1",
+    "d1",
     node_neighborhood = NULL,
     node_data = data.frame("ID" = letters[1:3]),
     node_key_column = "ID")
 
   test_pairs_unordered <- spflow_pairs(
-    orig_net_id = "o1",
-    dest_net_id = "d1",
+    id_orig_nodes = "o1",
+    id_dest_nodes = "d1",
     pair_data = data.frame(
       "ID_O" = rep(LETTERS[c(2,1,3)], 3),
       "ID_D" = rep(letters[3:1], each = 3)),
@@ -61,20 +61,20 @@ expect_warning({
 
 expect_warning({
   test_o_net <- spflow_nodes(
-    network_id = "o1",
+    "o1",
     node_neighborhood = NULL,
     node_data = data.frame("ID" = LETTERS[1:3]),
     node_key_column = "ID")
 
   test_d_net <- spflow_nodes(
-    network_id = "d1",
+    "d1",
     node_neighborhood = NULL,
     node_data = data.frame("ID" = letters[1:3]),
     node_key_column = "ID")
 
   test_pairs_unordered <- spflow_pairs(
-    orig_net_id = "o1",
-    dest_net_id = "d1",
+    id_orig_nodes = "o1",
+    id_dest_nodes = "d1",
     pair_data = data.frame(
       "ID_O" = rep(LETTERS[c(2,1,3)], 3),
       "ID_D" = rep(letters[3:1], each = 3)),
@@ -87,20 +87,20 @@ expect_warning({
 
 expect_equal({
   test_o_net <- spflow_nodes(
-    network_id = "o1",
+    "o1",
     node_neighborhood = NULL,
     node_data = data.frame("ID" = LETTERS[1:3]),
     node_key_column = "ID")
 
   test_d_net <- spflow_nodes(
-    network_id = "d1",
+    "d1",
     node_neighborhood = NULL,
     node_data = data.frame("ID" = letters[1:3]),
     node_key_column = "ID")
 
   test_pairs_unordered <- spflow_pairs(
-      orig_net_id = "o1",
-      dest_net_id = "d1",
+      id_orig_nodes = "o1",
+      id_dest_nodes = "d1",
       pair_data = data.frame(
         "ID_O" = rep(LETTERS[c(2,1,3)], 3),
         "ID_D" = rep(letters[3:1], each = 3)),
@@ -110,7 +110,7 @@ expect_equal({
   suppressWarnings({test_multi_net_ordered <-
     spflow_multinet(test_o_net, test_d_net, test_pairs_unordered)
   })
-  test_pairs_ordered <- test_multi_net_ordered@network_pairs$o1_d1@pair_data
+  test_pairs_ordered <- test_multi_net_ordered@pairs$o1_d1@pair_data
   cbind(levels(test_pairs_ordered[["ID_O"]]),
         levels(test_pairs_ordered[["ID_D"]]))
   },
@@ -126,8 +126,8 @@ expect_equal({
   test_multi_net <- spflow_multinet(test_nodes,test_pairs)
   id(test_multi_net)
   },
-  list("networks" = c("net1", "net2"),
-       "network_pairs" =  c("net1_net1", "net2_net2")),
+  list("nodes" = c("net1", "net2"),
+       "pairs" =  c("net1_net1", "net2_net2")),
   info = "acessing the id works")
 
 expect_equal({
@@ -160,20 +160,20 @@ expect_error({
 # ---- pair_merge -------------------------------------------------------------
 expect_equal({
   test_o_net <- spflow_nodes(
-    network_id = "net1",
+    "net1",
     node_neighborhood =  NULL,
     node_data =  data.frame("ID" = c("A", "B"),"VAL" = "OO"),
     node_key_column = "ID")
 
   test_d_net <- spflow_nodes(
-    network_id = "net2",
+    "net2",
     node_neighborhood =  NULL,
     node_data =  data.frame("ID" = c("C","D"), "VAL" = "DD"),
     node_key_column = "ID")
 
   test_net_pair <- spflow_pairs(
-    orig_net_id = "net1",
-    dest_net_id = "net2",
+    id_orig_nodes = "net1",
+    id_dest_nodes = "net2",
     pair_data = data.frame(
       "ID_O" = c("A","A","B","B"),
       "ID_D" = c("C","D","C","D"),
@@ -198,20 +198,20 @@ expect_equal({
 expect_equal({
   # invert order of ids for pairs
   test_o_net <- spflow_nodes(
-    network_id = "net1",
+    "net1",
     node_neighborhood =  NULL,
     node_data =  data.frame("ID" = c("B","A"),"VAL" = "OO"),
     node_key_column = "ID")
 
   test_d_net <- spflow_nodes(
-    network_id = "net2",
+    "net2",
     node_neighborhood =  NULL,
     node_data =  data.frame("ID" = c("D", "C"), "VAL" = "DD"),
     node_key_column = "ID")
 
   test_net_pair <- spflow_pairs(
-    orig_net_id = "net1",
-    dest_net_id = "net2",
+    id_orig_nodes = "net1",
+    id_dest_nodes = "net2",
     pair_data = data.frame(
       "ID_O" = c("A", "B"),
       "ID_D" = c("C", "D"),
@@ -237,20 +237,20 @@ expect_equal({
 expect_equal({
   # invert order of ids for pairs
   test_o_net <- spflow_nodes(
-    network_id = "net1",
+    "net1",
     node_neighborhood =  NULL,
     node_data =  data.frame("ID" = c("B","A"),"VAL" = "OO"),
     node_key_column = "ID")
 
   test_d_net <- spflow_nodes(
-    network_id = "net2",
+    "net2",
     node_neighborhood =  NULL,
     node_data =  data.frame("ID" = c("D", "C"), "VAL" = "DD"),
     node_key_column = "ID")
 
   test_net_pair <- spflow_pairs(
-    orig_net_id = "net1",
-    dest_net_id = "net2",
+    id_orig_nodes = "net1",
+    id_dest_nodes = "net2",
     pair_data = data.frame(
       "ID_O" = c("A", "B"),
       "ID_D" = c("C", "D"),
@@ -278,7 +278,7 @@ info = "pair_merge with selection")
 # ----- check_pair_completeness -----------------------------------------------
 expect_equal({
   test_o_net <- spflow_nodes(
-    network_id = "net1",
+    "net1",
     node_neighborhood =  NULL,
     node_data = data.frame(
       "ID"  = c("A", "B"),
@@ -286,7 +286,7 @@ expect_equal({
     node_key_column = "ID")
 
   test_d_net <- spflow_nodes(
-    network_id = "net2",
+    "net2",
     node_neighborhood =  NULL,
     node_data = data.frame(
       "ID"  = c("C", "D"),
@@ -294,8 +294,8 @@ expect_equal({
     node_key_column = "ID")
 
   test_net_pair <- spflow_pairs(
-    orig_net_id = "net1",
-    dest_net_id = "net2",
+    id_orig_nodes = "net1",
+    id_dest_nodes = "net2",
     pair_data = data.frame(
       "ID_O" = c("A", "B"),
       "ID_D" = c("C", "D"),
@@ -322,7 +322,7 @@ expect_equal({
 # ---- show method ------------------------------------------------------------
 expect_stdout({
   test_o_net <- spflow_nodes(
-    network_id = "net1",
+    "net1",
     node_neighborhood =  NULL,
     node_data = data.frame(
       "ID"  = c("A", "B"),
@@ -330,7 +330,7 @@ expect_stdout({
     node_key_column = "ID")
 
   test_d_net <- spflow_nodes(
-    network_id = "net2",
+    "net2",
     node_neighborhood =  NULL,
     node_data = data.frame(
       "ID"  = c("C", "D"),
@@ -338,8 +338,8 @@ expect_stdout({
     node_key_column = "ID")
 
   test_net_pair <- spflow_pairs(
-    orig_net_id = "net1",
-    dest_net_id = "net2",
+    id_orig_nodes = "net1",
+    id_dest_nodes = "net2",
     pair_data = data.frame(
       "ID_O" = c("A", "B"),
       "ID_D" = c("C", "D"),

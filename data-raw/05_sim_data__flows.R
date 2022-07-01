@@ -4,15 +4,15 @@
 # = = = = = = = = = = = = = = = = = = =
 # Description:
 #
-# For all four network pairs we simulate two types of models.
+# For all four sets of od-pairs we simulate two types of models.
 # - - - - - - - - - - - - - - - - - - -
-# Date: Jan 2022
+# Date: Jul 2022
 
 
 library("spflow")
 source("data-raw/01_sim_data__germany_16_states.R")
 source("data-raw/02_sim_data__usa_51_states.R")
-source("data-raw/03_sim_data__network_pairs.R")
+source("data-raw/03_sim_data__spflow_pairs.R")
 source("data-raw/04_sim_data__parameters.R")
 
 # default multi-network
@@ -40,11 +40,11 @@ usa_data_with_lag$X.lag1 <- as.vector(W_usa %*% usa_data_with_lag$X)
 
 # ... insert them in the multi-net
 multi_net_usa_ge_copy <- multi_net_usa_ge
-dat(multi_net_usa_ge_copy@networks$ge) <- ge_data_with_lag
-dat(multi_net_usa_ge_copy@networks$usa) <- usa_data_with_lag
+dat(multi_net_usa_ge_copy@nodes$ge) <- ge_data_with_lag
+dat(multi_net_usa_ge_copy@nodes$usa) <- usa_data_with_lag
 
 # extract the exogenous variables and add intraregional ones
-pair_ids <- spflow:::lookup(id(multi_net_usa_ge)[["network_pairs"]])
+pair_ids <- spflow:::lookup(id(multi_net_usa_ge)[["pairs"]])
 pair_variables <- lapply(pair_ids, function(.id) {
   .dat <- pair_merge(multi_net_usa_ge_copy,.id, orig_cols = TRUE, dest_cols = TRUE, pair_cols = TRUE)
   .dat[["(Intercept)"]] <- 1
@@ -95,8 +95,8 @@ flows <- mapply(function(filters,variables,ids) {
 
 # add the simulated flows to the initial data
 y_cols <- c("y9","y2","y1")
-for (i in seq_along(multi_net_usa_ge@network_pairs)) {
-  multi_net_usa_ge@network_pairs[[i]]@pair_data[y_cols] <- flows[[i]]
+for (i in seq_along(multi_net_usa_ge@pairs)) {
+  multi_net_usa_ge@pairs[[i]]@pair_data[y_cols] <- flows[[i]]
 }
 
 save(multi_net_usa_ge, file = "data/multi_net_usa_ge.rda", compress = "bzip2")

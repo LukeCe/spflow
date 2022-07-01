@@ -418,7 +418,7 @@ options(opts)
 
 
 # ---- test NA's handling -----------------------------------------------------
-multi_net_usa_ge2 <- complete_pairs(multi_net_usa_ge, network_pair_ids = net_pair)
+multi_net_usa_ge2 <- complete_pairs(multi_net_usa_ge, ids_spflow_pairs = net_pair)
 
 
 expect_equal(npairs(multi_net_usa_ge2, net_pair), 51*16)
@@ -433,13 +433,13 @@ expect_error(spflow(
 
 na_y9 <- is.na(dat(multi_net_usa_ge2, net_pair)[["y9"]])
 dat(multi_net_usa_ge2, net_pair)[["wt_9"]] <- 1 - na_y9
-dat(multi_net_usa_ge2, net_pair)[["y9i"]] <- na2zero(dat(multi_net_usa_ge2, net_pair)[["y9"]])
-dat(multi_net_usa_ge2, net_pair)[["DISTANCEi"]] <- na2zero(dat(multi_net_usa_ge2, net_pair)[["DISTANCE"]])
+dat(multi_net_usa_ge2, net_pair)[["y9i"]] <- spflow:::na2zero(dat(multi_net_usa_ge2, net_pair)[["y9"]])
+dat(multi_net_usa_ge2, net_pair)[["DISTANCEi"]] <- spflow:::na2zero(dat(multi_net_usa_ge2, net_pair)[["DISTANCE"]])
 
 res_model_9_s2sls_narm <- spflow(
   flow_formula = y9i ~ . + G_(DISTANCEi), multi_net_usa_ge2,
-  network_pair_id =  net_pair,
-  flow_control = spflow_control(estimation_method = "s2sls", model = "model_9", weight_variable = "wt_9"))
+  id_spflow_pairs = net_pair,
+  estimation_control = spflow_control(estimation_method = "s2sls", model = "model_9", weight_variable = "wt_9"))
 
 
 # test results

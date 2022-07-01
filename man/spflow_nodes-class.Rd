@@ -43,7 +43,7 @@ The class is constructed by the \code{\link[=spflow_nodes]{spflow_nodes()}} func
 \section{Slots}{
 
 \describe{
-\item{\code{network_id}}{A character that serves as an identifier for the network}
+\item{\code{id_spflow_nodes}}{A character that serves as an identifier for the set of nodes}
 
 \item{\code{node_data}}{A data.frame that contains all information describing the nodes}
 

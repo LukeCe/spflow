@@ -11,7 +11,7 @@ pair_corr(object, ...)
 
 \S4method{pair_corr}{spflow_multinet}(
   object,
-  network_pair_id = id(object)[["network_pairs"]][[1]],
+  id_spflow_pairs = id(object)[["pairs"]][[1]],
   flow_formula,
   add_lags_x = TRUE,
   add_lags_y = FALSE
@@ -24,7 +24,7 @@ pair_corr(object, ...)
 
 \item{...}{Arguments to be passed to methods}
 
-\item{network_pair_id}{A character indicating the id of a \code{\link[=spflow_pairs-class]{spflow_pairs-class()}}}
+\item{id_spflow_pairs}{A character indicating the id of a \code{\link[=spflow_pairs-class]{spflow_pairs-class()}}}
 
 \item{flow_formula}{A formula specifying how variables should be used
 (for details see section Formula interface in the help page of \code{\link[=spflow]{spflow()}})}

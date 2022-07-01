@@ -11,7 +11,7 @@
 #
 # Our examples come from https://ialab.it.monash.edu/~dwyer/papers/maptrix.pdf
 # - - - - - - - - - - - - - - - - - - -
-# Date: December 2021
+# Date: July 2022
 
 library("magrittr")
 library("sf")
@@ -64,7 +64,7 @@ usa_4_nearest_neighbours <- nb2listw(usa_4_nearest_neighbours)
 usa_4_nearest_neighbours <- listw2mat(usa_4_nearest_neighbours)
 
 usa_net <- spflow_nodes(
-  network_id = "usa",
+  "usa",
   node_neighborhood = usa_4_nearest_neighbours,
   node_data = usa_grid,
   node_key_column = "ID_STATE")

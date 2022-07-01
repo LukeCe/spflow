@@ -435,7 +435,7 @@ options(opts)
 # ---- test NA's handling and prediction --------------------------------------
 multi_net_usa_ge2 <- complete_pairs(
   multi_net_usa_ge,
-  network_pair_ids = "usa_usa")
+  ids_spflow_pairs = "usa_usa")
 coords <- dat(multi_net_usa_ge, "usa")[,c("COORD_X","COORD_Y")]
 distm <- as.matrix(dist(coords))
 #diag(distm) <- .5
@@ -456,13 +456,13 @@ expect_error(spflow(
 # to deal with NA's give them zero values and weight them by zero in the estimation
 na_y9 <- is.na(dat(multi_net_usa_ge2, "usa_usa")[["y9"]])
 dat(multi_net_usa_ge2, "usa_usa")[["wt_9"]] <- 1 - na_y9
-dat(multi_net_usa_ge2, "usa_usa")[["y9i"]] <- na2zero(dat(multi_net_usa_ge2, "usa_usa")[["y9"]])
-dat(multi_net_usa_ge2, "usa_usa")[["DISTANCEi"]] <- na2zero(dat(multi_net_usa_ge2, "usa_usa")[["DISTANCE"]])
+dat(multi_net_usa_ge2, "usa_usa")[["y9i"]] <- spflow:::na2zero(dat(multi_net_usa_ge2, "usa_usa")[["y9"]])
+dat(multi_net_usa_ge2, "usa_usa")[["DISTANCEi"]] <- spflow:::na2zero(dat(multi_net_usa_ge2, "usa_usa")[["DISTANCE"]])
 
 res_model_9_s2sls_narm <- spflow(
   flow_formula = y9i ~ . + G_(DISTANCEi), multi_net_usa_ge2,
-  network_pair_id =  "usa_usa",
-  flow_control = spflow_control(
+  id_spflow_pairs = "usa_usa",
+  estimation_control = spflow_control(
     estimation_method = "s2sls",
     model = "model_9",
     na_rm = TRUE,
@@ -506,7 +506,7 @@ rm(res_model_9_s2sls_narm)
 # ---- test logdet approx -----------------------------------------------------
 expect_spflow_model <- function(ap_order = 10) expect_inherits(
   spflow(y9 ~ . + G_(DISTANCE), multi_net_usa_ge, "usa_usa",
-         flow_control = list(logdet_approx_order = ap_order)), "spflow_model")
+         estimation_control = list(logdet_approx_order = ap_order)), "spflow_model")
 
 suppressWarnings({
   expect_spflow_model(20)

@@ -99,9 +99,8 @@ To describe the nodes of a network the package provides `spflow_nodes-class` tha
 For our model we choose the contiguity based neighborhood structure.
 
 ```{r}
-paris10km_net <- 
-  spflow_nodes(
-    network_id = "paris",
+paris10km_net <- spflow_nodes(
+    id_spflow_nodes = "paris",
     node_neighborhood = nb2mat(paris10km_nb$by_contiguity),
     node_data = st_drop_geometry(paris10km_municipalities),
     node_key_column = "ID_MUN")
@@ -113,8 +112,8 @@ The `spflow_pairs-class` contains all information on the pairs of nodes belongin
 
 ```{r}
 paris10km_net_pairs <- spflow_pairs(
-  orig_net_id = "paris",
-  dest_net_id = "paris",
+  id_orig_nodes = "paris",
+  id_dest_nodes = "paris",
   pair_data = paris10km_commuteflows,
   orig_key_column = "ID_ORIG",
   dest_key_column = "ID_DEST")
@@ -196,7 +195,7 @@ cntrl <- spflow_control(
 results_mcmc  <- spflow(
   flow_formula,
   paris10km_multi_net,
-  flow_control = cntrl)
+  estimation_control = cntrl)
 
 results_mcmc
 ```

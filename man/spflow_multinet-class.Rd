@@ -15,13 +15,13 @@
 \usage{
 \S4method{id}{spflow_multinet}(object)
 
-\S4method{complete_pairs}{spflow_multinet}(object, network_pair_ids = id(object)[["network_pairs"]])
+\S4method{complete_pairs}{spflow_multinet}(object, ids_spflow_pairs = id(object)[["pairs"]])
 
 \S4method{dat}{spflow_multinet}(object, .id)
 
 \S4method{dat}{spflow_multinet}(object, .id) <- value
 
-\S4method{neighborhood}{spflow_multinet}(object, .id = 1)
+\S4method{neighborhood}{spflow_multinet}(object, .id)
 
 \S4method{nnodes}{spflow_multinet}(object, .id)
 
@@ -32,7 +32,7 @@
 \arguments{
 \item{object}{spflow_multinet-class}
 
-\item{network_pair_ids}{A character indicating of one or several \code{\link[=spflow_pairs]{spflow_pairs()}} objects}
+\item{ids_spflow_pairs}{A character indicating of one or several \code{\link[=spflow_pairs]{spflow_pairs()}} objects}
 
 \item{.id}{A character, corresponding to the id of a \code{spflow_nodes()} object
 contained in the \code{spflow_multinet}}
@@ -40,25 +40,26 @@ contained in the \code{spflow_multinet}}
 \item{value}{A data.frame to replace the existing data}
 }
 \description{
-A S4 class that gathers information on one or multiple networks
-\code{\link[=spflow_nodes]{spflow_nodes()}} and origin-destination pairs \code{\link[=spflow_pairs]{spflow_pairs()}}.
-The class is constructed with the \code{\link[=spflow_multinet]{spflow_multinet()}} function.
+A S4 class that gathers information on multiple \code{\link[=spflow_nodes]{spflow_nodes()}} and \code{\link[=spflow_pairs]{spflow_pairs()}}.
+Its purpose is to ensure that the identification between the nodes that
+serve as origins or destinations, and the od-pairs is consistent
+(similar to relational data bases).
 }
 \section{Slots}{
 
 \describe{
-\item{\code{networks}}{A list of \code{\link[=spflow_nodes-class]{spflow_nodes-class()}} objects}
+\item{\code{nodes}}{A list of \code{\link[=spflow_nodes-class]{spflow_nodes-class()}} objects}
 
-\item{\code{network_pairs}}{A list of \code{\link[=spflow_pairs-class]{spflow_pairs-class()}} objects}
+\item{\code{pairs}}{A list of \code{\link[=spflow_pairs-class]{spflow_pairs-class()}} objects}
 }}
 
 \examples{
-## access the id of a networks or network_pairs inside a multi network
+## access the id of the objects inside the spflow_multinet
 
-id(multi_net_usa_ge)$networks
-id(multi_net_usa_ge)$network_pairs
+id(multi_net_usa_ge)$nodes
+id(multi_net_usa_ge)$pairs
 
-## access the data of a network or a network_pair inside a multi_network
+## access the data inside a spflow_multinet
 
 dat(multi_net_usa_ge, "ge")    # extract data of nodes
 dat(multi_net_usa_ge, "ge_ge") # extract data of pairs

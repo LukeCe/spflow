@@ -346,7 +346,7 @@ pull_spflow_data <- function(
   sp_multi_net,
   pair_id) {
 
-  source_ids <- as.list(id(sp_multi_net@network_pairs[[pair_id]]))
+  source_ids <- as.list(id(sp_multi_net@pairs[[pair_id]]))
   flow_data <- lapply(source_ids, function(.id){
     source_data <- dat(sp_multi_net, .id)
     row.names(source_data) <- NULL

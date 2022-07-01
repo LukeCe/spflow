@@ -2,20 +2,20 @@
 expect_equal({
 
   test_o_net <- spflow_nodes(
-    network_id = "net1",
+    "net1",
     node_neighborhood = matrix(c(0,1,1,0),2,2),
     node_data = data.frame("ID" = c("A", "B"), "VAL" = "OO"),
     node_key_column = "ID")
 
   test_d_net <- spflow_nodes(
-    network_id = "net2",
+    "net2",
     node_neighborhood = matrix(c(0,1,1,0),2,2),
     node_data = data.frame("ID" = c("C", "D"), "VAL" = "DD"),
     node_key_column = "ID")
 
   test_net_pair <- spflow_pairs(
-    orig_net_id = "net1",
-    dest_net_id =  "net2",
+    id_orig_nodes = "net1",
+    id_dest_nodes =  "net2",
     pair_data = data.frame(
       "ID_O" = c("A", "B"),
       "ID_D" = c("C", "D"),

@@ -4,19 +4,19 @@
 #'
 #' @description
 #' An S4 class which holds information on origin-destination (OD) pairs.
-#' Each OD pair is composed of two nodes (see [spflow_nodes-class()]).
-#' All origins belong to the same (origin-) network and all destination belong
-#' to the same (destination-) network. It is possible to choose the same
-#' network for origins and destinations, which enables to represent OD pairs
-#' within the same network.
+#' Each OD pair is composed of two nodes.
+#' All origins belong to the same set of nodes and all destination too
+#' (see [spflow_nodes-class()]).
+#' When the origins and the destinations belong to the same set of nodes the
+#' corresponding ids should be equal
 #'
 #'
-#' @slot orig_net_id
-#'   A character that serves as identifier for the origin network
-#' @slot dest_net_id
+#' @slot id_spflow_pairs
+#'   A character identifying the set of origin-destination pairs
+#' @slot id_orig_nodes
+#'   A character that serves as identifier for the origin nodes
+#' @slot id_dest_nodes
 #'   A character that serves as identifier for the destination network
-#' @slot network_pair_id
-#'   A character identifying the pair of networks
 #' @slot pair_data
 #'   A data.frame containing information on origin-destination pairs
 #'
@@ -26,11 +26,11 @@
 #' @importClassesFrom Matrix Matrix
 #' @name spflow_pairs-class
 #' @export
-setClass("spflow_pairs",
-         slots = c(orig_net_id     = "character",
-                   dest_net_id     = "character",
-                   network_pair_id = "character",
-                   pair_data       = "maybe_data.frame"))
+setClass("spflow_pairs", slots = c(
+  id_spflow_pairs = "character",
+  id_orig_nodes   = "character",
+  id_dest_nodes   = "character",
+  pair_data       = "maybe_data.frame"))
 
 # ---- Methods ----------------------------------------------------------------
 
@@ -75,9 +75,9 @@ setMethod(
   signature = "spflow_pairs",
   function(object) {
     return(c(
-      "pair" = object@network_pair_id,
-      "orig" = object@orig_net_id,
-      "dest" = object@dest_net_id
+      "pair" = object@id_spflow_pairs,
+      "orig" = object@id_orig_nodes,
+      "dest" = object@id_dest_nodes
     ))
   })
 
@@ -98,13 +98,13 @@ setReplaceMethod(
     is_which <- function(str) grepl(which, str, fixed = TRUE)
 
     if (is_which("pair"))
-      object@network_pair_id <- value
+      object@id_spflow_pairs <- value
 
     if (is_which("orig"))
-      object@orig_net_id <- value
+      object@id_orig_nodes <- value
 
     if (is_which("dest"))
-      object@dest_net_id <- value
+      object@id_dest_nodes <- value
 
     return(object)
   })
@@ -245,11 +245,11 @@ setValidity("spflow_pairs", function(object) {
 
 #' Create an S4 object that contains information on origin-destination pairs
 #'
-#' @param orig_net_id
+#' @param id_orig_nodes
 #'   A character that serves as identifier for the origin network
-#' @param dest_net_id
+#' @param id_dest_nodes
 #'   A character that serves as identifier for the destination network
-#' @param network_pair_id
+#' @param id_spflow_pairs
 #'   A character that as identifier for network_pair
 #' @param pair_data
 #'   A data.frame containing information on the origin-destination pairs
@@ -269,9 +269,9 @@ setValidity("spflow_pairs", function(object) {
 #'   DEST_ID_STATE = rep(germany_grid$ID_STATE, each = 16))
 #' spflow_pairs("ge","ge","ge_ge",pair_frame,"ORIG_ID_STATE","DEST_ID_STATE")
 spflow_pairs <- function(
-  orig_net_id,
-  dest_net_id,
-  network_pair_id = paste0(orig_net_id,"_",dest_net_id),
+  id_orig_nodes,
+  id_dest_nodes,
+  id_spflow_pairs = paste0(id_orig_nodes,"_",id_dest_nodes),
   pair_data = NULL,
   orig_key_column,
   dest_key_column
@@ -279,9 +279,9 @@ spflow_pairs <- function(
 
   network_pair <- new(
     "spflow_pairs",
-    orig_net_id      = orig_net_id,
-    dest_net_id      = dest_net_id,
-    network_pair_id  = network_pair_id,
+    id_orig_nodes      = id_orig_nodes,
+    id_dest_nodes      = id_dest_nodes,
+    id_spflow_pairs  = id_spflow_pairs,
     pair_data        = NULL)
 
   # early return with empty counts when no data was provided

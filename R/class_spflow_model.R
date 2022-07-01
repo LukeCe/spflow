@@ -59,7 +59,7 @@
 #' spflow_results_mcmc <- spflow(
 #'   y2 ~ . + G_(DISTANCE),
 #'   multi_net_usa_ge,
-#'   flow_control = spflow_control(estimation_method = "mcmc",
+#'   estimation_control = spflow_control(estimation_method = "mcmc",
 #'                                 model = "model_2"))
 #' results(spflow_results)
 #' mcmc_results(spflow_results_mcmc) # parameter values during the mcmc sampling
@@ -682,7 +682,7 @@ setMethod(
 #' @title Internal function to construct a [spflow_model-class()]
 #'
 #' @param estimation_results A data.frame of estimation [results()]
-#' @param flow_control A list of control parameters
+#' @param estimation_control A list of control parameters
 #' @param N A numeric indicating the number of observations
 #' @param sd_error A numeric which reports the
 #' @param R2_corr A numeric which reports a pseudo R^2 measure

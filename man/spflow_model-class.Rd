@@ -156,7 +156,7 @@ varcov(spflow_results) # variance covariance matrix of the estimators
 spflow_results_mcmc <- spflow(
   y2 ~ . + G_(DISTANCE),
   multi_net_usa_ge,
-  flow_control = spflow_control(estimation_method = "mcmc",
+  estimation_control = spflow_control(estimation_method = "mcmc",
                                 model = "model_2"))
 results(spflow_results)
 mcmc_results(spflow_results_mcmc) # parameter values during the mcmc sampling

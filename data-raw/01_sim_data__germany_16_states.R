@@ -11,7 +11,7 @@
 #
 # Our examples come from https://ialab.it.monash.edu/~dwyer/papers/maptrix.pdf
 # - - - - - - - - - - - - - - - - - - -
-# Date: December 2021
+# Date: July 2022
 
 library("magrittr")
 library("sf")
@@ -47,7 +47,7 @@ germany_contiguity <- nb2listw(germany_contiguity)
 germany_contiguity <- listw2mat(germany_contiguity)
 
 germany_net <- spflow_nodes(
-  network_id = "ge",
+  "ge",
   node_neighborhood = germany_contiguity,
   node_data = germany_grid,
   node_key_column = "ID_STATE")

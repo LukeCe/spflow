@@ -11,8 +11,8 @@
 #' of the network.
 #' The class is constructed by the [spflow_nodes()] function.
 #'
-#' @slot network_id
-#'   A character that serves as an identifier for the network
+#' @slot id_spflow_nodes
+#'   A character that serves as an identifier for the set of nodes
 #' @slot node_data
 #'   A data.frame that contains all information describing the nodes
 #' @slot node_neighborhood
@@ -26,7 +26,7 @@
 #' @export
 setClass("spflow_nodes",
          slots = c(
-           network_id        = "character",
+           id_spflow_nodes   = "character",
            node_neighborhood = "maybe_Matrix",
            node_data         = "maybe_data.frame"))
 
@@ -68,7 +68,7 @@ setMethod(
   f = "id",
   signature = "spflow_nodes",
   function(object) {
-    return(object@network_id)
+    return(object@id_spflow_nodes)
   })
 
 # ---- ... id <- --------------------------------------------------------------
@@ -78,8 +78,8 @@ setReplaceMethod(
   f = "id",
   signature = "spflow_nodes",
   function(object, value) {
-    assert(valid_network_id(value), "The network id is invalid!")
-    object@network_id <- value
+    assert(valid_spflow_nodes_id(value), "The id is invalid!")
+    object@id_spflow_nodes <- value
     return(object)
   })
 
@@ -177,7 +177,7 @@ setValidity(
   function(object) {
 
     check <- "The network id must contain only alphanumeric characters!"
-    if (!valid_network_id(id(object)))
+    if (!valid_spflow_nodes_id(id(object)))
       return(check)
 
     # verify details of the neighborhood
@@ -246,8 +246,8 @@ setValidity(
 
 #' Create a [spflow_nodes-class()]
 #'
-#' @param network_id
-#'   A character that serves as an identifier for the network
+#' @param id_spflow_nodes
+#'   A character that serves as an identifier for the set of nodes
 #' @param node_data
 #'   A data.frame that contains all information describing the nodes
 #' @param node_neighborhood
@@ -275,12 +275,13 @@ setValidity(
 #' @return An S4 class of type [spflow_nodes-class()]
 #' @export
 #' @examples
-#' spflow_nodes("germany",
-#'                  spdep::nb2mat(spdep::poly2nb(germany_grid)),
-#'                  as.data.frame(germany_grid),
-#'                  "ID_STATE")
+#' spflow_nodes(
+#'   "germany",
+#'   spdep::nb2mat(spdep::poly2nb(germany_grid)),
+#'   as.data.frame(germany_grid),
+#'   "ID_STATE")
 spflow_nodes <- function(
-  network_id,
+  id_spflow_nodes,
   node_neighborhood = NULL,
   node_data = NULL,
   node_key_column,
@@ -302,9 +303,8 @@ spflow_nodes <- function(
       attr_spectral_character(node_neighborhood) <- charactrize_spectrum(node_neighborhood)
   }
 
-  nodes <- new(
-    "spflow_nodes",
-    network_id        = network_id,
+  nodes <- new("spflow_nodes",
+    id_spflow_nodes   = id_spflow_nodes,
     node_neighborhood = node_neighborhood,
     node_data         = NULL)
 
@@ -365,7 +365,7 @@ attr_coord_col <- function(df, value) {
 }
 
 #' @keywords internal
-valid_network_id <- function(key) {
+valid_spflow_nodes_id <- function(key) {
   is_single_character(key) && grepl("^[[:alnum:]]+$",key)
 }
 

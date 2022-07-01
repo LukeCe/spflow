@@ -30,7 +30,7 @@ data("paris10km_commuteflows")
 # ... they are used as origins and destinations
 # ... their neighborhood is based on contiguity
 paris10km_net <- spflow_nodes(
-  network_id = "paris10km",
+  id_spflow_nodes = "paris10km",
   node_neighborhood = paris10km_neighborhood$by_contiguity,
   node_data = sf::st_drop_geometry(paris10km_municipalities),
   node_key_column = "ID_MUN")
@@ -39,8 +39,8 @@ paris10km_net <- spflow_nodes(
 # ... contains pairwise data (flows and distances)
 # ... must be linked to an origin and a destination network
 paris10km_net_pairs <- spflow_pairs(
-  orig_net_id = "paris10km",
-  dest_net_id = "paris10km",
+  id_orig_nodes = "paris10km",
+  id_dest_nodes = "paris10km",
   pair_data = paris10km_commuteflows,
   orig_key_column = "ID_ORIG",
   dest_key_column = "ID_DEST")
@@ -73,11 +73,11 @@ sdm_formula <-
  ~ D_(log(NB_COMPANY) + clog(MED_INCOME))
 
 # define the list of control parameters
-flow_control <- spflow_control(sdm_variables = sdm_formula)
+estimation_control <- spflow_control(sdm_variables = sdm_formula)
 
 
 # Estimate the model
-spflow(flow_formula, paris10km_multi_net, flow_control = flow_control)
+spflow(flow_formula, paris10km_multi_net, estimation_control = estimation_control)
 }
 \seealso{
 Other spflow network classes: 

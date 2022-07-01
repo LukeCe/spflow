@@ -61,8 +61,8 @@ subsample_pairs <- function(pair_df) {
 
 
 within_ge_pairs <- spflow_pairs(
-  orig_net_id = "ge",
-  dest_net_id = "ge",
+  id_orig_nodes = "ge",
+  id_dest_nodes = "ge",
   pair_data = dist_ge_ge,
   orig_key_column = "ID_ORIG",
   dest_key_column = "ID_DEST"
@@ -70,24 +70,24 @@ within_ge_pairs <- spflow_pairs(
 
 
 within_usa_pairs <- spflow_pairs(
-  orig_net_id = "usa",
-  dest_net_id = "usa",
+  id_orig_nodes = "usa",
+  id_dest_nodes = "usa",
   pair_data = subsample_pairs(dist_usa_usa),
   orig_key_column = "ID_ORIG",
   dest_key_column = "ID_DEST"
 )
 
 ge_to_usa_pairs <- spflow_pairs(
-  orig_net_id = "ge",
-  dest_net_id = "usa",
+  id_orig_nodes = "ge",
+  id_dest_nodes = "usa",
   pair_data = dist_ge_usa,
   orig_key_column = "ID_ORIG",
   dest_key_column = "ID_DEST"
 )
 
 usa_to_ge_pairs <- spflow_pairs(
-  orig_net_id = "usa",
-  dest_net_id = "ge",
+  id_orig_nodes = "usa",
+  id_dest_nodes = "ge",
   pair_data = subsample_pairs(dist_usa_ge),
   orig_key_column = "ID_ORIG",
   dest_key_column = "ID_DEST"

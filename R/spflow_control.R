@@ -289,22 +289,22 @@ spflow_control <- function(
 
 
 
-#' @title Enhance the flow_control object for estimation
+#' @title Enhance the estimation_control object for estimation
 #' @description
 #' Validate the input to flow control and add additional information related
 #' to the matrix form expression of the model.
 #' @keywords internal
-enhance_spflow_control <- function(flow_control, is_within) {
+enhance_spflow_control <- function(estimation_control, is_within) {
 
   # validate by calling again
-  flow_control <- do.call("spflow_control", flow_control)
-  flow_control <- c(
-    flow_control,
-    "spatial_type" = sp_model_type(flow_control),
+  estimation_control <- do.call("spflow_control", estimation_control)
+  estimation_control <- c(
+    estimation_control,
+    "spatial_type" = sp_model_type(estimation_control),
     "is_within" = as.logical(is_within))
 
-  if (!is_within) flow_control[["use_intra"]] <- FALSE
-  return(flow_control)
+  if (!is_within) estimation_control[["use_intra"]] <- FALSE
+  return(estimation_control)
 }
 
 

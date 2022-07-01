@@ -5,20 +5,20 @@
 \title{Create an S4 object that contains information on origin-destination pairs}
 \usage{
 spflow_pairs(
-  orig_net_id,
-  dest_net_id,
-  network_pair_id = paste0(orig_net_id, "_", dest_net_id),
+  id_orig_nodes,
+  id_dest_nodes,
+  id_spflow_pairs = paste0(id_orig_nodes, "_", id_dest_nodes),
   pair_data = NULL,
   orig_key_column,
   dest_key_column
 )
 }
 \arguments{
-\item{orig_net_id}{A character that serves as identifier for the origin network}
+\item{id_orig_nodes}{A character that serves as identifier for the origin network}
 
-\item{dest_net_id}{A character that serves as identifier for the destination network}
+\item{id_dest_nodes}{A character that serves as identifier for the destination network}
 
-\item{network_pair_id}{A character that as identifier for network_pair}
+\item{id_spflow_pairs}{A character that as identifier for network_pair}
 
 \item{pair_data}{A data.frame containing information on the origin-destination pairs}
 

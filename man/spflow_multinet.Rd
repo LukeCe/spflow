@@ -2,7 +2,7 @@
 % Please edit documentation in R/class_spflow_multinet.R
 \name{spflow_multinet}
 \alias{spflow_multinet}
-\title{Create an S4 class that contains \code{\link[=spflow_nodes]{spflow_nodes()}} and \code{\link[=spflow_pairs]{spflow_pairs()}} for one or multiple networks}
+\title{Create an S4 class that contains \code{\link[=spflow_nodes]{spflow_nodes()}} and \code{\link[=spflow_pairs]{spflow_pairs()}} for one or multiple nodes}
 \usage{
 spflow_multinet(...)
 }
@@ -13,11 +13,11 @@ spflow_multinet(...)
 An S4 class of type \code{\link[=spflow_multinet-class]{spflow_multinet-class()}}
 }
 \description{
-Create an S4 class that contains \code{\link[=spflow_nodes]{spflow_nodes()}} and \code{\link[=spflow_pairs]{spflow_pairs()}} for one or multiple networks
+Create an S4 class that contains \code{\link[=spflow_nodes]{spflow_nodes()}} and \code{\link[=spflow_pairs]{spflow_pairs()}} for one or multiple nodes
 }
 \examples{
 spflow_multinet() # empty
-spflow_multinet(germany_net,usa_net) # two networks, no pairs
+spflow_multinet(germany_net,usa_net) # two nodes, no pairs
 }
 \seealso{
 Other Constructors for spflow network classes: 

@@ -57,6 +57,7 @@ assert_valid_case <- function(argument, cases) {
          deparse(substitute(argument)), deparse(cases))
 }
 
+
 # ---- primitives -------------------------------------------------------------
 #' @title A set of primitive functions to test conditions
 #' @keywords internal

@@ -396,7 +396,7 @@ rm(res_model_9_mcmc)
 # ---- ... incomplete models --------------------------------------------------
 expect_spflow_model <- function(formula, m = "model_9") expect_inherits(
   spflow(formula, multi_net_usa_ge, "ge_ge",
-         flow_control = list("model" = "model_9")), "spflow_model")
+         estimation_control = list("model" = "model_9")), "spflow_model")
 
 expect_spflow_model(y9 ~ + G_(DISTANCE))
 expect_spflow_model(y9 ~ + G_(DISTANCE) - 1)

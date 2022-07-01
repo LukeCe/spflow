@@ -2,9 +2,9 @@
 % Please edit documentation in R/spflow_control.R
 \name{enhance_spflow_control}
 \alias{enhance_spflow_control}
-\title{Enhance the flow_control object for estimation}
+\title{Enhance the estimation_control object for estimation}
 \usage{
-enhance_spflow_control(flow_control, is_within)
+enhance_spflow_control(estimation_control, is_within)
 }
 \description{
 Validate the input to flow control and add additional information related

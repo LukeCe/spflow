@@ -9,12 +9,7 @@
 \usage{
 spflow_map(object, ...)
 
-\S4method{spflow_map}{spflow_multinet}(
-  object,
-  network_pair_id = id(object)[["network_pairs"]][[1]],
-  ...,
-  flow_var
-)
+\S4method{spflow_map}{spflow_multinet}(object, id_spflow_pairs = id(object)[["pairs"]][[1]], ..., flow_var)
 
 \S4method{spflow_map}{spflow_model}(object, ..., flow_type = "resid", add_title = TRUE)
 }
@@ -23,7 +18,7 @@ spflow_map(object, ...)
 
 \item{...}{further arguments passed to \code{\link[=map_flows]{map_flows()}}}
 
-\item{network_pair_id}{A character indicating the id of a \code{\link[=spflow_pairs]{spflow_pairs()}} (only relevant if
+\item{id_spflow_pairs}{A character indicating the id of a \code{\link[=spflow_pairs]{spflow_pairs()}} (only relevant if
 the \code{\link[=spflow_multinet]{spflow_multinet()}} contains multiple \code{spflow_pairs}-objects:
 defaults to the of them)}
 

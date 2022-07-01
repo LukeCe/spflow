@@ -5,7 +5,7 @@
 \title{Create a \code{\link[=spflow_nodes-class]{spflow_nodes-class()}}}
 \usage{
 spflow_nodes(
-  network_id,
+  id_spflow_nodes,
   node_neighborhood = NULL,
   node_data = NULL,
   node_key_column,
@@ -17,7 +17,7 @@ spflow_nodes(
 )
 }
 \arguments{
-\item{network_id}{A character that serves as an identifier for the network}
+\item{id_spflow_nodes}{A character that serves as an identifier for the set of nodes}
 
 \item{node_neighborhood}{A matrix that describes the neighborhood of the nodes}
 
@@ -47,10 +47,11 @@ An S4 class of type \code{\link[=spflow_nodes-class]{spflow_nodes-class()}}
 Create a \code{\link[=spflow_nodes-class]{spflow_nodes-class()}}
 }
 \examples{
-spflow_nodes("germany",
-                 spdep::nb2mat(spdep::poly2nb(germany_grid)),
-                 as.data.frame(germany_grid),
-                 "ID_STATE")
+spflow_nodes(
+  "germany",
+  spdep::nb2mat(spdep::poly2nb(germany_grid)),
+  as.data.frame(germany_grid),
+  "ID_STATE")
 }
 \seealso{
 Other Constructors for spflow network classes: 

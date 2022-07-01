@@ -1,6 +1,4 @@
-# spflow (development version)
-
-# spflow 0.1.0.9003 (development version)
+# spflow 0.1.0.9005 (development version)
 
 ## New functions
 
@@ -25,7 +23,7 @@ These are heavy changes, which may break existing code.
 Such changes will not occur in future releases and are due to the early stage of the package.
 
 * Restructured the `spflow_model-class` (to better handle `NA` data and to make predictions easier)
-* Renamed classes
+* Renamed and restructured classes
   * `sp_multi_network-class` -> `spflow_multinet-class`
   * `sp_network_nodes-class` -> `spflow_nodes-class`
   * `sp_network_pairs-class` -> `spflow_pairs-class`

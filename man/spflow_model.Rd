@@ -22,9 +22,9 @@ estimation method}
 
 \item{estimation_results}{A data.frame of estimation \code{\link[=results]{results()}}}
 
-\item{spflow_matrices}{The design matrix/matrices of the model}
+\item{estimation_control}{A list of control parameters}
 
-\item{flow_control}{A list of control parameters}
+\item{spflow_matrices}{The design matrix/matrices of the model}
 
 \item{N}{A numeric indicating the number of observations}
 

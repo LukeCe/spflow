@@ -90,7 +90,7 @@ model_options <- paste0("model_",1:9)
 for (i in seq_along(model_options)){
   this_control <- spflow_control(model = model_options[i])
   this_model <- spflow(default_formula, pairs_multi_net,
-                       flow_control = this_control)
+                       estimation_control = this_control)
 
   expect_inherits(this_model,"spflow_model",
                   info = paste0("default estimation for model_",
@@ -104,7 +104,7 @@ for (i in seq_along(estim_options)){
   this_control <- spflow_control(estimation_method = estim_options[i],
                                  use_intra = use_intra)
   this_model <- spflow(default_formula, pairs_multi_net,
-                       flow_control = this_control)
+                       estimation_control = this_control)
 
   expect_inherits(this_model,"spflow_model",
                   info = paste0("default estimation for estimator",

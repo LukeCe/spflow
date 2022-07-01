@@ -34,20 +34,20 @@ The first characters may be used as shortcuts.}
 }
 \description{
 An S4 class which holds information on origin-destination (OD) pairs.
-Each OD pair is composed of two nodes (see \code{\link[=spflow_nodes-class]{spflow_nodes-class()}}).
-All origins belong to the same (origin-) network and all destination belong
-to the same (destination-) network. It is possible to choose the same
-network for origins and destinations, which enables to represent OD pairs
-within the same network.
+Each OD pair is composed of two nodes.
+All origins belong to the same set of nodes and all destination too
+(see \code{\link[=spflow_nodes-class]{spflow_nodes-class()}}).
+When the origins and the destinations belong to the same set of nodes the
+corresponding ids should be equal
 }
 \section{Slots}{
 
 \describe{
-\item{\code{orig_net_id}}{A character that serves as identifier for the origin network}
+\item{\code{id_spflow_pairs}}{A character identifying the set of origin-destination pairs}
 
-\item{\code{dest_net_id}}{A character that serves as identifier for the destination network}
+\item{\code{id_orig_nodes}}{A character that serves as identifier for the origin nodes}
 
-\item{\code{network_pair_id}}{A character identifying the pair of networks}
+\item{\code{id_dest_nodes}}{A character that serves as identifier for the destination network}
 
 \item{\code{pair_data}}{A data.frame containing information on origin-destination pairs}
 }}
