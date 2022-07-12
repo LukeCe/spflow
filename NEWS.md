@@ -8,7 +8,7 @@
 * Added `map_flows()` to visualize flow data
 * Added `spflow_moran_plots()` for Moran scatter plots of flow-data and residuals of models 
 
-## Additional options and tests
+## Additional options, features and fixes
 
 * Added support for coordinates in the `spflow_nodes-class`
 * Added test for parameter space validity
