@@ -84,18 +84,18 @@ spflow_post_estimation <- function(
   signal <- compute_signal(delta, spflow_matrices, spflow_indicators, keep_matrix_form = FALSE)
   spflow_indicators <- cbind(spflow_indicators, SIGNAL = NA, FITTED = NA)
 
-  filter_x <- spflow_indicators[["HAS_SIG"]] %||% TRUE
-  filter_y <- spflow_indicators[["HAS_Y"]] %||% filter_x
+  filter_x <- spflow_indicators[["IN_POP"]] %||% TRUE
+  filter_y <- spflow_indicators[["IN_SAMPLE"]] %||% filter_x
   spflow_indicators[filter_x, "SIGNAL"] <- signal
 
   fit_method <- object@estimation_control[["fitted_value_method"]]
   fit_method <- ifelse(model == "model_1", yes = "LIN", fit_method)
   if (fit_method == "LIN") {
-    filter_y <- spflow_indicators[["HAS_Y"]] %||% TRUE
+    filter_y <- spflow_indicators[["IN_SAMPLE"]] %||% TRUE
     spflow_indicators[filter_y, "FITTED"] <- spflow_indicators[filter_y, "SIGNAL"]
   }
   if (fit_method == "TS") {
-    y_ind <- spflow_indicators2pairindex(spflow_indicators, "HAS_Y")
+    y_ind <- spflow_indicators2pairindex(spflow_indicators, "IN_SAMPLE")
     trend <- Reduce("+", Map("*", rho, spflow_matrices[["Y_"]][-1]))[y_ind]
     spflow_indicators[filter_y, "FITTED"] <- trend + spflow_indicators[filter_y, "SIGNAL"]
   }
@@ -106,7 +106,7 @@ spflow_post_estimation <- function(
       OW = object@spflow_neighborhood$OW,
       rho = rho,
       model = model,
-      M_indicator = spflow_indicators2pairindex(spflow_indicators, "HAS_Y"),
+      M_indicator = spflow_indicators2pairindex(spflow_indicators, "IN_SAMPLE"),
       approximate = object@estimation_control[["approx_expectation"]],
       max_it = object@estimation_control[["expectation_approx_order"]],
       keep_matrix_form = FALSE)

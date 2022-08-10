@@ -145,7 +145,7 @@ spflow_control <- function(
     neighborhood_do_normalisation = TRUE,
     neighborhood_normalize_by_row = FALSE,
     approx_parameter_space = TRUE,
-    fitted_value_method = "TS",
+    fitted_value_method = "BPI",
     approx_expectation = TRUE,
     expectation_approx_order = 10,
     logdet_approx_order = 10,
@@ -162,16 +162,8 @@ spflow_control <- function(
     na_rm = FALSE) {
 
 
-  available_estimators <- c("s2sls", "mle","mcmc","ols")
-  assert(estimation_method %in% available_estimators,
-         'The estimation_method must be one string among c("%s")!',
-         paste0(available_estimators, collapse = ", "))
-
-  possible_models <- ("model_" %p% 1:9)
-  assert(model %in% possible_models,
-         'The model must be one string among c("%s")!',
-         paste0(possible_models, collapse = ", "))
-
+  assert_valid_option(estimation_method, c("s2sls", "mle","mcmc","ols"))
+  assert_valid_option(model, paste0("model_", 1:9))
   if (estimation_method == "ols" | model == "model_1") {
     estimation_method <- "ols"
     model <- "model_1"
@@ -182,8 +174,8 @@ spflow_control <- function(
   check_formula_msg <-
     "The %s must either be declared as a formula " %p%
     'or one string among c("none", "all", "same")!'
-  assert(is(sdm_variables,"formula")
-         || sdm_variables %in% c("none","same","all"),
+  sdm_shortcuts <- c("none","same","all")
+  assert(is(sdm_variables,"formula") || sdm_variables %in% sdm_shortcuts,
          check_formula_msg, sdm_variables)
 
   assert(is_single_character(weight_variable) || is.null(weight_variable),

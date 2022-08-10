@@ -163,7 +163,7 @@ setMethod(
 # ---- ... pair_corr ----------------------------------------------------------
 #' @param id_spflow_pairs
 #'   A character indicating the id of a [spflow_pairs-class()]
-#' @param flow_formula
+#' @param spflow_formula
 #'   A formula specifying how variables should be used
 #'   (for details see section Formula interface in the help page of [spflow()])
 #' @param add_lags_x
@@ -187,7 +187,7 @@ setMethod(
 #' corr_mat <- pair_corr(
 #'   multi_net_usa_ge,
 #'   "ge_ge",
-#'   y9 ~ . + G_(log(DISTANCE + 1) + .),
+#'   y9 ~ . + P_(log(DISTANCE + 1) + .),
 #'   add_lags_y = TRUE)
 #' corr_map(corr_mat)
 #'
@@ -196,7 +196,7 @@ setMethod(
   signature = "spflow_multinet",
   function(object,
            id_spflow_pairs = id(object)[["pairs"]][[1]] ,
-           flow_formula,
+           spflow_formula,
            add_lags_x = TRUE,
            add_lags_y = FALSE) {
 
@@ -205,9 +205,9 @@ setMethod(
            "spflow_pairs with id %s was not found!", id_spflow_pairs)
     od_id <- id(pull_member(object, id_spflow_pairs))
 
-    if (missing(flow_formula))
-      flow_formula <- 1 ~ .
-    assert_is(flow_formula, "formula")
+    if (missing(spflow_formula))
+      spflow_formula <- 1 ~ .
+    assert_is(spflow_formula, "formula")
 
     estimation_control <- list(
       model = ifelse(add_lags_y,"model_9", "model_1"),
@@ -219,14 +219,14 @@ setMethod(
     spflow_matrices <- derive_spflow_matrices(
       spflow_data = pull_spflow_data(object, id_spflow_pairs),
       spflow_neighborhood = pull_spflow_neighborhood(object, id_spflow_pairs),
-      spflow_formula = flow_formula,
+      spflow_formula = spflow_formula,
       spflow_control = estimation_control,
       na_rm = TRUE)
 
     spflow_indicators <- spflow_matrices[["spflow_indicators"]]
     spflow_matrices[["spflow_indicators"]] <- NULL
     spflow_obs <- spflow_indicators2obs(spflow_indicators)
-    wt <- spflow_indicators2mat(spflow_indicators, do_filter = "HAS_Y", do_values = "WEIGHTS")
+    wt <- spflow_indicators2mat(spflow_indicators, do_filter = "IN_SAMPLE", do_values = "WEIGHTS")
     mom <- compute_spflow_moments(
       spflow_matrices = spflow_matrices,
       n_o = spflow_obs[["N_orig"]],
@@ -361,10 +361,10 @@ setMethod(
     all_pair_infos[["ID"]] <- do_keys %T% keep_od_keys
     all_pair_infos[["P"]] <- pair_data %||% NULL
     all_pair_infos[["D"]] <-
-      prefix_columns(dest_data, "DEST_")[do_indexes[[1]],,drop = FALSE] %T%
+      prefix_columns(dest_data, "D_")[do_indexes[[1]],,drop = FALSE] %T%
       (length(dest_data) > 0)
     all_pair_infos[["O"]] <-
-      prefix_columns(orig_data, "ORIG_")[do_indexes[[2]],,drop = FALSE] %T%
+      prefix_columns(orig_data, "O_")[do_indexes[[2]],,drop = FALSE] %T%
       (length(orig_data) > 0)
 
     pair_data <- Reduce("cbind", all_pair_infos)
@@ -569,6 +569,74 @@ setMethod(
     }
   })
 
+
+# ---- ... update_dat ---------------------------------------------------------
+#' @rdname spflow_multinet-class
+#' @param new_dat
+#'   A named list of data.frames.
+#'   The names should correspond to spflow_nodes or spflow_pair objects inside
+#'   the spflow_multinet.
+#' @param value A data.frame to replace the existing data
+#' @export
+#' @examples
+#' ## access the data of a network or a network_pair inside a multi_network
+#'
+#' dat(multi_net_usa_ge, "ge")    # extract data of nodes
+#' dat(multi_net_usa_ge, "ge_ge") # extract data of pairs
+#'
+setMethod(
+  f = "update_dat",
+  signature = "spflow_multinet",
+  function(object, new_dat) {
+
+    allow_expansions <- FALSE
+    assert_is(new_dat, list)
+    assert(all(lapply(new_dat, inherits, data.frame)),
+           "All elements of the new_dat list musst be data.frames!")
+    assert(sum(names(new_dat) %in% unlist(id(object))) == length(new_dat),
+           "All names in the new_dat list musst correspond to an id!")
+
+
+    for(i in seq_along(new_dat)) {
+
+      net_id <- names(new_dat)[[i]]
+      new_df <- new_dat[[i]]
+
+
+      key_cols <- get_keycols(dat(object, net_id))
+      assert(all(key_cols %in% colnames(new_df)),
+             "The new_dat with id %s does not have the right key column!")
+
+      for (j in seq_along(key_cols)) {
+        assert(levels(dat(object, net_id)[[key_cols[j]]]) == levels(new_df[[key_cols[j]]]),
+               "The key to idenfy observations musst be identical!")
+      }
+
+      new_df <- order()
+
+
+      dat(object, net_id)[]
+    }
+
+
+
+
+
+      node_key <- new_dat[[net_id]][]
+
+      assert()
+
+    }
+    which_id <- lapply(all_ids, "==", .id)
+    assert(all(), ".id not found!")
+
+    assert_is_single_x(.id, "character")
+
+
+    from <- names(Filter("any",which_id))
+    dat(slot(object,from)[[.id]]) <- value
+    return(object)
+  })
 
 # ---- ... validity -----------------------------------------------------------
 setValidity("spflow_multinet", function(object) {

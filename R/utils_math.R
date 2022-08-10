@@ -122,10 +122,10 @@ corr_map <- function(cor_mat) {
   if (is.null(colnames(cor_mat)))
     colnames(cor_mat) <- rownames(cor_mat)
 
-  assert(all(colnames(cor_mat) == rownames(cor_mat)),
-         "If provided colnames and rownames musst be equal!")
 
-  opts <- par(mar = c(2, 13, 13, 2) + .1)
+  nc_c <- max(c(nchar(colnames(cor_mat)),1.3))
+  nc_r <- max(c(nchar(rownames(cor_mat)),1.3))
+  opts <- par(mar = c(1, nc_c / 1.3, nc_c / 1.3, 1))
   cor_mat_rev <- cor_mat[,rev(seq(ncol(cor_mat)))]
 
   # color

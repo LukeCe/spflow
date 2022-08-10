@@ -5,14 +5,14 @@
 \title{Estimate spatial interaction models that incorporate spatial dependence}
 \usage{
 spflow(
-  flow_formula,
+  spflow_formula,
   spflow_multinet,
   id_spflow_pairs = id(spflow_multinet)[["pairs"]][[1]],
   estimation_control = spflow_control()
 )
 }
 \arguments{
-\item{flow_formula}{A formula specifying the spatial interaction model (for details see
+\item{spflow_formula}{A formula specifying the spatial interaction model (for details see
 section Formula interface)}
 
 \item{spflow_multinet}{A \code{\link[=spflow_multinet]{spflow_multinet()}} object that contains information on the origins,
@@ -87,7 +87,7 @@ using the input \code{spflow_control(estimation_method = "mcmc")}.
 
 The function offers a formula interface adapted to spatial interaction
 models, which has the following structure:
-\code{Y ~ O_(X1) + D_(X2) + I_(X3) + G_(X4)}
+\code{Y ~ O_(X1) + D_(X2) + I_(X3) + P_(X4)}
 This structure reflects the different data sources involved in such a model.
 On the left hand side there is the independent variable \code{Y} which
 corresponds to the vector of flows.
@@ -96,7 +96,7 @@ The functions \code{O_(...)} and \code{D_(...)} indicate which variables are use
 characteristics of the origins and destinations respectively.
 Similarly, \code{I_(...)} indicates variables that should be used for the
 intra-regional parameters.
-Finally, \code{G_(...)} declares which variables describe origin-destination
+Finally, \code{P_(...)} declares which variables describe origin-destination
 pairs, which most frequently will include a measure of distance.
 
 All the declared variables must be available in the provided
@@ -108,10 +108,10 @@ object).
 Using the short notation \code{Y ~ .} is possible and will be interpreted as
 usual, in the sense that we use all variables that are available for each
 data source.
-Also mixed formulas, such as \code{Y ~ . + G_(log(X4) + 1)}, are possible.
+Also mixed formulas, such as \code{Y ~ . + P_(log(X4) + 1)}, are possible.
 When the dot shortcut is combined with explicit declaration, it will only be
 used for the non declared data sources.
-The following examples illustrate this behaviour.
+The following examples illustrate this behavior.
 }
 
 \subsection{Formula interface (examples)}{
@@ -127,24 +127,24 @@ explanatory variables \verb{X1, X2} and \code{X3} for origins, destinations and
 intra-regional observations.
 \itemize{
 \item \code{Y ~ .}
-\item \code{Y ~ . + G_(DIST)}
-\item \code{Y ~ X1 + X2 + X3 + G_(DIST)}
-\item \code{Y ~ D_(X1 + X2 + X3) + O_(X1 + X2 + X3) + I_(X1 + X2 + X3)  + G_(DIST)}
+\item \code{Y ~ . + P_(DIST)}
+\item \code{Y ~ X1 + X2 + X3 + P_(DIST)}
+\item \code{Y ~ D_(X1 + X2 + X3) + O_(X1 + X2 + X3) + I_(X1 + X2 + X3)  + P_(DIST)}
 }
 
 Now if we only want to use X1 for the intra-regional model we can do the
 following (again all four options below are equivalent).
 \itemize{
 \item \code{Y ~ . + I_(X1)}
-\item \code{Y ~ . + I_(X1) + G_(DIST)}
-\item \code{Y ~  X1 + X2 + X3 + I_(X1) + G_(DIST)}
-\item \code{Y ~ D_(X1 + X2 + X3) + O_(X1 + X2 + X3) + I_(X1)  + G_(DIST)}
+\item \code{Y ~ . + I_(X1) + P_(DIST)}
+\item \code{Y ~  X1 + X2 + X3 + I_(X1) + P_(DIST)}
+\item \code{Y ~ D_(X1 + X2 + X3) + O_(X1 + X2 + X3) + I_(X1)  + P_(DIST)}
 }
 
-This behaviour is easily combined with transformation of variables as the
+This behavior is easily combined with transformation of variables as the
 two equivalent options below illustrate.
 \itemize{
-\item \code{log(Y + 1) ~ sqrt(X1) +  X2 + G_(log(DIST + 1))}
+\item \code{log(Y + 1) ~ sqrt(X1) +  X2 + P_(log(DIST + 1))}
 }
 }
 }
@@ -152,24 +152,24 @@ two equivalent options below illustrate.
 \examples{
 
 # Estimate flows between the states of Germany
-spflow(flow_formula = y9 ~ . + G_(DISTANCE),
+spflow(spflow_formula = y9 ~ . + P_(DISTANCE),
        spflow_multinet = multi_net_usa_ge,
        id_spflow_pairs = "ge_ge")
 
 # Same as above with explicit declaration of variables...
 # ... X is the only variable available
 # ... it is used for origins, destination and intra-state flows
-spflow(flow_formula = y9 ~ X + G_(DISTANCE),
+spflow(spflow_formula = y9 ~ X + P_(DISTANCE),
        spflow_multinet = multi_net_usa_ge,
        id_spflow_pairs = "ge_ge")
 
 # Same as above
-spflow(flow_formula = y9 ~ O_(.) + D_(.) + I_(.) + G_(DISTANCE),
+spflow(spflow_formula = y9 ~ O_(.) + D_(.) + I_(.) + P_(DISTANCE),
        spflow_multinet = multi_net_usa_ge,
        id_spflow_pairs = "ge_ge")
 
 # Same as above
-spflow(flow_formula = y9 ~ O_(X) + D_(X) + I_(X) + G_(DISTANCE),
+spflow(spflow_formula = y9 ~ O_(X) + D_(X) + I_(X) + P_(DISTANCE),
        spflow_multinet = multi_net_usa_ge,
        id_spflow_pairs = "ge_ge")
 

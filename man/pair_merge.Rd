@@ -16,7 +16,9 @@ pair_merge(object, ...)
   orig_cols = NULL,
   pair_cols = NULL,
   make_cartesian = FALSE,
-  keep_od_keys = TRUE
+  keep_od_keys = TRUE,
+  orig_prefix = "O_",
+  dest_prefix = "D_"
 )
 }
 \arguments{

@@ -17,7 +17,7 @@ expect_equal({
     "D_" = matrix(1,nrow = n_d),
     "O_" = matrix(1,nrow = n_o),
     "I_" = matrix(1,nrow = n_d),
-    "G_" = list(matrix(1,n_d,n_o)))
+    "P_" = list(matrix(1,n_d,n_o)))
   spflow:::compute_signal(mats,delta = params)
 }, check.attributes = FALSE)
 
@@ -66,4 +66,160 @@ expect_equal({
   power_sum <- sum(2^(seq(0,10)))
   diag(power_sum,2,2)
 },
-info = "test expectation approximation (sparse case)")
+info = "test expectation approximation (non-cartesian case)")
+
+
+# ---- compute_diag_precision_mat  --------------------------------------------
+OW <- matrix(c(0,5,6,1,0,3,4,4,0),3,3) / 10
+DW <- matrix(c(0,5,6,1,5,0,4,4,5,6,0,1,5,4,4,0),4,4) / 10
+rho <- c("rho_d" = .3, "rho_o" = .5, "rho_w" = -.2)
+
+
+expect_equal({
+  compute_diag_precision_mat(
+    DW = DW,
+    OW = OW,
+    rho = rho["rho_d"],
+    n_o = nrow(OW),
+    n_d = nrow(DW),
+    M_indicator = NULL)
+},
+{
+  A <- diag(nrow(OW) * nrow(DW)) - diag(nrow(OW)) %x% DW * rho["rho_d"]
+  matrix(diag(crossprod(A)),nrow = nrow(DW))
+
+},
+info = "test calculation of the diagonal of the precision matrix (cartesian case model 2)")
+
+expect_equal({
+  compute_diag_precision_mat(
+    DW = DW,
+    OW = OW,
+    rho = rho["rho_o"],
+    n_o = nrow(OW),
+    n_d = nrow(DW),
+    M_indicator = NULL)
+},
+{
+  A <- diag(nrow(OW) * nrow(DW)) - OW %x% diag(nrow(DW)) * rho["rho_o"]
+  matrix(diag(crossprod(A)),nrow = nrow(DW))
+
+},
+info = "test calculation of the diagonal of the precision matrix (cartesian case model 3)")
+
+expect_equal({
+  compute_diag_precision_mat(
+    DW = DW,
+    OW = OW,
+    rho = rho["rho_w"],
+    n_o = nrow(OW),
+    n_d = nrow(DW),
+    M_indicator = NULL)
+},
+{
+  A <- diag(nrow(OW) * nrow(DW)) - OW %x% DW * rho["rho_w"]
+  matrix(diag(crossprod(A)),nrow = nrow(DW))
+
+},
+info = "test calculation of the diagonal of the precision matrix (cartesian case model 4)")
+
+expect_equal({
+  compute_diag_precision_mat(
+    DW = DW,
+    OW = OW,
+    rho = rho,
+    n_o = nrow(OW),
+    n_d = nrow(DW),
+    M_indicator = NULL)
+},
+{
+  A <- diag(nrow(OW) * nrow(DW)) -
+    diag(nrow(OW)) %x% DW * rho["rho_d"] -
+    OW %x% diag(nrow(DW)) * rho["rho_o"] -
+    OW %x% DW * rho["rho_w"]
+  matrix(diag(crossprod(A)),nrow = nrow(DW))
+
+},
+info = "test calculation of the diagonal of the precision matrix (cartesian case model 9)")
+
+
+I_gamma <- matrix(c(1,1,0,0,1,1,1,0,1,1,0,1),4,3)
+sg <- as.logical(I_gamma)
+
+
+expect_equal({
+  compute_diag_precision_mat(
+    DW = DW,
+    OW = OW,
+    rho = rho["rho_d"],
+    n_o = nrow(OW),
+    n_d = nrow(DW),
+    M_indicator = I_gamma)
+},
+{
+  A <- diag(nrow(OW) * nrow(DW)) - diag(nrow(OW)) %x% DW * rho["rho_d"]
+  res <- I_gamma
+  res[sg] <- diag(crossprod(A[sg,sg]))
+  res
+
+},
+info = "test calculation of the diagonal of the precision matrix (non-cartesian case model 2)")
+
+expect_equal({
+  compute_diag_precision_mat(
+    DW = DW,
+    OW = OW,
+    rho = rho["rho_o"],
+    n_o = nrow(OW),
+    n_d = nrow(DW),
+    M_indicator = I_gamma)
+},
+{
+  A <- diag(nrow(OW) * nrow(DW)) - OW %x% diag(nrow(DW)) * rho["rho_o"]
+  res <- I_gamma
+  res[sg] <- diag(crossprod(A[sg,sg]))
+  res
+},
+info = "test calculation of the diagonal of the precision matrix (non-cartesian case model 3)")
+
+expect_equal({
+  compute_diag_precision_mat(
+    DW = DW,
+    OW = OW,
+    rho = rho["rho_w"],
+    n_o = nrow(OW),
+    n_d = nrow(DW),
+    M_indicator = I_gamma)
+},
+{
+  A <- diag(nrow(OW) * nrow(DW)) - OW %x% DW * rho["rho_w"]
+  res <- I_gamma
+  res[sg] <- diag(crossprod(A[sg,sg]))
+  res
+},
+info = "test calculation of the diagonal of the precision matrix (non-cartesian case model 4)")
+
+expect_equal({
+  compute_diag_precision_mat(
+    DW = DW,
+    OW = OW,
+    rho = rho,
+    n_o = nrow(OW),
+    n_d = nrow(DW),
+    M_indicator = I_gamma)
+},
+{
+  A <- diag(nrow(OW) * nrow(DW)) -
+    diag(nrow(OW)) %x% DW * rho["rho_d"] -
+    OW %x% diag(nrow(DW)) * rho["rho_o"] -
+    OW %x% DW * rho["rho_w"]
+  res <- I_gamma
+  res[sg] <- diag(crossprod(A[sg,sg]))
+  res
+},
+info = "test calculation of the diagonal of the precision matrix (non-cartesian case model 9)")
+
+
+rm(OW,DW,rho,I_gamma, sg)
+
+

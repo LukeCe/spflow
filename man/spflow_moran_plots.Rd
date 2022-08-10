@@ -54,7 +54,7 @@ Moran scatter plots of interaction data
  # Used with a model...
  # To check the if there is spatial correlation in the residuals
  gravity_ge <- spflow(
-   y9 ~ . + G_(DISTANCE),
+   y9 ~ . + P_(DISTANCE),
    multi_net_usa_ge,
    "ge_ge",
    spflow_control(model = "model_1"))

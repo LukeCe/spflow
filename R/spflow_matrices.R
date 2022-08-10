@@ -12,7 +12,7 @@
 #' This requires to be aware of the;
 #'  - three sources of data (pair, orig, dest)
 #'  - three parts of the formula (norm, sdm, inst)
-#'  - five roles of the variables (Y_, G_, D_, O_, I_)
+#'  - five roles of the variables (Y_, P_, D_, O_, I_)
 #'
 #' The additional separation of data sources and roles makes sense if the list
 #' of origins coincides with the list of destinations.
@@ -48,7 +48,7 @@ derive_spflow_matrices <- function(
   fourmulas_by_part <- interpret_spflow_formula(spflow_formula, spflow_control)
   fourmulas_by_source <- translist(fourmulas_by_part)
 
-  spflow_matrices <- named_list(c("CONST","D_","O_","I_","G_","Y_"))
+  spflow_matrices <- named_list(c("CONST", "D_", "O_", "I_", "P_", "Y_"))
   spflow_indicators <- subset_keycols(spflow_data[["pair"]], drop_keys = FALSE)
 
   spflow_matrices[["CONST"]] <- derive_spflow_constants(
@@ -75,24 +75,21 @@ derive_spflow_matrices <- function(
   spflow_matrices[["D_"]] <- transform_node_data(
     threepart_formula = fourmulas_by_source[["D_"]],
     node_df = subset_keycols(spflow_data[["dest"]]),
-    W = spflow_neighborhood[["DW"]],
-    prefix = "DEST_")
+    W = spflow_neighborhood[["DW"]])
   obs_D <- complete_nodeobs("D_")
 
 
   spflow_matrices[["O_"]] <- transform_node_data(
     threepart_formula = fourmulas_by_source[["O_"]],
     node_df = subset_keycols(spflow_data[["orig"]]),
-    W = spflow_neighborhood[["OW"]],
-    prefix = "ORIG_")
+    W = spflow_neighborhood[["OW"]])
   obs_O <- complete_nodeobs("O_")
 
 
   spflow_matrices[["I_"]] <- transform_node_data(
     threepart_formula = fourmulas_by_source[["I_"]],
     node_df = subset_keycols(spflow_data[["orig"]]),
-    W = spflow_neighborhood[["OW"]],
-    prefix = "INTRA_")
+    W = spflow_neighborhood[["OW"]])
   obs_I <- complete_nodeobs("I_")
 
 
@@ -128,15 +125,15 @@ derive_spflow_matrices <- function(
     return(matrix_list)
   }
 
-  spflow_matrices[["G_"]] <- transform_pair_data(
-    threepart_formula = fourmulas_by_source[["G_"]],
+  spflow_matrices[["P_"]] <- transform_pair_data(
+    threepart_formula = fourmulas_by_source[["P_"]],
     pair_df = subset_keycols(spflow_data[["pair"]]),
     spflow_indicators = spflow_indicators,
     OW = spflow_neighborhood[["OW"]],
     DW = spflow_neighborhood[["DW"]],
     reduce_pair_instruments = isTRUE(spflow_control[["twosls_reduce_pair_instruments"]]))
-  na_G <- incomplete_pairobs("G_")
-  spflow_matrices[["G_"]] <- remove_na_pairs(na_G, spflow_matrices[["G_"]])
+  na_G <- incomplete_pairobs("P_")
+  spflow_matrices[["P_"]] <- remove_na_pairs(na_G, spflow_matrices[["P_"]])
 
   # Y ...
   spflow_matrices[["Y_"]] <- transform_flow_data(
@@ -150,48 +147,47 @@ derive_spflow_matrices <- function(
   spflow_matrices[["Y_"]] <- remove_na_pairs(na_Y, spflow_matrices[["Y_"]])
 
   ### identify which information sets are available for each od pair
-  # ... predictions require signal
+  # ... population are all units that have a known signal
+  # ... sample are a subset of the population with known values for the flows and non-zero weights
   update_conditions <- function(pre,add) if (is.null(pre)) add else pre & add
-  HAS_SIG <- NULL
+  IN_POP <- NULL
   do_indexes <- cbind(as.integer(spflow_indicators[[1]]), spflow_indicators[[2]])
   if (!all(obs_D))
-    HAS_SIG <- update_conditions(HAS_SIG, obs_D[do_indexes[1]])
+    IN_POP <- update_conditions(IN_POP, obs_D[do_indexes[1]])
 
   if (!all(obs_O))
-    HAS_SIG <- update_conditions(HAS_SIG, obs_O[do_indexes[2]])
+    IN_POP <- update_conditions(IN_POP, obs_O[do_indexes[2]])
 
   if (!all(obs_I))
-    HAS_SIG <- update_conditions(HAS_SIG, (obs_I[do_indexes[2]] | spflow_indicators[[2]] != spflow_indicators[[1]]))
+    IN_POP <- update_conditions(IN_POP, (obs_I[do_indexes[2]] | spflow_indicators[[2]] != spflow_indicators[[1]]))
 
   if (!is.null(na_G))
-    HAS_SIG <- update_conditions(HAS_SIG, !(na_G[do_indexes]))
+    IN_POP <- update_conditions(IN_POP, !(na_G[do_indexes]))
 
 
 
   # ... model fitting requires signal, y, and non-zero weights
-  HAS_Y <- HAS_SIG
+  IN_SAMPLE <- IN_POP
   if (!is.null(na_Y))
-    HAS_Y <- update_conditions(HAS_Y, !(na_Y[do_indexes]))
+    IN_SAMPLE <- update_conditions(IN_SAMPLE, !(na_Y[do_indexes]))
 
 
   WEIGHT <- spflow_control[["weight_variable"]]
   if (!is.null(WEIGHT) ) {
     WEIGHT <- spflow_data[["pair"]][[WEIGHT]]
     WEIGHT[WEIGHT <= 0] <- NA
-    HAS_Y <- update_conditions(HAS_Y, is.finite(WEIGHT))
-    WEIGHT[!HAS_Y] <- 0
+    IN_SAMPLE <- update_conditions(IN_SAMPLE, is.finite(WEIGHT))
+    WEIGHT[!IN_SAMPLE] <- 0
   }
 
 
 
   spflow_indicators <- list2df(
     spflow_indicators,
-    HAS_SIG = HAS_SIG,
-    HAS_Y = HAS_Y,
+    IN_POP = IN_POP,
+    IN_SAMPLE = IN_SAMPLE,
     WEIGHT = WEIGHT,
     ACTUAL = spflow_matrices[["Y_"]][[1]][do_indexes])
-  # if (!is.null(HAS_Y))
-  #   spflow_indicators[!HAS_Y, "ACTUAL"] <- NA
 
   return(c(spflow_matrices, list(spflow_indicators = spflow_indicators)))
 }
@@ -219,7 +215,7 @@ derive_spflow_constants <- function(
     return(c_terms)
 
   # for computation of instruments the indicator is based on observed Y
-  Y_indicator <- spflow_indicators2mat(spflow_indicators, do_filter = "HAS_Y")
+  Y_indicator <- spflow_indicators2mat(spflow_indicators, do_filter = "IN_SAMPLE")
   intra_lags <- double_lag_matrix(
     M = Diagonal(n),
     OW = OW,
@@ -239,9 +235,7 @@ derive_spflow_constants <- function(
 transform_node_data <- function(
   threepart_formula,
   node_df,
-  W,
-  prefix = "") {
-
+  W) {
 
   if (is.null(threepart_formula) | is.null(node_df))
     return(NULL)
@@ -261,7 +255,6 @@ transform_node_data <- function(
   inst_status2var <- unlist(var_use[["inst_attr"]])
   inst_order2var <- c(which(!inst_status2var),which(inst_status2var))
   node_mat <- node_mat[,inst_order2var,drop = FALSE]
-  colnames(node_mat) <- paste0(prefix, colnames(node_mat))
   attr_inst_status(node_mat) <- sort(inst_status2var)
 
   return(node_mat)
@@ -297,7 +290,7 @@ transform_pair_data <- function(
         DW = DW,
         OW = OW,
         name = .var,
-        key = "G",
+        key = "M",
         M_indicator = spflow_indicators2mat(spflow_indicators),
         lag_order = lag_num2var[.var],
         return_all_lags = !reduce_pair_instruments,
@@ -325,7 +318,6 @@ transform_flow_data <- function(
   flow_mat <- impute_lost_cases(flow_mat, lostobs, NA)
   flow_mat <- spflow_indicators2matlist(cbind(spflow_indicators, flow_mat))
 
-
   flow_mat <- Reduce("c", Map(function(.var, .mat) {
     lag_flow_matrix(
       Y = .mat,
@@ -343,12 +335,12 @@ transform_flow_data <- function(
 # ---- helpers ----------------------------------------------------------------
 #' @keywords internal
 pull_spflow_data <- function(
-  sp_multi_net,
+  .multinet,
   pair_id) {
 
-  source_ids <- as.list(id(sp_multi_net@pairs[[pair_id]]))
+  source_ids <- as.list(id(.multinet@pairs[[pair_id]]))
   flow_data <- lapply(source_ids, function(.id){
-    source_data <- dat(sp_multi_net, .id)
+    source_data <- dat(.multinet, .id)
     row.names(source_data) <- NULL
     source_data
   })

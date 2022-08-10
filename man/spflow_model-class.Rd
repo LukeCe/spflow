@@ -92,7 +92,7 @@ interaction models estimated by the \code{\link[=spflow]{spflow()}} function.
 There are four subclasses that are specific to the chosen estimation method
 (OLS, MLE, Bayesian MCMC or S2SLS).
 They contain some additional information specific to the corresponding
-method but most behaviours and data are identical among them.
+method but most behaviors and data are identical among them.
 }
 \section{Slots}{
 
@@ -134,7 +134,7 @@ the parameter value is 0.
 
 \examples{
 
-spflow_results <- spflow(y9 ~ . + G_(DISTANCE), multi_net_usa_ge)
+spflow_results <- spflow(y9 ~ . + P_(DISTANCE), multi_net_usa_ge)
 
 # General methods
 results(spflow_results) # data.frame of main results
@@ -154,7 +154,7 @@ varcov(spflow_results) # variance covariance matrix of the estimators
 
 # MCMC methods
 spflow_results_mcmc <- spflow(
-  y2 ~ . + G_(DISTANCE),
+  y2 ~ . + P_(DISTANCE),
   multi_net_usa_ge,
   estimation_control = spflow_control(estimation_method = "mcmc",
                                 model = "model_2"))

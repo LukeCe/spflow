@@ -53,7 +53,7 @@ The [package vignette](https://lukece.github.io/spflow/articles/paris_commute_fl
 library("spflow")
 data("multi_net_usa_ge")
 
-spflow(y9 ~ O_(X) + D_(X) + I(X) + G_(DISTANCE), multi_net_usa_ge)
+spflow(y9 ~ O_(X) + D_(X) + I(X) + P_(DISTANCE), multi_net_usa_ge)
 ```
 
 

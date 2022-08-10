@@ -40,7 +40,7 @@ Geographic representation of flows
 
  # Used with a model...
  gravity_ge <- spflow(
-   y1 ~ . + G_(DISTANCE),
+   y1 ~ . + P_(DISTANCE),
    multi_net_usa_ge,
    "ge_ge",
    spflow_control(model = "model_1"))

@@ -10,7 +10,7 @@
 #' There are four subclasses that are specific to the chosen estimation method
 #' (OLS, MLE, Bayesian MCMC or S2SLS).
 #' They contain some additional information specific to the corresponding
-#' method but most behaviours and data are identical among them.
+#' method but most behaviors and data are identical among them.
 #'
 #' @slot estimation_results
 #'   A data.frame that contains the main [results()] of the estimation
@@ -37,7 +37,7 @@
 #' @export
 #' @examples
 #'
-#' spflow_results <- spflow(y9 ~ . + G_(DISTANCE), multi_net_usa_ge)
+#' spflow_results <- spflow(y9 ~ . + P_(DISTANCE), multi_net_usa_ge)
 #'
 #' # General methods
 #' results(spflow_results) # data.frame of main results
@@ -57,7 +57,7 @@
 #'
 #' # MCMC methods
 #' spflow_results_mcmc <- spflow(
-#'   y2 ~ . + G_(DISTANCE),
+#'   y2 ~ . + P_(DISTANCE),
 #'   multi_net_usa_ge,
 #'   estimation_control = spflow_control(estimation_method = "mcmc",
 #'                                 model = "model_2"))
@@ -159,7 +159,7 @@ setMethod(
   signature = "spflow_model",
   function(object, return_type = "V") {
     do_k <- object@spflow_indicators
-    spflow_indicators2format(do_k[,c(names(do_k)[1:2],"FITTED")], return_type, do_k[["HAS_Y"]])
+    spflow_indicators2format(do_k[,c(names(do_k)[1:2],"FITTED")], return_type, do_k[["IN_SAMPLE"]])
   })
 
 # ---- ... logLik -------------------------------------------------------------
@@ -214,7 +214,7 @@ setMethod(
 #'
 #'  # Used with a model...
 #'  gravity_ge <- spflow(
-#'    y1 ~ . + G_(DISTANCE),
+#'    y1 ~ . + P_(DISTANCE),
 #'    multi_net_usa_ge,
 #'    "ge_ge",
 #'    spflow_control(model = "model_1"))
@@ -238,7 +238,7 @@ setMethod(
     if (!keep_moments) {
       # for empiric version we drop the weights
       N <-  object@spflow_indicators
-      N <- if (is.null(N[["HAS_Y"]])) nrow(N) else sum(N[["HAS_Y"]])
+      N <- if (is.null(N[["IN_SAMPLE"]])) nrow(N) else sum(N[["IN_SAMPLE"]])
       new_mom <- compute_spflow_moments(
         spflow_matrices = new_mat,
         n_o = new_mom[["n_o"]],
@@ -255,13 +255,13 @@ setMethod(
 
     # recompute the moments pretending the errors are the flows
     # with flows becoming exogenous variables
-    new_mat[["G_"]] <- c(new_mat[["G_"]], new_mat[["Y_"]])
+    new_mat[["P_"]] <- c(new_mat[["P_"]], new_mat[["Y_"]])
     new_mat[["Y_"]] <- NULL
 
 
     if (add_fitted) {
       new_mat[["Y_"]] <- list(fitted(object, "M"))
-      names(new_mat[["Y_"]]) <- paste0(names(object@spflow_matrices[["Y_"]])[1], ".fit")
+      names(new_mat[["Y_"]]) <- paste0("FITTED_", names(object@spflow_matrices[["Y_"]])[1])
     }
 
     M_indicator <- spflow_indicators2mat(object@spflow_indicators)
@@ -363,7 +363,7 @@ setMethod(
 #'   approximated by a Taylor series. For spatial models this can lead to
 #'   significant performance gains.
 #' @param expectation_approx_order
-#'   A numeric, defining the order of the Taylor-series approximation.
+#'   A numeric, defining the order of the Taylor series approximation.
 #' @param out_of_sample
 #'   A logical, controlling whether to use in-sample or out of sample
 #'   predictions
@@ -378,76 +378,149 @@ setMethod(
   function(object,
            ...,
            new_data = NULL,
-           method = "TC",
+           method = "BPA",
            approx_expectation = TRUE,
            expectation_approx_order = 10,
-           return_type = "OD",
-           out_of_sample = FALSE) {
+           return_type = "OD") {
 
 
-    # extract coefficients and compute the signal
+
+    insample_methods <- c("TS","BPI","TCI")
+    fullpop_methods <- c("BPA","TC","BP")
+    assert_valid_option(method, c(insample_methods, fullpop_methods))
+    assert(is.null(new_data) | method %in% fullpop_methods,
+           "In sample methods are invalid when new data is supplied!")
+
+
+    # prepare the data and coefficients....
     model <- object@estimation_control$model
     rho <- coef(object, "rho")
     delta <- coef(object, "delta")
 
-    if (!is.null(new_data))
+    if (is.null(new_data)) {
+      spflow_indicators <- object@spflow_indicators
+      spflow_matrices <- object@spflow_matrices
+    }
+
+    if (!is.null(new_data)) {
       stop("Data update not yet implmented!")
 
-    spflow_indicators <- object@spflow_indicators
-    filter_case <- spflow_indicators[["HAS_SIG"]] %||% TRUE
-    if (!out_of_sample)
-      filter_case <- filter_case & (spflow_indicators[["HAS_Y"]] %||% TRUE)
+    }
+
+
+    # define the set of observations
+    filter_case <- ifelse(method %in% insample_methods, "IN_SAMPLE", "IN_POP")
+    filter_case <- spflow_indicators[[filter_case]] %||% TRUE
     spflow_indicators <- spflow_indicators[filter_case,,drop = FALSE]
+    M_indicator <- spflow_indicators2mat(spflow_indicators)
+
+    # the signal (= Z %*% delta) is always required
     signal <- compute_signal(
       delta = delta,
-      spflow_matrices = object@spflow_matrices,
+      spflow_matrices = spflow_matrices,
       spflow_indicators = spflow_indicators,
       keep_matrix_form = TRUE)
+    n_o <- ncol(signal)
+    n_d <- nrow(signal)
 
+    if (method %in% c("TC","TCI","BP","BPA")) {
+      Y_TC <- compute_expectation(
+        signal_matrix = signal,
+        DW = object@spflow_neighborhood$DW,
+        OW = object@spflow_neighborhood$OW,
+        rho = rho,
+        model = model,
+        M_indicator = M_indicator,
+        approximate = approx_expectation,
+        max_it = expectation_approx_order)
+
+    }
+
+    # compute the prediction according to the chosen method
     if (model == "model_1")
-      method <- "LIN"
+      method <- "LM"
 
-    M_indicator <- spflow_indicators2mat(spflow_indicators)
-    Y_hat <- switch(
-        method,
-        "LIN" = signal,
-        "TC" =  {
-          compute_expectation(
-            signal_matrix = signal,
-            DW = object@spflow_neighborhood$DW,
+    if (method == "LM")
+      Y_hat <- signal
+
+    if (method == "TS") {
+      trend <- Reduce("+", Map("*", object@spflow_matrices$Y_[-1], rho))
+      Y_hat <- trend + signal
+    }
+
+    if (method == "BPI") {
+
+      res_ts <- Reduce("+", Map("*", object@spflow_matrices$Y_, c(-1, rho)))
+      res_ts <- res_ts - signal
+      res_ts <- lag_flow_matrix(
+        Y = res_ts,
+        model = model,
+        DW = object@spflow_neighborhood$DW %|!|% t,
+        OW = object@spflow_neighborhood$OW %|!|% t,
+        M_indicator = M_indicator)
+
+      diag_AA <- compute_diag_precision_mat(
+        DW = object@spflow_neighborhood$DW,
+        OW = object@spflow_neighborhood$OW,
+        rho = rho,
+        n_o = n_o,
+        n_d = n_d,
+        M_indicator = M_indicator)
+
+      Y_hat <- object@spflow_matrices$Y_[[1]] - (res_ts/diag_AA)
+    }
+
+    if (method %in% c("TC","TCI"))
+      Y_hat <- Y_TC
+
+    if (method %in% c("BPA","BP")) {
+      # the methods use an additive  correction terms on the Y_TC predictor...
+      corig_tc <- (object@spflow_matrices$Y_[[1]] - Y_TC) * M_indicator
+      corig_tc <- lag_flow_matrix(
+        Y = corig_tc,
+        model = model,
+        DW = object@spflow_neighborhood$DW,
+        OW = object@spflow_neighborhood$OW,
+        M_indicator = M_indicator)
+      corig_tc <- lag_flow_matrix(
+        Y = corig_tc,
+        model = model,
+        DW = object@spflow_neighborhood$DW %|!|% t,
+        OW = object@spflow_neighborhood$OW %|!|% t,
+        M_indicator = M_indicator)
+
+      if (method == "BPA") {
+        diag_AA <- compute_diag_precision_mat(
+          DW = object@spflow_neighborhood$DW,
+          OW = object@spflow_neighborhood$OW,
+          rho = rho,
+          n_o = n_o,
+          n_d = n_d,
+          M_indicator = M_indicator)
+        Y_hat <- Y_TC - (corig_tc/diag_AA)
+      }
+
+      if (method == "BP") {
+        A <- spatial_filter(
+          weight_matrices = expand_spflow_neighborhood(
             OW = object@spflow_neighborhood$OW,
-            rho = rho,
-            model = model,
-            M_indicator = M_indicator,
-            approximate = approx_expectation,
-            max_it = expectation_approx_order
-          )},
-        "TS" = {
-          trend <- Reduce("+", Map("*", object@spflow_matrices$Y_[-1], rho))
-          trend + signal
-        },
-        "BP" = {
-          stop("Best Prediction for in sample not yet implemented")
-          # compute_bp_insample(
-          #   signal_matrix = signal,
-          #   DW = DW,
-          #   OW = OW,
-          #   rho = rho,
-          #   model = model,
-          #   Y_indicator = NULL
-          # )
-        }
-      )
+            DW = object@spflow_neighborhood$DW,
+            flow_indicator = M_indicator,
+            model = model),
+          autoreg_parameters = rho)
+        Y_hat <- Y_TC - solve(A, corig_tc)
+      }
 
+    }
 
-    result <- spflow_mat2format(
+     result <- spflow_mat2format(
       mat = Y_hat,
       do_keys =  spflow_indicators,
       return_type =  return_type,
       name =  "PREDICTION")
 
     if (return_type == "OD" & !isTRUE(filter_case)) {
-      result2 <- cbind(object@spflow_indicators, PREDICTION = NA)
+      result2 <- cbind(spflow_indicators, PREDICTION = NA)
       result2[filter_case, "PREDICTION"] <- result[,"PREDICTION"]
       return(result2)
     }
@@ -464,7 +537,7 @@ setMethod(
   function(object, return_type = "V") {
     do_k <- object@spflow_indicators
     do_k[["RESID"]] <- do_k[["FITTED"]] - do_k[["ACTUAL"]]
-    spflow_indicators2format(do_k[,c(names(do_k)[1:2],"RESID")], return_type, do_k[["HAS_Y"]])
+    spflow_indicators2format(do_k[,c(names(do_k)[1:2],"RESID")], return_type, do_k[["IN_SAMPLE"]])
     })
 
 # ---- ... results ------------------------------------------------------------
@@ -566,7 +639,7 @@ setMethod(
 #'
 #'  # Used with a model...
 #'  gravity_ge <- spflow(
-#'    y1 ~ . + G_(DISTANCE),
+#'    y1 ~ . + P_(DISTANCE),
 #'    multi_net_usa_ge,
 #'    "ge_ge",
 #'    spflow_control(model = "model_1"))
@@ -621,7 +694,7 @@ setMethod(
 #'  # Used with a model...
 #'  # To check the if there is spatial correlation in the residuals
 #'  gravity_ge <- spflow(
-#'    y9 ~ . + G_(DISTANCE),
+#'    y9 ~ . + P_(DISTANCE),
 #'    multi_net_usa_ge,
 #'    "ge_ge",
 #'    spflow_control(model = "model_1"))
@@ -751,7 +824,7 @@ create_results <- function(...) {
 #' @keywords internal
 actual <- function(object, return_type = "V"){
   do_k <- object@spflow_indicators
-  spflow_indicators2format(do_k[,c(names(do_k)[1:2],"ACTUAL")], return_type, do_k[["HAS_Y"]])
+  spflow_indicators2format(do_k[,c(names(do_k)[1:2],"ACTUAL")], return_type, do_k[["IN_SAMPLE"]])
 }
 
 

@@ -12,7 +12,7 @@ pair_corr(object, ...)
 \S4method{pair_corr}{spflow_multinet}(
   object,
   id_spflow_pairs = id(object)[["pairs"]][[1]],
-  flow_formula,
+  spflow_formula,
   add_lags_x = TRUE,
   add_lags_y = FALSE
 )
@@ -26,7 +26,7 @@ pair_corr(object, ...)
 
 \item{id_spflow_pairs}{A character indicating the id of a \code{\link[=spflow_pairs-class]{spflow_pairs-class()}}}
 
-\item{flow_formula}{A formula specifying how variables should be used
+\item{spflow_formula}{A formula specifying how variables should be used
 (for details see section Formula interface in the help page of \code{\link[=spflow]{spflow()}})}
 
 \item{add_lags_x}{A logical, indicating whether spatial lags of the exogenous variables
@@ -70,14 +70,14 @@ corr_map(corr_mat)
 corr_mat <- pair_corr(
   multi_net_usa_ge,
   "ge_ge",
-  y9 ~ . + G_(log(DISTANCE + 1) + .),
+  y9 ~ . + P_(log(DISTANCE + 1) + .),
   add_lags_y = TRUE)
 corr_map(corr_mat)
 
 
  # Used with a model...
  gravity_ge <- spflow(
-   y1 ~ . + G_(DISTANCE),
+   y1 ~ . + P_(DISTANCE),
    multi_net_usa_ge,
    "ge_ge",
    spflow_control(model = "model_1"))

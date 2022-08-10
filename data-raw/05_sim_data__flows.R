@@ -54,11 +54,12 @@ pair_variables <- lapply(pair_ids, function(.id) {
 
 pair_variables[1:2] <- lapply(pair_variables[1:2], function(.dat) {
   .dat[["(Intra)"]] <- as.integer(.dat[["ID_ORIG"]] == .dat[["ID_DEST"]])
-  .dat[["INTRA_X"]] <- .dat[["(Intra)"]] * .dat[["ORIG_X"]]
+  .dat[["I_X"]] <- .dat[["(Intra)"]] * .dat[["O_X"]]
   .dat})
 
 model_vars <- names(delta)
 pair_variables_mat <- lapply(pair_variables, function(.dat) {
+  .dat[["P_DISTANCE"]] <- .dat[["DISTANCE"]]
   as.matrix(.dat[intersect(model_vars, names(.dat))])
 })
 

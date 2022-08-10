@@ -2,7 +2,7 @@
 
 expect_equal({
   spflow:::interpret_spflow_formula(
-    y ~ D_(a) + O_(b) + I_(c) + G_(d),
+    y ~ D_(a) + O_(b) + I_(c) + P_(d),
     list(use_intra = FALSE, sdm_variables = "none", estimation_method = "mle")
     )
   },
@@ -10,14 +10,14 @@ expect_equal({
     list(
       constants = list("global" = TRUE),
       norm      = list("Y_" = ~ y - 1, "D_" = ~ a - 1,
-                       "O_" = ~ b - 1, "G_" = ~ d - 1)
+                       "O_" = ~ b - 1, "P_" = ~ d - 1)
     )
   },
   info = "formulas is split correctly (no sdm) (no intra)")
 
 expect_equal({
   spflow:::interpret_spflow_formula(
-    y ~ D_(a) + O_(b) + I_(c) + G_(d),
+    y ~ D_(a) + O_(b) + I_(c) + P_(d),
     list(use_intra = FALSE, estimation_method = "mle",
          sdm_variables = "same")
   )
@@ -26,7 +26,7 @@ expect_equal({
     list(
       constants = list("global" = TRUE),
       norm      = list("Y_" = ~ y - 1, "D_" = ~ a - 1,
-                       "O_" = ~ b - 1, "G_" = ~ d - 1),
+                       "O_" = ~ b - 1, "P_" = ~ d - 1),
       sdm       = list("D_" = ~ a - 1, "O_" = ~ b - 1)
       )
   },
@@ -34,7 +34,7 @@ expect_equal({
 
 expect_equal({
     spflow:::interpret_spflow_formula(
-      y ~ D_(a) + O_(b) + I_(c) + G_(d),
+      y ~ D_(a) + O_(b) + I_(c) + P_(d),
       list(use_intra = TRUE, estimation_method = "mle",
            sdm_variables = "same")
     )
@@ -43,7 +43,7 @@ expect_equal({
     list(
       constants = list("global" = TRUE, "intra" = TRUE),
       norm      = list("Y_" = ~ y - 1, "D_" = ~ a - 1, "O_" = ~ b - 1,
-                       "I_" = ~ c - 1, "G_" = ~ d - 1),
+                       "I_" = ~ c - 1, "P_" = ~ d - 1),
       sdm       = list("D_" = ~ a - 1, "O_" = ~ b - 1)
     )
   },
@@ -51,7 +51,7 @@ expect_equal({
 
 expect_equal({
     spflow:::interpret_spflow_formula(
-      y ~ D_(a) + O_(b) + I_(c) + G_(d),
+      y ~ D_(a) + O_(b) + I_(c) + P_(d),
       list(use_intra = TRUE,
            estimation_method = "s2sls",
            sdm_variables = "same",
@@ -62,10 +62,10 @@ expect_equal({
     list(
       constants = list("global" = TRUE, "intra" = TRUE),
       norm      = list("Y_" = ~ y - 1, "D_" = ~ a - 1, "O_" = ~ b - 1,
-                       "I_" = ~ c - 1, "G_" = ~ d - 1),
+                       "I_" = ~ c - 1, "P_" = ~ d - 1),
       sdm       = list("D_" = ~ a - 1, "O_" = ~ b - 1),
       inst      = list("D_" = ~ a - 1, "O_" = ~ b - 1,
-                       "I_" = ~ c - 1, "G_" = ~ d - 1)
+                       "I_" = ~ c - 1, "P_" = ~ d - 1)
     )
   },
   info = "formulas is split correctly (with sdm, intra, instruments)")
@@ -74,7 +74,7 @@ expect_equal({
 
 expect_equal({
     spflow:::interpret_spflow_formula(
-      y ~ . + log(a + 1)+ log(b + 1) + I_(c) + G_(d) - 1,
+      y ~ . + log(a + 1)+ log(b + 1) + I_(c) + P_(d) - 1,
       list(use_intra = TRUE,
            estimation_method = "s2sls",
            sdm_variables = "same",
@@ -87,12 +87,12 @@ expect_equal({
       norm      = list("Y_" = ~ y - 1,
                        "D_" = ~ . + log(a + 1) + log(b + 1) - 1,
                        "O_" = ~ . + log(a + 1) + log(b + 1) - 1,
-                       "I_" = ~ c - 1, "G_" = ~ d - 1),
+                       "I_" = ~ c - 1, "P_" = ~ d - 1),
       sdm       = list("D_" = ~ . + log(a + 1) + log(b + 1) - 1,
                        "O_" = ~ . + log(a + 1) + log(b + 1) - 1),
       inst      = list("D_" = ~ . + log(a + 1) + log(b + 1) - 1,
                        "O_" = ~ . + log(a + 1) + log(b + 1) - 1,
-                       "I_" = ~ c - 1, "G_" = ~ d - 1)
+                       "I_" = ~ c - 1, "P_" = ~ d - 1)
     )
   },
   info = "use of dot shortcut for unspecifyed specials")

@@ -59,7 +59,7 @@
 #' 3. `paris10km_neighborhood` contains three sparse matrices that represent
 #' alternative definitions of the neighborhood of the municipalities.
 #' The first is based on contiguity, the second one on distance and the third
-#' one is based on the three nearest neighbours.
+#' one is based on the three nearest neighbors.
 #'
 #'
 #' @source

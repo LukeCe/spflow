@@ -36,9 +36,9 @@ paris_pairs <- spflow_pairs(
   dest_key_column = "ID_DEST",
   pair_data = paris10km_commuteflows)
 
-pairs_multi_net <- spflow_multinet(paris_net, paris_pairs)
-default_formula <- log(COMMUTE_FLOW+1) ~ . + G_(log(DISTANCE + 1))
-results_default <- spflow(default_formula, pairs_multi_net)
+pairs_multinet <- spflow_multinet(paris_net, paris_pairs)
+default_formula <- log(COMMUTE_FLOW+1) ~ . + P_(log(DISTANCE + 1))
+results_default <- spflow(default_formula, pairs_multinet)
 
 expect_inherits(results_default,"spflow_model")
 
@@ -56,12 +56,12 @@ paris_pairs_DT <- spflow_pairs(
   dest_key_column = "ID_DEST",
   pair_data = as.data.table(paris10km_commuteflows))
 
-pairs_multi_net_DT <- spflow_multinet(paris_net_DT, paris_pairs_DT)
-default_formula <- log(COMMUTE_FLOW+1) ~ . + G_(log(DISTANCE + 1))
-results_default_DT <- spflow(default_formula, pairs_multi_net_DT)
+pairs_multinet_DT <- spflow_multinet(paris_net_DT, paris_pairs_DT)
+default_formula <- log(COMMUTE_FLOW+1) ~ . + P_(log(DISTANCE + 1))
+results_default_DT <- spflow(default_formula, pairs_multinet_DT)
 
 expect_inherits(results_default_DT,"spflow_model")
-rm(paris_net_DT, paris_pairs_DT, pairs_multi_net_DT, results_default_DT)
+rm(paris_net_DT, paris_pairs_DT, pairs_multinet_DT, results_default_DT)
 
 # tibbles
 paris_net_tib <- spflow_nodes(
@@ -77,19 +77,19 @@ paris_pairs_tib <- spflow_pairs(
   dest_key_column = "ID_DEST",
   pair_data = as.data.table(paris10km_commuteflows))
 
-pairs_multi_net_tib <- spflow_multinet(paris_net_tib, paris_pairs_tib)
-default_formula <- log(COMMUTE_FLOW+1) ~ . + G_(log(DISTANCE + 1))
-results_default_tib <- spflow(default_formula, pairs_multi_net_tib)
+pairs_multinet_tib <- spflow_multinet(paris_net_tib, paris_pairs_tib)
+default_formula <- log(COMMUTE_FLOW+1) ~ . + P_(log(DISTANCE + 1))
+results_default_tib <- spflow(default_formula, pairs_multinet_tib)
 
 expect_inherits(results_default_tib,"spflow_model")
-rm(paris_net_tib, paris_pairs_tib, pairs_multi_net_tib, results_default_tib)
+rm(paris_net_tib, paris_pairs_tib, pairs_multinet_tib, results_default_tib)
 
 # ---- step 2: high level estimation options ----------------------------------
 # high level options are "model" and "use_intra" and "estimation_method"
 model_options <- paste0("model_",1:9)
 for (i in seq_along(model_options)){
   this_control <- spflow_control(model = model_options[i])
-  this_model <- spflow(default_formula, pairs_multi_net,
+  this_model <- spflow(default_formula, pairs_multinet,
                        estimation_control = this_control)
 
   expect_inherits(this_model,"spflow_model",
@@ -103,7 +103,7 @@ model_types <- c(rep("SDM",3),"SLO")
 for (i in seq_along(estim_options)){
   this_control <- spflow_control(estimation_method = estim_options[i],
                                  use_intra = use_intra)
-  this_model <- spflow(default_formula, pairs_multi_net,
+  this_model <- spflow(default_formula, pairs_multinet,
                        estimation_control = this_control)
 
   expect_inherits(this_model,"spflow_model",

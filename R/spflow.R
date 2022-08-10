@@ -16,7 +16,7 @@
 #' which gives fine grained control over the estimation.
 #'
 #'
-#' @param flow_formula
+#' @param spflow_formula
 #'   A formula specifying the spatial interaction model (for details see
 #'   section Formula interface)
 #' @param spflow_multinet
@@ -70,7 +70,7 @@
 #' ## Formula interface
 #' The function offers a formula interface adapted to spatial interaction
 #' models, which has the following structure:
-#' `Y ~ O_(X1) + D_(X2) + I_(X3) + G_(X4)`
+#' `Y ~ O_(X1) + D_(X2) + I_(X3) + P_(X4)`
 #' This structure reflects the different data sources involved in such a model.
 #' On the left hand side there is the independent variable `Y` which
 #' corresponds to the vector of flows.
@@ -79,7 +79,7 @@
 #' characteristics of the origins and destinations respectively.
 #' Similarly, `I_(...)` indicates variables that should be used for the
 #' intra-regional parameters.
-#' Finally, `G_(...)` declares which variables describe origin-destination
+#' Finally, `P_(...)` declares which variables describe origin-destination
 #' pairs, which most frequently will include a measure of distance.
 #'
 #' All the declared variables must be available in the provided
@@ -91,10 +91,10 @@
 #' Using the short notation `Y ~ .` is possible and will be interpreted as
 #' usual, in the sense that we use all variables that are available for each
 #' data source.
-#' Also mixed formulas, such as `Y ~ . + G_(log(X4) + 1)`, are possible.
+#' Also mixed formulas, such as `Y ~ . + P_(log(X4) + 1)`, are possible.
 #' When the dot shortcut is combined with explicit declaration, it will only be
 #' used for the non declared data sources.
-#' The following examples illustrate this behaviour.
+#' The following examples illustrate this behavior.
 #'
 #' ## Formula interface (examples)
 #'
@@ -109,43 +109,43 @@
 #' intra-regional observations.
 #'
 #' - `Y ~ .`
-#' - `Y ~ . + G_(DIST)`
-#' - `Y ~ X1 + X2 + X3 + G_(DIST)`
-#' - `Y ~ D_(X1 + X2 + X3) + O_(X1 + X2 + X3) + I_(X1 + X2 + X3)  + G_(DIST)`
+#' - `Y ~ . + P_(DIST)`
+#' - `Y ~ X1 + X2 + X3 + P_(DIST)`
+#' - `Y ~ D_(X1 + X2 + X3) + O_(X1 + X2 + X3) + I_(X1 + X2 + X3)  + P_(DIST)`
 #'
 #' Now if we only want to use X1 for the intra-regional model we can do the
 #' following (again all four options below are equivalent).
 #'
 #' - `Y ~ . + I_(X1)`
-#' - `Y ~ . + I_(X1) + G_(DIST)`
-#' - `Y ~  X1 + X2 + X3 + I_(X1) + G_(DIST)`
-#' - `Y ~ D_(X1 + X2 + X3) + O_(X1 + X2 + X3) + I_(X1)  + G_(DIST)`
+#' - `Y ~ . + I_(X1) + P_(DIST)`
+#' - `Y ~  X1 + X2 + X3 + I_(X1) + P_(DIST)`
+#' - `Y ~ D_(X1 + X2 + X3) + O_(X1 + X2 + X3) + I_(X1)  + P_(DIST)`
 #'
-#' This behaviour is easily combined with transformation of variables as the
+#' This behavior is easily combined with transformation of variables as the
 #' two equivalent options below illustrate.
 #'
-#' - `log(Y + 1) ~ sqrt(X1) +  X2 + G_(log(DIST + 1))`
+#' - `log(Y + 1) ~ sqrt(X1) +  X2 + P_(log(DIST + 1))`
 #' @examples
 #'
 #' # Estimate flows between the states of Germany
-#' spflow(flow_formula = y9 ~ . + G_(DISTANCE),
+#' spflow(spflow_formula = y9 ~ . + P_(DISTANCE),
 #'        spflow_multinet = multi_net_usa_ge,
 #'        id_spflow_pairs = "ge_ge")
 #'
 #' # Same as above with explicit declaration of variables...
 #' # ... X is the only variable available
 #' # ... it is used for origins, destination and intra-state flows
-#' spflow(flow_formula = y9 ~ X + G_(DISTANCE),
+#' spflow(spflow_formula = y9 ~ X + P_(DISTANCE),
 #'        spflow_multinet = multi_net_usa_ge,
 #'        id_spflow_pairs = "ge_ge")
 #'
 #' # Same as above
-#' spflow(flow_formula = y9 ~ O_(.) + D_(.) + I_(.) + G_(DISTANCE),
+#' spflow(spflow_formula = y9 ~ O_(.) + D_(.) + I_(.) + P_(DISTANCE),
 #'        spflow_multinet = multi_net_usa_ge,
 #'        id_spflow_pairs = "ge_ge")
 #'
 #' # Same as above
-#' spflow(flow_formula = y9 ~ O_(X) + D_(X) + I_(X) + G_(DISTANCE),
+#' spflow(spflow_formula = y9 ~ O_(X) + D_(X) + I_(X) + P_(DISTANCE),
 #'        spflow_multinet = multi_net_usa_ge,
 #'        id_spflow_pairs = "ge_ge")
 #'
@@ -154,13 +154,13 @@
 #' @seealso [spflow_control()] [spflow_network_classes()]
 #' @export
 spflow <- function(
-    flow_formula,
+    spflow_formula,
     spflow_multinet,
     id_spflow_pairs = id(spflow_multinet)[["pairs"]][[1]],
     estimation_control = spflow_control()) {
 
   ## check for abusive inputs and correct ids
-  assert_is(flow_formula, "formula")
+  assert_is(spflow_formula, "formula")
   assert_is(spflow_multinet, "spflow_multinet")
 
   pair_ids <- id(spflow_multinet)[["pairs"]]
@@ -185,7 +185,7 @@ spflow <- function(
   spflow_matrices <- derive_spflow_matrices(
     spflow_data = spflow_data,
     spflow_neighborhood = spflow_neighborhood,
-    flow_formula,
+    spflow_formula,
     estimation_control,
     na_rm = estimation_control[["na_rm"]])
   spflow_indicators <- spflow_matrices[["spflow_indicators"]]
@@ -198,12 +198,12 @@ spflow <- function(
     estimation_control = estimation_control,
     spflow_indicators = spflow_indicators)
 
-  wt <- spflow_indicators2mat(spflow_indicators, do_filter = "HAS_Y", do_values = "WEIGHTS")
+  wt <- spflow_indicators2mat(spflow_indicators, do_filter = "IN_SAMPLE", do_values = "WEIGHTS")
   spflow_moments <- compute_spflow_moments(
     spflow_matrices = spflow_matrices,
     n_o = spflow_obs[["N_orig"]],
     n_d = spflow_obs[["N_dest"]],
-    N = spflow_obs[["N_fit"]],
+    N = spflow_obs[["N_sample"]],
     wt = wt,
     na_rm = estimation_control[["na_rm"]])
 
@@ -256,7 +256,7 @@ drop_instruments <- function(model_matrices) {
     function(l) { Filter(Negate(attr_inst_status), model_matrices[[mm]]) }
   mm <- "CONST"
   model_matrices[[mm]] <- filter_inst_list(model_matrices[[mm]])
-  mm <- "G_"
+  mm <- "P_"
   model_matrices[[mm]] <- filter_inst_list(model_matrices[[mm]])
 
   filter_inst_mat <-
@@ -318,7 +318,7 @@ derive_spflow_nbfunctions <- function(
     n_o = nlevels(spflow_indicators[[2]]),
     n_d = nlevels(spflow_indicators[[1]]),
     approx_order = estimation_control[["logdet_approx_order"]],
-    flow_indicator = spflow_indicators2mat(spflow_indicators, "HAS_Y"))
+    flow_indicator = spflow_indicators2mat(spflow_indicators, "IN_SAMPLE"))
 
   return(list("logdet_calculator" = logdet_calculator,
               "pspace_validator" = pspace_validator))

@@ -13,7 +13,7 @@ compute_signal <- function(
   if (is_cartesian) {
     n_o <- unique(c(
       ncol(spflow_matrices[["CONST"]][["(Intra)"]]),
-      ncol(spflow_matrices[["G_"]][[1]]),
+      ncol(spflow_matrices[["P_"]][[1]]),
       ncol(spflow_matrices[["Y_"]][[1]]),
       nrow(spflow_matrices[["OX"]]),
       nrow(spflow_matrices[["IX"]])))
@@ -21,7 +21,7 @@ compute_signal <- function(
 
     n_d <- unique(c(
       nrow(spflow_matrices[["CONST"]][["(Intra)"]]),
-      nrow(spflow_matrices[["G_"]][[1]]),
+      nrow(spflow_matrices[["P_"]][[1]]),
       nrow(spflow_matrices[["Y_"]][[1]]),
       nrow(spflow_matrices[["DX"]]),
       nrow(spflow_matrices[["IX"]])))
@@ -34,7 +34,7 @@ compute_signal <- function(
   }
 
   if (!is_cartesian) {
-    filter_sig <- spflow_indicators[["HAS_SIG"]] %||% TRUE
+    filter_sig <- spflow_indicators[["IN_POP"]] %||% TRUE
     spflow_indicators <- spflow_indicators[filter_sig,,drop = FALSE]
     n_o <- obs[["n_orig"]]
     n_d <- obs[["n_dest"]]
@@ -71,16 +71,16 @@ compute_signal <- function(
     SIG <- SIG + (SIG_I[o_index] * intra_i)
   }
 
-  if (!is.null(spflow_matrices[["G_"]])) {
-    id_coef <- seq_along(spflow_matrices[["G_"]]) + max(id_coef)
+  if (!is.null(spflow_matrices[["P_"]])) {
+    id_coef <- seq_along(spflow_matrices[["P_"]]) + max(id_coef)
 
-    SIG_G <- Reduce("+", Map("*", spflow_matrices[["G_"]], delta[id_coef]))
+    SIG_G <- Reduce("+", Map("*", spflow_matrices[["P_"]], delta[id_coef]))
     if (keep_matrix_form & is_cartesian)
       SIG <- matrix(SIG, nrow = n_d, ncol = n_o)
     if (keep_matrix_form & !is_cartesian)
-      SIG <- spflow_indicators2mat(spflow_indicators, do_filter = "HAS_SIG", do_values = SIG)
+      SIG <- spflow_indicators2mat(spflow_indicators, do_filter = "IN_POP", do_values = SIG)
     if (!keep_matrix_form & !is_cartesian)
-      SIG_G <- SIG_G[spflow_indicators2pairindex(spflow_indicators, do_filter = "HAS_SIG")]
+      SIG_G <- SIG_G[spflow_indicators2pairindex(spflow_indicators, do_filter = "IN_POP")]
     if (!keep_matrix_form & is_cartesian)
       SIG_G <- as.vector(SIG_G)
     SIG <- SIG + SIG_G
@@ -140,18 +140,57 @@ compute_expectation <- function(
   return(Yhat[as.logical(M_indicator)])
 }
 
-
 #' @keywords internal
-compute_bp_insample <- function(
-  signal_matrix,
-  DW,
-  OW,
-  rho,
-  model,
-  flow_indicator = NULL,
-  approximate = TRUE,
-  max_it = 10) {
+compute_diag_precision_mat <- function(
+    DW,
+    OW,
+    rho,
+    model,
+    n_o,
+    n_d,
+    M_indicator = NULL) {
 
-  stop("Best Prediction for in sample not yet implemented")
+
+  req_o <- "rho_o" %in% names(rho)
+  req_d <- "rho_d" %in% names(rho)
+  req_w <- "rho_w" %in% names(rho)
+
+  rho_o <- rho["rho_o"]
+  rho_d <- rho["rho_d"]
+  rho_w <- rho["rho_w"]
+
+  DW2 <- DW * DW
+  OW2 <- OW * OW
+
+  # cartesian
+  if (is.null(M_indicator)) {
+    SDW <- colSums(DW)
+    SDW2 <- colSums(DW2)
+    SOW <- colSums(OW)
+    SOW2 <- colSums(OW2)
+
+    result <- 1
+    if (req_d) result <- result + (rho_d*rho_d * tcrossprod(SDW2, rep(1,n_o)))
+    if (req_o) result <- result + (rho_o*rho_o * tcrossprod(rep(1,n_d), SOW2))
+    if (req_w) result <- result + (rho_w*rho_w * tcrossprod(SDW2, SOW2))
+  return(result)
+  }
+
+  # non-cartesian
+  result <- M_indicator
+  if (req_d) result <- result + (rho_d*rho_d * crossprod(DW2, M_indicator))
+  if (req_o) result <- result + (rho_o*rho_o * M_indicator %*% OW2)
+  if (req_w) result <- result + (rho_w*rho_w * crossprod(DW2, M_indicator) %*% OW2)
+  return(result * M_indicator)
 }
+
+
+update_spflow_matrices <- function(new_spflow_data, spflow_formula, spflow_data, spflow_matrices) {
+
+
+
+}
+
+multi_net_usa_ge
+
 

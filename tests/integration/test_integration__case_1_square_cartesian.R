@@ -43,7 +43,7 @@ target_matrices <- list(
   "O_" = as.matrix(OX),
   "I_" = as.matrix(OX[,1]),
   "OW" = W,
-  "G_"  = list("DISTANCE" = matrix(ge_ge_vec_data[,"DISTANCE"],n,n)),
+  "P_"  = list("DISTANCE" = matrix(ge_ge_vec_data[,"P_DISTANCE"],n,n)),
   "Y1_" = list("y1" = matrix(ge_ge_vec_data[,"y1"],n,n)),
   "Y2_" = list("y2" = matrix(ge_ge_vec_data[,"y2"],n,n),
                "y2.d" = W %*% matrix(ge_ge_vec_data[,"y2"],n,n)),
@@ -92,20 +92,20 @@ colnames(U_alpha_I) <- paste0("(Intra).", colnames(U_alpha_I))
 U_alpha_I <- cbind("(Intra)" = iota_I, U_alpha_I)
 
 lag_names <- c("", paste0(".lag",1:3))
-U_beta_d <- ge_ge_vec_data[,c("DEST_X","DEST_X.lag1")]
+U_beta_d <- ge_ge_vec_data[,c("D_X","D_X.lag1")]
 U_beta_d <- cbind(U_beta_d,W_d %*% W_d %*% U_beta_d)
-colnames(U_beta_d) <- paste0("DEST_X", lag_names)
-U_beta_o <- ge_ge_vec_data[,c("ORIG_X","ORIG_X.lag1")]
+colnames(U_beta_d) <- paste0("D_X", lag_names)
+U_beta_o <- ge_ge_vec_data[,c("O_X","O_X.lag1")]
 U_beta_o <- cbind(U_beta_o,W_o %*% W_o %*% U_beta_o)
-colnames(U_beta_o) <- paste0("ORIG_X", lag_names)
+colnames(U_beta_o) <- paste0("O_X", lag_names)
 
 lag_names <- c("", paste0(".lag",1:2))
 U_beta_I <- U_beta_o[,1:3] * iota_I
-colnames(U_beta_I) <- paste0("INTRA_X", lag_names)
+colnames(U_beta_I) <- paste0("I_X", lag_names)
 
-U_gamma <- ge_ge_vec_data[,"DISTANCE"]
+U_gamma <- ge_ge_vec_data[,"P_DISTANCE"]
 U_gamma <- cbind(U_gamma, W_w %*% U_gamma, W_w %*% W_w %*% U_gamma)
-colnames(U_gamma) <- paste0("DISTANCE", c("", ".wGw", ".wwGww"))
+colnames(U_gamma) <- paste0("P_DISTANCE", c("", ".wGw", ".wwGww"))
 U <- cbind(U_alpha,U_alpha_I, U_beta_d,U_beta_o,U_beta_I,U_gamma)
 
 target_moments <- list(
@@ -185,7 +185,7 @@ expect_zero_diff <- function(y,x) expect_equal(max(abs(x - y)), 0)
 
 # ---- ... ols - model 1 ------------------------------------------------------
 res_model_1_ols <- spflow(
-  y1 ~ . + G_(DISTANCE), multi_net_usa_ge, "ge_ge",
+  y1 ~ . + P_(DISTANCE), multi_net_usa_ge, "ge_ge",
   spflow_control(estimation_method = "ols", model = "model_1"))
 
 # test results
@@ -204,7 +204,7 @@ actual_matrices <- res_model_1_ols@spflow_matrices
 expect_zero_diff(target_matrices[["D_"]], actual_matrices[["D_"]])
 expect_zero_diff(target_matrices[["O_"]], actual_matrices[["O_"]])
 expect_zero_diff(target_matrices[["I_"]], actual_matrices[["I_"]])
-expect_zero_diff(target_matrices[["G_"]][[1]], actual_matrices[["G_"]][[1]])
+expect_zero_diff(target_matrices[["P_"]][[1]], actual_matrices[["P_"]][[1]])
 expect_zero_diff(target_matrices[["Y1_"]][[1]], actual_matrices[["Y_"]][[1]])
 
 # test residuals and goodness of fit
@@ -215,7 +215,7 @@ rm(res_model_1_ols)
 
 # ---- ... s2sls - model 2 ----------------------------------------------------
 res_model_2_s2sls <- spflow(
-  y2 ~ . + G_(DISTANCE), multi_net_usa_ge, "ge_ge",
+  y2 ~ . + P_(DISTANCE), multi_net_usa_ge, "ge_ge",
   spflow_control(estimation_method = "s2sls", model = "model_2"))
 
 # test results
@@ -236,7 +236,7 @@ actual_matrices <- res_model_2_s2sls@spflow_matrices
 expect_zero_diff(target_matrices[["D_"]], actual_matrices[["D_"]])
 expect_zero_diff(target_matrices[["O_"]], actual_matrices[["O_"]])
 expect_zero_diff(target_matrices[["I_"]], actual_matrices[["I_"]])
-expect_zero_diff(target_matrices[["G_"]][[1]], actual_matrices[["G_"]][[1]])
+expect_zero_diff(target_matrices[["P_"]][[1]], actual_matrices[["P_"]][[1]])
 expect_zero_diff(target_matrices[["Y2_"]][[1]], actual_matrices[["Y_"]][[1]])
 expect_zero_diff(target_matrices[["Y2_"]][[2]], actual_matrices[["Y_"]][[2]])
 rm(res_model_2_s2sls)
@@ -244,7 +244,7 @@ rm(res_model_2_s2sls)
 
 # ---- ... s2sls - model 9 ----------------------------------------------------
 res_model_9_s2sls <- spflow(
-  y9 ~ . + G_(DISTANCE), multi_net_usa_ge, "ge_ge",
+  y9 ~ . + P_(DISTANCE), multi_net_usa_ge, "ge_ge",
   spflow_control(estimation_method = "s2sls", model = "model_9"))
 
 # test results
@@ -265,7 +265,7 @@ actual_matrices <- res_model_9_s2sls@spflow_matrices
 expect_zero_diff(target_matrices[["D_"]], actual_matrices[["D_"]])
 expect_zero_diff(target_matrices[["O_"]], actual_matrices[["O_"]])
 expect_zero_diff(target_matrices[["I_"]], actual_matrices[["I_"]])
-expect_zero_diff(target_matrices[["G_"]][[1]], actual_matrices[["G_"]][[1]])
+expect_zero_diff(target_matrices[["P_"]][[1]], actual_matrices[["P_"]][[1]])
 expect_zero_diff(target_matrices[["Y9_"]][[1]], actual_matrices[["Y_"]][[1]])
 expect_zero_diff(target_matrices[["Y9_"]][[2]], actual_matrices[["Y_"]][[2]])
 expect_zero_diff(target_matrices[["Y9_"]][[3]], actual_matrices[["Y_"]][[3]])
@@ -274,7 +274,7 @@ rm(res_model_9_s2sls)
 
 # ---- ... mle - model 2 ------------------------------------------------------
 res_model_2_mle <- spflow(
-  y2 ~ . + G_(DISTANCE), multi_net_usa_ge, "ge_ge",
+  y2 ~ . + P_(DISTANCE), multi_net_usa_ge, "ge_ge",
   spflow_control(estimation_method = "mle", model = "model_2"))
 
 # test results
@@ -297,14 +297,14 @@ actual_matrices <- res_model_2_mle@spflow_matrices
 expect_zero_diff(target_matrices[["D_"]], actual_matrices[["D_"]])
 expect_zero_diff(target_matrices[["O_"]], actual_matrices[["O_"]])
 expect_zero_diff(target_matrices[["I_"]], actual_matrices[["I_"]])
-expect_zero_diff(target_matrices[["G_"]][[1]], actual_matrices[["G_"]][[1]])
+expect_zero_diff(target_matrices[["P_"]][[1]], actual_matrices[["P_"]][[1]])
 expect_zero_diff(target_matrices[["Y2_"]][[1]], actual_matrices[["Y_"]][[1]])
 expect_zero_diff(target_matrices[["Y2_"]][[2]], actual_matrices[["Y_"]][[2]])
 rm(res_model_2_mle)
 
 # ---- ... mle - model 9 ------------------------------------------------------
 res_model_9_mle <- spflow(
-  y9 ~ . + G_(DISTANCE), multi_net_usa_ge, "ge_ge",
+  y9 ~ . + P_(DISTANCE), multi_net_usa_ge, "ge_ge",
   spflow_control(estimation_method = "mle", model = "model_9"))
 
 # test results
@@ -326,7 +326,7 @@ actual_matrices <- res_model_9_mle@spflow_matrices
 expect_zero_diff(target_matrices[["D_"]], actual_matrices[["D_"]])
 expect_zero_diff(target_matrices[["O_"]], actual_matrices[["O_"]])
 expect_zero_diff(target_matrices[["I_"]], actual_matrices[["I_"]])
-expect_zero_diff(target_matrices[["G_"]][[1]], actual_matrices[["G_"]][[1]])
+expect_zero_diff(target_matrices[["P_"]][[1]], actual_matrices[["P_"]][[1]])
 expect_zero_diff(target_matrices[["Y9_"]][[1]], actual_matrices[["Y_"]][[1]])
 expect_zero_diff(target_matrices[["Y9_"]][[2]], actual_matrices[["Y_"]][[2]])
 expect_zero_diff(target_matrices[["Y9_"]][[3]], actual_matrices[["Y_"]][[3]])
@@ -335,7 +335,7 @@ rm(res_model_9_mle)
 
 # ---- ... mcmc - model 2 -----------------------------------------------------
 res_model_2_mcmc <- spflow(
-  y2 ~ . + G_(DISTANCE), multi_net_usa_ge, "ge_ge",
+  y2 ~ . + P_(DISTANCE), multi_net_usa_ge, "ge_ge",
   spflow_control(estimation_method = "mcmc", model = "model_2"))
 
 # test results
@@ -357,14 +357,14 @@ actual_matrices <- res_model_2_mcmc@spflow_matrices
 expect_zero_diff(target_matrices[["D_"]], actual_matrices[["D_"]])
 expect_zero_diff(target_matrices[["O_"]], actual_matrices[["O_"]])
 expect_zero_diff(target_matrices[["I_"]], actual_matrices[["I_"]])
-expect_zero_diff(target_matrices[["G_"]][[1]], actual_matrices[["G_"]][[1]])
+expect_zero_diff(target_matrices[["P_"]][[1]], actual_matrices[["P_"]][[1]])
 expect_zero_diff(target_matrices[["Y2_"]][[1]], actual_matrices[["Y_"]][[1]])
 expect_zero_diff(target_matrices[["Y2_"]][[2]], actual_matrices[["Y_"]][[2]])
 rm(res_model_2_mcmc)
 
 # ---- ... mcmc - model 9 -----------------------------------------------------
 res_model_9_mcmc <- spflow(
-  y9 ~ . + G_(DISTANCE), multi_net_usa_ge, "ge_ge",
+  y9 ~ . + P_(DISTANCE), multi_net_usa_ge, "ge_ge",
   spflow_control(estimation_method = "mcmc", model = "model_9"))
 
 # test results
@@ -386,7 +386,7 @@ actual_matrices <- res_model_9_mcmc@spflow_matrices
 expect_zero_diff(target_matrices[["D_"]], actual_matrices[["D_"]])
 expect_zero_diff(target_matrices[["O_"]], actual_matrices[["O_"]])
 expect_zero_diff(target_matrices[["I_"]], actual_matrices[["I_"]])
-expect_zero_diff(target_matrices[["G_"]][[1]], actual_matrices[["G_"]][[1]])
+expect_zero_diff(target_matrices[["P_"]][[1]], actual_matrices[["P_"]][[1]])
 expect_zero_diff(target_matrices[["Y9_"]][[1]], actual_matrices[["Y_"]][[1]])
 expect_zero_diff(target_matrices[["Y9_"]][[2]], actual_matrices[["Y_"]][[2]])
 expect_zero_diff(target_matrices[["Y9_"]][[3]], actual_matrices[["Y_"]][[3]])
@@ -398,10 +398,10 @@ expect_spflow_model <- function(formula, m = "model_9") expect_inherits(
   spflow(formula, multi_net_usa_ge, "ge_ge",
          estimation_control = list("model" = "model_9")), "spflow_model")
 
-expect_spflow_model(y9 ~ + G_(DISTANCE))
-expect_spflow_model(y9 ~ + G_(DISTANCE) - 1)
-expect_spflow_model(y9 ~ + G_(DISTANCE) - 1 - I_(-1))
-expect_spflow_model(y1 ~ + G_(DISTANCE) - 1 - I_(-1), "model_1")
+expect_spflow_model(y9 ~ + P_(DISTANCE))
+expect_spflow_model(y9 ~ + P_(DISTANCE) - 1)
+expect_spflow_model(y9 ~ + P_(DISTANCE) - 1 - I_(-1))
+expect_spflow_model(y1 ~ + P_(DISTANCE) - 1 - I_(-1), "model_1")
 expect_spflow_model(y9 ~ + D_(X) + O_(X) -1)
 expect_spflow_model(y9 ~ + D_(X) + -1)
 expect_spflow_model(y9 ~ + O_(X) + -1)

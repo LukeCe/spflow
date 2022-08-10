@@ -57,6 +57,13 @@ assert_valid_case <- function(argument, cases) {
          deparse(substitute(argument)), deparse(cases))
 }
 
+#' @rdname assert_errors
+#' @keywords internal
+assert_valid_option <- function(argument, options) {
+  assert(argument %in% options,
+         'The %s argument must be one of %s!',
+         deparse(substitute(argument)), deparse(options))
+}
 
 # ---- primitives -------------------------------------------------------------
 #' @title A set of primitive functions to test conditions

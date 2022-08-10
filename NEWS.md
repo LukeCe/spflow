@@ -1,4 +1,4 @@
-# spflow 0.1.0.9006 (development version)
+# spflow 0.2.0 (2022-07-12)
 
 ## New functions
 
@@ -6,7 +6,7 @@
 * Added `corr_map()` to visualize such correlations.
 * Added `plot()` method for some quick diagnostics of the `spflow_model`
 * Added `map_flows()` to visualize flow data
-* Added `spflow_moran_plots()` for Moran scatter plots of flow-data and residuals of models 
+* Added `spflow_moran_plots()` for Moran scatter plots of flow-data and residuals of interaction models 
 
 ## Additional options, features and fixes
 
@@ -24,7 +24,7 @@ Such changes will not occur in future releases and are due to the early stage of
 
 * Restructured the `spflow_model-class` (to better handle `NA` data and to make predictions easier)
 * Renamed and restructured classes
-  * `sp_multi_network-class` -> `spflow_multinet-class`
+  * `sp_multinetwork-class` -> `spflow_multinet-class`
   * `sp_network_nodes-class` -> `spflow_nodes-class`
   * `sp_network_pairs-class` -> `spflow_pairs-class`
 

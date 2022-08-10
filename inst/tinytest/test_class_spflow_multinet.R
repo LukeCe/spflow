@@ -81,7 +81,7 @@ expect_warning({
     orig_key_column = "ID_O",
     dest_key_column = "ID_D")
 
-  test_multi_net_ordered <- spflow_multinet(
+  test_multinet_ordered <- spflow_multinet(
     test_o_net, test_d_net, test_pairs_unordered)
 }, info = "adjusts wrong ordering of od keys when possible")
 
@@ -107,10 +107,10 @@ expect_equal({
       orig_key_column = "ID_O",
       dest_key_column = "ID_D")
 
-  suppressWarnings({test_multi_net_ordered <-
+  suppressWarnings({test_multinet_ordered <-
     spflow_multinet(test_o_net, test_d_net, test_pairs_unordered)
   })
-  test_pairs_ordered <- test_multi_net_ordered@pairs$o1_d1@pair_data
+  test_pairs_ordered <- test_multinet_ordered@pairs$o1_d1@pair_data
   cbind(levels(test_pairs_ordered[["ID_O"]]),
         levels(test_pairs_ordered[["ID_D"]]))
   },
@@ -123,36 +123,36 @@ expect_equal({
   test_nodes <- lapply(test_network_ids, "spflow_nodes")
   test_pairs <- lapply(test_network_ids,
                        function(.id) spflow_pairs(.id, .id))
-  test_multi_net <- spflow_multinet(test_nodes,test_pairs)
-  id(test_multi_net)
+  test_multinet <- spflow_multinet(test_nodes,test_pairs)
+  id(test_multinet)
   },
   list("nodes" = c("net1", "net2"),
        "pairs" =  c("net1_net1", "net2_net2")),
   info = "acessing the id works")
 
 expect_equal({
-  test_multi_net <- spflow_multinet(spflow_nodes("net1"))
-  pull_member(test_multi_net, "net1")
+  test_multinet <- spflow_multinet(spflow_nodes("net1"))
+  pull_member(test_multinet, "net1")
   },
   spflow_nodes("net1"),
   info = "pull existing net")
 
 expect_error({
-  test_multi_net <- spflow_multinet(spflow_nodes("net1"))
-  pull_member(test_multi_net, "net2")
+  test_multinet <- spflow_multinet(spflow_nodes("net1"))
+  pull_member(test_multinet, "net2")
   },
   info = "pull non-existing net")
 
 expect_equal({
-  test_multi_net <- spflow_multinet(spflow_pairs("net1","net1"))
-  pull_member(test_multi_net, "net1_net1")
+  test_multinet <- spflow_multinet(spflow_pairs("net1","net1"))
+  pull_member(test_multinet, "net1_net1")
   },
   spflow_pairs("net1","net1"),
   info = "pull existing pair")
 
 expect_error({
-  test_multi_net <- spflow_multinet(spflow_pairs("net1","net1"))
-  pull_member(test_multi_net, "net2_net2")
+  test_multinet <- spflow_multinet(spflow_pairs("net1","net1"))
+  pull_member(test_multinet, "net2_net2")
   },
   info = "pull non-existing pair")
 
@@ -180,8 +180,8 @@ expect_equal({
       "DIST" = 1:4),
     orig_key_column = "ID_O",
     dest_key_column =  "ID_D")
-  test_multi_net <- spflow_multinet(test_net_pair,test_o_net,test_d_net)
-  data.frame(pair_merge(test_multi_net, "net1_net2",
+  test_multinet <- spflow_multinet(test_net_pair,test_o_net,test_d_net)
+  data.frame(pair_merge(test_multinet, "net1_net2",
                         pair_cols = "DIST",
                         orig_cols = "VAL",
                         dest_cols = "VAL"))
@@ -190,8 +190,8 @@ expect_equal({
     data.frame("ID_D" = factor(c("C","D","C","D")),
                "ID_O" = factor(c("A","A","B","B")),
                "DIST" = 1:4,
-               "DEST_VAL" = "DD",
-               "ORIG_VAL" = "OO")
+               "D_VAL" = "DD",
+               "O_VAL" = "OO")
   },
   info = "merging origin and destination infos to the pairs")
 
@@ -219,10 +219,10 @@ expect_equal({
     orig_key_column = "ID_O",
     dest_key_column =  "ID_D")
 
-  test_multi_net <- suppressWarnings(spflow_multinet(
+  test_multinet <- suppressWarnings(spflow_multinet(
     test_net_pair, test_o_net, test_d_net))
 
-  data.frame(pair_merge(test_multi_net, "net1_net2", make_cartesian = TRUE, pair_cols = "DIST"))
+  data.frame(pair_merge(test_multinet, "net1_net2", make_cartesian = TRUE, pair_cols = "DIST"))
   },
   {
     data.frame(
@@ -258,10 +258,10 @@ expect_equal({
     orig_key_column = "ID_O",
     dest_key_column =  "ID_D")
 
-  test_multi_net <- suppressWarnings(spflow_multinet(
+  test_multinet <- suppressWarnings(spflow_multinet(
     test_net_pair, test_o_net, test_d_net))
 
-  data.frame(pair_merge(test_multi_net, "net1_net2",
+  data.frame(pair_merge(test_multinet, "net1_net2",
                         pair_cols = NULL,
                         orig_cols = "VAL",
                         dest_cols = "VAL",
@@ -270,8 +270,8 @@ expect_equal({
 },
 {
   data.frame(
-    "DEST_VAL" = rep("DD",4),
-    "ORIG_VAL" = rep("OO",4))
+    "D_VAL" = rep("DD",4),
+    "O_VAL" = rep("OO",4))
 },
 info = "pair_merge with selection")
 
@@ -303,11 +303,11 @@ expect_equal({
     orig_key_column = "ID_O",
     dest_key_column = "ID_D")
 
-  test_multi_net <- spflow_multinet(test_net_pair, test_o_net, test_d_net)
+  test_multinet <- spflow_multinet(test_net_pair, test_o_net, test_d_net)
   check_infos <- c("ID_NET_PAIR", "NPAIRS", "COMPLETENESS",
                    "ID_ORIG_NET", "ORIG_NNODES",
                    "ID_DEST_NET", "DEST_NNODES")
-  spflow:::check_pair_completeness("net1_net2", test_multi_net)[,check_infos]
+  spflow:::check_pair_completeness("net1_net2", test_multinet)[,check_infos]
 }, {
   data.frame("ID_NET_PAIR" = "net1_net2",
              "NPAIRS" = 2,
@@ -347,8 +347,8 @@ expect_stdout({
     orig_key_column = "ID_O",
     dest_key_column = "ID_D")
 
-  test_multi_net <- spflow_multinet(test_net_pair, test_o_net, test_d_net)
-  test_multi_net
+  test_multinet <- spflow_multinet(test_net_pair, test_o_net, test_d_net)
+  test_multinet
   },
   info = "show something on print")
 

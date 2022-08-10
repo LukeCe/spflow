@@ -168,28 +168,28 @@ expect_error(spflow:::split_formula_specials(~ y - a,NULL))
 
 expect_equal({
   spflow:::split_formula_specials(
-    ~ D_(a) + O_(b) + I_(c) + G_(d),
-    c("D_","O_","I_","G_"))
+    ~ D_(a) + O_(b) + I_(c) + P_(d),
+    c("D_","O_","I_","P_"))
   }, {
-    list("D_" = ~ a, "O_" = ~ b, "I_" = ~ c, "G_" = ~ d)
+    list("D_" = ~ a, "O_" = ~ b, "I_" = ~ c, "P_" = ~ d)
   },
   info = "split into named list")
 
-expect_equal(spflow:::split_formula_specials(~ .,c("D_","O_","I_","G_")),
-             spflow:::named_list(c("D_","O_","I_","G_"),  ~ . ),
+expect_equal(spflow:::split_formula_specials(~ .,c("D_","O_","I_","P_")),
+             spflow:::named_list(c("D_","O_","I_","P_"),  ~ . ),
              info = "preserves dot shortcut")
 
-expect_equal(spflow:::split_formula_specials(~ . - 1 ,c("D_","O_","I_","G_")),
-             spflow:::named_list(c("D_","O_","I_","G_"),  ~ . - 1 ),
+expect_equal(spflow:::split_formula_specials(~ . - 1 ,c("D_","O_","I_","P_")),
+             spflow:::named_list(c("D_","O_","I_","P_"),  ~ . - 1 ),
              info = "preserves intercept removal")
 
 expect_equal({
-  spflow:::split_formula_specials(~ . + a + b + c + G_(d),
-                                  c("D_","O_","I_","G_"))
+  spflow:::split_formula_specials(~ . + a + b + c + P_(d),
+                                  c("D_","O_","I_","P_"))
   },
   {
     c(spflow:::named_list( c("D_","O_","I_"),  ~ . + a + b + c ),
-      list("G_" = ~ d))
+      list("P_" = ~ d))
 
   },
   info = "non specifyed formulas pick up from general case")

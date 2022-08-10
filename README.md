@@ -47,7 +47,7 @@ contains a more detailed example.
 library("spflow")
 data("multi_net_usa_ge")
 
-spflow(y9 ~ O_(X) + D_(X) + I(X) + G_(DISTANCE), multi_net_usa_ge)
+spflow(y9 ~ O_(X) + D_(X) + I(X) + P_(DISTANCE), multi_net_usa_ge)
 #> --------------------------------------------------
 #> Spatial interaction model estimated by: MLE  
 #> Spatial correlation structure: SDM (model_9)
@@ -60,7 +60,7 @@ spflow(y9 ~ O_(X) + D_(X) + I(X) + G_(DISTANCE), multi_net_usa_ge)
 #> rho_w        -0.23  0.04   -5.13   0.08
 #> (Intercept)  10.58  2.14    4.96   0.08
 #> (Intra)       9.75  1.53    6.37   0.06
-#> DEST_X        0.99  0.07   14.60   0.02
+#> DEST_X        0.99  0.07   14.59   0.02
 #> DEST_X.lag1   0.53  0.11    4.64   0.09
 #> ORIG_X       -0.77  0.04  -20.38   0.02
 #> ORIG_X.lag1  -0.38  0.09   -4.14   0.10

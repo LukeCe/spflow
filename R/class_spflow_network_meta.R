@@ -51,7 +51,7 @@
 #'
 #' # define the spflow_pairs...
 #' # ... combines information on nodes and pairs
-#' paris10km_multi_net <- spflow_multinet(paris10km_net,paris10km_net_pairs)
+#' paris10km_multinet <- spflow_multinet(paris10km_net,paris10km_net_pairs)
 #'
 #' clog <- function(x) {
 #'   y <- log(x)
@@ -62,13 +62,13 @@
 #' # ... D_() contains destination variables
 #' # ... O_() contains origin variables
 #' # ... D_() contains intra-regional variables (when origin == destination)
-#' # ... G_() contains pair variables (distances)
+#' # ... P_() contains pair variables (distances)
 #' flow_formula <-
 #'   log(COMMUTE_FLOW + 1) ~
 #'   D_(log(NB_COMPANY) + clog(MED_INCOME)) +
 #'   O_(log(POPULATION) + log(NB_COMPANY) + clog(MED_INCOME)) +
 #'   I_(log(NB_COMPANY) + log(POPULATION)) +
-#'   G_(log(DISTANCE + 1))
+#'   P_(log(DISTANCE + 1))
 #'
 #' # define what variables to use in an SDM specification
 #' # ... if not given all will be used
@@ -80,5 +80,5 @@
 #'
 #'
 #' # Estimate the model
-#' spflow(flow_formula, paris10km_multi_net, estimation_control = estimation_control)
+#' spflow(flow_formula, paris10km_multinet, estimation_control = estimation_control)
 NULL

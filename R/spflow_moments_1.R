@@ -10,16 +10,23 @@ compute_spflow_moments <- function(
     na_rm = FALSE) {
 
 
-
-
   ## ---- derive moments from the covariates (Z,H)
+  mat_keys <- intersect(c("D_", "O_", "I_", "P_","Y_"), names(spflow_matrices))
+  for (i in seq_along(mat_keys)) {
+    mk <- mat_keys[[i]]
+    if (mk %in% c("P_","Y_"))
+      names(spflow_matrices[[mk]]) <- paste0(mk, names(spflow_matrices[[mk]]))
+    if (mk %in% c("D_", "O_", "I_"))
+      colnames(spflow_matrices[[mk]]) <- paste0(mk, colnames(spflow_matrices[[mk]]))
+  }
+
   UU <- spflow_moment_var(spflow_matrices, wt, N, n_d, n_o)
   assert(is.null(wt) || nnzero(wt) > ncol(UU), "
          Estimation aborted!
          There are too few complete observations to identifiy the parameters.")
 
   # subset ZZ
-  variable_order <- c("CONST", "D_", "O_", "I_", "G_")
+  variable_order <- c("CONST", "D_", "O_", "I_", "P_")
   is_instrument <- rapply(spflow_matrices[variable_order],f = attr_inst_status)
   Z_index <- !as.logical(is_instrument)
   ZZ <- UU[Z_index, Z_index ,drop = FALSE]
@@ -30,7 +37,7 @@ compute_spflow_moments <- function(
   Y_wt <- wt %|!|% lapply(spflow_matrices$Y_,"*",wt)
   UY <- Y_wt %||% spflow_matrices$Y_
   UY <- lapply(UY, "spflow_moment_cov", spflow_matrices)
-  UY <- Reduce("cbind", x = UY,init = matrix(nrow = nrow(UU),ncol = 0))
+  UY <- Reduce("cbind", x = UY, init = matrix(nrow = nrow(UU),ncol = 0))
   dimnames(UY) <- list(rownames(UU), names(spflow_matrices$Y_))
 
   ZY <- UY[Z_index, , drop = FALSE]

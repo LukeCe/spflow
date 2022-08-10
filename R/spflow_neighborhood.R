@@ -45,7 +45,7 @@ expand_spflow_neighborhood <- function(
     assert(!is.null(DW) & !is.null(OW), error_msg, "origin-to-destination", "OW and DW")
 
   ### Cartesian expansion
-  if (all(flow_indicator == 1))
+  if (all(flow_indicator != 0))
     flow_indicator <- NULL
   return_nbs <- c("Wd","Wo","Ww")[c(require_Wd,require_Wo,require_Ww)]
   return_nbs <- named_list(return_nbs)

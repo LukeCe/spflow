@@ -27,7 +27,7 @@ This requires to be aware of the;
 \itemize{
 \item three sources of data (pair, orig, dest)
 \item three parts of the formula (norm, sdm, inst)
-\item five roles of the variables (Y_, G_, D_, O_, I_)
+\item five roles of the variables (Y_, P_, D_, O_, I_)
 }
 
 The additional separation of data sources and roles makes sense if the list

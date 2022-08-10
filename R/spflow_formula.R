@@ -4,7 +4,7 @@ interpret_spflow_formula <- function(
   spflow_control) {
 
   ### ---- split according to specials and treat constants first
-  all_specials <- c("D_","O_","I_","G_")
+  all_specials <- c("D_","O_","I_","P_")
   split_specials <- split_formula_specials(pull_rhs(spflow_formula),all_specials)
   constants <- compact(list(
     "global" = spflow_formula,
@@ -18,9 +18,9 @@ interpret_spflow_formula <- function(
   usa_sdm_shortcut <- !is.character(spflow_control[["sdm_variables"]])
 
   I_ <- "I_" %T% spflow_control$use_intra
-  norm_f <- c("D_", "O_", I_, "G_")
+  norm_f <- c("D_", "O_", I_, "P_")
   sdm_f  <- c("D_", "O_", I_) %T% has_sdm
-  inst_f <- c("D_", "O_", I_, "G_") %T% has_inst
+  inst_f <- c("D_", "O_", I_, "P_") %T% has_inst
 
   # derive the split formulas
   norm_rhs_split <- compact(split_specials[norm_f])

@@ -11,8 +11,8 @@ spflow_indicators2obs <- function(spflow_indicators) {
     N_dest = n_d,
     N_cart = n_o * n_d,
     N_pair = N,
-    N_fit = filter_len("HAS_Y"),
-    N_pred = filter_len("HAS_SIG"))
+    N_fit = filter_len("IN_SAMPLE"),
+    N_pred = filter_len("IN_POP"))
 }
 
 #' @keywords internal
