@@ -124,6 +124,59 @@ expect_error({
   pattern = "invalid class",
   info = "data replacements works only when od pairs are unique")
 
+# ---- update_dat -------------------------------------------------------------
+test_pdat <- data.frame(
+  ID_DEST = LETTERS[rep(1:3,3)],
+  ID_ORIG = letters[rep(1:3,each = 3)],
+  DIST = 1:9)
+
+test_pnet <- spflow_pairs(
+  id_orig_nodes = "letters",
+  id_dest_nodes = "LETTERS",
+  pair_data = test_pdat,
+  orig_key_column = "ID_ORIG",
+  dest_key_column = "ID_DEST")
+
+expect_equal({
+  test_pdat2 <- test_pdat[c(1,5,9),]
+  test_pdat2[["DIST"]] <- 0
+  update_dat(test_pnet, test_pdat2)
+},{
+  test_pnet2 <- test_pnet
+  dat(test_pnet2)[c(1,5,9),"DIST"] <- 0
+  test_pnet2
+})
+
+expect_error({
+  new_dat <- dat(germany_net)[1:5,2, drop = FALSE]
+  new_dat[["X"]] <- 1:5
+  update_dat(germany_net, new_dat)
+}, "must have the column")
+
+expect_error({
+  test_pdat2 <- test_pdat[c(1,5,9),]
+  test_pdat2[["DIST2"]] <- 0
+  update_dat(test_pnet, test_pdat2)
+}, "columns in new_dat must exist")
+
+expect_error({
+  test_pdat2 <- test_pdat[c(1,1,3,4,9),]
+  update_dat(test_pnet, test_pdat2)
+}, "duplicated")
+
+expect_error({
+  test_pdat2 <- test_pdat[c(1,5,9),]
+  test_pdat2[["ID_DEST"]] <- LETTERS[2:4]
+  update_dat(test_pnet, test_pdat2)
+}, "do not correpond to observations")
+
+expect_error({
+  test_pdat2 <- test_pdat[c(1,5,9),]
+  test_pdat2[["ID_ORIG"]] <- letters[2:4]
+  update_dat(test_pnet, test_pdat2)
+}, "do not correpond to observations")
+
+
 # ---- matrix_form_control ----------------------------------------------------
 expect_equal({
   test_pair_data <- data.frame(

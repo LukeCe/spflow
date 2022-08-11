@@ -108,6 +108,52 @@ has_distinct_elements <- function(obj) {
 
 #' @rdname custom_primitives
 #' @keywords internal
-none <- function(x){
-  all(!x)
+is_column_subset <- function(
+    df,
+    df2,
+    interger_tolerance = TRUE,
+    factor_tolerance = TRUE) {
+
+  if (!all(colnames(df2) %in% colnames(df)))
+    return(FALSE)
+
+  df2 <- as.data.frame(df2)[0,,drop = FALSE]
+  df <- as.data.frame(df)[0,colnames(df2),drop = FALSE]
+
+  if (interger_tolerance) {
+    df2 <- integercols2numeric(df2)
+    df <- integercols2numeric(df)
+  }
+
+  if (factor_tolerance) {
+    df2 <- factorcols2character(df2)
+    df <- factorcols2character(df)
+  }
+
+  row.names(df2) <- row.names(df) <- NULL
+  identical(df2, df, attrib.as.set = FALSE)
+}
+
+#' @keywords internal
+integercols2numeric <- function(df) {
+  integer_cols <- sapply(df, is.integer)
+  if (none(integer_cols))
+    return(df)
+  df[integer_cols] <- lapply(df[integer_cols], as.numeric)
+  df
+}
+
+#' @keywords internal
+factorcols2character <- function(df) {
+  factor_cols <- sapply(df, is.factor)
+  if (none(factor_cols))
+    return(df)
+  df[factor_cols] <- lapply(df[factor_cols], as.character)
+  df
+}
+
+#' @rdname custom_primitives
+#' @keywords internal
+none <- function(..., na.rm = FALSE){
+  !any(..., na.rm = FALSE)
 }

@@ -348,10 +348,12 @@ pull_spflow_data <- function(
 }
 
 #' @keywords internal
-get_keycols <- function(df) {
-  c(attr_key_do(df),
-    attr_key_nodes(df),
-    attr_coord_col(df))
+get_keycols <- function(df, no_coords = FALSE) {
+  keys <- c(attr_key_do(df), attr_key_nodes(df))
+  if (no_coords)
+    return(keys)
+
+  return(c(keys, attr_coord_col(df)))
 }
 
 #' @keywords internal

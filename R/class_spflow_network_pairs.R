@@ -195,6 +195,51 @@ setMethod(
     invisible(object)
   })
 
+
+# ---- ... update_dat ---------------------------------------------------------
+#' @rdname spflow_pairs-class
+#' @param new_dat A data.frame
+#' @export
+#'
+setMethod(
+  f = "update_dat",
+  signature = "spflow_pairs",
+  function(object, new_dat) {
+
+    # browser()
+    assert(is_column_subset(dat(object), new_dat),
+           'All columns in new_dat must exist and have the same
+           type as in the pair_data of "%s"!', id(object)["pair"])
+
+    new_cols <- colnames(new_dat)
+    keys <- get_keycols(dat(object), no_coords = TRUE)
+    assert(all(keys %in% new_cols),
+           'The new_dat for spflow_pairs with id "%s"
+           must have the column %s to identify the pairs!',
+           id(object)["pair"], deparse(keys))
+
+    okeys <- keys[2]
+    dkeys <- keys[1]
+    new_dat[[okeys]] <- factor(new_dat[[okeys]], levels(dat(object)[[okeys]]))
+    new_dat[[dkeys]] <- factor(new_dat[[dkeys]], levels(dat(object)[[dkeys]]))
+    all_nodes_known <- !any(is.na(new_dat[[okeys]]),is.na(new_dat[[dkeys]]))
+    assert(all_nodes_known,
+           'Some origins or destinations in new_dat do not correpond to
+           observations in spflow_pairs with id "%s"!',
+           id(object)["pair"])
+
+    new_pair_indexes <- derive_pair_index_do(new_dat,keys)
+    old_pair_indexes <- derive_pair_index_do(dat(object))
+    new_dat_index <- match(new_pair_indexes,old_pair_indexes)
+    assert(none(is.na(new_dat_index)) && has_distinct_elements(new_dat_index),
+           'Some od pairs in new_dat are duplicated or do not correspond to
+           observations in spflow_pairs with id "%s"!', id(object)["pair"])
+
+    new_dat[[okeys]] <- NULL
+    new_dat[[dkeys]] <- NULL
+    dat(object)[new_dat_index, colnames(new_dat)] <- new_dat
+    return(object)
+  })
 # ---- ... validity -----------------------------------------------------------
 setValidity("spflow_pairs", function(object) {
 

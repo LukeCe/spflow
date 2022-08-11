@@ -319,6 +319,20 @@ expect_equal({
              row.names = NULL)
 }, info = "create completeness info")
 
+# ---- update_dat -------------------------------------------------------------
+expect_equal({
+  new_dat_ge <- dat(multi_net_usa_ge, "ge")[1:5,1:2]
+  new_dat_ge$X <- 1:5
+  new_dat_ge_ge <- dat(multi_net_usa_ge, "ge_ge")[1:5,1:3]
+  new_dat_ge_ge$DISTANCE <- 1:5
+  update_dat(multi_net_usa_ge, list("ge" = new_dat_ge, "ge_ge" = new_dat_ge_ge))
+},{
+  multi_net_usa_ge2 <- multi_net_usa_ge
+  multi_net_usa_ge2@nodes$ge@node_data$X[1:5] <- 1:5
+  multi_net_usa_ge2@pairs$ge_ge@pair_data$DISTANCE[1:5] <- 1:5
+  multi_net_usa_ge2
+})
+
 # ---- show method ------------------------------------------------------------
 expect_stdout({
   test_o_net <- spflow_nodes(

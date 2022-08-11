@@ -1,7 +1,6 @@
-# ==== [+++ constructor +++] ==================================================
 library("spflow")
 library("Matrix")
-
+# ---- constructor ------------------------------------------------------------
 expect_inherits({
   spflow_nodes("net1")
   }, class = "spflow_nodes")
@@ -50,8 +49,6 @@ expect_error({
   spflow_nodes("net1",to_large_neighborhood, test_node_data,"key")
   },
   info = "dimensions of neighborhood and data must match")
-
-# ==== [+++ replacement and accessor methods +++] =============================
 
 # ---- dat --------------------------------------------------------------------
 expect_equal({
@@ -103,7 +100,6 @@ expect_error({
   info = "data replacement is rejected for dimension missmatch")
 
 # ---- neighborhood -----------------------------------------------------------
-
 expect_equal({
   test_neighborhood <- matrix(c(0,1,0,.5,0,.5,0,1,0),3,3,TRUE)
   test_sp_nodes <- spflow_nodes("net1",test_neighborhood)
@@ -138,4 +134,35 @@ info = "replacement is rejected for wrong dimensions")
 invalid_neighborhhod <- matrix(1,3,3)
 expect_error(neighborhood(test_sp_nodes) <- invalid_neighborhhod,
              "invalid class")
+
+# ---- update_dat -------------------------------------------------------------
+expect_equal({
+  new_dat <- dat(germany_net)[1:5,1:2]
+  new_dat[["X"]] <- 1:5
+  update_dat(germany_net, new_dat)
+},{
+  germany_net2 <- germany_net
+  germany_net2@node_data$X[1:5] <- 1:5
+  germany_net2
+})
+
+expect_error({
+  new_dat <- dat(germany_net)[1:5,2, drop = FALSE]
+  new_dat[["X"]] <- 1:5
+  update_dat(germany_net, new_dat)
+}, "must have the column")
+
+expect_error({
+  new_dat <- dat(germany_net)[1:5,1:2, drop = FALSE]
+  new_dat[["X"]] <- 1:5
+  new_dat[["X2"]] <- 1:5
+  update_dat(germany_net, new_dat)
+}, "columns in new_dat must exist")
+
+expect_error({
+  new_dat <- data.frame(ID_STATE = "NEW", "X" = 1)
+  update_dat(germany_net, new_dat)
+}, "do not correpond to observations")
+
+
 

@@ -589,52 +589,23 @@ setMethod(
   signature = "spflow_multinet",
   function(object, new_dat) {
 
-    allow_expansions <- FALSE
-    assert_is(new_dat, list)
-    assert(all(lapply(new_dat, inherits, data.frame)),
-           "All elements of the new_dat list musst be data.frames!")
-    assert(sum(names(new_dat) %in% unlist(id(object))) == length(new_dat),
-           "All names in the new_dat list musst correspond to an id!")
+    assert_is(new_dat, "list")
+    assert(all(sapply(new_dat, inherits, "data.frame")),
+           "All elements in the new_dat list must be data.frames!")
 
+    all_ids <- id(object)
+    assert(all(names(new_dat) %in% unlist(all_ids)),
+           "All names of the new_dat list must correspond to an id among %s!",
+           deparse(as.character(all_ids)))
 
-    for(i in seq_along(new_dat)) {
-
-      net_id <- names(new_dat)[[i]]
-      new_df <- new_dat[[i]]
-
-
-      key_cols <- get_keycols(dat(object, net_id))
-      assert(all(key_cols %in% colnames(new_df)),
-             "The new_dat with id %s does not have the right key column!")
-
-      for (j in seq_along(key_cols)) {
-        assert(levels(dat(object, net_id)[[key_cols[j]]]) == levels(new_df[[key_cols[j]]]),
-               "The key to idenfy observations musst be identical!")
-      }
-
-      new_df <- order()
-
-
-      dat(object, net_id)[]
+    for (i in seq_along(new_dat)) {
+      this_id <- names(new_dat)[i]
+      this_type <- lapply(all_ids, "==", this_id)
+      this_type <- names(Filter("any",this_type))
+      slot(object, this_type)[[this_id]] <-
+        update_dat(slot(object,this_type)[[this_id]], new_dat[[i]])
     }
 
-
-
-
-
-      node_key <- new_dat[[net_id]][]
-
-      assert()
-
-    }
-    which_id <- lapply(all_ids, "==", .id)
-    assert(all(), ".id not found!")
-
-    assert_is_single_x(.id, "character")
-
-
-    from <- names(Filter("any",which_id))
-    dat(slot(object,from)[[.id]]) <- value
     return(object)
   })
 
@@ -845,14 +816,15 @@ check_node_infos <- function(sp_net) {
 
 #' @keywords internal
 compute_pair_index_do <- function(d_index, o_index, n_d) {
-  pair_index <- d_index + (o_index - 1) * n_d
-  return(pair_index)
+  return(d_index + (o_index - 1L) * n_d)
 }
 
 #' @keywords internal
-derive_pair_index <- function(pair_dat, n_d) {
-  od_indexes <-  pair_dat[,attr_key_od(pair_dat), drop = FALSE]
-  compute_pair_index_do(od_indexes[[1]], od_indexes[[2]], n_d)
+derive_pair_index_do <- function(pair_dat, do_keycols = attr_key_do(pair_dat)) {
+  compute_pair_index_do(
+    d_index = as.integer(pair_dat[[do_keycols[1]]]),
+    o_index = as.integer(pair_dat[[do_keycols[2]]]),
+    n_d = nlevels(pair_dat[[do_keycols[2]]]))
 }
 
 #' @keywords internal

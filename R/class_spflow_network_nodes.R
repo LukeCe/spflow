@@ -171,6 +171,42 @@ setMethod(
     invisible(object)
   })
 
+
+
+# ---- ... update_dat ---------------------------------------------------------
+#' @rdname spflow_nodes-class
+#' @param new_dat A data.frame
+#' @export
+#'
+setMethod(
+  f = "update_dat",
+  signature = "spflow_nodes",
+  function(object, new_dat) {
+
+    assert(is_column_subset(dat(object), new_dat),
+           'All columns in new_dat must exist and have the same
+           type as in the node_data of "%s"!', id(object))
+
+    new_cols <- colnames(new_dat)
+    keys <- get_keycols(dat(object), no_coords = TRUE)
+    assert(all(keys %in% new_cols),
+           'The new_dat for spflow_nodes with id "%s"
+           must have the column %s to identify the nodes!',
+           id(object), deparse(keys))
+
+    new_dat[[keys]] <- factor(new_dat[[keys]], levels(dat(object)[[keys]]))
+    assert(!any(is.na(new_dat) && has_distinct_elements(new_dat[[keys]])),
+           'Some keys in new_dat are duplicated or do not correpond to
+           observations in spflow_nodes with id "%s"!',
+           id(object))
+
+    new_dat_index <- as.numeric(new_dat[[keys]])
+    new_dat[[keys]] <- NULL
+    new_cols <- setdiff(colnames(new_dat), keys)
+    dat(object)[new_dat_index, new_cols] <- new_dat
+    return(object)
+  })
+
 # ---- ... validity -----------------------------------------------------------
 setValidity(
   Class = "spflow_nodes",

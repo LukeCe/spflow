@@ -184,13 +184,3 @@ compute_diag_precision_mat <- function(
   return(result * M_indicator)
 }
 
-
-update_spflow_matrices <- function(new_spflow_data, spflow_formula, spflow_data, spflow_matrices) {
-
-
-
-}
-
-multi_net_usa_ge
-
-

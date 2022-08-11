@@ -204,6 +204,7 @@ setGeneric(
 
 
 
+# ---- ... pull_member --------------------------------------------------------
 #' @title Generic for accessing a [spflow_pairs-class()] or a
 #'   [spflow_nodes-class()] inside a [spflow_multinet-class()]
 #' @description For details on the method see the documentation of the
@@ -215,10 +216,11 @@ setGeneric(
 #' @name pull_member
 #' @export
 setGeneric(
-  name = "pull_member", # ---- ... pull_member --------------------------------
+  name = "pull_member",
   def = function(object, ...) standardGeneric("pull_member"))
 
 
+# ---- ... results ------------------------------------------------------------
 #' @title Generic for accessing the results of a [spflow_model-class()].
 #' @description For details on the methods see the documentation of the
 #'   corresponding classes.
@@ -229,20 +231,22 @@ setGeneric(
 #' @seealso [spflow_model-class()]
 #' @export
 setGeneric(
-  name = "results", # ---- ... results ----------------------------------------
+  name = "results",
   def = function(object) standardGeneric("results"))
 
 
+# ---- ... results<- ----------------------------------------------------------
 #' @title Replacement method for internal purposes
 #' @param object A [spflow_model()]
 #' @param value A data.frame of results
 #' @name results<-
 #' @keywords internal
 setGeneric(
-  name = "results<-", # ---- ... results<- ------------------------------------
+  name = "results<-",
   def = function(object, value) standardGeneric("results<-"))
 
 
+# ---- ... results_flat -------------------------------------------------------
 #' @title Access results of a [spflow_model()] as a one row data.frame
 #' @param object spflow_model_meta
 #' @param ... Arguments to be passed to methods
@@ -250,10 +254,11 @@ setGeneric(
 #' @rdname results_flat
 #' @keywords internal
 setGeneric(
-  name = "results_flat", # ---- ... results_flat ------------------------------
+  name = "results_flat",
   def = function(object, ...) standardGeneric("results_flat"))
 
 
+# ---- ... sd_error -----------------------------------------------------------
 #' @title Generic for accessing the standard deviation of the residual inside
 #'   a [spflow_model-class()].
 #' @description For details on the methods see the documentation of the
@@ -266,7 +271,7 @@ setGeneric(
 #' @seealso [spflow_model-class()]
 #' @name sd_error
 setGeneric(
-  name = "sd_error", # ---- ... sd_error --------------------------------------
+  name = "sd_error",
   def = function(object) standardGeneric("sd_error"))
 
 # ---- ... spflow_map ---------------------------------------------------------
@@ -288,6 +293,21 @@ setGeneric(
   def = function(object, ...) standardGeneric("spflow_moran_plots"))
 
 
+# ---- ... update_dat ---------------------------------------------------------
+#' @title Generic for updating data related to specific rows in
+#'   [spflow_network_classes()]
+#' @description For details on the methods see the documentation of the
+#'   corresponding classes.
+#' @param object One among [spflow_network_classes()]
+#' @return The updated object
+#' @name update_dat
+#' @export
+setGeneric(
+  name = "update_dat",
+  def = function(object, new_dat) standardGeneric("update_dat"))
+
+
+# ---- ... varcov -------------------------------------------------------------
 #' @title Generic for accessing the variance-covariance matrix of the
 #'   parameters inside a [spflow_model-class()].
 #' @description For details on the methods see the documentation of the
@@ -298,6 +318,6 @@ setGeneric(
 #' @seealso [spflow_model-class()]
 #' @export
 setGeneric(
-  name = "varcov", # ---- ... varcov ------------------------------------------
+  name = "varcov",
   def = function(object) standardGeneric("varcov"))
 
