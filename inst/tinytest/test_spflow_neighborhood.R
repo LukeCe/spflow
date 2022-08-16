@@ -25,7 +25,7 @@ expect_equivalent({
   Y_s <- matrix(c(1,1,1,0),2,2)
   W <- dg_Matrix(c(.5,2))
   spflow:::expand_spflow_neighborhood(W, W, model = "model_9",
-                                    flow_indicator = Y_s)
+                                    M_indicator = Y_s)
 },
 {
   dw <- c(.5,2)[c(1,2,1)]
@@ -38,7 +38,7 @@ expect_equivalent({
   OW <- dg_Matrix(2,2)
   DW <- dg_Matrix(3,3)
   Y_s <- matrix(c(1,0,1,0,0,1),3,2)
-  spflow:::expand_spflow_neighborhood(OW, DW, model = "model_9",flow_indicator = Y_s)
+  spflow:::expand_spflow_neighborhood(OW, DW, model = "model_9",M_indicator = Y_s)
 },
 {
   lapply(list("Wd" = 3, "Wo" = 2, "Ww" = 6), "dg_Matrix", 3)

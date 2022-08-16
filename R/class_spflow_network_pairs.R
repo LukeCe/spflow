@@ -1,17 +1,17 @@
 #' @include class_generics_and_maybes.R
 
-#' @title Class spflow_pairs
+#' @title Class spflow_network_pairs
 #'
 #' @description
 #' An S4 class which holds information on origin-destination (OD) pairs.
 #' Each OD pair is composed of two nodes.
 #' All origins belong to the same set of nodes and all destination too
-#' (see [spflow_nodes-class()]).
+#' (see [spflow_network_nodes-class()]).
 #' When the origins and the destinations belong to the same set of nodes the
 #' corresponding ids should be equal
 #'
 #'
-#' @slot id_spflow_pairs
+#' @slot id_spflow_network_pairs
 #'   A character identifying the set of origin-destination pairs
 #' @slot id_orig_nodes
 #'   A character that serves as identifier for the origin nodes
@@ -20,14 +20,14 @@
 #' @slot pair_data
 #'   A data.frame containing information on origin-destination pairs
 #'
-#' @param object A spflow_pairs-class
+#' @param object A spflow_network_pairs-class
 #' @param value An object to replace the existing id/data
 #' @family spflow network classes
 #' @importClassesFrom Matrix Matrix
-#' @name spflow_pairs-class
+#' @name spflow_network_pairs-class
 #' @export
-setClass("spflow_pairs", slots = c(
-  id_spflow_pairs = "character",
+setClass("spflow_network_pairs", slots = c(
+  id_spflow_network_pairs = "character",
   id_orig_nodes   = "character",
   id_dest_nodes   = "character",
   pair_data       = "maybe_data.frame"))
@@ -35,7 +35,7 @@ setClass("spflow_pairs", slots = c(
 # ---- Methods ----------------------------------------------------------------
 
 # ---- ... dat ----------------------------------------------------------------
-#' @rdname spflow_pairs-class
+#' @rdname spflow_network_pairs-class
 #' @export
 #' @examples
 #' ## access the data describing the node pairs
@@ -45,15 +45,15 @@ setClass("spflow_pairs", slots = c(
 #'
 setMethod(
   f = "dat",
-  signature = "spflow_pairs", function(object) {
+  signature = "spflow_network_pairs", function(object) {
     return(object@pair_data)
     })
 
 # ---- ... dat <- -------------------------------------------------------------
-#' @rdname spflow_pairs-class
+#' @rdname spflow_network_pairs-class
 setReplaceMethod(
   f = "dat",
-  signature = "spflow_pairs", function(object, value) {
+  signature = "spflow_network_pairs", function(object, value) {
 
     object@pair_data <- value
     validObject(object)
@@ -61,7 +61,7 @@ setReplaceMethod(
   })
 
 # ---- ... id -----------------------------------------------------------------
-#' @rdname spflow_pairs-class
+#' @rdname spflow_network_pairs-class
 #' @export
 #' @examples
 #' ## access the id of a network pair
@@ -72,10 +72,10 @@ setReplaceMethod(
 #'
 setMethod(
   f = "id",
-  signature = "spflow_pairs",
+  signature = "spflow_network_pairs",
   function(object) {
     return(c(
-      "pair" = object@id_spflow_pairs,
+      "pair" = object@id_spflow_network_pairs,
       "orig" = object@id_orig_nodes,
       "dest" = object@id_dest_nodes
     ))
@@ -83,7 +83,7 @@ setMethod(
 
 
 # ---- ... id <- --------------------------------------------------------------
-#' @rdname spflow_pairs-class
+#' @rdname spflow_network_pairs-class
 #' @param which
 #'   A character indicating which of the ids to change, should be one of
 #'   `c("origin", "destination", "pair")`.
@@ -91,14 +91,14 @@ setMethod(
 #' @export
 setReplaceMethod(
   f = "id",
-  signature = "spflow_pairs",
+  signature = "spflow_network_pairs",
   function(object, value, which = "pair") {
 
     assert_is_single_x(value, "character")
     is_which <- function(str) grepl(which, str, fixed = TRUE)
 
     if (is_which("pair"))
-      object@id_spflow_pairs <- value
+      object@id_spflow_network_pairs <- value
 
     if (is_which("orig"))
       object@id_orig_nodes <- value
@@ -111,7 +111,7 @@ setReplaceMethod(
 
 
 # ---- ... npairs -------------------------------------------------------------
-#' @rdname spflow_pairs-class
+#' @rdname spflow_network_pairs-class
 #' @export
 #' @examples
 #' ## access the number of node pairs in a network pair
@@ -121,14 +121,14 @@ setReplaceMethod(
 #'
 setMethod(
   f = "npairs",
-  signature = "spflow_pairs",
+  signature = "spflow_network_pairs",
   function(object) {
     return(nrow(dat(object)))
   })
 
 
 # ---- ... nnodes -------------------------------------------------------------
-#' @rdname spflow_pairs-class
+#' @rdname spflow_network_pairs-class
 #' @export
 #' @examples
 #' ## access the number of origin and destination nodes in a network pair
@@ -141,7 +141,7 @@ setMethod(
 #'
 setMethod(
   f = "nnodes",
-  signature = "spflow_pairs",
+  signature = "spflow_network_pairs",
   function(object) {
 
     if (is.null(dat(object)))
@@ -159,7 +159,7 @@ setMethod(
 #' @keywords internal
 setMethod(
   f = "show",
-  signature = "spflow_pairs",
+  signature = "spflow_network_pairs",
   function(object){
 
     cat("Spatial network pair with id:",id(object)["pair"])
@@ -197,13 +197,13 @@ setMethod(
 
 
 # ---- ... update_dat ---------------------------------------------------------
-#' @rdname spflow_pairs-class
+#' @rdname spflow_network_pairs-class
 #' @param new_dat A data.frame
 #' @export
 #'
 setMethod(
   f = "update_dat",
-  signature = "spflow_pairs",
+  signature = "spflow_network_pairs",
   function(object, new_dat) {
 
     # browser()
@@ -214,7 +214,7 @@ setMethod(
     new_cols <- colnames(new_dat)
     keys <- get_keycols(dat(object), no_coords = TRUE)
     assert(all(keys %in% new_cols),
-           'The new_dat for spflow_pairs with id "%s"
+           'The new_dat for spflow_network_pairs with id "%s"
            must have the column %s to identify the pairs!',
            id(object)["pair"], deparse(keys))
 
@@ -225,7 +225,7 @@ setMethod(
     all_nodes_known <- !any(is.na(new_dat[[okeys]]),is.na(new_dat[[dkeys]]))
     assert(all_nodes_known,
            'Some origins or destinations in new_dat do not correpond to
-           observations in spflow_pairs with id "%s"!',
+           observations in spflow_network_pairs with id "%s"!',
            id(object)["pair"])
 
     new_pair_indexes <- derive_pair_index_do(new_dat,keys)
@@ -233,7 +233,7 @@ setMethod(
     new_dat_index <- match(new_pair_indexes,old_pair_indexes)
     assert(none(is.na(new_dat_index)) && has_distinct_elements(new_dat_index),
            'Some od pairs in new_dat are duplicated or do not correspond to
-           observations in spflow_pairs with id "%s"!', id(object)["pair"])
+           observations in spflow_network_pairs with id "%s"!', id(object)["pair"])
 
     new_dat[[okeys]] <- NULL
     new_dat[[dkeys]] <- NULL
@@ -241,7 +241,7 @@ setMethod(
     return(object)
   })
 # ---- ... validity -----------------------------------------------------------
-setValidity("spflow_pairs", function(object) {
+setValidity("spflow_network_pairs", function(object) {
 
   # check ids
   ids <- id(object)
@@ -294,7 +294,7 @@ setValidity("spflow_pairs", function(object) {
 #'   A character that serves as identifier for the origin network
 #' @param id_dest_nodes
 #'   A character that serves as identifier for the destination network
-#' @param id_spflow_pairs
+#' @param id_spflow_network_pairs
 #'   A character that as identifier for network_pair
 #' @param pair_data
 #'   A data.frame containing information on the origin-destination pairs
@@ -305,28 +305,28 @@ setValidity("spflow_pairs", function(object) {
 #'   A character indicating the name of the column containing the identifiers
 #'   of the destinations
 #'
-#' @return An S4 class of type [spflow_pairs-class()]
+#' @return An S4 class of type [spflow_network_pairs-class()]
 #' @family Constructors for spflow network classes
 #' @export
 #' @examples
 #' pair_frame <- data.frame(
 #'   ORIG_ID_STATE = rep(germany_grid$ID_STATE, times = 16),
 #'   DEST_ID_STATE = rep(germany_grid$ID_STATE, each = 16))
-#' spflow_pairs("ge","ge","ge_ge",pair_frame,"ORIG_ID_STATE","DEST_ID_STATE")
-spflow_pairs <- function(
+#' spflow_network_pairs("ge","ge","ge_ge",pair_frame,"ORIG_ID_STATE","DEST_ID_STATE")
+spflow_network_pairs <- function(
   id_orig_nodes,
   id_dest_nodes,
-  id_spflow_pairs = paste0(id_orig_nodes,"_",id_dest_nodes),
+  id_spflow_network_pairs = paste0(id_orig_nodes,"_",id_dest_nodes),
   pair_data = NULL,
   orig_key_column,
   dest_key_column
 ) {
 
   network_pair <- new(
-    "spflow_pairs",
+    "spflow_network_pairs",
     id_orig_nodes      = id_orig_nodes,
     id_dest_nodes      = id_dest_nodes,
-    id_spflow_pairs  = id_spflow_pairs,
+    id_spflow_network_pairs  = id_spflow_network_pairs,
     pair_data        = NULL)
 
   # early return with empty counts when no data was provided

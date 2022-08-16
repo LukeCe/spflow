@@ -8,6 +8,7 @@
 \alias{assert_is_one_of}
 \alias{assert_is_single_x}
 \alias{assert_valid_case}
+\alias{assert_valid_option}
 \title{A set of functions to create customized error messages}
 \usage{
 assert(expr, error_msg = "ERROR", ..., warn = FALSE)
@@ -21,6 +22,8 @@ assert_is_one_of(obj, .classes)
 assert_is_single_x(obj, x)
 
 assert_valid_case(argument, cases)
+
+assert_valid_option(argument, options)
 }
 \value{
 Functions called for their side effect, raises warning or error

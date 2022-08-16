@@ -10,10 +10,10 @@ that allow to handle origin-destination flow data efficiently.
 The main idea is to exploit the relational structure of origin-destination
 data to reduce the memory requirements.
 Data on origins and destinations are stored in the
-\code{\link[=spflow_nodes-class]{spflow_nodes-class()}} and data on the origin-destination pairs are
-stored in an \code{\link[=spflow_pairs-class]{spflow_pairs-class()}}.
+\code{\link[=spflow_network_nodes-class]{spflow_network_nodes-class()}} and data on the origin-destination pairs are
+stored in an \code{\link[=spflow_network_pairs-class]{spflow_network_pairs-class()}}.
 
-A third object of type \code{\link[=spflow_multinet-class]{spflow_multinet-class()}} is then used to store
+A third object of type \code{\link[=spflow_network_multi-class]{spflow_network_multi-class()}} is then used to store
 information on the nodes and pairs in an efficient relational storage.
 It makes sure that all origin-destination pairs can be identified with the
 nodes at the origin and destination.
@@ -26,19 +26,19 @@ data("paris10km_municipalities")
 data("paris10km_neighborhood")
 data("paris10km_commuteflows")
 
-# define the spflow_nodes...
+# define the spflow_network_nodes...
 # ... they are used as origins and destinations
 # ... their neighborhood is based on contiguity
-paris10km_net <- spflow_nodes(
-  id_spflow_nodes = "paris10km",
+paris10km_net <- spflow_network_nodes(
+  id_spflow_network_nodes = "paris10km",
   node_neighborhood = paris10km_neighborhood$by_contiguity,
   node_data = sf::st_drop_geometry(paris10km_municipalities),
   node_key_column = "ID_MUN")
 
-# define the spflow_pairs...
+# define the spflow_network_pairs...
 # ... contains pairwise data (flows and distances)
 # ... must be linked to an origin and a destination network
-paris10km_net_pairs <- spflow_pairs(
+paris10km_net_pairs <- spflow_network_pairs(
   id_orig_nodes = "paris10km",
   id_dest_nodes = "paris10km",
   pair_data = paris10km_commuteflows,
@@ -46,9 +46,9 @@ paris10km_net_pairs <- spflow_pairs(
   dest_key_column = "ID_DEST")
 
 
-# define the spflow_pairs...
+# define the spflow_network_pairs...
 # ... combines information on nodes and pairs
-paris10km_multinet <- spflow_multinet(paris10km_net,paris10km_net_pairs)
+paris10km_multinet <- spflow_network_multi(paris10km_net,paris10km_net_pairs)
 
 clog <- function(x) {
   y <- log(x)
@@ -81,14 +81,14 @@ spflow(flow_formula, paris10km_multinet, estimation_control = estimation_control
 }
 \seealso{
 Other spflow network classes: 
-\code{\link{spflow_multinet-class}},
-\code{\link{spflow_nodes-class}},
-\code{\link{spflow_pairs-class}}
+\code{\link{spflow_network_multi-class}},
+\code{\link{spflow_network_nodes-class}},
+\code{\link{spflow_network_pairs-class}}
 
 Other Constructors for spflow network classes: 
-\code{\link{spflow_multinet}},
-\code{\link{spflow_nodes}},
-\code{\link{spflow_pairs}}
+\code{\link{spflow_network_multi}},
+\code{\link{spflow_network_nodes}},
+\code{\link{spflow_network_pairs}}
 }
 \concept{Constructors for spflow network classes}
 \concept{spflow network classes}

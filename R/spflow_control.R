@@ -102,14 +102,6 @@
 #' @param track_condition_numbers
 #'   A logical that controls whether or not the reciprocal condition numbers
 #'   of the systems that are solved during the estimation are tracked.
-#' @param neighborhood_do_normalisation
-#'   A logical, if `TRUE` neighborhood matrices are normalized during the
-#'   estimation. Otherwise the estimation with non-normalized matrices throws
-#'   an error.
-#' @param neighborhood_normalize_by_row
-#'   A logical, if `TRUE` neighborhood matrices are row-normalized
-#' @param reduce_size
-#'   A logical, if `TRUE` large data objects in the model are not stored
 #' @param na_rm
 #'   A logical, if `FALSE` the estimation throws an error when the data
 #'   contains `NA` values. Otherwise the estimation proceeds with a sub-sample.
@@ -142,8 +134,6 @@ spflow_control <- function(
     use_intra = TRUE,
     sdm_variables = "same",
     weight_variable = NULL,
-    neighborhood_do_normalisation = TRUE,
-    neighborhood_normalize_by_row = FALSE,
     approx_parameter_space = TRUE,
     fitted_value_method = "BPI",
     approx_expectation = TRUE,
@@ -158,7 +148,6 @@ spflow_control <- function(
     twosls_decorrelate_instruments = FALSE,
     twosls_reduce_pair_instruments = TRUE,
     track_condition_numbers = FALSE,
-    reduce_size = FALSE,
     na_rm = FALSE) {
 
 
@@ -182,7 +171,6 @@ spflow_control <- function(
          "The weight_variable must be a character of length one!")
 
   assert_is_single_x(track_condition_numbers, "logical")
-  assert_is_single_x(reduce_size, "logical")
   assert_is_single_x(na_rm, "logical")
 
 
@@ -195,8 +183,8 @@ spflow_control <- function(
     "sdm_variables" = sdm_variables,
     "weight_variable" = weight_variable,
     "track_condition_numbers" = track_condition_numbers,
-    "reduce_size" = reduce_size,
-    "na_rm" = na_rm)
+    "na_rm" = na_rm,
+    "fitted_value_method" = fitted_value_method)
 
   if (estimation_method == "ols")
     return(general_control)
@@ -206,17 +194,12 @@ spflow_control <- function(
   assert_is_single_x(approx_expectation, "logical")
   assert_is_single_x(expectation_approx_order, "numeric")
   assert_is_single_x(fitted_value_method, "character")
-  assert_valid_case(fitted_value_method, c("TS","TC", "BP"))
-  assert_is_single_x(neighborhood_do_normalisation, "logical")
-  assert_is_single_x(neighborhood_normalize_by_row, "logical")
+  assert_valid_option(fitted_value_method, c("TS","TCI", "BPI"))
 
   general_control <- c(general_control, list(
     "approx_parameter_space" = approx_parameter_space,
     "approx_expectation" = approx_expectation,
-    "expectation_approx_order" = expectation_approx_order,
-    "fitted_value_method" = fitted_value_method,
-    "neighborhood_do_normalisation" = neighborhood_do_normalisation,
-    "neighborhood_normalize_by_row" = neighborhood_normalize_by_row))
+    "expectation_approx_order" = expectation_approx_order))
 
   # ---- ... s2sls -----------------------------------------------------------
   if (estimation_method == "s2sls") {

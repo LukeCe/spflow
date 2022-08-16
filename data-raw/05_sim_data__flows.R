@@ -12,12 +12,12 @@
 library("spflow")
 source("data-raw/01_sim_data__germany_16_states.R")
 source("data-raw/02_sim_data__usa_51_states.R")
-source("data-raw/03_sim_data__spflow_pairs.R")
+source("data-raw/03_sim_data__spflow_network_pairs.R")
 source("data-raw/04_sim_data__parameters.R")
 
 # default multi-network
  suppressWarnings({
-   multi_net_usa_ge <- spflow_multinet(
+   multi_net_usa_ge <- spflow_network_multi(
      germany_net,
      usa_net,
      within_ge_pairs,

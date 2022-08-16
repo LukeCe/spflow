@@ -38,26 +38,30 @@
 #' @keywords internal
 #' @return A list of design matrices for the spatial interaction model
 derive_spflow_matrices <- function(
-  spflow_data,
-  spflow_neighborhood,
+  id_spflow_pairs,
+  spflow_networks,
   spflow_formula,
   spflow_control,
   na_rm = FALSE) {
 
 
+  spflow_data <- pull_spflow_data(spflow_networks)
+  spflow_indicators <- subset_keycols(spflow_data[["pair"]], drop_keys = FALSE)
+  od_ids <- id(pull_member(spflow_networks, id_spflow_pairs))
+  OW <- neighborhood(spflow_networks, od_ids["orig"])
+  DW <- neighborhood(spflow_networks, od_ids["dest"])
+
   fourmulas_by_part <- interpret_spflow_formula(spflow_formula, spflow_control)
   fourmulas_by_source <- translist(fourmulas_by_part)
 
-  spflow_matrices <- named_list(c("CONST", "D_", "O_", "I_", "P_", "Y_"))
-  spflow_indicators <- subset_keycols(spflow_data[["pair"]], drop_keys = FALSE)
 
+  spflow_matrices <- named_list(c("CONST", "D_", "O_", "I_", "P_", "Y_"))
   spflow_matrices[["CONST"]] <- derive_spflow_constants(
     use_global_const = fourmulas_by_part[["constants"]][["global"]],
     use_intra_const = isTRUE(fourmulas_by_part[["constants"]][["intra"]]),
     use_instruments = spflow_control[["estimation_method"]] == "s2sls",
     spflow_indicators = spflow_indicators,
-    OW = spflow_neighborhood[["OW"]],
-    DW = spflow_neighborhood[["DW"]])
+    OW = OW, DW = DW)
 
 
   ### transform and lag node data
@@ -75,21 +79,21 @@ derive_spflow_matrices <- function(
   spflow_matrices[["D_"]] <- transform_node_data(
     threepart_formula = fourmulas_by_source[["D_"]],
     node_df = subset_keycols(spflow_data[["dest"]]),
-    W = spflow_neighborhood[["DW"]])
+    W = DW)
   obs_D <- complete_nodeobs("D_")
 
 
   spflow_matrices[["O_"]] <- transform_node_data(
     threepart_formula = fourmulas_by_source[["O_"]],
     node_df = subset_keycols(spflow_data[["orig"]]),
-    W = spflow_neighborhood[["OW"]])
+    W = OW)
   obs_O <- complete_nodeobs("O_")
 
 
   spflow_matrices[["I_"]] <- transform_node_data(
     threepart_formula = fourmulas_by_source[["I_"]],
     node_df = subset_keycols(spflow_data[["orig"]]),
-    W = spflow_neighborhood[["OW"]])
+    W = OW)
   obs_I <- complete_nodeobs("I_")
 
 
@@ -129,8 +133,7 @@ derive_spflow_matrices <- function(
     threepart_formula = fourmulas_by_source[["P_"]],
     pair_df = subset_keycols(spflow_data[["pair"]]),
     spflow_indicators = spflow_indicators,
-    OW = spflow_neighborhood[["OW"]],
-    DW = spflow_neighborhood[["DW"]],
+    OW = OW, DW = DW,
     reduce_pair_instruments = isTRUE(spflow_control[["twosls_reduce_pair_instruments"]]))
   na_G <- incomplete_pairobs("P_")
   spflow_matrices[["P_"]] <- remove_na_pairs(na_G, spflow_matrices[["P_"]])
@@ -140,8 +143,7 @@ derive_spflow_matrices <- function(
     threepart_formula = fourmulas_by_source[["Y_"]],
     flow_df = subset_keycols(spflow_data[["pair"]]),
     spflow_indicators = spflow_indicators,
-    OW = spflow_neighborhood[["OW"]],
-    DW = spflow_neighborhood[["DW"]],
+    OW = OW, DW = DW,
     model = spflow_control[["model"]])
   na_Y <- incomplete_pairobs("Y_")
   spflow_matrices[["Y_"]] <- remove_na_pairs(na_Y, spflow_matrices[["Y_"]])
@@ -165,7 +167,6 @@ derive_spflow_matrices <- function(
     IN_POP <- update_conditions(IN_POP, !(na_G[do_indexes]))
 
 
-
   # ... model fitting requires signal, y, and non-zero weights
   IN_SAMPLE <- IN_POP
   if (!is.null(na_Y))
@@ -179,8 +180,6 @@ derive_spflow_matrices <- function(
     IN_SAMPLE <- update_conditions(IN_SAMPLE, is.finite(WEIGHT))
     WEIGHT[!IN_SAMPLE] <- 0
   }
-
-
 
   spflow_indicators <- list2df(
     spflow_indicators,
@@ -334,9 +333,7 @@ transform_flow_data <- function(
 
 # ---- helpers ----------------------------------------------------------------
 #' @keywords internal
-pull_spflow_data <- function(
-  .multinet,
-  pair_id) {
+pull_spflow_data <- function(.multinet, pair_id = id(.multinet)[["pairs"]][1]) {
 
   source_ids <- as.list(id(.multinet@pairs[[pair_id]]))
   flow_data <- lapply(source_ids, function(.id){

@@ -8,7 +8,7 @@
 nnodes(object, ...)
 }
 \arguments{
-\item{object}{One of \code{\link[=spflow_nodes-class]{spflow_nodes-class()}}, \code{\link[=spflow_pairs-class]{spflow_pairs-class()}}}
+\item{object}{One of \code{\link[=spflow_network_nodes-class]{spflow_network_nodes-class()}}, \code{\link[=spflow_network_pairs-class]{spflow_network_pairs-class()}}}
 
 \item{...}{Arguments to be passed to methods}
 }
@@ -20,5 +20,5 @@ For details on the methods see the documentation of the
 corresponding classes.
 }
 \seealso{
-\code{\link[=spflow_nodes-class]{spflow_nodes-class()}} \code{\link[=spflow_pairs-class]{spflow_pairs-class()}}
+\code{\link[=spflow_network_nodes-class]{spflow_network_nodes-class()}} \code{\link[=spflow_network_pairs-class]{spflow_network_pairs-class()}}
 }

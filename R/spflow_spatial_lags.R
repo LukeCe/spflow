@@ -49,6 +49,25 @@ lag_flow_matrix <- function(
 }
 
 
+#' @keywords internal
+filter_flow_matrix <- function(
+    Y,
+    model,
+    OW,
+    DW,
+    name = "Y",
+    M_indicator = NULL,
+    rho) {
+
+  if (model == "model_1")
+    return(Y)
+
+  Y <- lag_flow_matrix(Y, model,OW, DW,name,M_indicator)
+  Y <- Reduce("+", Map("*", c(1, -rho), Y))
+  return(Y)
+}
+
+
 #' @importFrom Matrix tcrossprod t
 #' @keywords internal
 double_lag_matrix <- function(

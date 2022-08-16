@@ -1,6 +1,6 @@
 #' @include class_generics_and_maybes.R
 
-#' @title spflow_nodes Class
+#' @title spflow_network_nodes Class
 #'
 #' @description
 #' An S4 class that contains all information on a single network.
@@ -9,30 +9,30 @@
 #' Each node is described by variables stored in a data.frame.
 #' The node neighborhood matrix describes strength of links between the nodes
 #' of the network.
-#' The class is constructed by the [spflow_nodes()] function.
+#' The class is constructed by the [spflow_network_nodes()] function.
 #'
-#' @slot id_spflow_nodes
+#' @slot id_spflow_network_nodes
 #'   A character that serves as an identifier for the set of nodes
 #' @slot node_data
 #'   A data.frame that contains all information describing the nodes
 #' @slot node_neighborhood
 #'   A matrix that describes the neighborhood relations of the nodes
 #'
-#' @param object A spflow_nodes-class
+#' @param object A spflow_network_nodes-class
 #' @param value An object to replace the existing id/data/neighborhood
 #' @importClassesFrom Matrix Matrix
 #' @family spflow network classes
-#' @name spflow_nodes-class
+#' @name spflow_network_nodes-class
 #' @export
-setClass("spflow_nodes",
+setClass("spflow_network_nodes",
          slots = c(
-           id_spflow_nodes   = "character",
+           id_spflow_network_nodes   = "character",
            node_neighborhood = "maybe_Matrix",
            node_data         = "maybe_data.frame"))
 
 # ---- Methods ----------------------------------------------------------------
 # ---- ... dat ----------------------------------------------------------------
-#' @rdname spflow_nodes-class
+#' @rdname spflow_network_nodes-class
 #' @export
 #' @examples
 #' ## access the data describing the nodes
@@ -40,16 +40,16 @@ setClass("spflow_nodes",
 #'
 setMethod(
   f = "dat",
-  signature = "spflow_nodes",
+  signature = "spflow_network_nodes",
   function(object) {
     return(object@node_data)
     })
 
 # ---- ... dat <- -------------------------------------------------------------
-#' @rdname spflow_nodes-class
+#' @rdname spflow_network_nodes-class
 setReplaceMethod(
   f = "dat",
-  signature = "spflow_nodes", function(object, value) {
+  signature = "spflow_network_nodes", function(object, value) {
 
     object@node_data <- value
     validObject(object)
@@ -57,7 +57,7 @@ setReplaceMethod(
     })
 
 # ---- ... id -----------------------------------------------------------------
-#' @rdname spflow_nodes-class
+#' @rdname spflow_network_nodes-class
 #' @examples
 #' # access the id of the network
 #' germany_net2 <- germany_net
@@ -66,25 +66,25 @@ setReplaceMethod(
 #'
 setMethod(
   f = "id",
-  signature = "spflow_nodes",
+  signature = "spflow_network_nodes",
   function(object) {
-    return(object@id_spflow_nodes)
+    return(object@id_spflow_network_nodes)
   })
 
 # ---- ... id <- --------------------------------------------------------------
-#' @rdname spflow_nodes-class
+#' @rdname spflow_network_nodes-class
 #' @export
 setReplaceMethod(
   f = "id",
-  signature = "spflow_nodes",
+  signature = "spflow_network_nodes",
   function(object, value) {
-    assert(valid_spflow_nodes_id(value), "The id is invalid!")
-    object@id_spflow_nodes <- value
+    assert(valid_spflow_network_nodes_id(value), "The id is invalid!")
+    object@id_spflow_network_nodes <- value
     return(object)
   })
 
 # ---- ... neighborhood -------------------------------------------------------
-#' @rdname spflow_nodes-class
+#' @rdname spflow_network_nodes-class
 #' @export
 #' @examples
 #' # access the neighborhood matrix of the nodes
@@ -92,14 +92,14 @@ setReplaceMethod(
 #'
 setMethod(
   f = "neighborhood",
-  signature = "spflow_nodes",
+  signature = "spflow_network_nodes",
   function(object) return(object@node_neighborhood))
 
 # ---- ... neighborhood <- ----------------------------------------------------
-#' @rdname spflow_nodes-class
+#' @rdname spflow_network_nodes-class
 setReplaceMethod(
   f = "neighborhood",
-  signature = "spflow_nodes",
+  signature = "spflow_network_nodes",
   function(object, value) {
 
 
@@ -110,7 +110,7 @@ setReplaceMethod(
              "Replacement neighborhood musst have %s rows and %s columns!",
              nnodes(object), nnodes(object))
 
-      attr_spectral_character(value) <- charactrize_spectrum(value)
+      value <- normalize_neighborhood(value)
     }
 
     object@node_neighborhood <- value
@@ -119,7 +119,7 @@ setReplaceMethod(
   })
 
 # ---- ... nnodes -------------------------------------------------------------
-#' @rdname spflow_nodes-class
+#' @rdname spflow_network_nodes-class
 #' @export
 #' @examples
 #' # access the number of nodes inside the network
@@ -127,7 +127,7 @@ setReplaceMethod(
 #'
 setMethod(
   f = "nnodes",
-  signature = "spflow_nodes",
+  signature = "spflow_network_nodes",
   function(object) {
     dims <- c(nrow(object@node_data), nrow(object@node_neighborhood))
     return(dims %|!|% max)
@@ -138,7 +138,7 @@ setMethod(
 #' @keywords internal
 setMethod(
   f = "show",
-  signature = "spflow_nodes",
+  signature = "spflow_network_nodes",
   function(object){
 
     cat("Spatial network nodes with id:",id(object))
@@ -174,13 +174,13 @@ setMethod(
 
 
 # ---- ... update_dat ---------------------------------------------------------
-#' @rdname spflow_nodes-class
+#' @rdname spflow_network_nodes-class
 #' @param new_dat A data.frame
 #' @export
 #'
 setMethod(
   f = "update_dat",
-  signature = "spflow_nodes",
+  signature = "spflow_network_nodes",
   function(object, new_dat) {
 
     assert(is_column_subset(dat(object), new_dat),
@@ -190,14 +190,14 @@ setMethod(
     new_cols <- colnames(new_dat)
     keys <- get_keycols(dat(object), no_coords = TRUE)
     assert(all(keys %in% new_cols),
-           'The new_dat for spflow_nodes with id "%s"
+           'The new_dat for spflow_network_nodes with id "%s"
            must have the column %s to identify the nodes!',
            id(object), deparse(keys))
 
     new_dat[[keys]] <- factor(new_dat[[keys]], levels(dat(object)[[keys]]))
     assert(!any(is.na(new_dat) && has_distinct_elements(new_dat[[keys]])),
            'Some keys in new_dat are duplicated or do not correpond to
-           observations in spflow_nodes with id "%s"!',
+           observations in spflow_network_nodes with id "%s"!',
            id(object))
 
     new_dat_index <- as.numeric(new_dat[[keys]])
@@ -209,11 +209,11 @@ setMethod(
 
 # ---- ... validity -----------------------------------------------------------
 setValidity(
-  Class = "spflow_nodes",
+  Class = "spflow_network_nodes",
   function(object) {
 
     check <- "The network id must contain only alphanumeric characters!"
-    if (!valid_spflow_nodes_id(id(object)))
+    if (!valid_spflow_network_nodes_id(id(object)))
       return(check)
 
     # verify details of the neighborhood
@@ -232,7 +232,7 @@ setValidity(
       if (any(neighborhood(object) < 0))
         return(check)
 
-      # TODO Should normalization of the nb matrix be required in spflow_nodes?
+      # TODO Should normalization of the nb matrix be required in spflow_network_nodes?
       # check <- "The neighborhood matrix should be normalized!"
       # spectral_radius <- attr_spectral_character(neighborhood(object))
       # spectral_radius <- abs(spectral_radius[["LM"]])
@@ -280,9 +280,9 @@ setValidity(
 
 # ---- Constructors -----------------------------------------------------------
 
-#' Create a [spflow_nodes-class()]
+#' Create a [spflow_network_nodes-class()]
 #'
-#' @param id_spflow_nodes
+#' @param id_spflow_network_nodes
 #'   A character that serves as an identifier for the set of nodes
 #' @param node_data
 #'   A data.frame that contains all information describing the nodes
@@ -299,48 +299,39 @@ setValidity(
 #' @param node_coord_columns
 #'   A character indicating the columns that represent the coordinates of the
 #'   nodes. For example `c("LON", "LAT")`.
-#' @param normalize_neighborhood
-#'   A logical indicating whether the node_neighborhood matrix should be
-#'   normalized to satisfy the usual assumptions in spatial econometrics.
-#'   This means zeros on the main diagonal and a spectral radius of one.
 #' @param normalize_byrow
-#'   A logical, if `TRUE` the neighborhood is row-normalized.
+#'   A logical, if `TRUE` the neighborhood will be row-normalized, otherwise
+#'   it is scaled to have a spectral radius of one.
 #'
 #' @family Constructors for spflow network classes
 #' @importClassesFrom Matrix Matrix
-#' @return An S4 class of type [spflow_nodes-class()]
+#' @return An S4 class of type [spflow_network_nodes-class()]
 #' @export
 #' @examples
-#' spflow_nodes(
+#' spflow_network_nodes(
 #'   "germany",
 #'   spdep::nb2mat(spdep::poly2nb(germany_grid)),
 #'   as.data.frame(germany_grid),
 #'   "ID_STATE")
-spflow_nodes <- function(
-  id_spflow_nodes,
+spflow_network_nodes <- function(
+  id_spflow_network_nodes,
   node_neighborhood = NULL,
   node_data = NULL,
   node_key_column,
   node_coord_columns,
   derive_coordinates = missing(node_coord_columns),
   prefer_lonlat = TRUE,
-  normalize_neighborhood = FALSE,
-  normalize_byrow = TRUE) {
+  normalize_byrow = FALSE) {
 
 
   # checks for validity of dimensions are done before the return
   if (!is.null(node_neighborhood)) {
     node_neighborhood <- try_coercion(node_neighborhood,"Matrix")
-
-    if (normalize_neighborhood)
-      node_neighborhood <- normalize_neighborhood(node_neighborhood, normalize_byrow)
-
-    if (!normalize_neighborhood)
-      attr_spectral_character(node_neighborhood) <- charactrize_spectrum(node_neighborhood)
+    node_neighborhood <- normalize_neighborhood(node_neighborhood, normalize_byrow)
   }
 
-  nodes <- new("spflow_nodes",
-    id_spflow_nodes   = id_spflow_nodes,
+  nodes <- new("spflow_network_nodes",
+    id_spflow_network_nodes   = id_spflow_network_nodes,
     node_neighborhood = node_neighborhood,
     node_data         = NULL)
 
@@ -401,7 +392,7 @@ attr_coord_col <- function(df, value) {
 }
 
 #' @keywords internal
-valid_spflow_nodes_id <- function(key) {
+valid_spflow_network_nodes_id <- function(key) {
   is_single_character(key) && grepl("^[[:alnum:]]+$",key)
 }
 

@@ -7,7 +7,7 @@ compute_signal <- function(
     keep_matrix_form = TRUE) {
 
   obs <- spflow_indicators %|!|% spflow_indicators2obs
-  is_cartesian <- is.null(spflow_indicators) || obs[["N_cart"]] == obs[["N_pred"]]
+  is_cartesian <- is.null(spflow_indicators) || obs[["N_cart"]] == obs[["N_pop"]]
   req_intra <- !all(is.null(spflow_matrices[["I_"]]), is.null(spflow_matrices[["CONST"]][["(Intra)"]]))
 
   if (is_cartesian) {
@@ -71,20 +71,23 @@ compute_signal <- function(
     SIG <- SIG + (SIG_I[o_index] * intra_i)
   }
 
+  if (keep_matrix_form & !is_cartesian)
+    SIG <- spflow_indicators2mat(spflow_indicators, do_filter = "IN_POP", do_values = SIG)
+
+  if (keep_matrix_form & is_cartesian)
+    SIG <- matrix(SIG, nrow = n_d, ncol = n_o)
+
   if (!is.null(spflow_matrices[["P_"]])) {
     id_coef <- seq_along(spflow_matrices[["P_"]]) + max(id_coef)
-
     SIG_G <- Reduce("+", Map("*", spflow_matrices[["P_"]], delta[id_coef]))
-    if (keep_matrix_form & is_cartesian)
-      SIG <- matrix(SIG, nrow = n_d, ncol = n_o)
-    if (keep_matrix_form & !is_cartesian)
-      SIG <- spflow_indicators2mat(spflow_indicators, do_filter = "IN_POP", do_values = SIG)
-    if (!keep_matrix_form & !is_cartesian)
-      SIG_G <- SIG_G[spflow_indicators2pairindex(spflow_indicators, do_filter = "IN_POP")]
+
     if (!keep_matrix_form & is_cartesian)
       SIG_G <- as.vector(SIG_G)
+    if (!keep_matrix_form & !is_cartesian)
+      SIG_G <- SIG_G[spflow_indicators2pairindex(spflow_indicators, do_filter = "IN_POP")]
     SIG <- SIG + SIG_G
   }
+
   return(SIG)
 }
 
@@ -113,31 +116,37 @@ compute_expectation <- function(
         DW = DW,
         name = "SIG")
 
-      signal <- Reduce("+", Map("*",decomposed_signal[-1], -rho))
+      signal <- Reduce("+", Map("*",decomposed_signal[-1], rho))
       return(signal)
     }
 
-    Yhat <- new_sig <- signal_matrix
+    Y_TC <- signal_t <- signal_matrix
     for (i in seq(max_it)) {
-      new_sig <- new_sig + update_signal(new_sig)
-      Yhat <- Yhat + new_sig
+      signal_t <- update_signal(signal_t)
+      Y_TC <- Y_TC + signal_t
     }
   }
 
   if (!approximate) {
-    WF_parts <- expand_spflow_neighborhood(DW = DW, OW = OW, model = model)
+    WF_parts <- expand_spflow_neighborhood(DW = DW, OW = OW, model = model, M_indicator = M_indicator)
     A <- spatial_filter(weight_matrices = WF_parts, autoreg_parameters = rho)
-    Yhat <- solve(A, as.vector(signal_matrix))
-    Yhat <- matrix(Yhat, nrow = nrow(signal_matrix), ncol = ncol(signal_matrix))
+
+    if (is.null(M_indicator))
+      Y_TC <- matrix(solve(A, as.vector(signal_matrix)), nrow = nrow(signal_matrix), ncol = ncol(signal_matrix))
+
+    if (!is.null(M_indicator)) {
+      Y_TC <- M_indicator * 1
+      suppressMessages(Y_TC[as.logical(M_indicator)] <- as.numeric(solve(A, signal_matrix[as.logical(M_indicator)])))
+    }
   }
 
   if (keep_matrix_form)
-    return(Yhat)
+    return(Y_TC)
 
   if (is.null(M_indicator))
-    return(as.vector(Yhat))
+    return(as.vector(Y_TC))
 
-  return(Yhat[as.logical(M_indicator)])
+  return(Y_TC[as.logical(M_indicator)])
 }
 
 #' @keywords internal

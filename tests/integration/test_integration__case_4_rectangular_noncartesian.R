@@ -1,5 +1,5 @@
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-# Project: spflow - integration test case 3
+# Project: spflow - integration test case 4
 # Author: Lukas Dargel
 # = = = = = = = = = = = = = = = = = = =
 # Description:
@@ -13,7 +13,7 @@
 # - estimators: "ols" and "twosls" (exact tests)
 # - estimators: "mle" and "mcmc"   (approximate tests)
 # = = = = = = = = = = = = = = = = = = =
-# Date: Feb 2022
+# Date: Aug 2022
 opts <- options(warn = 1)
 
 
@@ -234,6 +234,11 @@ expect_zero_diff(target_matrices[["D_"]], actual_matrices[["D_"]])
 expect_zero_diff(target_matrices[["O_"]], actual_matrices[["O_"]])
 expect_zero_diff(target_matrices[["P_"]][[1]], actual_matrices[["P_"]][[1]])
 expect_zero_diff(target_matrices[["Y1_"]][[1]], actual_matrices[["Y_"]][[1]])
+
+# test residuals and goodness of fit
+expectied_signal <- as.vector(Z %*% target_results$delta1_ols)
+expect_zero_diff(expectied_signal, fitted(res_model_1_ols))
+expect_zero_diff(expectied_signal, predict(res_model_1_ols, return_type = "V"))
 rm(res_model_1_ols)
 
 # ---- ... s2sls - model 2 ----------------------------------------------------
@@ -262,7 +267,36 @@ expect_zero_diff(target_matrices[["O_"]], actual_matrices[["O_"]])
 expect_zero_diff(target_matrices[["P_"]][[1]], actual_matrices[["P_"]][[1]])
 expect_zero_diff(target_matrices[["Y2_"]][[1]], actual_matrices[["Y_"]][[1]])
 expect_zero_diff(target_matrices[["Y2_"]][[2]], actual_matrices[["Y_"]][[2]])
-rm(res_model_2_s2sls)
+
+
+# test predictors
+expected_signal <- as.vector(Z %*% target_results$mu2_s2sls[-1])
+expect_zero_diff(expected_signal, res_model_2_s2sls@spflow_indicators$SIGNAL)
+
+rd <- target_results$mu2_s2sls[1]
+expected_trend <- W_d %*% usa_ge_vec_data[,"y2"] * rd
+expect_zero_diff(expected_signal + expected_trend, predict(res_model_2_s2sls,method = "TS", return_type = "V"))
+
+A2 <- diag(length(expected_trend)) - W_d * rd
+dg_AA2 <- diag(crossprod(A2))
+y2 <- usa_ge_vec_data[,"y2"]
+bpi_corr <- crossprod(A2, y2 - expected_trend - expected_signal)
+expected_bpi <- y2 - bpi_corr/dg_AA2
+expect_zero_diff(expected_bpi, predict(res_model_2_s2sls,method = "BPI", return_type = "V"))
+
+expected_tc <- solve(A2, expected_signal)
+expected_tca <- expected_signal + (W_d * rd +  W_d %*% W_d * rd^2 + W_d %*% W_d %*% W_d * rd^3)  %*% expected_signal
+expect_zero_diff(expected_tca, predict(res_model_2_s2sls, method = "TC", return_type = "V",expectation_approx_order = 3))
+expect_zero_diff(expected_tc, predict(res_model_2_s2sls, method = "TC", return_type = "V",approx_expectation = FALSE))
+
+bpa_corr <- A2 %*% crossprod(A2, y2 - expected_tc)
+expected_bpa <- expected_tc - bpa_corr/dg_AA2
+expect_zero_diff(expected_bpa, predict(res_model_2_s2sls,method = "BPA", return_type = "V",approx_expectation = FALSE))
+
+bp_corr <- A2 %*% crossprod(A2, y2 - expected_tc)
+expected_bp <- expected_tc - solve(crossprod(A2), bp_corr)
+expect_zero_diff(expected_bp, predict(res_model_2_s2sls,method = "BP", return_type = "V",approx_expectation = FALSE))
+rm(res_model_2_s2sls, rd)
 
 # ---- ... s2sls - model 9 ----------------------------------------------------
 res_model_9_s2sls <- spflow(
@@ -292,6 +326,36 @@ expect_zero_diff(target_matrices[["Y9_"]][[1]], actual_matrices[["Y_"]][[1]])
 expect_zero_diff(target_matrices[["Y9_"]][[2]], actual_matrices[["Y_"]][[2]])
 expect_zero_diff(target_matrices[["Y9_"]][[3]], actual_matrices[["Y_"]][[3]])
 expect_zero_diff(target_matrices[["Y9_"]][[4]], actual_matrices[["Y_"]][[4]])
+
+
+# test predictors
+expected_signal <- as.vector(Z %*% target_results$mu9_s2sls[-(1:3)])
+expect_zero_diff(expected_signal, res_model_9_s2sls@spflow_indicators$SIGNAL)
+
+r9 <- target_results$mu9_s2sls[1:3]
+WF9 <- W_d * r9[1] + W_o * r9[2] + W_w * r9[3]
+expected_trend <- expected_trend <- WF9 %*% usa_ge_vec_data[,"y9"]
+expect_zero_diff(expected_signal + expected_trend, predict(res_model_9_s2sls, method = "TS", return_type = "V"))
+
+A9 <- diag(length(expected_trend)) - WF9
+dg_AA9 <- diag(crossprod(A9))
+y9 <- usa_ge_vec_data[,"y9"]
+bpi_corr <- crossprod(A9, y9 - expected_trend - expected_signal)
+expected_bpi <- y9 - bpi_corr/dg_AA9
+expect_zero_diff(expected_bpi, predict(res_model_9_s2sls,method = "BPI", return_type = "V"))
+
+expected_tc <- solve(A9, expected_signal)
+expected_tca <- expected_signal + (WF9 + WF9 %*% WF9 + WF9 %*% WF9 %*% WF9)  %*% expected_signal
+expect_zero_diff(expected_tca, predict(res_model_9_s2sls,method = "TC", return_type = "V",expectation_approx_order = 3))
+expect_zero_diff(expected_tc, predict(res_model_9_s2sls,method = "TC", return_type = "V",approx_expectation = FALSE))
+
+bpa_corr <- A9 %*% crossprod(A9, y9 - expected_tc)
+expected_bpa <- expected_tc - bpa_corr/dg_AA9
+expect_zero_diff(expected_bpa, predict(res_model_9_s2sls,method = "BPA", return_type = "V",approx_expectation = FALSE))
+
+bp_corr <- A9 %*% crossprod(A9, y9 - expected_tc)
+expected_bp <- expected_tc - solve(crossprod(A9), bp_corr)
+expect_zero_diff(expected_bp, predict(res_model_9_s2sls,method = "BP", return_type = "V",approx_expectation = FALSE))
 rm(res_model_9_s2sls)
 
 # ---- ... mle - model 2 ------------------------------------------------------
@@ -461,5 +525,3 @@ expect_zero_diff(target_matrices[["D_"]], actual_matrices[["D_"]])
 expect_zero_diff(target_matrices[["O_"]], actual_matrices[["O_"]])
 expect_zero_diff(target_matrices[["P_"]][[1]], actual_matrices[["P_"]][[1]])
 rm(res_model_9_s2sls_narm)
-
-

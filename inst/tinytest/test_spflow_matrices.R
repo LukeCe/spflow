@@ -1,19 +1,19 @@
 # ---- pull_spflow_neighborhood -------------------------------------------------
 expect_equal({
 
-  test_o_net <- spflow_nodes(
+  test_o_net <- spflow_network_nodes(
     "net1",
     node_neighborhood = matrix(c(0,1,1,0),2,2),
     node_data = data.frame("ID" = c("A", "B"), "VAL" = "OO"),
     node_key_column = "ID")
 
-  test_d_net <- spflow_nodes(
+  test_d_net <- spflow_network_nodes(
     "net2",
     node_neighborhood = matrix(c(0,1,1,0),2,2),
     node_data = data.frame("ID" = c("C", "D"), "VAL" = "DD"),
     node_key_column = "ID")
 
-  test_net_pair <- spflow_pairs(
+  test_net_pair <- spflow_network_pairs(
     id_orig_nodes = "net1",
     id_dest_nodes =  "net2",
     pair_data = data.frame(
@@ -24,7 +24,7 @@ expect_equal({
     dest_key_column =  "ID_D")
 
 
-  test_mult_net <- spflow_multinet(test_o_net,test_d_net, test_net_pair)
+  test_mult_net <- spflow_network_multi(test_o_net,test_d_net, test_net_pair)
   spflow:::pull_spflow_neighborhood(test_mult_net,"net1_net2")
   },
   {

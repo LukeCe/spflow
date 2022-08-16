@@ -9,9 +9,8 @@ spflow_model(
   estimation_results,
   estimation_control,
   estimation_diagnostics,
+  spflow_networks = NULL,
   spflow_indicators = NULL,
-  spflow_neighborhood = NULL,
-  spflow_data = NULL,
   spflow_matrices = NULL,
   spflow_moments = NULL
 )

@@ -13,7 +13,7 @@
 # - estimators: "ols" and "twosls" (exact tests)
 # - estimators: "mle" and "mcmc"   (approximate tests)
 # = = = = = = = = = = = = = = = = = = =
-# Date: Feb 2022
+# Date: Aug 2022
 
 # cran packages
 library("spflow")
@@ -185,8 +185,10 @@ expect_zero_diff <- function(y,x) expect_equal(max(abs(x - y)), 0)
 
 # ---- ... ols - model 1 ------------------------------------------------------
 res_model_1_ols <- spflow(
-  y1 ~ . + P_(DISTANCE), multi_net_usa_ge, "ge_ge",
-  spflow_control(estimation_method = "ols", model = "model_1"))
+  spflow_formula = y1 ~ . + P_(DISTANCE),
+  spflow_networks =  multi_net_usa_ge,
+  id_spflow_pairs =  "ge_ge",
+  estimation_control = spflow_control(estimation_method = "ols", model = "model_1"))
 
 # test results
 expect_inherits(res_model_1_ols, "spflow_model_ols")
@@ -215,8 +217,10 @@ rm(res_model_1_ols)
 
 # ---- ... s2sls - model 2 ----------------------------------------------------
 res_model_2_s2sls <- spflow(
-  y2 ~ . + P_(DISTANCE), multi_net_usa_ge, "ge_ge",
-  spflow_control(estimation_method = "s2sls", model = "model_2"))
+  spflow_formula = y2 ~ . + P_(DISTANCE),
+  spflow_networks =  multi_net_usa_ge,
+  id_spflow_pairs =  "ge_ge",
+  estimation_control = spflow_control(estimation_method = "s2sls", model = "model_2"))
 
 # test results
 expect_inherits(res_model_2_s2sls, "spflow_model_s2sls")
@@ -239,7 +243,35 @@ expect_zero_diff(target_matrices[["I_"]], actual_matrices[["I_"]])
 expect_zero_diff(target_matrices[["P_"]][[1]], actual_matrices[["P_"]][[1]])
 expect_zero_diff(target_matrices[["Y2_"]][[1]], actual_matrices[["Y_"]][[1]])
 expect_zero_diff(target_matrices[["Y2_"]][[2]], actual_matrices[["Y_"]][[2]])
-rm(res_model_2_s2sls)
+
+# test predictors
+expected_signal <- as.vector(Z %*% target_results$mu2_s2sls[-1])
+expect_zero_diff(expected_signal, res_model_2_s2sls@spflow_indicators$SIGNAL)
+
+rd <- target_results$mu2_s2sls[1]
+expected_trend <- as.vector(target_matrices[["Y2_"]][[2]]) * rd
+expect_zero_diff(expected_signal + expected_trend, predict(res_model_2_s2sls,method = "TS", return_type = "V"))
+
+A2 <- diag(256) - W_d * rd
+dg_AA2 <- diag(crossprod(A2))
+y2 <- as.vector(target_matrices[["Y2_"]][[1]])
+bpi_corr <- crossprod(A2, y2 - expected_trend - expected_signal)
+expected_bpi <- y2 - bpi_corr/dg_AA2
+expect_zero_diff(expected_bpi, predict(res_model_2_s2sls,method = "BPI", return_type = "V"))
+
+expected_tc <- solve(A2, expected_signal)
+expected_tca <- expected_signal + (W_d * rd +  W_d %*% W_d * rd^2 + W_d %*% W_d %*% W_d * rd^3)  %*% expected_signal
+expect_zero_diff(expected_tca, predict(res_model_2_s2sls,method = "TC", return_type = "V",expectation_approx_order = 3))
+expect_zero_diff(expected_tc, predict(res_model_2_s2sls,method = "TC", return_type = "V",approx_expectation = FALSE))
+
+bpa_corr <- A2 %*% crossprod(A2, y2 - expected_tc)
+expected_bpa <- expected_tc - bpa_corr/dg_AA2
+expect_zero_diff(expected_bpa, predict(res_model_2_s2sls,method = "BPA", return_type = "V",approx_expectation = FALSE))
+
+bp_corr <- A2 %*% crossprod(A2, y2 - expected_tc)
+expected_bp <- expected_tc - solve(crossprod(A2), bp_corr)
+expect_zero_diff(expected_bp, predict(res_model_2_s2sls,method = "BP", return_type = "V",approx_expectation = FALSE))
+rm(res_model_2_s2sls, rd)
 
 
 # ---- ... s2sls - model 9 ----------------------------------------------------
@@ -270,6 +302,37 @@ expect_zero_diff(target_matrices[["Y9_"]][[1]], actual_matrices[["Y_"]][[1]])
 expect_zero_diff(target_matrices[["Y9_"]][[2]], actual_matrices[["Y_"]][[2]])
 expect_zero_diff(target_matrices[["Y9_"]][[3]], actual_matrices[["Y_"]][[3]])
 expect_zero_diff(target_matrices[["Y9_"]][[4]], actual_matrices[["Y_"]][[4]])
+
+
+
+# test predictors
+expected_signal <- as.vector(Z %*% target_results$mu9_s2sls[-(1:3)])
+expect_zero_diff(expected_signal, res_model_9_s2sls@spflow_indicators$SIGNAL)
+
+r9 <- target_results$mu9_s2sls[1:3]
+expected_trend <- as.vector(Reduce("+", Map("*", target_matrices[["Y9_"]][-1], r9)))
+expect_zero_diff(expected_signal + expected_trend, predict(res_model_9_s2sls, method = "TS", return_type = "V"))
+
+WF9 <- W_d * r9[1] + W_o * r9[2] + W_w * r9[3]
+A9 <- diag(256) - WF9
+dg_AA9 <- diag(crossprod(A9))
+y9 <- as.vector(target_matrices[["Y9_"]][[1]])
+bpi_corr <- crossprod(A9, y9 - expected_trend - expected_signal)
+expected_bpi <- y9 - bpi_corr/dg_AA9
+expect_zero_diff(expected_bpi, predict(res_model_9_s2sls,method = "BPI", return_type = "V"))
+
+expected_tc <- solve(A9, expected_signal)
+expected_tca <- expected_signal + (WF9 + WF9 %*% WF9 + WF9 %*% WF9 %*% WF9)  %*% expected_signal
+expect_zero_diff(expected_tca, predict(res_model_9_s2sls,method = "TC", return_type = "V",expectation_approx_order = 3))
+expect_zero_diff(expected_tc, predict(res_model_9_s2sls,method = "TC", return_type = "V",approx_expectation = FALSE))
+
+bpa_corr <- A9 %*% crossprod(A9, y9 - expected_tc)
+expected_bpa <- expected_tc - bpa_corr/dg_AA9
+expect_zero_diff(expected_bpa, predict(res_model_9_s2sls,method = "BPA", return_type = "V",approx_expectation = FALSE))
+
+bp_corr <- A9 %*% crossprod(A9, y9 - expected_tc)
+expected_bp <- expected_tc - solve(crossprod(A9), bp_corr)
+expect_zero_diff(expected_bp, predict(res_model_9_s2sls,method = "BP", return_type = "V",approx_expectation = FALSE))
 rm(res_model_9_s2sls)
 
 # ---- ... mle - model 2 ------------------------------------------------------
@@ -331,6 +394,7 @@ expect_zero_diff(target_matrices[["Y9_"]][[1]], actual_matrices[["Y_"]][[1]])
 expect_zero_diff(target_matrices[["Y9_"]][[2]], actual_matrices[["Y_"]][[2]])
 expect_zero_diff(target_matrices[["Y9_"]][[3]], actual_matrices[["Y_"]][[3]])
 expect_zero_diff(target_matrices[["Y9_"]][[4]], actual_matrices[["Y_"]][[4]])
+
 rm(res_model_9_mle)
 
 # ---- ... mcmc - model 2 -----------------------------------------------------
@@ -395,8 +459,11 @@ rm(res_model_9_mcmc)
 
 # ---- ... incomplete models --------------------------------------------------
 expect_spflow_model <- function(formula, m = "model_9") expect_inherits(
-  spflow(formula, multi_net_usa_ge, "ge_ge",
-         estimation_control = list("model" = "model_9")), "spflow_model")
+  spflow(spflow_formula = formula,
+         spflow_networks =  multi_net_usa_ge,
+         id_spflow_pairs =  "ge_ge",
+         estimation_control = list("model" = "model_9")
+         ), "spflow_model")
 
 expect_spflow_model(y9 ~ + P_(DISTANCE))
 expect_spflow_model(y9 ~ + P_(DISTANCE) - 1)
@@ -410,5 +477,3 @@ expect_spflow_model(y9 ~ + O_(X) + I_(-1) - 1)
 expect_spflow_model(y9 ~ + I_(X) + -1)
 expect_spflow_model(y9 ~ + I_(X-1) + -1)
 expect_spflow_model(y9 ~ + I_(-1))
-
-

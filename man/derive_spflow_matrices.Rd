@@ -5,8 +5,8 @@
 \title{Generate the design matrices for the spatial interaction model}
 \usage{
 derive_spflow_matrices(
-  spflow_data,
-  spflow_neighborhood,
+  id_spflow_pairs,
+  spflow_networks,
   spflow_formula,
   spflow_control,
   na_rm = FALSE

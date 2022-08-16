@@ -9,7 +9,7 @@ expand_spflow_neighborhood(
   DW,
   n_o = nrow(OW),
   n_d = nrow(DW),
-  flow_indicator = NULL,
+  M_indicator = NULL,
   model = "model_9"
 )
 }
@@ -22,7 +22,7 @@ expand_spflow_neighborhood(
 
 \item{n_d}{A numeric indicating the number of destinations}
 
-\item{flow_indicator}{A matrix of binary indicators for origin-destination
+\item{M_indicator}{A matrix of binary indicators for origin-destination
 pairs that should be included in the model. When the argument is NULL or
 when all entries of this matrix are different from zero we consider the
 Cartesian product of all origins and destinations as OD pairs.}

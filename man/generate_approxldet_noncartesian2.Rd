@@ -7,7 +7,7 @@
 generate_approxldet_noncartesian2(
   OW = NULL,
   DW = NULL,
-  flow_indicator,
+  M_indicator,
   n_o,
   n_d,
   model

@@ -67,65 +67,33 @@ spflow_estimation <- function(
 #' @keywords  internal
 spflow_post_estimation <- function(
     object,
-    spflow_data,
+    spflow_networks,
     spflow_indicators,
     spflow_moments,
-    spflow_neighborhood,
     spflow_matrices) {
 
-  # add fitted values , residuals, and goodness-of-fit
-  model <- object@estimation_control[["model"]]
-  nb_rho <- spatial_model_order(model)
-  mu <- coef(object)
-  rho <- mu[seq_len(nb_rho)]
-  delta <- mu[!names(mu) %in% names(rho)]
 
-  spflow_matrices <- drop_instruments(spflow_matrices)
-  signal <- compute_signal(delta, spflow_matrices, spflow_indicators, keep_matrix_form = FALSE)
-  spflow_indicators <- cbind(spflow_indicators, SIGNAL = NA, FITTED = NA)
+  object@spflow_moments <- spflow_moments
+  object@spflow_matrices <- drop_instruments(spflow_matrices)
+  object@spflow_networks <- spflow_networks
 
-  filter_x <- spflow_indicators[["IN_POP"]] %||% TRUE
-  filter_y <- spflow_indicators[["IN_SAMPLE"]] %||% filter_x
-  spflow_indicators[filter_x, "SIGNAL"] <- signal
+  object@spflow_indicators <- cbind(spflow_indicators, SIGNAL = NA, FITTED = NA)
+  pred <- predict(
+    object,
+    method = object@estimation_control[["fitted_value_method"]],
+    add_new_signal = TRUE)
+  object@spflow_indicators[c("SIGNAL","FITTED")] <- pred[c("NEW_SIGNAL", "PREDICTION")]
 
-  fit_method <- object@estimation_control[["fitted_value_method"]]
-  fit_method <- ifelse(model == "model_1", yes = "LIN", fit_method)
-  if (fit_method == "LIN") {
-    filter_y <- spflow_indicators[["IN_SAMPLE"]] %||% TRUE
-    spflow_indicators[filter_y, "FITTED"] <- spflow_indicators[filter_y, "SIGNAL"]
-  }
-  if (fit_method == "TS") {
-    y_ind <- spflow_indicators2pairindex(spflow_indicators, "IN_SAMPLE")
-    trend <- Reduce("+", Map("*", rho, spflow_matrices[["Y_"]][-1]))[y_ind]
-    spflow_indicators[filter_y, "FITTED"] <- trend + spflow_indicators[filter_y, "SIGNAL"]
-  }
-  if (fit_method == "TC") {
-    EY <- compute_expectation(
-      signal_matrix = signal,
-      DW = object@spflow_neighborhood$DW,
-      OW = object@spflow_neighborhood$OW,
-      rho = rho,
-      model = model,
-      M_indicator = spflow_indicators2pairindex(spflow_indicators, "IN_SAMPLE"),
-      approximate = object@estimation_control[["approx_expectation"]],
-      max_it = object@estimation_control[["expectation_approx_order"]],
-      keep_matrix_form = FALSE)
-    spflow_indicators[filter_y, "FITTED"] <- EY
-  }
 
-  R2_corr <- cor(spflow_indicators[["FITTED"]], spflow_indicators[["ACTUAL"]], use = "complete.obs")
+  R2_corr <- as.numeric(cor(
+    object@spflow_indicators[["FITTED"]],
+    object@spflow_indicators[["ACTUAL"]],
+    use = "complete.obs"))^2
+
   object@estimation_diagnostics <- c(
     object@estimation_diagnostics,
     spflow_indicators2obs(spflow_indicators),
-    R2_corr = as.numeric(R2_corr^2))
-
-  object@spflow_neighborhood <- spflow_neighborhood
-  object@spflow_indicators <- spflow_indicators
-  object@spflow_moments <- spflow_moments
-  if (!object@estimation_control[["reduce_size"]]) {
-    object@spflow_matrices <- spflow_matrices
-    object@spflow_data <- spflow_data
-  }
+    "R2_corr" = R2_corr)
 
   return(object)
 }

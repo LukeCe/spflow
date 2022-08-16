@@ -6,10 +6,9 @@
 \usage{
 spflow_post_estimation(
   object,
-  spflow_data,
+  spflow_networks,
   spflow_indicators,
   spflow_moments,
-  spflow_neighborhood,
   spflow_matrices
 )
 }

@@ -8,6 +8,7 @@
 \alias{is_single_numeric}
 \alias{has_equal_elements}
 \alias{has_distinct_elements}
+\alias{is_column_subset}
 \alias{none}
 \title{A set of primitive functions to test conditions}
 \usage{
@@ -23,7 +24,9 @@ has_equal_elements(obj)
 
 has_distinct_elements(obj)
 
-none(x)
+is_column_subset(df, df2, interger_tolerance = TRUE, factor_tolerance = TRUE)
+
+none(..., na.rm = FALSE)
 }
 \value{
 A logical

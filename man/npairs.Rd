@@ -7,7 +7,7 @@
 npairs(object, ...)
 }
 \arguments{
-\item{object}{A \code{\link[=spflow_pairs-class]{spflow_pairs-class()}} or \code{\link[=spflow_multinet-class]{spflow_multinet-class()}}}
+\item{object}{A \code{\link[=spflow_network_pairs-class]{spflow_network_pairs-class()}} or \code{\link[=spflow_network_multi-class]{spflow_network_multi-class()}}}
 
 \item{...}{Arguments to be passed to methods}
 }

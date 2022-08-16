@@ -1,4 +1,4 @@
-#' @include class_generics_and_maybes.R class_spflow_multinet.R
+#' @include class_generics_and_maybes.R class_spflow_network_multi.R
 
 # ---- Class definition -------------------------------------------------------
 #' @title Class spflow_model
@@ -68,8 +68,7 @@ setClass("spflow_model", slots = c(
   estimation_results = "data.frame",
   estimation_control = "list",
   estimation_diagnostics = "list",
-  spflow_data = "maybe_list",
-  spflow_neighborhood = "maybe_list",
+  spflow_networks = "maybe_spflow_network_multi",
   spflow_formula = "maybe_formula",
   spflow_moments = "maybe_list",
   spflow_matrices = "maybe_list",
@@ -127,19 +126,9 @@ setMethod(
   signature = "spflow_model",
   function(object) {
 
-    if (is.null(object@spflow_data))
+    if (is.null(object@spflow_networks))
       return(NULL)
-
-    cc <- lapply(compact(object@spflow_data[c("orig", "dest")]), function(.d) {
-      cc <- as.data.frame(.d[,get_keycols(.d)])
-      if (isFALSE(ncol(cc) == 3))
-        return(NULL)
-      rownames(cc) <- as.character(cc[[1]])
-      cc[[1]] <- NULL
-      colnames(cc) <- c("COORD_X","COORD_Y")
-      cc
-      })
-    unique(Reduce("rbind",cc))
+    get_od_coords(object@spflow_networks)
   })
 
 # ---- ... fitted -------------------------------------------------------------
@@ -183,15 +172,37 @@ setMethod(
 #' @param object A [spflow_model()]
 #' @param which
 #'   A character vector indicating the subset of observations to consider
-#'   should be one of `c("fit", "cart", "pred", "pair", "orig", "dest")`.
+#'   should be one of `c("fit", "cart", "pop", "pair", "orig", "dest")`.
 #' @rdname spflow_model-class
 #' @export
 setMethod(
   f = "nobs",
   signature = "spflow_model",
-  function(object, which = "fit") {
-    assert_valid_case(which, c("fit", "cart", "pred", "pair", "orig", "dest"))
+  function(object, which = "sample") {
+    assert_valid_case(which, c("sample", "cart", "pop", "pair", "orig", "dest"))
     return(object@estimation_diagnostics[[paste0("N_", which)]])
+  })
+
+
+# ---- ... neighborhood -------------------------------------------------------
+#' @title Access the origin or destination neighborhood of a spflow_model
+#' @param object A [spflow_model()]
+#' @param which
+#'   A character vector: "OW" for origin- and "DW" for destination neighborhood
+#' @rdname spflow_model-class
+#' @export
+setMethod(
+  f = "neighborhood",
+  signature = "spflow_model",
+  function(object, which) {
+
+    assert_valid_option(which, c("OW", "DW"))
+    if (is.null(object@spflow_networks))
+      return(NULL)
+
+    od_id <- id(object@spflow_networks@pairs[[1]])
+    od_id <- od_id[ifelse(which == "OW", "orig", "dest")]
+    neighborhood(object@spflow_networks, od_id)
   })
 
 
@@ -357,7 +368,6 @@ setMethod(
 #' @param method A character indicating which method to use for computing the
 #'   predictions. Should be one of c("TS", "TC", "BP").
 #' @param new_data An object containing new data (to be revised)
-#' @inheritParams spflow_control
 #' @param approx_expectation
 #'   A logical, if `TRUE` the expected value of the dependent variable is
 #'   approximated by a Taylor series. For spatial models this can lead to
@@ -381,8 +391,8 @@ setMethod(
            method = "BPA",
            approx_expectation = TRUE,
            expectation_approx_order = 10,
-           return_type = "OD") {
-
+           return_type = "OD",
+           add_new_signal = FALSE) {
 
 
     insample_methods <- c("TS","BPI","TCI")
@@ -407,39 +417,37 @@ setMethod(
 
     }
 
-
-    # define the set of observations
+    # for in-sample methods the population is set equal to the sample
     filter_case <- ifelse(method %in% insample_methods, "IN_SAMPLE", "IN_POP")
     filter_case <- spflow_indicators[[filter_case]] %||% TRUE
-    spflow_indicators <- spflow_indicators[filter_case,,drop = FALSE]
-    M_indicator <- spflow_indicators2mat(spflow_indicators)
+    population_indicators <- spflow_indicators[filter_case,,drop = FALSE]
+    M_indicator <- spflow_indicators2mat(population_indicators)
 
     # the signal (= Z %*% delta) is always required
     signal <- compute_signal(
       delta = delta,
       spflow_matrices = spflow_matrices,
-      spflow_indicators = spflow_indicators,
+      spflow_indicators = population_indicators,
       keep_matrix_form = TRUE)
     n_o <- ncol(signal)
     n_d <- nrow(signal)
 
+    if (model == "model_1")
+      method <- "LM"
+
     if (method %in% c("TC","TCI","BP","BPA")) {
       Y_TC <- compute_expectation(
         signal_matrix = signal,
-        DW = object@spflow_neighborhood$DW,
-        OW = object@spflow_neighborhood$OW,
+        DW = neighborhood(object, "DW"),
+        OW = neighborhood(object, "OW"),
         rho = rho,
         model = model,
         M_indicator = M_indicator,
         approximate = approx_expectation,
         max_it = expectation_approx_order)
-
     }
 
     # compute the prediction according to the chosen method
-    if (model == "model_1")
-      method <- "LM"
-
     if (method == "LM")
       Y_hat <- signal
 
@@ -450,18 +458,19 @@ setMethod(
 
     if (method == "BPI") {
 
-      res_ts <- Reduce("+", Map("*", object@spflow_matrices$Y_, c(-1, rho)))
+      res_ts <- Reduce("+", Map("*", object@spflow_matrices$Y_, c(1, -rho)))
       res_ts <- res_ts - signal
-      res_ts <- lag_flow_matrix(
+      res_ts <- filter_flow_matrix(
         Y = res_ts,
         model = model,
-        DW = object@spflow_neighborhood$DW %|!|% t,
-        OW = object@spflow_neighborhood$OW %|!|% t,
-        M_indicator = M_indicator)
+        DW = neighborhood(object, "DW") %|!|% t,
+        OW = neighborhood(object, "OW") %|!|% t,
+        M_indicator = M_indicator,
+        rho = rho)
 
       diag_AA <- compute_diag_precision_mat(
-        DW = object@spflow_neighborhood$DW,
-        OW = object@spflow_neighborhood$OW,
+        DW = neighborhood(object, "DW"),
+        OW = neighborhood(object, "OW"),
         rho = rho,
         n_o = n_o,
         n_d = n_d,
@@ -474,25 +483,32 @@ setMethod(
       Y_hat <- Y_TC
 
     if (method %in% c("BPA","BP")) {
+
       # the methods use an additive  correction terms on the Y_TC predictor...
-      corig_tc <- (object@spflow_matrices$Y_[[1]] - Y_TC) * M_indicator
-      corig_tc <- lag_flow_matrix(
+      corig_tc <- object@spflow_matrices$Y_[[1]] - Y_TC
+      if (!is.null(M_indicator))
+        corig_tc <- corig_tc * M_indicator
+
+
+      corig_tc <- filter_flow_matrix(
         Y = corig_tc,
         model = model,
-        DW = object@spflow_neighborhood$DW,
-        OW = object@spflow_neighborhood$OW,
-        M_indicator = M_indicator)
-      corig_tc <- lag_flow_matrix(
+        DW = neighborhood(object, "DW") %|!|% t,
+        OW = neighborhood(object, "OW") %|!|% t,
+        M_indicator = M_indicator,
+        rho = rho)
+      corig_tc <- filter_flow_matrix(
         Y = corig_tc,
         model = model,
-        DW = object@spflow_neighborhood$DW %|!|% t,
-        OW = object@spflow_neighborhood$OW %|!|% t,
-        M_indicator = M_indicator)
+        DW = neighborhood(object, "DW"),
+        OW = neighborhood(object, "OW"),
+        M_indicator = M_indicator,
+        rho = rho)
 
       if (method == "BPA") {
         diag_AA <- compute_diag_precision_mat(
-          DW = object@spflow_neighborhood$DW,
-          OW = object@spflow_neighborhood$OW,
+          DW = neighborhood(object, "DW"),
+          OW = neighborhood(object, "OW"),
           rho = rho,
           n_o = n_o,
           n_d = n_d,
@@ -503,25 +519,38 @@ setMethod(
       if (method == "BP") {
         A <- spatial_filter(
           weight_matrices = expand_spflow_neighborhood(
-            OW = object@spflow_neighborhood$OW,
-            DW = object@spflow_neighborhood$DW,
-            flow_indicator = M_indicator,
+            DW = neighborhood(object, "DW"),
+            OW = neighborhood(object, "OW"),
+            M_indicator = M_indicator,
             model = model),
           autoreg_parameters = rho)
-        Y_hat <- Y_TC - solve(A, corig_tc)
-      }
 
+        if (is.null(M_indicator))
+          Y_hat <- matrix(as.vector(Y_TC) - solve(crossprod(A), as.vector(corig_tc)),n_d, n_o)
+
+        if (!is.null(M_indicator)) {
+          pop_index <- spflow_indicators2pairindex(population_indicators)
+          Y_hat <- as.vector(Y_TC[pop_index]) - solve(crossprod(A), as.vector(corig_tc[pop_index]))
+          Y_hat <- spflow_indicators2mat(population_indicators, do_values = Y_hat)
+        }
+      }
     }
 
-     result <- spflow_mat2format(
+    result <- spflow_mat2format(
       mat = Y_hat,
-      do_keys =  spflow_indicators,
+      do_keys =  population_indicators,
       return_type =  return_type,
       name =  "PREDICTION")
 
-    if (return_type == "OD" & !isTRUE(filter_case)) {
-      result2 <- cbind(spflow_indicators, PREDICTION = NA)
+    if (return_type == "OD") {
+      result2 <- cbind(spflow_indicators, PREDICTION = NA_real_)
       result2[filter_case, "PREDICTION"] <- result[,"PREDICTION"]
+
+      if (add_new_signal) {
+        result2 <- cbind(result2, NEW_SIGNAL = NA_real_)
+        result2[filter_case, "NEW_SIGNAL"] <- signal[spflow_indicators2pairindex(population_indicators)]
+      }
+
       return(result2)
     }
     return(result)
@@ -682,7 +711,6 @@ setMethod(
 
 
 # ---- ... spflow_moran_plots  ------------------------------------------------
-#' @inheritParams spflow_control
 #' @param DW,OW
 #'   A matrix to replace the neighborhood of the destinations (DW) and origins (OW).
 #'   Defaults to the one supplied to the model.
@@ -774,9 +802,8 @@ spflow_model <- function(
     estimation_results,
     estimation_control,
     estimation_diagnostics,
+    spflow_networks = NULL,
     spflow_indicators = NULL,
-    spflow_neighborhood = NULL,
-    spflow_data = NULL,
     spflow_matrices = NULL,
     spflow_moments = NULL) {
 
@@ -786,8 +813,8 @@ spflow_model <- function(
     estimation_results = estimation_results,
     estimation_control = estimation_control,
     estimation_diagnostics = estimation_diagnostics,
+    spflow_networks = spflow_networks,
     spflow_indicators = spflow_indicators,
-    spflow_data = spflow_data,
     spflow_matrices = spflow_matrices,
     spflow_moments = spflow_moments)
   return(model_results)

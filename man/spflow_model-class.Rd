@@ -12,6 +12,7 @@
 \alias{logLik,spflow_model_mle-method}
 \alias{mcmc_results,spflow_model_mcmc-method}
 \alias{nobs,spflow_model-method}
+\alias{neighborhood,spflow_model-method}
 \alias{plot,spflow_model-method}
 \alias{predict,spflow_model-method}
 \alias{resid,spflow_model-method}
@@ -28,7 +29,9 @@
 
 \S4method{mcmc_results}{spflow_model_mcmc}(object)
 
-\S4method{nobs}{spflow_model}(object, which = "fit")
+\S4method{nobs}{spflow_model}(object, which = "sample")
+
+\S4method{neighborhood}{spflow_model}(object, which)
 
 \S4method{plot}{spflow_model}(x, y, ...)
 
@@ -36,11 +39,11 @@
   object,
   ...,
   new_data = NULL,
-  method = "TC",
+  method = "BPA",
   approx_expectation = TRUE,
   expectation_approx_order = 10,
   return_type = "OD",
-  out_of_sample = FALSE
+  add_new_signal = FALSE
 )
 
 \S4method{resid}{spflow_model}(object, return_type = "V")
@@ -54,8 +57,7 @@
 \arguments{
 \item{object}{A \code{\link[=spflow_model-class]{spflow_model-class()}}}
 
-\item{which}{A character vector indicating the subset of observations to consider
-should be one of \code{c("fit", "cart", "pred", "pair", "orig", "dest")}.}
+\item{which}{A character vector: "OW" for origin- and "DW" for destination neighborhood}
 
 \item{return_type}{A character indicating the format of the returned values:
 \itemize{
@@ -80,7 +82,7 @@ predictions. Should be one of c("TS", "TC", "BP").}
 approximated by a Taylor series. For spatial models this can lead to
 significant performance gains.}
 
-\item{expectation_approx_order}{A numeric, defining the order of the Taylor-series approximation.}
+\item{expectation_approx_order}{A numeric, defining the order of the Taylor series approximation.}
 
 \item{out_of_sample}{A logical, controlling whether to use in-sample or out of sample
 predictions}

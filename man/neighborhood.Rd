@@ -11,7 +11,7 @@ neighborhood(object, ...)
 neighborhood(object) <- value
 }
 \arguments{
-\item{object}{One of \code{\link[=spflow_nodes-class]{spflow_nodes-class()}}, \code{\link[=spflow_multinet-class]{spflow_multinet-class()}}}
+\item{object}{One of \code{\link[=spflow_network_nodes-class]{spflow_network_nodes-class()}}, \code{\link[=spflow_network_multi-class]{spflow_network_multi-class()}}}
 
 \item{...}{Arguments to be passed to methods}
 
@@ -26,5 +26,5 @@ For details on the methods see the documentation of the
 corresponding classes.
 }
 \seealso{
-\code{\link[=spflow_nodes-class]{spflow_nodes-class()}} \code{\link[=spflow_multinet-class]{spflow_multinet-class()}}
+\code{\link[=spflow_network_nodes-class]{spflow_network_nodes-class()}} \code{\link[=spflow_network_multi-class]{spflow_network_multi-class()}}
 }

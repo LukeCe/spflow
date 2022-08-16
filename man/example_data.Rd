@@ -11,15 +11,15 @@
 \alias{simulation_params}
 \title{Simulated data for stylized versions of Germany and the USA}
 \format{
-An object of class \code{spflow_multinet} of length 1.
+An object of class \code{spflow_network_multi} of length 1.
 
 An object of class \code{sf} (inherits from \code{data.frame}) with 16 rows and 3 columns.
 
-An object of class \code{spflow_nodes} of length 1.
+An object of class \code{spflow_network_nodes} of length 1.
 
 An object of class \code{sf} (inherits from \code{data.frame}) with 51 rows and 3 columns.
 
-An object of class \code{spflow_nodes} of length 1.
+An object of class \code{spflow_network_nodes} of length 1.
 
 An object of class \code{list} of length 3.
 }
@@ -47,8 +47,8 @@ The first example is a stylized version of Germany with 16 states.
 The second example is a stylized version of the USA with 51 states.
 
 We provide spatial objects that contain the geography of our example,
-as well as two \code{\link[=spflow_nodes-class]{spflow_nodes-class()}} objects.
-Finally, there is an \code{\link[=spflow_multinet-class]{spflow_multinet-class()}} containing the two networks
+as well as two \code{\link[=spflow_network_nodes-class]{spflow_network_nodes-class()}} objects.
+Finally, there is an \code{\link[=spflow_network_multi-class]{spflow_network_multi-class()}} containing the two networks
 and four network pair objects based on the same example.
 
 The simulation parameters are given as \code{rho} for the auto-regressive

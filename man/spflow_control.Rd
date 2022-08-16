@@ -10,10 +10,8 @@ spflow_control(
   use_intra = TRUE,
   sdm_variables = "same",
   weight_variable = NULL,
-  neighborhood_do_normalisation = TRUE,
-  neighborhood_normalize_by_row = FALSE,
   approx_parameter_space = TRUE,
-  fitted_value_method = "TS",
+  fitted_value_method = "BPI",
   approx_expectation = TRUE,
   expectation_approx_order = 10,
   logdet_approx_order = 10,
@@ -26,7 +24,6 @@ spflow_control(
   twosls_decorrelate_instruments = FALSE,
   twosls_reduce_pair_instruments = TRUE,
   track_condition_numbers = FALSE,
-  reduce_size = FALSE,
   na_rm = FALSE
 )
 }
@@ -47,12 +44,6 @@ declare the variables in SDM specification, the character should be one of
 or the same as used in the main formula provided to \code{\link[=spflow]{spflow()}}}
 
 \item{weight_variable}{A character indicating the name of one column in the node pair data.}
-
-\item{neighborhood_do_normalisation}{A logical, if \code{TRUE} neighborhood matrices are normalized during the
-estimation. Otherwise the estimation with non-normalized matrices throws
-an error.}
-
-\item{neighborhood_normalize_by_row}{A logical, if \code{TRUE} neighborhood matrices are row-normalized}
 
 \item{approx_parameter_space}{A logical indicating whether the test for
 the feasible parameter space should be based on an approximation. Note
@@ -104,8 +95,6 @@ part of the estimation \insertCite{Dargel2021}{spflow}.}
 
 \item{track_condition_numbers}{A logical that controls whether or not the reciprocal condition numbers
 of the systems that are solved during the estimation are tracked.}
-
-\item{reduce_size}{A logical, if \code{TRUE} large data objects in the model are not stored}
 
 \item{na_rm}{A logical, if \code{FALSE} the estimation throws an error when the data
 contains \code{NA} values. Otherwise the estimation proceeds with a sub-sample.}

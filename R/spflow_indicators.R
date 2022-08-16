@@ -9,14 +9,14 @@ spflow_indicators2obs <- function(spflow_indicators) {
   list(
     N_orig = n_o,
     N_dest = n_d,
-    N_cart = n_o * n_d,
+    N_sample = filter_len("IN_SAMPLE"),
+    N_pop = filter_len("IN_POP"),
     N_pair = N,
-    N_fit = filter_len("IN_SAMPLE"),
-    N_pred = filter_len("IN_POP"))
+    N_cart = n_o * n_d)
 }
 
 #' @keywords internal
-spflow_indicators2pairindex <- function(spflow_indicators, do_filter) {
+spflow_indicators2pairindex <- function(spflow_indicators, do_filter = NULL) {
 
   if (is.character(do_filter))
     do_filter <- spflow_indicators[[do_filter]]
@@ -102,7 +102,7 @@ spflow_indicators2format <-  function(do_keys_val, return_type = "V", do_filter 
 #' @keywords internal
 spflow_mat2format <- function(mat, do_keys, return_type = "M", name = "OD_VAR") {
 
-  assert_valid_case(return_type, c("V","M", "OD"))
+  assert_valid_option(return_type, c("V","M", "OD"))
 
   if (return_type == "M")
     return(mat)
@@ -112,7 +112,7 @@ spflow_mat2format <- function(mat, do_keys, return_type = "M", name = "OD_VAR") 
     vec <- as.vector(mat)
 
   if (!is_cartesian)
-    vec <- mat[as.integer(rownames(do_keys))]
+    vec <- mat[spflow_indicators2pairindex(do_keys)]
 
   if (return_type == "V")
     return(vec)

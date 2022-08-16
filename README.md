@@ -36,7 +36,7 @@ devtools::install_github("LukeCe/spflow")
 
 ## Example
 
-The package provides a new `spflow_multinet-class` that combines
+The package provides a new `spflow_network_multi-class` that combines
 information on the origins, the destinations, and the origin-destination
 pairs. Once this object is created, we can estimate an interaction model
 with the `spflow()` function. The [package

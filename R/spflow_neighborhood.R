@@ -11,7 +11,7 @@
 #' @param n_o A numeric indicating the number of origins
 #' @param n_d A numeric indicating the number of destinations
 #' @param model A character indicating the model identifier
-#' @param flow_indicator A matrix of binary indicators for origin-destination
+#' @param M_indicator A matrix of binary indicators for origin-destination
 #'   pairs that should be included in the model. When the argument is NULL or
 #'   when all entries of this matrix are different from zero we consider the
 #'   Cartesian product of all origins and destinations as OD pairs.
@@ -26,7 +26,7 @@ expand_spflow_neighborhood <- function(
   DW,
   n_o = nrow(OW),
   n_d = nrow(DW),
-  flow_indicator = NULL,
+  M_indicator = NULL,
   model = "model_9") {
 
   model_number <- as.integer(substr(model,7,7))
@@ -45,12 +45,12 @@ expand_spflow_neighborhood <- function(
     assert(!is.null(DW) & !is.null(OW), error_msg, "origin-to-destination", "OW and DW")
 
   ### Cartesian expansion
-  if (all(flow_indicator != 0))
-    flow_indicator <- NULL
+  if (all(M_indicator != 0))
+    M_indicator <- NULL
   return_nbs <- c("Wd","Wo","Ww")[c(require_Wd,require_Wo,require_Ww)]
   return_nbs <- named_list(return_nbs)
 
-  if (is.null(flow_indicator)) {
+  if (is.null(M_indicator)) {
 
       if (require_Wd) return_nbs$Wd <- Diagonal(n_o) %x% DW
       if (require_Wo) return_nbs$Wo <- OW %x% Diagonal(n_d)
@@ -63,14 +63,14 @@ expand_spflow_neighborhood <- function(
   ### non-Cartesian expansion
   # when Wo or Ww are required it is most efficient to reduce the problem
   # first to its minimal Cartesian representation
-  flow_indicator <- as(flow_indicator, "lgCMatrix")
+  M_indicator <- as(M_indicator, "lgCMatrix")
   if (require_Wd) {
-    return_nbs$Wd <- apply(flow_indicator, 2, function(d_index) DW[d_index,d_index])
+    return_nbs$Wd <- apply(M_indicator, 2, function(d_index) DW[d_index,d_index])
     return_nbs$Wd <- bdiag(return_nbs$Wd)
   }
 
   if (require_Wo) {
-    min_cartesian <- drop_superfluent_nodes(OW, DW, flow_indicator)
+    min_cartesian <- drop_superfluent_nodes(OW, DW, M_indicator)
     nb_true_origs <- ncol(min_cartesian$OW)
 
     diag_DW <- Diagonal(nrow(min_cartesian$flow_indicator))
@@ -92,7 +92,7 @@ expand_spflow_neighborhood <- function(
   if (require_Ww) {
 
     if (!require_Wo) {
-      min_cartesian <- drop_superfluent_nodes(OW, DW, flow_indicator)
+      min_cartesian <- drop_superfluent_nodes(OW, DW, M_indicator)
       nb_true_origs <- ncol(min_cartesian$OW)
     }
 
@@ -195,61 +195,16 @@ normalize_neighborhood <- function(mat, by_row = FALSE) {
 
 
 #' @keywords internal
-pull_spflow_neighborhood <-  function(spflow_multinet, id_spflow_pairs) {
-  od_id <- id(spflow_multinet@pairs[[id_spflow_pairs]])
+pull_spflow_neighborhood <-  function(spflow_network_multi, id_spflow_network_pairs) {
+  od_id <- id(spflow_network_multi@pairs[[id_spflow_network_pairs]])
   neighbor_mats <- lapply(c("OW" = "orig", "DW" = "dest"), function(.key) {
-    m <- neighborhood(spflow_multinet, od_id[.key])
+    m <- neighborhood(spflow_network_multi, od_id[.key])
     dimnames(m) <- list(NULL,NULL)
     return(m)
   })
 
   return(compact(neighbor_mats))
 }
-
-#' @keywords interal
-valdiate_spflow_neighborhood <- function(
-    spflow_neighborhood,
-    model,
-    do_normalisation = TRUE) {
-
-  model_num <- as.numeric(substr(model,7,7))
-  req_OW <- model_num %in% c(3:9)
-  req_DW <- model_num %in% c(2,4:9)
-
-  assert(!req_OW  || !is.null(spflow_neighborhood[["OW"]]),
-         "For model_%s you the origin neighborhood musst be available!",
-         model_num)
-  assert(!req_DW || !is.null(spflow_neighborhood[["DW"]]),
-         "For model_%s you the destination neighborhood musst be available!",
-         model_num)
-
-
-  spectral_radi <- lapply(spflow_neighborhood, function(.XW) abs(attr_spectral_character(.XW)["LM"]))
-  tol <- sqrt(.Machine$double.eps)
-  unit_radi <- all(abs(unlist(spectral_radi) - 1) < tol)
-  if (unit_radi)
-    return(spflow_neighborhood)
-
-  row_sums <- lapply(spflow_neighborhood, rowSums)
-  row_sums_0or1 <- lapply(row_sums, function(.rs) all(abs(abs(.rs - .5) - .5) < tol))
-  row_normalized <- all(unlist(row_sums_0or1))
-  if (row_normalized)
-    return(spflow_neighborhood)
-
-  assert(do_normalisation, "The neighborhood matrices should be normalized!")
-  spflow_neighborhood <- Map(
-    function(.W, .sr) {
-      .W <- .W / .sr
-      attr_spectral_character(.W) <- attr_spectral_character(.W) / .sr
-      .W
-    },
-    .W = spflow_neighborhood,
-    .sr = spectral_radi)
-
-  return(spflow_neighborhood)
-}
-
-
 
 # ---- helpers ----------------------------------------------------------------
 #' @title Remove origins or destinations from the neighborhood matrix that do
@@ -281,7 +236,7 @@ get_flow_indicator <- function(sp_net_pair) {
 }
 
 #' @importMethodsFrom Matrix isSymmetric
-#' @importFrom RSpectra eigs
+#' @importFrom RSpectra eigs eigs_sym
 #' @keywords internal
 charactrize_spectrum <- function(mat) {
 
@@ -294,16 +249,16 @@ charactrize_spectrum <- function(mat) {
 
   if (nrow(mat) < 3){
     ev_obs <- eigen(mat)$values
-    eigenvalues[1:3] <- ev_obs[1]
-    eigenvalues[2:3] <- ev_obs
-    return(eigenvalues)
+    ev_obs <- lookup(ev_obs[c(1,1,2)], names(eigenvalues))
+    return(ev_obs)
   }
 
 
-
   ev_methods <- lookup(names(eigenvalues))
-  if (isSymmetric(mat))
+  if (isSymmetric(mat)) {
     ev_methods[2:3] <- c("LA","SA")
+    eigs <- eigs_sym
+  }
 
   eigenvalues <- unlist(lapply(
     ev_methods,

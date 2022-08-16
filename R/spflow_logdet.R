@@ -7,9 +7,9 @@ derive_logdet_calculator <- function(
   model,
   approx_order,
   is_cartesian,
-  flow_indicator) {
+  M_indicator) {
 
-  if (is.null(flow_indicator)) {
+  if (is.null(M_indicator)) {
 
     approx_logdet <- generate_approxldet_cartesian(
       OW = OW,
@@ -25,7 +25,7 @@ derive_logdet_calculator <- function(
     approx_logdet <- generate_approxldet_noncartesian2(
       OW = OW,
       DW = DW,
-      flow_indicator = flow_indicator,
+      M_indicator = M_indicator,
       n_o = n_o,
       n_d = n_d,
       model = model)
@@ -38,7 +38,7 @@ derive_logdet_calculator <- function(
     DW = DW,
     n_o = n_o,
     n_d = n_d,
-    flow_indicator = flow_indicator,
+    M_indicator = M_indicator,
     model = model)
 
   approx_logdet <- generate_approxldet_noncartesian(
@@ -149,7 +149,7 @@ generate_approxldet_cartesian2 <- function(
 generate_approxldet_noncartesian2 <- function(
   OW = NULL,
   DW = NULL,
-  flow_indicator,
+  M_indicator,
   n_o,
   n_d,
   model) {
@@ -157,13 +157,13 @@ generate_approxldet_noncartesian2 <- function(
   model_num <- substr(model,7,7)
 
   trace_dd <- if (model_num %in% c(2,5:9))
-    sum(flow_indicator * ((DW * t(DW)) %*% flow_indicator))
+    sum(M_indicator * ((DW * t(DW)) %*% M_indicator))
 
   trace_oo <- if (model_num %in% c(3,5:9))
-    sum(flow_indicator * (flow_indicator %*% ((OW * t(OW)))))
+    sum(M_indicator * (M_indicator %*% ((OW * t(OW)))))
 
   trace_ww <- if (model_num %in% c(3,5,6,8,9))
-    sum(flow_indicator * ((DW * t(DW)) %*% flow_indicator %*% ((OW * t(OW)))))
+    sum(M_indicator * ((DW * t(DW)) %*% M_indicator %*% ((OW * t(OW)))))
 
   tracevals <- c(trace_dd,trace_oo,trace_ww) / 2
   logdet_calculator_123456789 <- function(rho) {

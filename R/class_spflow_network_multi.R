@@ -1,39 +1,39 @@
-#' @include class_generics_and_maybes.R class_spflow_nodes.R class_spflow_pairs.R
+#' @include class_generics_and_maybes.R class_spflow_network_nodes.R class_spflow_network_pairs.R
 
-#' @title Class spflow_multinet
+#' @title Class spflow_network_multi
 #'
 #' @description
-#' A S4 class that gathers information on multiple [spflow_nodes()] and [spflow_pairs()].
+#' A S4 class that gathers information on multiple [spflow_network_nodes()] and [spflow_network_pairs()].
 #' Its purpose is to ensure that the identification between the nodes that
 #' serve as origins or destinations, and the od-pairs is consistent
 #' (similar to relational data bases).
 #'
-#' @slot nodes A list of [spflow_nodes-class()] objects
-#' @slot pairs A list of [spflow_pairs-class()] objects
+#' @slot nodes A list of [spflow_network_nodes-class()] objects
+#' @slot pairs A list of [spflow_network_pairs-class()] objects
 #'
-#' @param object spflow_multinet-class
+#' @param object spflow_network_multi-class
 #' @family spflow network classes
-#' @name spflow_multinet-class
+#' @name spflow_network_multi-class
 #' @export
-setClass("spflow_multinet", slots = c(
+setClass("spflow_network_multi", slots = c(
   nodes = "list",
   pairs = "list"))
-setClassUnion("maybe_spflow_multinet", c("NULL", "spflow_multinet"))
+setClassUnion("maybe_spflow_network_multi", c("NULL", "spflow_network_multi"))
 
 
 # ---- Methods ----------------------------------------------------------------
 # ---- ... id -----------------------------------------------------------------
-#' @rdname spflow_multinet-class
+#' @rdname spflow_network_multi-class
 #' @export
 #' @examples
-#' ## access the id of the objects inside the spflow_multinet
+#' ## access the id of the objects inside the spflow_network_multi
 #'
 #' id(multi_net_usa_ge)$nodes
 #' id(multi_net_usa_ge)$pairs
 #'
 setMethod(
   f = "id",
-  signature = "spflow_multinet",
+  signature = "spflow_network_multi",
   function(object) {
     return(list(
       "nodes" = names(slot(object,"nodes")),
@@ -44,12 +44,12 @@ setMethod(
 
 # ---- ... complete_pairs -----------------------------------------------------
 #' @param ids_spflow_pairs
-#'   A character indicating of one or several [spflow_pairs()] objects
-#' @rdname spflow_multinet-class
+#'   A character indicating of one or several [spflow_network_pairs()] objects
+#' @rdname spflow_network_multi-class
 #' @export
 setMethod(
   f = "complete_pairs",
-  signature = "spflow_multinet",
+  signature = "spflow_network_multi",
   function(
     object,
     ids_spflow_pairs = id(object)[["pairs"]]) {
@@ -65,7 +65,7 @@ setMethod(
       p_id <- od_infos[[i]][["ID_NET_PAIR"]]
       object@pairs[[p_id]]@pair_data <- pair_merge(
         object,
-        id_spflow_pairs = p_id,
+        id_spflow_network_pairs = p_id,
         make_cartesian = TRUE,
         pair_cols = names(dat(object, p_id)),
         dest_cols = NULL,
@@ -77,19 +77,19 @@ setMethod(
   })
 
 # ---- ... dat ----------------------------------------------------------------
-#' @rdname spflow_multinet-class
-#' @param .id A character indicating the id of a [spflow_nodes-class()] or a
-#'   [spflow_pairs-class()] inside the [spflow_multinet-class()].
+#' @rdname spflow_network_multi-class
+#' @param .id A character indicating the id of a [spflow_network_nodes-class()] or a
+#'   [spflow_network_pairs-class()] inside the [spflow_network_multi-class()].
 #' @export
 #' @examples
-#' ## access the data inside a spflow_multinet
+#' ## access the data inside a spflow_network_multi
 #'
 #' dat(multi_net_usa_ge, "ge")    # extract data of nodes
 #' dat(multi_net_usa_ge, "ge_ge") # extract data of pairs
 #'
 setMethod(
   f = "dat",
-  signature = "spflow_multinet",
+  signature = "spflow_network_multi",
   function(object, .id) {
 
     assert_is_single_x(.id, "character")
@@ -102,9 +102,9 @@ setMethod(
 })
 
 # ---- ... dat <- -------------------------------------------------------------
-#' @rdname spflow_multinet-class
-#' @param .id A character indicating the id of a [spflow_nodes-class()] or a
-#'   [spflow_pairs-class()] inside the [spflow_multinet-class()].
+#' @rdname spflow_network_multi-class
+#' @param .id A character indicating the id of a [spflow_network_nodes-class()] or a
+#'   [spflow_network_pairs-class()] inside the [spflow_network_multi-class()].
 #' @param value A data.frame to replace the existing data
 #' @export
 #' @examples
@@ -115,7 +115,7 @@ setMethod(
 #'
 setReplaceMethod(
   f = "dat",
-  signature = "spflow_multinet",
+  signature = "spflow_network_multi",
   function(object, .id, value) {
 
     assert_is_single_x(.id, "character")
@@ -129,31 +129,31 @@ setReplaceMethod(
   })
 
 # ---- ... neighborhood -------------------------------------------------------
-#' @rdname spflow_multinet-class
+#' @rdname spflow_network_multi-class
 setMethod(
   f = "neighborhood",
-  signature = "spflow_multinet",
+  signature = "spflow_network_multi",
   function(object, .id) {
-    assert(.id %in% id(object)[["nodes"]], ".id not found among spflow_nodes!")
+    assert(.id %in% id(object)[["nodes"]], ".id not found among spflow_network_nodes!")
     return(neighborhood(object@nodes[[.id]]))
   })
 
 # ---- ... nnodes -------------------------------------------------------------
 #' @param .id
-#'   A character, corresponding to the id of a `spflow_nodes()` object
-#'   contained in the `spflow_multinet`
-#' @rdname spflow_multinet-class
+#'   A character, corresponding to the id of a `spflow_network_nodes()` object
+#'   contained in the `spflow_network_multi`
+#' @rdname spflow_network_multi-class
 setMethod(
-  signature = "spflow_multinet",
+  signature = "spflow_network_multi",
   f = "nnodes",
   function(object, .id) {
     nnodes(pull_member(object, .id))
   })
 
 # ---- ... npairs -------------------------------------------------------------
-#' @rdname spflow_multinet-class
+#' @rdname spflow_network_multi-class
 setMethod(
-  signature = "spflow_multinet",
+  signature = "spflow_network_multi",
   f = "npairs",
   function(object, .id) {
     npairs(pull_member(object, .id))
@@ -161,8 +161,8 @@ setMethod(
 
 
 # ---- ... pair_corr ----------------------------------------------------------
-#' @param id_spflow_pairs
-#'   A character indicating the id of a [spflow_pairs-class()]
+#' @param id_spflow_network_pairs
+#'   A character indicating the id of a [spflow_network_pairs-class()]
 #' @param spflow_formula
 #'   A formula specifying how variables should be used
 #'   (for details see section Formula interface in the help page of [spflow()])
@@ -177,7 +177,7 @@ setMethod(
 #' @export
 #' @examples
 #'
-#' # Used with a spflow_multinet ...
+#' # Used with a spflow_network_multi ...
 #'
 #' # without transformations
 #' corr_mat <- pair_corr(multi_net_usa_ge, "ge_ge")
@@ -193,17 +193,17 @@ setMethod(
 #'
 setMethod(
   f = "pair_corr",
-  signature = "spflow_multinet",
+  signature = "spflow_network_multi",
   function(object,
-           id_spflow_pairs = id(object)[["pairs"]][[1]] ,
+           id_spflow_network_pairs = id(object)[["pairs"]][[1]] ,
            spflow_formula,
            add_lags_x = TRUE,
            add_lags_y = FALSE) {
 
     pair_ids <- id(object)[["pairs"]]
-    assert(id_spflow_pairs %in% pair_ids,
-           "spflow_pairs with id %s was not found!", id_spflow_pairs)
-    od_id <- id(pull_member(object, id_spflow_pairs))
+    assert(id_spflow_network_pairs %in% pair_ids,
+           "spflow_network_pairs with id %s was not found!", id_spflow_network_pairs)
+    od_id <- id(pull_member(object, id_spflow_network_pairs))
 
     if (missing(spflow_formula))
       spflow_formula <- 1 ~ .
@@ -217,8 +217,8 @@ setMethod(
       is_within = od_id["orig"] == od_id["dest"])
 
     spflow_matrices <- derive_spflow_matrices(
-      spflow_data = pull_spflow_data(object, id_spflow_pairs),
-      spflow_neighborhood = pull_spflow_neighborhood(object, id_spflow_pairs),
+      spflow_data = pull_spflow_data(object, id_spflow_network_pairs),
+      spflow_neighborhood = pull_spflow_neighborhood(object, id_spflow_network_pairs),
       spflow_formula = spflow_formula,
       spflow_control = estimation_control,
       na_rm = TRUE)
@@ -246,13 +246,13 @@ setMethod(
 #' the data.frame describing the pairs.
 #'
 #' @param object
-#'   A [spflow_multinet-class()]
-#' @param id_spflow_pairs
-#'   A character indicating the id of a [spflow_pairs-class()]
+#'   A [spflow_network_multi-class()]
+#' @param id_spflow_network_pairs
+#'   A character indicating the id of a [spflow_network_pairs-class()]
 #' @param make_cartesian
 #'   A logical, when set to `TRUE` the resulting data.frame contains all
 #'   possible pairs of origins and destination, even if the data in the
-#'   [spflow_pairs-class()] does not have them.
+#'   [spflow_network_pairs-class()] does not have them.
 #' @param dest_cols
 #'   A character, indicating the columns to be kept in the final data.frame
 #'   that contain information on the nodes in the destination network.
@@ -279,9 +279,9 @@ setMethod(
 #' pair_merge(multi_net_usa_ge,"ge_usa")
 setMethod(
   f = "pair_merge",
-  signature = "spflow_multinet",
+  signature = "spflow_network_multi",
   function(object,
-           id_spflow_pairs = id(object)[["pairs"]][[1]],
+           id_spflow_network_pairs = id(object)[["pairs"]][[1]],
            dest_cols = NULL,
            orig_cols = NULL,
            pair_cols = NULL,
@@ -289,11 +289,11 @@ setMethod(
            keep_od_keys = TRUE) {
 
     od_ids <- id(object)[["pairs"]]
-    assert(id_spflow_pairs %in% od_ids, "no spflow_pairs with id %s!", id_spflow_pairs)
+    assert(id_spflow_network_pairs %in% od_ids, "no spflow_network_pairs with id %s!", id_spflow_network_pairs)
     assert_is_single_x(make_cartesian, "logical")
 
-    flow_data <- pull_spflow_data(object, id_spflow_pairs)
-    flow_infos <- check_pair_completeness(id_spflow_pairs, object)
+    flow_data <- pull_spflow_data(object, id_spflow_network_pairs)
+    flow_infos <- check_pair_completeness(id_spflow_network_pairs, object)
     do_keys <- subset_keycols(flow_data[["pair"]], drop_keys = FALSE)
     do_indexes <- lapply(do_keys, "as.integer")
 
@@ -380,10 +380,10 @@ setMethod(
 
 
 # ---- ... pull_member --------------------------------------------------------
-#' @rdname spflow_multinet-class
+#' @rdname spflow_network_multi-class
 #' @export
 #' @examples
-#' ## access spflow_nodes or spflow_pairs inside a spflow_multinet
+#' ## access spflow_network_nodes or spflow_network_pairs inside a spflow_network_multi
 #'
 #' pull_member(multi_net_usa_ge, .id = "ge")
 #' pull_member(multi_net_usa_ge, .id = "usa")
@@ -391,7 +391,7 @@ setMethod(
 #'
 setMethod(
   f = "pull_member",
-  signature = "spflow_multinet",
+  signature = "spflow_network_multi",
   function(object, .id = NULL) {
 
     assert_is_single_x(.id, "character")
@@ -405,7 +405,7 @@ setMethod(
 #' @keywords internal
 setMethod(
   f = "show",
-  signature = "spflow_multinet",
+  signature = "spflow_network_multi",
   function(object){
 
     cat("Collection of spatial network nodes and pairs")
@@ -453,23 +453,23 @@ setMethod(
 #' @export
 #' @examples
 #'
-#'  # Used with a spflow_multinet ...
+#'  # Used with a spflow_network_multi ...
 #'  spflow_map(multi_net_usa_ge, "ge_ge",flow_var = "y9")
 #'
 setMethod(
   f = "spflow_map",
-  signature = "spflow_multinet",
+  signature = "spflow_network_multi",
   function(object,
-           id_spflow_pairs = id(object)[["pairs"]][[1]],
+           id_spflow_network_pairs = id(object)[["pairs"]][[1]],
            ...,
            flow_var) {
 
-    assert(id_spflow_pairs %in% id(object)[["pairs"]])
-    flow_data <- pull_spflow_data(object, id_spflow_pairs)
+    assert(id_spflow_network_pairs %in% id(object)[["pairs"]])
+    flow_data <- pull_spflow_data(object, id_spflow_network_pairs)
 
     assert_is_single_x(flow_var, "character")
     assert(flow_var %in% names(flow_data[["pair"]]),
-           "Variable %s not found in network pair %s!", flow_var, id_spflow_pairs)
+           "Variable %s not found in network pair %s!", flow_var, id_spflow_network_pairs)
 
     do_indexes <- get_do_keys(flow_data[["pair"]])
     flow_var <- flow_data[["pair"]][,flow_var]
@@ -480,7 +480,7 @@ setMethod(
     args <- c(args, list(...))
 
     if (is.null(args[["coords_s"]]))
-      args[["coords_s"]] <- get_node_coords(object, id_spflow_pairs)
+      args[["coords_s"]] <- get_od_coords(object, id_spflow_network_pairs)
 
     do.call("map_flows", args)
   })
@@ -494,15 +494,15 @@ setMethod(
 #' @export
 #' @examples
 #'
-#'  # Used with a spflow_multinet ...
+#'  # Used with a spflow_network_multi ...
 #'  # To check the if there is spatial correlation in any variable
 #'  spflow_moran_plots(multi_net_usa_ge, "ge_ge",flow_var = "y9")
 #'
 setMethod(
   f = "spflow_moran_plots",
-  signature = "spflow_multinet",
+  signature = "spflow_network_multi",
   function(object,
-           id_spflow_pairs = id(object)[["pairs"]][[1]],
+           id_spflow_network_pairs = id(object)[["pairs"]][[1]],
            flow_var,
            model = "model_9",
            DW,
@@ -512,22 +512,22 @@ setMethod(
 
 
     if (missing(DW) | missing(OW)){
-      nb_dat <- pull_spflow_neighborhood(object,id_spflow_pairs)
+      nb_dat <- pull_spflow_neighborhood(object,id_spflow_network_pairs)
       if (missing(OW)) OW <- nb_dat[["OW"]]
       if (missing(DW)) DW <- nb_dat[["DW"]]
     }
 
     assert(model != "model_1", "The Moran plot is for spatial models!")
     assert_is_single_x(flow_var, "character")
-    assert(flow_var %in% names(dat(object, id_spflow_pairs)),
-           "Variable %s not found in network pair %s!", flow_var, id_spflow_pairs)
+    assert(flow_var %in% names(dat(object, id_spflow_network_pairs)),
+           "Variable %s not found in network pair %s!", flow_var, id_spflow_network_pairs)
 
     # create lags for the flow_var in matrix form
-    flows_v <- dat(object, id_spflow_pairs)[[flow_var]]
+    flows_v <- dat(object, id_spflow_network_pairs)[[flow_var]]
     valid_flows <- is.finite(flows_v)
     flows_v <- flows_v[valid_flows]
 
-    do_keys <- get_do_keys(dat(object, id_spflow_pairs))[valid_flows,,drop = FALSE]
+    do_keys <- get_do_keys(dat(object, id_spflow_network_pairs))[valid_flows,,drop = FALSE]
     flows_indicator <- matrix_format_d_o(
       dest_index = as.integer(do_keys[,1]),
       orig_index = as.integer(do_keys[,2]),
@@ -571,11 +571,11 @@ setMethod(
 
 
 # ---- ... update_dat ---------------------------------------------------------
-#' @rdname spflow_multinet-class
+#' @rdname spflow_network_multi-class
 #' @param new_dat
 #'   A named list of data.frames.
-#'   The names should correspond to spflow_nodes or spflow_pair objects inside
-#'   the spflow_multinet.
+#'   The names should correspond to spflow_network_nodes or spflow_pair objects inside
+#'   the spflow_network_multi.
 #' @param value A data.frame to replace the existing data
 #' @export
 #' @examples
@@ -586,7 +586,7 @@ setMethod(
 #'
 setMethod(
   f = "update_dat",
-  signature = "spflow_multinet",
+  signature = "spflow_network_multi",
   function(object, new_dat) {
 
     assert_is(new_dat, "list")
@@ -610,18 +610,18 @@ setMethod(
   })
 
 # ---- ... validity -----------------------------------------------------------
-setValidity("spflow_multinet", function(object) {
+setValidity("spflow_network_multi", function(object) {
 
   ### check validity of pairs and nodes
-  lapply(compact(object@pairs), "assert_is", "spflow_pairs")
+  lapply(compact(object@pairs), "assert_is", "spflow_network_pairs")
   lapply(object@pairs, "validObject")
-  lapply(compact(object@nodes), "assert_is", "spflow_nodes")
+  lapply(compact(object@nodes), "assert_is", "spflow_network_nodes")
   lapply(object@nodes, "validObject")
 
   ### check consistency of pairs and nodes...
   # ... naming: nodes
-  network_names <- lapply(object@nodes, slot, name = "id_spflow_nodes")
-  pair_names <- lapply(object@pairs, slot, name = "id_spflow_pairs")
+  network_names <- lapply(object@nodes, slot, name = "id_spflow_network_nodes")
+  pair_names <- lapply(object@pairs, slot, name = "id_spflow_network_pairs")
   unique_names <- has_distinct_elements(c(network_names, pair_names))
   if (!unique_names) {
     error_msg <-
@@ -636,7 +636,7 @@ setValidity("spflow_multinet", function(object) {
     this_dest <- pair_ids["dest"]
 
     err_msg <- "
-    The %ss in the spflow_pairs cannot be identifyed with the %s nodes.
+    The %ss in the spflow_network_pairs cannot be identifyed with the %s nodes.
     All keys musst be present in the splfow_nodes!"
     if (this_orig %in% all_ids$nodes) {
       o_key <- attr_key_orig(dat(pull_member(object, this_pair)))
@@ -673,35 +673,35 @@ setValidity("spflow_multinet", function(object) {
 
 # ---- Constructors -----------------------------------------------------------
 
-#' Create an S4 class that contains [spflow_nodes()] and [spflow_pairs()] for one or multiple nodes
+#' Create an S4 class that contains [spflow_network_nodes()] and [spflow_network_pairs()] for one or multiple nodes
 #'
-#' @param ... objects of type [spflow_nodes()] and [spflow_pairs()]
+#' @param ... objects of type [spflow_network_nodes()] and [spflow_network_pairs()]
 #'
-#' @return An S4 class of type [spflow_multinet-class()]
+#' @return An S4 class of type [spflow_network_multi-class()]
 #' @family Constructors for spflow network classes
 #' @export
 #' @examples
-#' spflow_multinet() # empty
-#' spflow_multinet(germany_net,usa_net) # two nodes, no pairs
-spflow_multinet <- function(...) {
+#' spflow_network_multi() # empty
+#' spflow_network_multi(germany_net,usa_net) # two nodes, no pairs
+spflow_network_multi <- function(...) {
 
   input_nets <- unlist(list(...)) %||% list()
 
   warn_template <- "
   All supplied objects which are not of class
-  sp_network or spflow_pairs are discarded!"
-  is_net <- unlist(lapply(input_nets, is, class2 = "spflow_nodes"))
-  is_pair <- unlist(lapply(input_nets, is, class2 = "spflow_pairs"))
+  sp_network or spflow_network_pairs are discarded!"
+  is_net <- unlist(lapply(input_nets, is, class2 = "spflow_network_nodes"))
+  is_pair <- unlist(lapply(input_nets, is, class2 = "spflow_network_pairs"))
   assert(all(is_net | is_pair), warn_template, warn = TRUE)
   sp_nodes <- input_nets[is_net]
-  spflow_pairs <- input_nets[is_pair]
+  spflow_network_pairs <- input_nets[is_pair]
 
 
-  pair_ids <- lapply(spflow_pairs, "id")
+  pair_ids <- lapply(spflow_network_pairs, "id")
   pair_ids <- unlist(lapply(pair_ids, "[", "pair"),use.names = FALSE)
   net_ids <- unlist(lapply(sp_nodes, "id"))
   names(sp_nodes) <- net_ids
-  names(spflow_pairs) <- pair_ids
+  names(spflow_network_pairs) <- pair_ids
 
 
   ## The class contains relational data for origins, dests, and od-pairs
@@ -711,12 +711,12 @@ spflow_multinet <- function(...) {
   In the network pair with id %s, it is not possible to identify
   all %ss with the nodes in the %s network!"
 
-  pair_ids <- lapply(spflow_pairs, "id")
+  pair_ids <- lapply(spflow_network_pairs, "id")
 
   for (i in seq_along(pair_ids)) {
 
     net_pair <- pair_ids[[i]]["pair"]
-    do_keys <- dat(spflow_pairs[[net_pair]]) %|!|% get_do_keys
+    do_keys <- dat(spflow_network_pairs[[net_pair]]) %|!|% get_do_keys
     wrong_od_order <- FALSE
 
     # check for origins
@@ -747,19 +747,19 @@ spflow_multinet <- function(...) {
       assert(FALSE, warn_template, net_pair, warn = TRUE)
       do_key_cols <- names(do_keys)
       do_keys <- Map(factor, x = do_keys, levels = list(dest_keys, orig_keys))
-      pdat_new <- dat(spflow_pairs[[net_pair]])
+      pdat_new <- dat(spflow_network_pairs[[net_pair]])
       pdat_new[do_key_cols] <- do_keys
       pdat_new <- pdat_new[order(do_keys[[2]], do_keys[[1]]),,drop = FALSE]
       if (inherits(pdat_new, "data.table") && requireNamespace("data.table", quietly = TRUE))
         pdat_new <- data.table::as.data.table(pdat_new)
-      dat(spflow_pairs[[net_pair]]) <- pdat_new
+      dat(spflow_network_pairs[[net_pair]]) <- pdat_new
     }
   }
 
 
-  return(new("spflow_multinet",
+  return(new("spflow_network_multi",
              nodes = sp_nodes,
-             pairs = spflow_pairs))
+             pairs = spflow_network_pairs))
 }
 
 # ---- Helpers ----------------------------------------------------------------
@@ -828,21 +828,27 @@ derive_pair_index_do <- function(pair_dat, do_keycols = attr_key_do(pair_dat)) {
 }
 
 #' @keywords internal
-get_node_coords <- function(sp_multi, net_pair_id) {
+get_od_coords <- function(
+    network_multi,
+    net_pair_id = id(network_multi)[["pairs"]][1]) {
 
-  od_ids <- id(pull_member(sp_multi, net_pair_id))
+  assert(net_pair_id %in% id(network_multi)[["pairs"]],
+         "No network_pair corresponds to the id %s!", net_pair_id)
 
-  orig_coords <- subset_keycols(dat(sp_multi, od_ids["orig"]), drop_keys = FALSE)
+  od_ids <- id(pull_member(network_multi, net_pair_id))
+  orig_coords <- subset_keycols(dat(network_multi, od_ids["orig"]), drop_keys = FALSE)
   assert(ncol(orig_coords) == 3, "No valid coordinates!")
 
   if (od_ids["orig"] == od_ids["dest"])
     return(data.frame(orig_coords[,-1], row.names = orig_coords[,1]))
 
-  dest_coords <- subset_keycols(dat(sp_multi, od_ids["dest"]), drop_keys = FALSE)
+  dest_coords <- subset_keycols(dat(network_multi, od_ids["dest"]), drop_keys = FALSE)
   assert(ncol(dest_coords) == 3, "No valid coordinates!")
   colnames(dest_coords) <- colnames(orig_coords)
 
 
   node_coords <- unique(rbind(orig_coords, dest_coords))
+  assert(has_distinct_elements(node_coords[,1]),
+         "The coordinates the are not uniquely identifyed!")
   return(data.frame(node_coords[,-1], row.names = node_coords[,1]))
 }

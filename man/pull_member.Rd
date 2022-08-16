@@ -2,23 +2,23 @@
 % Please edit documentation in R/class_generics_and_maybes.R
 \name{pull_member}
 \alias{pull_member}
-\title{Generic for accessing a \code{\link[=spflow_pairs-class]{spflow_pairs-class()}} or a
-\code{\link[=spflow_nodes-class]{spflow_nodes-class()}} inside a \code{\link[=spflow_multinet-class]{spflow_multinet-class()}}}
+\title{Generic for accessing a \code{\link[=spflow_network_pairs-class]{spflow_network_pairs-class()}} or a
+\code{\link[=spflow_network_nodes-class]{spflow_network_nodes-class()}} inside a \code{\link[=spflow_network_multi-class]{spflow_network_multi-class()}}}
 \usage{
 pull_member(object, ...)
 }
 \arguments{
-\item{object}{A \code{\link[=spflow_multinet-class]{spflow_multinet-class()}}}
+\item{object}{A \code{\link[=spflow_network_multi-class]{spflow_network_multi-class()}}}
 
 \item{...}{Arguments to be passed to methods}
 }
 \value{
-A \code{\link[=spflow_pairs-class]{spflow_pairs-class()}} or a \code{\link[=spflow_nodes-class]{spflow_nodes-class()}}
+A \code{\link[=spflow_network_pairs-class]{spflow_network_pairs-class()}} or a \code{\link[=spflow_network_nodes-class]{spflow_network_nodes-class()}}
 }
 \description{
 For details on the method see the documentation of the
 corresponding class.
 }
 \seealso{
-\code{\link[=spflow_multinet-class]{spflow_multinet-class()}}
+\code{\link[=spflow_network_multi-class]{spflow_network_multi-class()}}
 }

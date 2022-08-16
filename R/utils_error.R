@@ -53,7 +53,7 @@ assert_is_single_x <- function(obj, x){
 #' @keywords internal
 assert_valid_case <- function(argument, cases) {
   assert(all(argument %in% cases),
-         "The %s argument must be a subset of the character vector [%s]!",
+         "The %s argument must be a subset of the character vector %s!",
          deparse(substitute(argument)), deparse(cases))
 }
 

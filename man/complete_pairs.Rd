@@ -2,7 +2,7 @@
 % Please edit documentation in R/class_generics_and_maybes.R
 \name{complete_pairs}
 \alias{complete_pairs}
-\title{Generic for completing the missing od-pairs in a \code{\link[=spflow_multinet]{spflow_multinet()}}}
+\title{Generic for completing the missing od-pairs in a \code{\link[=spflow_network_multi]{spflow_network_multi()}}}
 \usage{
 complete_pairs(object, ...)
 }
