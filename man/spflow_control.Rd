@@ -11,7 +11,7 @@ spflow_control(
   sdm_variables = "same",
   weight_variable = NULL,
   approx_parameter_space = TRUE,
-  fitted_value_method = "BPI",
+  fitted_value_method = "TS",
   approx_expectation = TRUE,
   expectation_approx_order = 10,
   logdet_approx_order = 10,

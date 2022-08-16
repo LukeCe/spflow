@@ -203,6 +203,18 @@ setGeneric(
   def = function(object, ...) standardGeneric("pair_merge"))
 
 
+# ---- ... predict_effect -----------------------------------------------------
+#' @title Generic for predicting the effect of changes in the data
+#' @description For details on the method see the documentation of the
+#'   corresponding class.
+#' @param object A [spflow_model-class()]
+#' @param ... Arguments to be passed to methods
+#' @return The change in outcomes as a matrix, vector or data.frame
+#' @name predict_effect
+#' @export
+setGeneric(
+  name = "predict_effect",
+  def = function(object, ...) standardGeneric("predict_effect"))
 
 # ---- ... pull_member --------------------------------------------------------
 #' @title Generic for accessing a [spflow_network_pairs-class()] or a

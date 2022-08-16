@@ -11,7 +11,7 @@ spflow_moran_plots(object, ...)
 
 \S4method{spflow_moran_plots}{spflow_network_multi}(
   object,
-  id_spflow_network_pairs = id(object)[["pairs"]][[1]],
+  id_spflow_pairs = id(object)[["pairs"]][[1]],
   flow_var,
   model = "model_9",
   DW,
@@ -25,6 +25,10 @@ spflow_moran_plots(object, ...)
 \item{object}{A \code{\link[=spflow_network_multi-class]{spflow_network_multi-class()}} or a \code{\link[=spflow_model-class]{spflow_model-class()}}}
 
 \item{...}{arguments passed to methods}
+
+\item{id_spflow_pairs}{A character indicating the id of a \code{\link[=spflow_network_pairs]{spflow_network_pairs()}} (only relevant if
+the \code{\link[=spflow_network_multi]{spflow_network_multi()}} contains multiple \code{spflow_network_pairs}-objects:
+defaults to the of them)}
 
 \item{flow_var}{A character, indicating one variable from the network pair data}
 

@@ -211,7 +211,8 @@ spflow <- function(
     spflow_networks = spflow_networks,
     spflow_matrices = spflow_matrices,
     spflow_moments = spflow_moments,
-    spflow_indicators = spflow_indicators)
+    spflow_indicators = spflow_indicators,
+    spflow_formula = spflow_formula)
 
   return(estimation_results)
 }

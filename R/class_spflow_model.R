@@ -282,8 +282,8 @@ setMethod(
         lag_flow_matrix(
           Y = resid(object, "M"),
           model = model,
-          OW = object@spflow_neighborhood[["OW"]],
-          DW = object@spflow_neighborhood[["DW"]],
+          OW = neighborhood(object, "OW"),
+          DW = neighborhood(object, "DW"),
           name = "RESID",
           M_indicator = M_indicator
         ))
@@ -358,7 +358,6 @@ setMethod(
       plot(mcmc_results(x),density = FALSE, ask = FALSE)
 
     corr_map(pair_corr(x))
-    title(xlab = "Pairwise correlations")
     })
 
 
@@ -374,9 +373,12 @@ setMethod(
 #'   significant performance gains.
 #' @param expectation_approx_order
 #'   A numeric, defining the order of the Taylor series approximation.
-#' @param out_of_sample
-#'   A logical, controlling whether to use in-sample or out of sample
-#'   predictions
+#' @param return_type A character indicating which format the return values should
+#'   have: "V" for vector, "M" for matrix, "OD" for data.frame
+#'   predictions. Should be one of c("TS", "TC", "BP").
+#' @param add_new_signal
+#'   A logical, if `TRUE` the new signal is added to the as a column to
+#'   the results. This only works when the return type is "OD".
 #' @param ... Further arguments passed to the prediction function
 #'
 #' @importFrom Matrix crossprod diag solve
@@ -553,6 +555,83 @@ setMethod(
 
       return(result2)
     }
+    return(result)
+  })
+
+
+# ---- ... predict_effect -----------------------------------------------------
+#' @title Prediction methods for spatial interaction models
+#' @param object A [spflow_model()]
+#' @param method A character indicating which method to use for computing the
+#'   predictions. Should be one of c("TS", "TC", "BP").
+#' @param new_data An object containing new data (to be revised)
+#' @param old_signal A matrix that can be supplied to specify the reference
+#'   value for the signal.
+#'   If not given the signal contained in the model is used.
+#' @param approx_expectation
+#'   A logical, if `TRUE` the expected value of the dependent variable is
+#'   approximated by a Taylor series. For spatial models this can lead to
+#'   significant performance gains.
+#' @param expectation_approx_order
+#'   A numeric, defining the order of the Taylor series approximation.
+#' @param return_type A character indicating which format the return values should
+#'   have: "V" for vector, "M" for matrix, "OD" for data.frame
+#'   predictions. Should be one of c("TS", "TC", "BP").
+#'   predictions
+#' @param ... Further arguments passed to the prediction function
+#'
+#' @importFrom Matrix crossprod diag solve
+#' @rdname spflow_model-class
+#' @export
+setMethod(
+  f = "predict_effect",
+  signature = "spflow_model",
+  function(object,
+           ...,
+           new_data,
+           old_signal = NULL,
+           approx_expectation = TRUE,
+           expectation_approx_order = 10,
+           return_type = "OD") {
+
+    # prepare the data and coefficients....
+    model <- object@estimation_control$model
+    rho <- coef(object, "rho")
+    delta <- coef(object, "delta")
+
+    new_networks <- update_dat(object@spflow_networks, new_data)
+    new_matrices <- derive_spflow_matrices(
+      id_spflow_pairs = names(new_networks@pairs)[1],
+      spflow_networks = new_networks,
+      spflow_formula = object@spflow_formula,
+      spflow_control = object@estimation_control,
+      na_rm = object@estimation_control[["na_rm"]])
+    new_signal <- compute_signal(
+      delta = delta,
+      spflow_matrices = new_matrices,
+      spflow_indicators = new_matrices[["spflow_indicators"]],
+      keep_matrix_form = TRUE)
+
+    if (is.null(old_signal))
+      old_signal <- spflow_indicators2mat(object@spflow_indicators,do_filter = "IN_POP",do_values = "SIGNAL")
+    assert(all(dim(new_signal) == dim(old_signal)),
+           "The old_signal must be a matrix with dimensions %s x %s!", nrow(new_signal), ncol(new_signal))
+
+    diff_effect <- compute_expectation(
+      signal_matrix = new_signal - old_signal,
+      DW = neighborhood(object, "DW"),
+      OW = neighborhood(object, "OW"),
+      rho = rho,
+      model = model,
+      M_indicator = spflow_indicators2mat(new_matrices[["spflow_indicators"]]),
+      approximate = approx_expectation,
+      max_it = expectation_approx_order)
+
+    result <- spflow_mat2format(
+      mat = diff_effect,
+      do_keys =  new_matrices[["spflow_indicators"]],
+      return_type =  return_type,
+      name =  "DIFF_EFFECT")
     return(result)
   })
 
@@ -733,8 +812,8 @@ setMethod(
   signature = "spflow_model",
   function(object, model = "model_9", DW, OW, add_lines = TRUE) {
 
-    if (missing(DW)) DW <- object@spflow_neighborhood[["DW"]]
-    if (missing(OW)) OW <- object@spflow_neighborhood[["OW"]]
+    if (missing(DW)) DW <- neighborhood(object, "DW")
+    if (missing(OW)) OW <- neighborhood(object, "OW")
 
     assert(inherits(DW, "maybe_Matrix"), "The DW argument musst be of class Matrix or NULL!")
     assert(inherits(OW, "maybe_Matrix"), "The OW argument musst be of class Matrix or NULL!")

@@ -123,9 +123,9 @@ corr_map <- function(cor_mat) {
     colnames(cor_mat) <- rownames(cor_mat)
 
 
-  nc_c <- max(c(nchar(colnames(cor_mat)),1.3))
-  nc_r <- max(c(nchar(rownames(cor_mat)),1.3))
-  opts <- par(mar = c(1, nc_c / 1.3, nc_c / 1.3, 1))
+  nc_c <- max(c(nchar(colnames(cor_mat))^(.85),1.3))
+  nc_r <- max(c(nchar(rownames(cor_mat))^(.85),1.3))
+  opts <- par(mar = c(1, nc_r / 1.3, nc_c / 1.3, 1))
   cor_mat_rev <- cor_mat[,rev(seq(ncol(cor_mat)))]
 
   # color

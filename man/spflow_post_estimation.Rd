@@ -9,7 +9,8 @@ spflow_post_estimation(
   spflow_networks,
   spflow_indicators,
   spflow_moments,
-  spflow_matrices
+  spflow_matrices,
+  spflow_formula
 )
 }
 \value{

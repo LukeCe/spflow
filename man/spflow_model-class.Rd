@@ -13,8 +13,9 @@
 \alias{mcmc_results,spflow_model_mcmc-method}
 \alias{nobs,spflow_model-method}
 \alias{neighborhood,spflow_model-method}
-\alias{plot,spflow_model-method}
+\alias{plot,spflow_model,ANY-method}
 \alias{predict,spflow_model-method}
+\alias{predict_effect,spflow_model-method}
 \alias{resid,spflow_model-method}
 \alias{results,spflow_model-method}
 \alias{sd_error,spflow_model-method}
@@ -33,7 +34,7 @@
 
 \S4method{neighborhood}{spflow_model}(object, which)
 
-\S4method{plot}{spflow_model}(x, y, ...)
+\S4method{plot}{spflow_model,ANY}(x, y, ...)
 
 \S4method{predict}{spflow_model}(
   object,
@@ -44,6 +45,16 @@
   expectation_approx_order = 10,
   return_type = "OD",
   add_new_signal = FALSE
+)
+
+\S4method{predict_effect}{spflow_model}(
+  object,
+  ...,
+  new_data,
+  old_signal = NULL,
+  approx_expectation = TRUE,
+  expectation_approx_order = 10,
+  return_type = "OD"
 )
 
 \S4method{resid}{spflow_model}(object, return_type = "V")
@@ -59,13 +70,10 @@
 
 \item{which}{A character vector: "OW" for origin- and "DW" for destination neighborhood}
 
-\item{return_type}{A character indicating the format of the returned values:
-\itemize{
-\item "V" leads to an atomic vector
-\item "M" leads to a OD matrix where missing data is replaced by zeros
-\item "OD" leads to a data.frame with columns being the the values
-and the id's of the destinations and the origins
-}}
+\item{return_type}{A character indicating which format the return values should
+have: "V" for vector, "M" for matrix, "OD" for data.frame
+predictions. Should be one of c("TS", "TC", "BP").
+predictions}
 
 \item{x}{A \linkS4class{spflow_model}}
 
@@ -84,8 +92,12 @@ significant performance gains.}
 
 \item{expectation_approx_order}{A numeric, defining the order of the Taylor series approximation.}
 
-\item{out_of_sample}{A logical, controlling whether to use in-sample or out of sample
-predictions}
+\item{add_new_signal}{A logical, if \code{TRUE} the new signal is added to the as a column to
+the results. This only works when the return type is "OD".}
+
+\item{old_signal}{A matrix that can be supplied to specify the reference
+value for the signal.
+If not given the signal contained in the model is used.}
 }
 \description{
 An S4 class that contains the estimation results of spatial econometric

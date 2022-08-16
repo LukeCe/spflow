@@ -70,12 +70,14 @@ spflow_post_estimation <- function(
     spflow_networks,
     spflow_indicators,
     spflow_moments,
-    spflow_matrices) {
+    spflow_matrices,
+    spflow_formula) {
 
 
   object@spflow_moments <- spflow_moments
   object@spflow_matrices <- drop_instruments(spflow_matrices)
   object@spflow_networks <- spflow_networks
+  object@spflow_formula <- spflow_formula
 
   object@spflow_indicators <- cbind(spflow_indicators, SIGNAL = NA, FITTED = NA)
   pred <- predict(
