@@ -1,25 +1,27 @@
 #' @title Simulated data for stylized versions of Germany and the USA
 #'
 #' @description
-#' The package uses the same stylized country examples as those presented by
-#' \insertCite{Yang2017;textual}{spflow}.
-#' The first example is a stylized version of Germany with 16 states.
-#' The second example is a stylized version of the USA with 51 states.
+#' The package provides two stylized country examples that have been already
+#' used by\insertCite{Yang2017;textual}{spflow}.
+#' The first example is a stylized version of Germany with 16 states and
+#' second one is based on the USA with 51 states.
 #'
 #'
-#' We provide spatial objects that contain the geography of our example,
-#' as well as two [spflow_network_nodes-class()] objects.
-#' Finally, there is an [spflow_network_multi-class()] containing the two networks
-#' and four network pair objects based on the same example.
+#' There are two \pkg{sf} objects that contain the geography and data for the country
+#' examples.
+#' The same information is also provided by two [spflow_network_nodes-class()] objects.
+#' Additionally, there is an [spflow_network_multi-class()] that contains the
+#' two [spflow_network_nodes()] and four [spflow_network_pairs()], which contain
+#' OD-pairs where each states of each country can be origins or destinations.
 #'
-#' The simulation parameters are given as `rho` for the auto-regressive
-#' parameter, `delta` for the impact of the exogenous variables and `sd_error`
-#' for standard deviation of the simulated Gaussian noise.
-#' They are used to simulate two flow vectors `y2` and `y9` for each network
-#' pair inside the `multi_net_usa_ge`.
+#' For each of the OD-pairs we simulated three flow vectors `y1`, `y2` and `y9`.
+#' The parameters used for this simulation are given as a list:
+#' `rho` contains the auto-regression parameters, `delta` contains the parameters
+#' for the exogenous variables and `sd_error` is the standard deviation of the Gaussian error term.
 #'
+#' @author Lukas Dargel
 #' @source
-#'   Simulated data inspired by
+#'   The stylized versions of Germany and the USA are inspired by
 #'   https://ialab.it.monash.edu/~dwyer/papers/maptrix.pdf
 #' @rdname example_data
 #' @name example_data
@@ -43,7 +45,7 @@
 
 #' Example data for commuting flows within Paris
 #'
-#' The package includes an example data set that contains home-to-work
+#' The package includes data set that contains home-to-work
 #' commuting flows for 71 municipalities around the center of Paris.
 #' The data for the example is stored in three objects
 #'
@@ -74,6 +76,7 @@
 #' The geographies, population, and area of the municipalities come from \href{https://public.opendatasoft.com/explore/?sort=modified}{OpenDataSoft} and are available \href{https://public.opendatasoft.com/explore/dataset/code-postal-code-insee-2015/export/?flg=fr&location=2,18.52839,-2.98471&basemap=jawg.streets}{here}.
 #' This data  set is published under an \href{https://www.etalab.gouv.fr/wp-content/uploads/2014/05/Licence_Ouverte.pdf}{OPEN LICENCE}.
 #'
+#' @author Lukas Dargel
 #' @rdname paris_data
 #' @name paris_data
 "paris10km_municipalities"

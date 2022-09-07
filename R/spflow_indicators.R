@@ -79,7 +79,7 @@ spflow_indicators2mat <- function(do_keys, do_filter = NULL, do_values = NULL) {
 #' @keywords internal
 spflow_indicators2format <-  function(do_keys_val, return_type = "V", do_filter = NULL) {
 
-  assert_valid_case(return_type, c("V","M", "OD"))
+  assert_valid_option(return_type, c("V","M", "OD"))
 
   if (return_type == "OD")
     return(do_keys_val)
@@ -102,10 +102,13 @@ spflow_indicators2format <-  function(do_keys_val, return_type = "V", do_filter 
 #' @keywords internal
 spflow_mat2format <- function(mat, do_keys, return_type = "M", name = "OD_VAR") {
 
-  assert_valid_option(return_type, c("V","M", "OD"))
+  assert_valid_option(return_type, c("V","M", "OD", "m"))
 
   if (return_type == "M")
     return(mat)
+
+  if (return_type == "m")
+    return(as.matrix(mat))
 
   is_cartesian <- nrow(do_keys) == length(mat)
   if (is_cartesian)
@@ -120,4 +123,68 @@ spflow_mat2format <- function(mat, do_keys, return_type = "M", name = "OD_VAR") 
   do_keys[[name]] <- vec
   if (return_type == "OD")
     return(do_keys)
+}
+
+
+#' @importFrom Matrix sparseMatrix
+#' @keywords internal
+matrix_format_d_o <- function(
+    values = NULL,
+    dest_index,
+    orig_index,
+    num_dest = max(dest_index),
+    num_orig = max(orig_index),
+    assume_ordered = TRUE) {
+
+  Ns <- length(dest_index)
+  N <- num_dest * num_orig
+  fill_ratio <- Ns/N
+
+  assert(length(orig_index) == Ns,"
+         The length of the origin and destination index musst be identical!")
+  assert(any(length(values) == c(0,1,Ns)),"
+         The length of the values musst match those of the indexes!")
+  assert(fill_ratio <= 1, "
+         The number of supplied values is to large
+         for the dimension of the matrix representation!")
+
+  if (fill_ratio < .5) {
+    args <- named_list(c("i","j","x","dims"))
+    args[["i"]] <- dest_index
+    args[["j"]] <- orig_index
+    args[["x"]] <- values
+    args[["dims"]] <- c(num_dest, num_orig)
+    return(do.call("sparseMatrix", args))
+  }
+
+  values <- values %||% 1L
+  if (fill_ratio == 1 & assume_ordered)
+    return(matrix(values,nrow = num_dest, ncol = num_orig))
+
+  if (fill_ratio <= 1) {
+    result_mat <- matrix(0, nrow = num_dest, ncol = num_orig)
+    result_mat[dest_index + num_dest * (orig_index - 1)] <- values
+    return(result_mat)
+  }
+
+  stop("Failed to generate matrix format. Make sure that the indexes are integers!")
+}
+
+#' @keywords internal
+matrix_format_o_d <- function(
+    values,
+    dest_index,
+    orig_index,
+    num_dest = max(dest_index),
+    num_orig = max(orig_index),
+    assume_ordered = TRUE) {
+
+  t(matrix_format_d_o(
+    values = values,
+    dest_index = dest_index,
+    orig_index = orig_index,
+    num_dest = num_orig,
+    num_orig = num_dest,
+    assume_ordered = assume_ordered))
+
 }

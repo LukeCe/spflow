@@ -13,6 +13,7 @@
 #'
 #' @family spflow simulation functions
 #' @return A vector of simulated flows
+#' @noRd
 #' @keywords internal
 spflow_sim <- function(
   exogenous_variables,

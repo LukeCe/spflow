@@ -2,7 +2,7 @@
 % Please edit documentation in R/class_spflow_network_multi.R
 \name{spflow_network_multi}
 \alias{spflow_network_multi}
-\title{Create an S4 class that contains \code{\link[=spflow_network_nodes]{spflow_network_nodes()}} and \code{\link[=spflow_network_pairs]{spflow_network_pairs()}} for one or multiple nodes}
+\title{Constructor for the \code{\link[=spflow_network_multi-class]{spflow_network_multi-class()}}}
 \usage{
 spflow_network_multi(...)
 }
@@ -13,16 +13,12 @@ spflow_network_multi(...)
 An S4 class of type \code{\link[=spflow_network_multi-class]{spflow_network_multi-class()}}
 }
 \description{
-Create an S4 class that contains \code{\link[=spflow_network_nodes]{spflow_network_nodes()}} and \code{\link[=spflow_network_pairs]{spflow_network_pairs()}} for one or multiple nodes
+Constructor for the \code{\link[=spflow_network_multi-class]{spflow_network_multi-class()}}
 }
 \examples{
 spflow_network_multi() # empty
 spflow_network_multi(germany_net,usa_net) # two nodes, no pairs
 }
 \seealso{
-Other Constructors for spflow network classes: 
-\code{\link{spflow_network_classes}},
-\code{\link{spflow_network_nodes}},
-\code{\link{spflow_network_pairs}}
+spflow_network_classes
 }
-\concept{Constructors for spflow network classes}

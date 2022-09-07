@@ -2,12 +2,19 @@
 % Please edit documentation in R/spflow_control.R
 \name{enhance_spflow_control}
 \alias{enhance_spflow_control}
-\title{Enhance the estimation_control object for estimation}
+\title{Derive additional information from the \code{\link[=spflow_control]{spflow_control()}} arguments}
 \usage{
 enhance_spflow_control(estimation_control, is_within)
 }
+\value{
+A list of control parameters
+}
 \description{
-Validate the input to flow control and add additional information related
-to the matrix form expression of the model.
+This is an internal function to validates the content of the
+\code{estimation_control} argument of \code{\link[=spflow]{spflow()}}.
+It also derives some verbal descriptions of the estimated model.
+}
+\author{
+Lukas Dargel
 }
 \keyword{internal}

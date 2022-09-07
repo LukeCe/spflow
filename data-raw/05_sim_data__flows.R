@@ -71,7 +71,7 @@ pair_neighborhoods <- lapply(spflow:::lookup(pair_ids), function(.id) {
   spflow:::expand_spflow_neighborhood(
     OW = neighborhood(multi_net_usa_ge_copy, net_pair_ids["orig"]),
     DW = neighborhood(multi_net_usa_ge_copy, net_pair_ids["dest"]),
-    flow_indicator = spflow:::get_flow_indicator(net_pair))
+    M_indicator = spflow:::get_flow_indicator(net_pair))
   })
 
 model_filters <- lapply(pair_neighborhoods, function(.nbs) {

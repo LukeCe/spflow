@@ -37,6 +37,9 @@
 #' \insertCite{LeSage2008;textual}{spflow} and further developed by
 #' \insertCite{Dargel2021;textual}{spflow} to reduce the computational
 #' effort and memory requirements.
+#' Further generalizations to deal with non-cartesian and rectangular flows
+#' are developed by \insertCite{Dargel2022;textual}{spflow}.
+#'
 #' The estimation procedure can be adjusted through the `estimation_method`
 #' argument in [spflow_control()].
 #'
@@ -152,6 +155,7 @@
 #'
 #' @references \insertAllCited{}
 #' @seealso [spflow_control()] [spflow_network_classes()]
+#' @author Lukas Dargel
 #' @export
 spflow <- function(
     spflow_formula,
@@ -193,7 +197,7 @@ spflow <- function(
     do_keys = spflow_indicators,
     do_filter = "IN_SAMPLE",
     do_values = "WEIGHTS")
-  spflow_moments <- compute_spflow_moments(
+  spflow_moments <- derive_spflow_moments(
     spflow_matrices = spflow_matrices,
     n_o = spflow_obs[["N_orig"]],
     n_d = spflow_obs[["N_dest"]],
@@ -231,7 +235,7 @@ parameter_names <- function(
 
   x_prefs <- list("D_" = "DEST_","O_" = "ORIG_","I_" = "INTRA_")
   names_X <- lapply(compact(model_matrices[names(x_prefs)]), "colnames")
-  names_X <- Map("%p%", x_prefs[names(names_X)], names_X)
+  names_X <- Map("paste0", x_prefs[names(names_X)], names_X)
   names_X <- unlist(names_X, use.names = FALSE)
 
   names_G <- names(model_matrices$G)

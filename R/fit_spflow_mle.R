@@ -55,7 +55,9 @@ spflow_mle <- function(
   # inference
   sigma2 <-  as.numeric(1 / N * (tau %*% RSS %*% tau))
 
-  hessian_inputs <- collect(c("ZZ","ZY","TSS","rho","delta","sigma2","N"))
+  hessian_inputs <- list(
+    "ZZ" = ZZ, "ZY" = ZY, "TSS" = TSS, "N" = N,
+    "rho" = rho, "delta" = delta, "sigma2" = sigma2)
 
   if ( hessian_method == "mixed" ) {
     mixed_specific <- list("numerical_hess" = -optim_results$hessian)

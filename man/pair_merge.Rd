@@ -4,8 +4,7 @@
 \name{pair_merge}
 \alias{pair_merge}
 \alias{pair_merge,spflow_network_multi-method}
-\title{Generic for merging information on origins and destination to node
-pairs inside \link[=spflow_network_classes]{spflow network classes}}
+\title{Create a long form data.frame of origin-destination pairs}
 \usage{
 pair_merge(object, ...)
 
@@ -48,11 +47,8 @@ possible pairs of origins and destination, even if the data in the
 A single data.frame, combining all available information on origins, destinations and OD pairs
 }
 \description{
-For details on the methods see the documentation of the
-corresponding classes.
-
 The method merges all available information on origins and destinations to
-the data.frame describing the pairs.
+the data.frame describing the OD-pairs.
 }
 \examples{
 # long form data for flows from Germany to Germany
@@ -63,4 +59,7 @@ pair_merge(multi_net_usa_ge,"ge_usa")
 }
 \seealso{
 \code{\link[=spflow_network_multi-class]{spflow_network_multi-class()}}
+}
+\author{
+Lukas Dargel
 }

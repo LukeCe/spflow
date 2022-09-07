@@ -68,7 +68,7 @@ rho <- c("rho_d" = .3, "rho_o" = .5, "rho_w" = -.2)
 
 
 expect_equal({
-  compute_diag_precision_mat(
+  spflow:::compute_diag_precision_mat(
     DW = DW,
     OW = OW,
     rho = rho["rho_d"],
@@ -84,7 +84,7 @@ expect_equal({
 info = "test calculation of the diagonal of the precision matrix (cartesian case model 2)")
 
 expect_equal({
-  compute_diag_precision_mat(
+  spflow:::compute_diag_precision_mat(
     DW = DW,
     OW = OW,
     rho = rho["rho_o"],
@@ -100,7 +100,7 @@ expect_equal({
 info = "test calculation of the diagonal of the precision matrix (cartesian case model 3)")
 
 expect_equal({
-  compute_diag_precision_mat(
+  spflow:::compute_diag_precision_mat(
     DW = DW,
     OW = OW,
     rho = rho["rho_w"],
@@ -116,7 +116,7 @@ expect_equal({
 info = "test calculation of the diagonal of the precision matrix (cartesian case model 4)")
 
 expect_equal({
-  compute_diag_precision_mat(
+  spflow:::compute_diag_precision_mat(
     DW = DW,
     OW = OW,
     rho = rho,
@@ -140,7 +140,7 @@ sg <- as.logical(I_gamma)
 
 
 expect_equal({
-  compute_diag_precision_mat(
+  spflow:::compute_diag_precision_mat(
     DW = DW,
     OW = OW,
     rho = rho["rho_d"],
@@ -158,7 +158,7 @@ expect_equal({
 info = "test calculation of the diagonal of the precision matrix (non-cartesian case model 2)")
 
 expect_equal({
-  compute_diag_precision_mat(
+  spflow:::compute_diag_precision_mat(
     DW = DW,
     OW = OW,
     rho = rho["rho_o"],
@@ -175,7 +175,7 @@ expect_equal({
 info = "test calculation of the diagonal of the precision matrix (non-cartesian case model 3)")
 
 expect_equal({
-  compute_diag_precision_mat(
+  spflow:::compute_diag_precision_mat(
     DW = DW,
     OW = OW,
     rho = rho["rho_w"],
@@ -192,7 +192,7 @@ expect_equal({
 info = "test calculation of the diagonal of the precision matrix (non-cartesian case model 4)")
 
 expect_equal({
-  compute_diag_precision_mat(
+  spflow:::compute_diag_precision_mat(
     DW = DW,
     OW = OW,
     rho = rho,

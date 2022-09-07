@@ -19,19 +19,21 @@
 #'   (see [spflow_control()])
 #' @slot estimation_diagnostics
 #'   A list of further indicators about the estimation
-#' @slot spflow_matrices A list or NULL
-#' @slot spflow_data
-#'   A list containing the data.frames for origins, destinations, and od-pairs
+#' @slot spflow_formula
+#'   A formula
+#' @slot spflow_networks
+#'   A [spflow_network_multi-class()]
+#' @slot spflow_matrices
+#'   A list or NULL
 #' @slot spflow_formula
 #'   The formula used to fit the model
 #' @slot spflow_indicators
 #'   A data.frame containing the indicators of od-pairs
 #' @slot spflow_moments
 #'   A list of moment matrices used for estimating the model
-#' @slot spflow_neighborhood
-#'   The neighborhood matrices for origins and destinations
 #'
 #' @name spflow_model-class
+#' @author Lukas Dargek
 #' @aliases spflow_model_mcmc, spflow_model_mle, spflow_model_s2sls, spflow_model_ols
 #' @seealso [spflow()], [spflow_network_classes()]
 #' @export
@@ -61,15 +63,14 @@
 #'   multi_net_usa_ge,
 #'   estimation_control = spflow_control(estimation_method = "mcmc",
 #'                                 model = "model_2"))
-#' results(spflow_results)
-#' mcmc_results(spflow_results_mcmc) # parameter values during the mcmc sampling
-#'
+#' results(spflow_results_mcmc)
+#' plot(mcmc_results(spflow_results_mcmc)) # parameter values during the mcmc sampling
 setClass("spflow_model", slots = c(
   estimation_results = "data.frame",
   estimation_control = "list",
   estimation_diagnostics = "list",
+  spflow_formula = "formula",
   spflow_networks = "maybe_spflow_network_multi",
-  spflow_formula = "maybe_formula",
   spflow_moments = "maybe_list",
   spflow_matrices = "maybe_list",
   spflow_indicators = "maybe_data.frame"))
@@ -91,27 +92,30 @@ setClassUnion("spflow_model_spatial",
 # ---- Methods ----------------------------------------------------------------
 # ---- ... coef ---------------------------------------------------------------
 #' @title Extract the coefficient vector from a spatial interaction model
-#' @param object A [spflow_model-class()]
 #' @rdname spflow_model-class
+#' @param param_subset
+#'  A character indicating the subset of model parameters to be returned "rho"
+#'  relates to the autoregression parameters and "delta" to those of the
+#'  exogenous variables.
 #' @export
 setMethod(
   f = "coef",
   signature = "spflow_model",
-  function(object, which = NULL) {
+  function(object, param_subset = NULL) {
 
     results_df <- object@estimation_results
     coefs <- lookup(results_df$est,rownames(results_df))
 
-    if (is.null(which))
+    if (is.null(param_subset))
       return(coefs)
 
     nb_rho <- spatial_model_order(object@estimation_control$model)
     res <- NULL
-    if ("rho" %in% which & nb_rho > 0) {
+    if ("rho" %in% param_subset & nb_rho > 0) {
       res <- c(res,coefs[seq_len(nb_rho)])
     }
 
-    if ("delta" %in% which) {
+    if ("delta" %in% param_subset) {
       res <- c(res,coefs[seq(from = 1 + nb_rho, to = length(coefs))])
     }
 
@@ -160,7 +164,7 @@ setMethod(
   signature = "spflow_model_mle",
   function(object) return(object@estimation_diagnostics[["ll"]]))
 
-# ---- ... mcmc_results ------------------------------------------------------
+# ---- ... mcmc_results -------------------------------------------------------
 #' @rdname spflow_model-class
 setMethod(
   f = "mcmc_results",
@@ -168,8 +172,8 @@ setMethod(
   function(object) return(object@estimation_diagnostics[["mcmc_results"]]))
 
 # ---- ... nobs ---------------------------------------------------------------
-#' @title Access the number of observations inside a [spflow_model]
-#' @param object A [spflow_model()]
+#' @title Access the number of observations inside a [spflow_model-class()
+#' @param object A [spflow_model-class()]
 #' @param which
 #'   A character vector indicating the subset of observations to consider
 #'   should be one of `c("fit", "cart", "pop", "pair", "orig", "dest")`.
@@ -179,78 +183,75 @@ setMethod(
   f = "nobs",
   signature = "spflow_model",
   function(object, which = "sample") {
-    assert_valid_case(which, c("sample", "cart", "pop", "pair", "orig", "dest"))
+    assert_valid_option(which, c("sample", "cart", "pop", "pair", "orig", "dest"))
     return(object@estimation_diagnostics[[paste0("N_", which)]])
   })
 
 
 # ---- ... neighborhood -------------------------------------------------------
 #' @title Access the origin or destination neighborhood of a spflow_model
-#' @param object A [spflow_model()]
-#' @param which
+#' @param object A spflow_model
+#' @param which_nb
 #'   A character vector: "OW" for origin- and "DW" for destination neighborhood
 #' @rdname spflow_model-class
 #' @export
 setMethod(
   f = "neighborhood",
   signature = "spflow_model",
-  function(object, which) {
+  function(object, which_nb) {
 
-    assert_valid_option(which, c("OW", "DW"))
+    assert_valid_option(which_nb, c("OW", "DW"))
     if (is.null(object@spflow_networks))
       return(NULL)
 
     od_id <- id(object@spflow_networks@pairs[[1]])
-    od_id <- od_id[ifelse(which == "OW", "orig", "dest")]
+    od_id <- od_id[ifelse(which_nb == "OW", "orig", "dest")]
     neighborhood(object@spflow_networks, od_id)
   })
 
 
-# ---- ... pair_corr ----------------------------------------------------------
-#' @param type
-#'   A character, that should indicate one of `c("fit", "empiric")`
-#'   - "fit" will use the moments that have been used during the estimation
-#'   - "empric" will recompute these moments ignoring the weights
+# ---- ... pair_cor ----------------------------------------------------------
 #' @param add_resid,add_fitted
-#'   A logical, indicating whether the model residuals and fitted value
+#'   Logicals, indicating whether the model residuals and fitted value
 #'   should be added to the correlation matrix
-#' @param model
-#'  A character that should indicate one of `paste0("model_", 1:9)`.
-#'  The option specifies different correlation structures that are detailed in
-#'  the help page of [spflow_control()]
-#'
-#' @rdname pair_corr
+#' @param exploit_fit
+#'   A logical, if `TRUE` the correlation that is generated as a byproduct of
+#'   fitting the model is returned.
+#'   Otherwise it is recreated from the input data, without considering the
+#'   weights.
+#' @inheritParams spflow_control
+#' @rdname pair_cor
 #' @export
 #' @examples
+#' # Used with a model...
+#' gravity_ge <- spflow(
+#'   y1 ~ . + P_(DISTANCE),
+#'   multi_net_usa_ge,
+#'   "ge_ge",
+#'   spflow_control(model = "model_1"))
 #'
-#'  # Used with a model...
-#'  gravity_ge <- spflow(
-#'    y1 ~ . + P_(DISTANCE),
-#'    multi_net_usa_ge,
-#'    "ge_ge",
-#'    spflow_control(model = "model_1"))
-#'
-#'  corr_mat <- pair_corr(gravity_ge)
-#'  corr_map(corr_mat)
+#' cor_mat <- pair_cor(gravity_ge)
+#' cor_image(cor_mat)
 #'
 setMethod(
-  f = "pair_corr",
+  f = "pair_cor",
   signature = "spflow_model",
-  function(object, type = "fit", add_fitted = TRUE, add_resid = TRUE, model) {
+  function(object, add_fitted = TRUE, add_resid = TRUE, model, exploit_fit = TRUE) {
 
-    type_options <- c("fit", "empiric")
-    assert_valid_case(type, type_options)
+    assert_is_single_x(add_fitted, "logical")
+    assert_is_single_x(add_resid, "logical")
+    assert_is_single_x(exploit_fit, "logical")
 
     new_mat <- object@spflow_matrices
     new_mat[["CONST"]][["(Intercept)"]] <- 1
     new_mom <- object@spflow_moments
-    keep_moments <- type == "fit" || is.null(object@estimation_control[["weight_variable"]])
+    keep_moments <- exploit_fit || is.null(object@estimation_control[["weight_variable"]])
     new_mat[["weights"]] <- NULL
     if (!keep_moments) {
       # for empiric version we drop the weights
       N <-  object@spflow_indicators
       N <- if (is.null(N[["IN_SAMPLE"]])) nrow(N) else sum(N[["IN_SAMPLE"]])
-      new_mom <- compute_spflow_moments(
+      new_mom <- derive_spflow_moments(
         spflow_matrices = new_mat,
         n_o = new_mom[["n_o"]],
         n_d = new_mom[["n_d"]],
@@ -357,39 +358,46 @@ setMethod(
     if (inherits(x, "spflow_model_mcmc"))
       plot(mcmc_results(x),density = FALSE, ask = FALSE)
 
-    corr_map(pair_corr(x))
+    cor_image(pair_cor(x))
     })
 
 
 # ---- ... predict ------------------------------------------------------------
-#' @title Prediction methods for spatial interaction models
-#' @param object A [spflow_model()]
+#' @title Prediction methods for the [spflow_model-class()]
+#'
+#' @description
+#' The methods `predict()` and `predict_effect()` compute spatial predictions.
+#' The former will return the predicted values of the dependent variables and
+#' the later computes the change in its levels given the input data changes.
+#'
+#' @param object A [spflow_model-class()]
 #' @param method A character indicating which method to use for computing the
 #'   predictions. Should be one of c("TS", "TC", "BP").
-#' @param new_data An object containing new data (to be revised)
+#' @param old_signal
+#'   A matrix that can be supplied to specify the reference value for the signal.
+#'   If not given the signal contained in the model is used.
 #' @param approx_expectation
 #'   A logical, if `TRUE` the expected value of the dependent variable is
 #'   approximated by a Taylor series. For spatial models this can lead to
 #'   significant performance gains.
 #' @param expectation_approx_order
 #'   A numeric, defining the order of the Taylor series approximation.
-#' @param return_type A character indicating which format the return values should
-#'   have: "V" for vector, "M" for matrix, "OD" for data.frame
-#'   predictions. Should be one of c("TS", "TC", "BP").
 #' @param add_new_signal
 #'   A logical, if `TRUE` the new signal is added to the as a column to
 #'   the results. This only works when the return type is "OD".
-#' @param ... Further arguments passed to the prediction function
 #'
+#' @inheritParams spflow_network_multi-class
+#' @inheritParams spflow_model-class
 #' @importFrom Matrix crossprod diag solve
-#' @rdname spflow_model-class
+#' @aliases predict,spflow_model-method predict_effect,spflow_model-method
+#' @rdname predict
+#' @return Predicted values in the format specified by the argument return_type.
 #' @export
 setMethod(
   f = "predict",
   signature = "spflow_model",
   function(object,
-           ...,
-           new_data = NULL,
+           new_dat = NULL,
            method = "BPA",
            approx_expectation = TRUE,
            expectation_approx_order = 10,
@@ -400,7 +408,7 @@ setMethod(
     insample_methods <- c("TS","BPI","TCI")
     fullpop_methods <- c("BPA","TC","BP")
     assert_valid_option(method, c(insample_methods, fullpop_methods))
-    assert(is.null(new_data) | method %in% fullpop_methods,
+    assert(is.null(new_dat) | method %in% fullpop_methods,
            "In sample methods are invalid when new data is supplied!")
 
 
@@ -409,12 +417,12 @@ setMethod(
     rho <- coef(object, "rho")
     delta <- coef(object, "delta")
 
-    if (is.null(new_data)) {
+    if (is.null(new_dat)) {
       spflow_indicators <- object@spflow_indicators
       spflow_matrices <- object@spflow_matrices
     }
 
-    if (!is.null(new_data)) {
+    if (!is.null(new_dat)) {
       stop("Data update not yet implmented!")
 
     }
@@ -560,35 +568,14 @@ setMethod(
 
 
 # ---- ... predict_effect -----------------------------------------------------
-#' @title Prediction methods for spatial interaction models
-#' @param object A [spflow_model()]
-#' @param method A character indicating which method to use for computing the
-#'   predictions. Should be one of c("TS", "TC", "BP").
-#' @param new_data An object containing new data (to be revised)
-#' @param old_signal A matrix that can be supplied to specify the reference
-#'   value for the signal.
-#'   If not given the signal contained in the model is used.
-#' @param approx_expectation
-#'   A logical, if `TRUE` the expected value of the dependent variable is
-#'   approximated by a Taylor series. For spatial models this can lead to
-#'   significant performance gains.
-#' @param expectation_approx_order
-#'   A numeric, defining the order of the Taylor series approximation.
-#' @param return_type A character indicating which format the return values should
-#'   have: "V" for vector, "M" for matrix, "OD" for data.frame
-#'   predictions. Should be one of c("TS", "TC", "BP").
-#'   predictions
-#' @param ... Further arguments passed to the prediction function
-#'
-#' @importFrom Matrix crossprod diag solve
-#' @rdname spflow_model-class
+#' @name predict_effect
+#' @rdname predict
 #' @export
 setMethod(
   f = "predict_effect",
   signature = "spflow_model",
   function(object,
-           ...,
-           new_data,
+           new_dat,
            old_signal = NULL,
            approx_expectation = TRUE,
            expectation_approx_order = 10,
@@ -599,7 +586,7 @@ setMethod(
     rho <- coef(object, "rho")
     delta <- coef(object, "delta")
 
-    new_networks <- update_dat(object@spflow_networks, new_data)
+    new_networks <- update_dat(object@spflow_networks, new_dat)
     new_matrices <- derive_spflow_matrices(
       id_spflow_pairs = names(new_networks@pairs)[1],
       spflow_networks = new_networks,
@@ -636,7 +623,7 @@ setMethod(
   })
 
 # ---- ... resid --------------------------------------------------------------
-#' @title Extract the vector of residuals values from a [spflow_model()]
+#' @title Extract the vector of residuals values from a [spflow_model-class()]
 #' @rdname spflow_model-class
 #' @export
 setMethod(
@@ -709,6 +696,9 @@ setMethod(
     cat(sprintf("\nSpatial correlation structure: %s (%s)",
                 cntrl$spatial_type,
                 cntrl$model))
+    cat(sprintf("\nDependent variable: %s",
+                as.character(pull_lhs(object@spflow_formula))[-1]))
+
 
     cat("\n\n")
     cat(print_line(50))
@@ -732,16 +722,12 @@ setMethod(
 
 
 # ---- ... spflow_map ---------------------------------------------------------
-#' @param object
-#'   A [spflow_model-class()]
 #' @param flow_type
 #'   A character indicating what to values to show.
 #'   Should be one of c("resid", "fitted", "actual").
 #' @param add_title
 #'   A logical, if `TRUE` the flow_type is added as title.
-#' @param ... further arguments passed to [map_flows()]
 #' @rdname spflow_map
-#' @seealso [map_flows()]
 #' @export
 #' @examples
 #'
@@ -769,7 +755,7 @@ setMethod(
       "resid" = "Residuals",
       "fitted" = "Fitted values",
       "actual" = "True values")
-    assert_valid_case(flow_type, names(type_options))
+    assert_valid_option(flow_type, names(type_options))
 
     do_flows <- match.fun(flow_type)(object, "OD")
     args <- list(
@@ -795,16 +781,19 @@ setMethod(
 #'   Defaults to the one supplied to the model.
 #' @param add_lines
 #'   A logical, if `TRUE` regression lines are added to the Moran scatter plots.
+#' @inheritParams spflow_control
 #' @rdname spflow_moran_plots
+#' @export
 #' @examples
 #'
-#'  # Used with a model...
-#'  # To check the if there is spatial correlation in the residuals
+#'  # Used with a spflow_model...
+#'  # Check the if there is spatial correlation in the residuals
 #'  gravity_ge <- spflow(
 #'    y9 ~ . + P_(DISTANCE),
 #'    multi_net_usa_ge,
 #'    "ge_ge",
 #'    spflow_control(model = "model_1"))
+#'
 #'  spflow_moran_plots(gravity_ge)
 #'
 setMethod(
@@ -850,8 +839,8 @@ setMethod(
 
 
 # ---- ... varcov -------------------------------------------------------------
-#' @param object A [spflow_model-class()]
 #' @rdname spflow_model-class
+#' @export
 setMethod(
   f = "varcov",
   signature = "spflow_model_varcov",
@@ -861,21 +850,13 @@ setMethod(
 # ---- Constructors -----------------------------------------------------------
 #' @title Internal function to construct a [spflow_model-class()]
 #'
-#' @param estimation_results A data.frame of estimation [results()]
-#' @param estimation_control A list of control parameters
-#' @param N A numeric indicating the number of observations
-#' @param sd_error A numeric which reports the
-#' @param R2_corr A numeric which reports a pseudo R^2 measure
-#' @param resid A numeric vector of regression residuals
-#' @param fitted A numeric vector of fitted values
-#' @param spatial_filter_matrix A matrix which represents the spatial filter
-#' @param spflow_matrices The design matrix/matrices of the model
 #' @param ...
 #'   Further arguments passed to more specific classes in accordance to the
 #'   estimation method
 #'
 #' @importFrom methods slot<- slot
 #' @keywords internal
+#' @noRd
 spflow_model <- function(
     ...,
     estimation_results,

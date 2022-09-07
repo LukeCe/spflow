@@ -3,9 +3,9 @@
 #' @title Class spflow_network_multi
 #'
 #' @description
-#' A S4 class that gathers information on multiple [spflow_network_nodes()] and [spflow_network_pairs()].
+#' An S4 class that gathers information on multiple [spflow_network_nodes()] and [spflow_network_pairs()].
 #' Its purpose is to ensure that the identification between the nodes that
-#' serve as origins or destinations, and the od-pairs is consistent
+#' serve as origins or destinations, and the OD-pairs is consistent
 #' (similar to relational data bases).
 #'
 #' @slot nodes A list of [spflow_network_nodes-class()] objects
@@ -160,7 +160,7 @@ setMethod(
   })
 
 
-# ---- ... pair_corr ----------------------------------------------------------
+# ---- ... pair_cor ----------------------------------------------------------
 #' @param id_spflow_pairs
 #'   A character indicating the id of a [spflow_network_pairs-class()]
 #' @param spflow_formula
@@ -173,26 +173,23 @@ setMethod(
 #'   A logical, indicating whether spatial lags of the dependent variables
 #'   should be included.
 #'
-#' @rdname pair_corr
+#' @rdname pair_cor
 #' @export
 #' @examples
 #'
 #' # Used with a spflow_network_multi ...
+#' cor_mat <- pair_cor(multi_net_usa_ge, "ge_ge") # without transformations
+#' cor_image(cor_mat)
 #'
-#' # without transformations
-#' corr_mat <- pair_corr(multi_net_usa_ge, "ge_ge")
-#' corr_map(corr_mat)
-#'
-#' # with transformations and spatial lags
-#' corr_mat <- pair_corr(
+#' cor_mat <- pair_cor( # with transformations and spatial lags
 #'   multi_net_usa_ge,
 #'   "ge_ge",
 #'   y9 ~ . + P_(log(DISTANCE + 1) + .),
 #'   add_lags_y = TRUE)
-#' corr_map(corr_mat)
+#' cor_image(cor_mat)
 #'
 setMethod(
-  f = "pair_corr",
+  f = "pair_cor",
   signature = "spflow_network_multi",
   function(object,
            id_spflow_pairs = id(object)[["pairs"]][[1]] ,
@@ -227,7 +224,7 @@ setMethod(
     spflow_matrices[["spflow_indicators"]] <- NULL
     spflow_obs <- spflow_indicators2obs(spflow_indicators)
     wt <- spflow_indicators2mat(spflow_indicators, do_filter = "IN_SAMPLE", do_values = "WEIGHTS")
-    mom <- compute_spflow_moments(
+    mom <- derive_spflow_moments(
       spflow_matrices = spflow_matrices,
       n_o = spflow_obs[["N_orig"]],
       n_d = spflow_obs[["N_dest"]],
@@ -239,12 +236,6 @@ setMethod(
   })
 
 # ---- ... pair_merge ---------------------------------------------------------
-#' @title Create a long form data.frame of origin-destination pairs
-#'
-#' @description
-#' The method merges all available information on origins and destinations to
-#' the data.frame describing the pairs.
-#'
 #' @param object
 #'   A [spflow_network_multi-class()]
 #' @param id_spflow_pairs
@@ -448,8 +439,7 @@ setMethod(
 # ---- ... spflow_map  --------------------------------------------------------
 #' @rdname spflow_map
 #' @inheritParams spflow
-#' @param flow_var
-#'   A character, indicating one variable from the network pair data
+#' @param flow_var A character, indicating one variable from the network pair data
 #' @export
 #' @examples
 #'
@@ -573,16 +563,18 @@ setMethod(
 # ---- ... update_dat ---------------------------------------------------------
 #' @rdname spflow_network_multi-class
 #' @param new_dat
-#'   A named list of data.frames.
-#'   The names should correspond to spflow_network_nodes or spflow_pair objects inside
-#'   the spflow_network_multi.
+#'   A named list of data.frames that contain the new data.
+#'   The names should correspond to spflow_network_nodes or spflow_pair
+#'   objects contained in the [spflow_network_multi-class()].
 #' @param value A data.frame to replace the existing data
 #' @export
 #' @examples
-#' ## access the data of a network or a network_pair inside a multi_network
 #'
-#' dat(multi_net_usa_ge, "ge")    # extract data of nodes
-#' dat(multi_net_usa_ge, "ge_ge") # extract data of pairs
+#' # update data for individual observations
+#' new_ge <- dat(multi_net_usa_ge, "ge")[1:2,1:2]
+#' new_ge$X <- new_ge$X * .25
+#' multi_net_usa_ge2 <- update_dat(multi_net_usa_ge, list("ge" = new_ge))
+#' dat(multi_net_usa_ge2, "ge")
 #'
 setMethod(
   f = "update_dat",
@@ -673,12 +665,12 @@ setValidity("spflow_network_multi", function(object) {
 
 # ---- Constructors -----------------------------------------------------------
 
-#' Create an S4 class that contains [spflow_network_nodes()] and [spflow_network_pairs()] for one or multiple nodes
+#' Constructor for the [spflow_network_multi-class()]
 #'
 #' @param ... objects of type [spflow_network_nodes()] and [spflow_network_pairs()]
 #'
 #' @return An S4 class of type [spflow_network_multi-class()]
-#' @family Constructors for spflow network classes
+#' @seealso spflow_network_classes
 #' @export
 #' @examples
 #' spflow_network_multi() # empty

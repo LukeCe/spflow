@@ -21,7 +21,6 @@
 #' @param object A spflow_network_nodes-class
 #' @param value An object to replace the existing id/data/neighborhood
 #' @importClassesFrom Matrix Matrix
-#' @family spflow network classes
 #' @name spflow_network_nodes-class
 #' @export
 setClass("spflow_network_nodes",
@@ -165,7 +164,7 @@ setMethod(
     has_data <- !is.null(dat(object))
     if (has_data) {
       cat("\n\nData on nodes:\n")
-      print(dat(object))
+      pprint_df(dat(object))
     }
     cat("\n")
     invisible(object)
@@ -195,7 +194,7 @@ setMethod(
            id(object), deparse(keys))
 
     new_dat[[keys]] <- factor(new_dat[[keys]], levels(dat(object)[[keys]]))
-    assert(!any(is.na(new_dat) && has_distinct_elements(new_dat[[keys]])),
+    assert(!any(is.na(new_dat)) && has_distinct_elements(new_dat[[keys]]),
            'Some keys in new_dat are duplicated or do not correpond to
            observations in spflow_network_nodes with id "%s"!',
            id(object))
@@ -303,7 +302,6 @@ setValidity(
 #'   A logical, if `TRUE` the neighborhood will be row-normalized, otherwise
 #'   it is scaled to have a spectral radius of one.
 #'
-#' @family Constructors for spflow network classes
 #' @importClassesFrom Matrix Matrix
 #' @return An S4 class of type [spflow_network_nodes-class()]
 #' @export
@@ -396,7 +394,8 @@ valid_spflow_network_nodes_id <- function(key) {
   is_single_character(key) && grepl("^[[:alnum:]]+$",key)
 }
 
-#' @title Convert spatial data to a simple data.frame
+#' @description  Convert spatial data to a simple data.frame
+#' @noRd
 #' @keywords internal
 simplfy2df <- function(df, derive_coord_cols = TRUE, prefer_lonlat = TRUE) {
 

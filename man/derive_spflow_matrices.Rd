@@ -2,7 +2,7 @@
 % Please edit documentation in R/spflow_matrices.R
 \name{derive_spflow_matrices}
 \alias{derive_spflow_matrices}
-\title{Generate the design matrices for the spatial interaction model}
+\title{Compute the design matrices used during the estimation with \code{\link[=spflow]{spflow()}}}
 \usage{
 derive_spflow_matrices(
   id_spflow_pairs,
@@ -13,41 +13,50 @@ derive_spflow_matrices(
 )
 }
 \value{
-A list of design matrices for the spatial interaction model
+A list containing all design matrices required for estimation, impact calculation and prediction
 }
 \description{
-Create the model matrices required for matrix-form estimation of
-the spatial econometric interaction model.
+These are internal functions called within the estimation procedure
 }
 \details{
 The key to an efficient estimation is to preserve the relational
 representation of the data for origins, destinations and
 origins-destinations pairs.
-This requires to be aware of the;
+This requires to be aware of the following;
 \itemize{
-\item three sources of data (pair, orig, dest)
-\item three parts of the formula (norm, sdm, inst)
-\item five roles of the variables (Y_, P_, D_, O_, I_)
+\item there are up to three sources of data: OD-pairs & origin-nodes & destination-nodes
+\item each variable may be used in three different ways: directly & as a spatial lag
+(like in the SDM) & as an instrument for the S2SLS estimator
+\item the model matrices can be split into five groups
+\enumerate{
+\item "Y_" = OD-flows (the dependent variable, in matrix form)
+\item "P_" = OD-pair attributes (in matrix form)
+\item "D_" = destination attributes
+\item "O_" = origin attributes
+\item "I_" = intra-regional attributes
+}
 }
 
-The additional separation of data sources and roles makes sense if the list
-of origins coincides with the list of destinations.
-In this case, we can use data from the same source as origin, destination,
-or intra-regional characteristics.
+The additional separation of model matrices and data-sources makes sense if
+the list of origins coincides with the list of destinations.
+In this case, we can use data from the same set of nodes as origin,
+destination, and intra-regional characteristics and each of these enter
+the model in different ways.
 
-The model formulas contain information about mathematical transformations
-of the variables and allow to deduce number of spatial lags required for
-each of them.
-To apply the transformations we use R's build-in tools for handling formulas.
-Spatial lags are calculated after the transformations have been applied.
+The model formula interface in \code{\link[=spflow]{spflow()}} is used to specify, how the variables
+in the data-sources are used.
+Any transformations of variables are handled by  R's build-in tools and
+spatial lags, that are specified in the augments \code{sdm_variables} and
+\code{twosls_instrumental_variables} to \code{\link[=spflow_control]{spflow_control()}} are calculated after
+transformations have been applied.
 Below is an explanation of the formula parts:
 \itemize{
-\item norm variables are not lagged
-\item sdm variables are lagged once and used as explanatory variables
-\item inst variables are lagged twice and used as instruments.
-If a variable is at the same time inst and sdm we have to increase the
-lags-order to avoid duplicating columns
-(see \insertCite{Dargel2021}{spflow}).
+\item "norm" variables are not lagged
+\item "sdm" variables are lagged once and used as explanatory variables
+\item "inst" variables are lagged twice and used as instruments.
+If a variable is at the same time as instrument and as sdm-variable we
+have to increase the lags-order to avoid multicollinearity issues
+\insertCite{Dargel2021}{spflow}.
 }
 }
 \references{

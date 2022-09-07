@@ -1,9 +1,4 @@
-#' @include utils_classes.R spflow_package.R
-
-# This script adds new generics and virtual classes that are used inside the
-# package it should be run before all other classes which is ensured by the
-# class_[abc] naming convention for scripts that define classes.
-
+#' @include spflow_package.R utils.R
 
 # ---- Maybe Classes ----------------------------------------------------------
 # allow NULL slots during instantiation of classes
@@ -18,14 +13,29 @@ setClassUnion("maybe_mcmc"      , c("NULL", "mcmc"))
 setClassUnion("maybe_numeric"   , c("NULL", "numeric"))
 
 # ---- New Generics -----------------------------------------------------------
+#' @title Generic functions for the [spflow_network_classes()]
+#'   and the [spflow_model-class()]
+#' @description
+#'   Most of these generic functions link to simple accessing or
+#'   replacement methods, and do not have their own documentation page.
+#'   The associated methods are documented within the corresponding classes.
+#'
+#'   Generics with more complex methods have their dedicated documentation pages.
+#'
+#'   Also note that some generic functions are currently not exported and meant
+#'   to be used by package developers only.
+#'
+#' @param object A [spflow_model-class()] or [spflow_network_classes()]
+#' @param ... Arguments passed on to methods
+#' @param value An appropriate replacement value
+#' @name spflow_generics
+#' @seealso
+#'   - Documentation of classes: [spflow_model-class()], [spflow_network_classes()]
+#'   - Other generics and methods: [pair_cor()], [pair_merge()], [predict()], [predict_effect()], [spflow_moran_plots()], [spflow_map()]
+NULL
 
 # ---- ... complete_pairs -----------------------------------------------------
-#' @title Generic for completing the missing od-pairs in a [spflow_network_multi()]
-#' @description For details see the documentation of the corresponding class.
-#' @param object A [spflow_model-class()]
-#' @param ... Arguments passed on to methods
-#' @return A [spflow_model-class()]
-#' @seealso [spflow_model-class()]
+#' @rdname spflow_generics
 #' @name complete_pairs
 #' @export
 setGeneric(
@@ -33,22 +43,17 @@ setGeneric(
   def = function(object, ...) standardGeneric("complete_pairs"))
 
 # ---- ... coord --------------------------------------------------------------
+#' @rdname spflow_generics
+#' @name coord
 #' @keywords internal
+#' @usage coord(object, ...) # internal
 setGeneric(
   name = "coord",
   def = function(object, ...) standardGeneric("coord"))
 
 # ---- ... dat ----------------------------------------------------------------
-#' @title Generic for accessing the data inside
-#'   [spflow network classes][spflow_network_classes()]
-#' @description For details on the methods see the documentation of the
-#'   corresponding classes.
-#' @param object An object belonging to the [spflow network classes][spflow_network_classes()]
-#' @param ... Arguments to be passed to methods
-#' @return A the data.frame describing the set of nodes or node-pairs
+#' @rdname spflow_generics
 #' @name dat
-#' @aliases dat-set
-#' @seealso [spflow_network_classes()]
 #' @export
 setGeneric(
   name = "dat",
@@ -56,9 +61,9 @@ setGeneric(
 
 
 # ---- ... dat<- --------------------------------------------------------------
-#' @param value A data.frame to replace existing data
-#' @rdname dat
+#' @rdname spflow_generics
 #' @name dat<-
+#' @aliases dat-set
 #' @export
 setGeneric(
   name = "dat<-",
@@ -66,18 +71,8 @@ setGeneric(
 
 
 # ---- ... id -----------------------------------------------------------------
-#' @title Generic for accessing the ids of
-#'   [spflow network classes][spflow_network_classes()]
-#' @description For details on the methods see the documentation of the
-#'   corresponding classes.
-#' @title Access the id of [spflow network classes][spflow_network_classes()]
-#' @description For details see the documentation of the corresponding classes.
-#' @param object A [spflow network class][spflow_network_classes()]
-#' @param ... Arguments to be passed to methods
-#' @return A character, corresponding to the id
+#' @rdname spflow_generics
 #' @name id
-#' @aliases id-set
-#' @seealso [spflow_network_classes()]
 #' @export
 setGeneric(
   name = "id",
@@ -85,9 +80,9 @@ setGeneric(
 
 
 # ---- ... id<- ---------------------------------------------------------------
-#' @param value A character replacing the existing id
-#' @rdname id
+#' @rdname spflow_generics
 #' @name id<-
+#' @aliases id-set
 #' @export
 setGeneric(
   name = "id<-",
@@ -95,11 +90,7 @@ setGeneric(
 
 
 # ---- ... mcmc_results -------------------------------------------------------
-#' @title Generic for accessing the MCMC results of a [spflow_model-class()]
-#' @description For details see the documentation of the corresponding class.
-#' @param object A [spflow_model-class()]
-#' @return An mcmc object, containing the draws of the sampled parameters
-#' @seealso [spflow_model-class()]
+#' @rdname spflow_generics
 #' @name mcmc_results
 #' @export
 setGeneric(
@@ -108,18 +99,8 @@ setGeneric(
 
 
 # ---- ... neighborhood -------------------------------------------------------
-#' @title Generic for accessing the neighborhood matrix inside
-#'   [spflow network classes][spflow_network_classes()]
-#' @description For details on the methods see the documentation of the
-#'   corresponding classes.
-#' @param object One of [spflow_network_nodes-class()], [spflow_network_multi-class()]
-#' @param ... Arguments to be passed to methods
-#' @return
-#'   A matrix (optionally sparse), representing the neighborhood links
-#'   between the nodes
+#' @rdname spflow_generics
 #' @name neighborhood
-#' @seealso [spflow_network_nodes-class()] [spflow_network_multi-class()]
-#'
 #' @export
 setGeneric(
   name = "neighborhood",
@@ -127,9 +108,9 @@ setGeneric(
 
 
 # ---- ... neighborhood<- -----------------------------------------------------
-#' @rdname neighborhood
-#' @param value A neighborhood matrix to replace the existing one
+#' @rdname spflow_generics
 #' @name neighborhood<-
+#' @aliases neighborhood-set
 #' @export
 setGeneric(
   name = "neighborhood<-",
@@ -137,16 +118,8 @@ setGeneric(
 
 
 # ---- ... nnodes -------------------------------------------------------------
-#' @title Generic for accessing the node count of
-#'   [spflow network classes][spflow_network_classes()]
-#' @description For details on the methods see the documentation of the
-#'   corresponding classes.
-#' @param object One of [spflow_network_nodes-class()], [spflow_network_pairs-class()]
-#' @param ... Arguments to be passed to methods
-#' @return A numeric, corresponding to the number of nodes
-#' @rdname nnodes
+#' @rdname spflow_generics
 #' @name nnodes
-#' @seealso [spflow_network_nodes-class()] [spflow_network_pairs-class()]
 #' @export
 setGeneric(
   name = "nnodes",
@@ -154,20 +127,15 @@ setGeneric(
 
 
 # ---- ... npairs -------------------------------------------------------------
-#' @title Generic for accessing the node pairs count of [spflow_network_classes()]
-#' @description
-#'   For details on the method see the documentation of the
-#'   corresponding classes.
-#' @param object A [spflow_network_pairs-class()] or [spflow_network_multi-class()]
-#' @param ... Arguments to be passed to methods
-#' @return A numeric, corresponding to the number of node-pairs
+#' @rdname spflow_generics
+#' @name npairs
 #' @export
 setGeneric(
   name = "npairs",
   def = function(object, ...) standardGeneric("npairs"))
 
 
-# ---- ... pair_corr ----------------------------------------------------------
+# ---- ... pair_cor ----------------------------------------------------------
 #' @title Correlation matrices for OD data
 #'
 #' @description
@@ -180,23 +148,25 @@ setGeneric(
 #' @param object A [spflow_model-class()] or a [spflow_network_multi-class()]
 #' @param ... Arguments to be passed to methods
 #' @seealso [spflow_network_multi-class()], [spflow_model-class()]
-#' @export
 #' @return A matrix of pairwise correlations between all variables
+#' @author Lukas Dargel
+#' @export
 setGeneric(
-  name = "pair_corr",
-  def = function(object, ...) standardGeneric("pair_corr"))
+  name = "pair_cor",
+  def = function(object, ...) standardGeneric("pair_cor"))
 
 
 # ---- ... pair_merge ---------------------------------------------------------
-#' @title Generic for merging information on origins and destination to node
-#'   pairs inside [spflow network classes][spflow_network_classes()]
-#' @description For details on the methods see the documentation of the
-#'   corresponding classes.
-#' @rdname pair_merge
+#' @title Create a long form data.frame of origin-destination pairs
+#'
+#' @description
+#' The method merges all available information on origins and destinations to
+#' the data.frame describing the OD-pairs.
 #' @name pair_merge
 #' @param object A [spflow_network_multi-class()]
 #' @param ... Arguments to be passed to methods
 #' @seealso [spflow_network_multi-class()]
+#' @author Lukas Dargel
 #' @export
 setGeneric(
   name = "pair_merge",
@@ -204,12 +174,7 @@ setGeneric(
 
 
 # ---- ... predict_effect -----------------------------------------------------
-#' @title Generic for predicting the effect of changes in the data
-#' @description For details on the method see the documentation of the
-#'   corresponding class.
-#' @param object A [spflow_model-class()]
-#' @param ... Arguments to be passed to methods
-#' @return The change in outcomes as a matrix, vector or data.frame
+#' @rdname predict
 #' @name predict_effect
 #' @export
 setGeneric(
@@ -217,14 +182,7 @@ setGeneric(
   def = function(object, ...) standardGeneric("predict_effect"))
 
 # ---- ... pull_member --------------------------------------------------------
-#' @title Generic for accessing a [spflow_network_pairs-class()] or a
-#'   [spflow_network_nodes-class()] inside a [spflow_network_multi-class()]
-#' @description For details on the method see the documentation of the
-#'   corresponding class.
-#' @param object A [spflow_network_multi-class()]
-#' @param ... Arguments to be passed to methods
-#' @return  A [spflow_network_pairs-class()] or a [spflow_network_nodes-class()]
-#' @seealso [spflow_network_multi-class()]
+#' @rdname spflow_generics
 #' @name pull_member
 #' @export
 setGeneric(
@@ -233,14 +191,8 @@ setGeneric(
 
 
 # ---- ... results ------------------------------------------------------------
-#' @title Generic for accessing the results of a [spflow_model-class()].
-#' @description For details on the methods see the documentation of the
-#'   corresponding classes.
+#' @rdname spflow_generics
 #' @name results
-#' @description For details see the documentation of the corresponding class.
-#' @param object A [spflow_model-class()]
-#' @return A data.frame, summarizing the results of the estimation
-#' @seealso [spflow_model-class()]
 #' @export
 setGeneric(
   name = "results",
@@ -248,47 +200,44 @@ setGeneric(
 
 
 # ---- ... results<- ----------------------------------------------------------
-#' @title Replacement method for internal purposes
-#' @param object A [spflow_model()]
-#' @param value A data.frame of results
+#' @rdname spflow_generics
 #' @name results<-
 #' @keywords internal
+#' @usage results(object) <- value # internal
 setGeneric(
   name = "results<-",
   def = function(object, value) standardGeneric("results<-"))
 
 
 # ---- ... results_flat -------------------------------------------------------
-#' @title Access results of a [spflow_model()] as a one row data.frame
-#' @param object spflow_model_meta
-#' @param ... Arguments to be passed to methods
+#' @rdname spflow_generics
+#' @noRd
 #' @name results_flat
-#' @rdname results_flat
 #' @keywords internal
+#' @usage results_flat(object, ...) # internal
 setGeneric(
   name = "results_flat",
   def = function(object, ...) standardGeneric("results_flat"))
 
 
 # ---- ... sd_error -----------------------------------------------------------
-#' @title Generic for accessing the standard deviation of the residual inside
-#'   a [spflow_model-class()].
-#' @description For details on the methods see the documentation of the
-#'   corresponding classes.
-#' @title Extract the standard deviation from a [spflow_model-class()]
-#' @description For details see the documentation of the corresponding class.
-#' @param object A [spflow_model-class()]
-#' @return
-#'   A numeric, representing the estimated standard deviation of the error term
-#' @seealso [spflow_model-class()]
+#' @rdname spflow_generics
 #' @name sd_error
+#' @export
 setGeneric(
   name = "sd_error",
   def = function(object) standardGeneric("sd_error"))
 
 # ---- ... spflow_map ---------------------------------------------------------
 #' @title Geographic representation of flows
-#' @rdname spflow_map
+#' @description
+#' This generic is used as an interface to `map_flows()`, where all information
+#' available in the object is extracted and provided as arguments.
+#'
+#' @name spflow_map
+#' @param object A [spflow_network_multi-class()] or a [spflow_model-class()]
+#' @param ... arguments passed to methods and `map_flows()`
+#' @author Lukas Dargel
 #' @export
 setGeneric(
   name = "spflow_map",
@@ -296,6 +245,11 @@ setGeneric(
 
 # ---- ... spflow_moran_plots -------------------------------------------------
 #' @title Moran scatter plots of interaction data
+#'
+#' @description
+#' Generate up to three Moran scatter plots, related to origin-, destination-,
+#' and origin-to-destination-dependence.
+#'
 #' @rdname spflow_moran_plots
 #' @param object A [spflow_network_multi-class()] or a [spflow_model-class()]
 #' @param ... arguments passed to methods
@@ -304,30 +258,17 @@ setGeneric(
   name = "spflow_moran_plots",
   def = function(object, ...) standardGeneric("spflow_moran_plots"))
 
-
 # ---- ... update_dat ---------------------------------------------------------
-#' @title Generic for updating data related to specific rows in
-#'   [spflow_network_classes()]
-#' @description For details on the methods see the documentation of the
-#'   corresponding classes.
-#' @param object One among [spflow_network_classes()]
-#' @return The updated object
+#' @rdname spflow_generics
 #' @name update_dat
 #' @export
 setGeneric(
   name = "update_dat",
-  def = function(object, new_dat) standardGeneric("update_dat"))
-
+  def = function(object, ...) standardGeneric("update_dat"))
 
 # ---- ... varcov -------------------------------------------------------------
-#' @title Generic for accessing the variance-covariance matrix of the
-#'   parameters inside a [spflow_model-class()].
-#' @description For details on the methods see the documentation of the
-#'   corresponding classes.
-#' @param object A [spflow_model-class()]
-#' @return The variance-covariance matrix of the fitted model parameters
+#' @rdname spflow_generics
 #' @name varcov
-#' @seealso [spflow_model-class()]
 #' @export
 setGeneric(
   name = "varcov",

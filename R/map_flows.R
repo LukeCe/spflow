@@ -1,4 +1,4 @@
-#' Geographic representation of origin-destination flows
+#' Geographical representation of origin-destination flows
 #'
 #' The graphic combines a graphical representation of origin-destination
 #' flows with bar charts that represent the total inflow and outflow per site.
@@ -38,12 +38,15 @@
 #'    A logical, controlling whether the site names should be printed
 #' @param remove_intra
 #'    A logical that sets the intra flow to null values
+#' @param cex
+#'    A numeric, controlling the font size of the legends
 #' @inheritParams spflow_control
 #'
 #' @return Creates a graphical representation of origin-destination flows
 #' @export
 #' @importFrom grDevices colors
 #' @importFrom graphics arrows legend lines polygon text
+#' @author Thibault Laurent
 #'
 #' @examples
 #'
@@ -90,6 +93,7 @@ map_flows <- function(
   decimal_points = 0,
   add_labels = FALSE,
   remove_intra = FALSE,
+  cex = .6,
   na_rm = TRUE) {
 
   # verification
@@ -306,7 +310,7 @@ map_flows <- function(
            legend = flows_legend,
            lty = 1,
            lwd = max_lwd * flows_legend / max(y, na.rm = T),
-           cex = 0.6,
+           cex = cex,
            title = "Flow size",
            box.lwd = 0)
 
@@ -340,7 +344,7 @@ map_flows <- function(
                   y_bottom))
 
     # Print out and In
-    text(x_left, y_bottom + max(bar_out, bar_in), "Out / In", cex = 0.5, pos = 3)
+    text(x_left, y_bottom + max(bar_out, bar_in), "  Out / In", cex = cex - .1, pos = 3)
     # text(x_left + diff(range(xy_origin[, 1])) * shift, y_bottom, "In", cex = 0.5, pos = 1)
 
     # Print the arrows
@@ -351,14 +355,14 @@ map_flows <- function(
 
     # Print the values
     text(x_left + 2.1 * diff(range(xy_origin[, 1])) * shift,
-         y_bottom, "0", cex = 0.5, pos = 4)
+         y_bottom, "0", cex = cex - .1, pos = 4)
     text(x_left + 2.1 * diff(range(xy_origin[, 1])) * shift,
          y_bottom + max(bar_out, bar_in),
          round(max(outflows, inflows), decimal_points),
-         cex = 0.5, pos = 4)
+         cex = cex - .1, pos = 4)
     text(x_left + 2.1 * diff(range(xy_origin[, 1])) * shift,
          y_bottom + max(bar_out, bar_in) / 2,
          round(max(outflows, inflows) / 2, decimal_points),
-         cex = 0.5, pos = 4)
+         cex = cex - .1, pos = 4)
   }
 }

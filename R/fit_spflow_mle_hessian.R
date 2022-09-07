@@ -1,9 +1,8 @@
 #' @keywords internal
 spflow_hessian <- function(hessian_method, hessian_inputs) {
 
-  hessian_function <- "spflow_" %p% hessian_method %p% "_hessian"
+  hessian_function <- sprintf("spflow_%s_hessian", hessian_method)
   hessian_result <- do.call(hessian_function,hessian_inputs)
-
   return(hessian_result)
 }
 

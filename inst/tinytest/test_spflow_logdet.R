@@ -1,6 +1,6 @@
-# ---- tracevals2params_c -----------------------------------------------------
+# ---- tracevals2params_cartesian -----------------------------------------------------
 expect_equal({
-  tvals <- spflow:::tracevals2params_c(
+  tvals <- spflow:::tracevals2params_cartesian(
     OW = diag(c(2,2)),
     DW = diag(c(3,3)),
     n_o = 2,
@@ -37,7 +37,7 @@ expect_equal({
   }, info = "Parameter powers and trace values for model_9 (cartesian).")
 
 expect_equal({
-  tvals <- spflow:::tracevals2params_c(
+  tvals <- spflow:::tracevals2params_cartesian(
     OW = diag(c(2,2)),
     DW = diag(c(3,3)),
     n_o = 2,
@@ -70,7 +70,7 @@ expect_equal({
 }, info = "Parameter powers and trace values for model_7 (cartesian).")
 
 expect_equal({
-  tvals <- spflow:::tracevals2params_c(
+  tvals <- spflow:::tracevals2params_cartesian(
     OW = diag(c(2,2)),
     DW = diag(c(3,3)),
     n_o = 2,
@@ -107,7 +107,7 @@ expect_equal({
 }, info = "Parameter powers and trace values for model_6 (cartesian).")
 
 expect_equal({
-  tvals <- spflow:::tracevals2params_c(
+  tvals <- spflow:::tracevals2params_cartesian(
     OW = diag(c(2,2)),
     DW = diag(c(3,3)),
     n_o = 2,
@@ -140,9 +140,9 @@ expect_equal({
 }, info = "Parameter powers and trace values for model_5 (cartesian).")
 
 
-# ---- tracevals2params_nc -----------------------------------------------------
+# ---- tracevals2params_noncartesian -----------------------------------------------------
 expect_equal({
-  tvals <- spflow:::tracevals2params_nc(
+  tvals <- spflow:::tracevals2params_noncartesian(
     Wo = diag(c(2,2)),
     Wd = diag(c(3,3)),
     Ww = diag(c(4,4)),
@@ -163,7 +163,7 @@ expect_equal({
 }, info = "Parameter powers and trace values for model_9 (non-cartesian).")
 
 expect_equal({
-  tvals <- spflow:::tracevals2params_nc(
+  tvals <- spflow:::tracevals2params_noncartesian(
     Wo = diag(c(2,2)),
     Wd = diag(c(3,3)),
     Ww = diag(c(4,4)),
@@ -183,7 +183,7 @@ expect_equal({
 }, info = "Parameter powers and trace values for model_8 (non-cartesian).")
 
 expect_equal({
-  tvals <- spflow:::tracevals2params_nc(
+  tvals <- spflow:::tracevals2params_noncartesian(
     Wo = diag(c(2,2)),
     Wd = diag(c(3,3)),
     model = "model_7",
@@ -200,7 +200,7 @@ expect_equal({
                     sum(c(2,2)^2))/ 2) # Wo
 }, info = "Parameter powers and trace values for model_7 (non-cartesian).")
 
-# ---- generate_approxldet_cartesian ------------------------------------------
+# ---- derive_approxldet_cartesian ------------------------------------------
 In <- diag(16)
 W_ge <- germany_net@node_neighborhood
 Wd <- In %x% W_ge
@@ -208,7 +208,7 @@ Wo <- W_ge %x% In
 Ww <- W_ge %x% W_ge
 
 expect_equal({
-  log_det_fun <- spflow:::generate_approxldet_cartesian(
+  log_det_fun <- spflow:::derive_approxldet_cartesian(
     OW = W_ge,
     DW = W_ge,
     n_o = nrow(W_ge),
@@ -224,7 +224,7 @@ expect_equal({
 info = "cartesian model_9")
 
 expect_equal({
-  log_det_fun <- spflow:::generate_approxldet_cartesian(
+  log_det_fun <- spflow:::derive_approxldet_cartesian(
     OW = W_ge,
     DW = W_ge,
     n_o = nrow(W_ge),
@@ -243,7 +243,7 @@ expect_equal({
 info = "cartesian model_8")
 
 expect_equal({
-  log_det_fun <- spflow:::generate_approxldet_cartesian(
+  log_det_fun <- spflow:::derive_approxldet_cartesian(
     OW = W_ge,
     DW = W_ge,
     n_o = nrow(W_ge),
@@ -259,7 +259,7 @@ expect_equal({
 info = "cartesian model_7")
 
 expect_equal({
-  log_det_fun <- spflow:::generate_approxldet_cartesian(
+  log_det_fun <- spflow:::derive_approxldet_cartesian(
     OW = W_ge,
     DW = W_ge,
     n_o = nrow(W_ge),
@@ -274,7 +274,7 @@ expect_equal({
   info = "cartesian model_6")
 
 expect_equal({
-  log_det_fun <- spflow:::generate_approxldet_cartesian(
+  log_det_fun <- spflow:::derive_approxldet_cartesian(
     OW = W_ge,
     DW = W_ge,
     n_o = nrow(W_ge),
@@ -289,7 +289,7 @@ expect_equal({
   info = "cartesian model_5")
 
 expect_equal({
-  log_det_fun <- spflow:::generate_approxldet_cartesian(
+  log_det_fun <- spflow:::derive_approxldet_cartesian(
     OW = W_ge,
     DW = W_ge,
     n_o = nrow(W_ge),
@@ -304,7 +304,7 @@ expect_equal({
   info = "cartesian model_4")
 
 expect_equal({
-  log_det_fun <- spflow:::generate_approxldet_cartesian(
+  log_det_fun <- spflow:::derive_approxldet_cartesian(
     OW = W_ge,
     DW = W_ge,
     n_o = nrow(W_ge),
@@ -319,7 +319,7 @@ expect_equal({
   info = "cartesian model_3")
 
 expect_equal({
-  log_det_fun <- spflow:::generate_approxldet_cartesian(
+  log_det_fun <- spflow:::derive_approxldet_cartesian(
     OW = W_ge,
     DW = W_ge,
     n_o = nrow(W_ge),
@@ -333,9 +333,9 @@ expect_equal({
   },
   info = "cartesian model_2")
 
-# ---- generate_approxldet_noncartesian ---------------------------------------
+# ---- derive_approxldet_noncartesian ---------------------------------------
 expect_equal({
-  log_det_fun <- spflow:::generate_approxldet_noncartesian(
+  log_det_fun <- spflow:::derive_approxldet_noncartesian(
     Wd = Wd,
     Wo = Wo,
     Ww = Ww,
@@ -350,7 +350,7 @@ expect_equal({
 info = "noncartesian model_9")
 
 expect_equal({
-  log_det_fun <- spflow:::generate_approxldet_noncartesian(
+  log_det_fun <- spflow:::derive_approxldet_noncartesian(
     Wd = Wd,
     Wo = Wo,
     Ww = Ww,
@@ -365,7 +365,7 @@ expect_equal({
 info = "noncartesian model_8")
 
 expect_equal({
-  log_det_fun <- spflow:::generate_approxldet_noncartesian(
+  log_det_fun <- spflow:::derive_approxldet_noncartesian(
     Wd = Wd,
     Wo = Wo,
     Ww = Ww,
@@ -380,7 +380,7 @@ expect_equal({
 info = "noncartesian model_7")
 
 expect_equal({
-  log_det_fun <- spflow:::generate_approxldet_noncartesian(
+  log_det_fun <- spflow:::derive_approxldet_noncartesian(
     Wd = Wd,
     Wo = Wo,
     Ww = Ww,
@@ -394,7 +394,7 @@ expect_equal({
   info = "noncartesian model_6")
 
 expect_equal({
-  log_det_fun <- spflow:::generate_approxldet_noncartesian(
+  log_det_fun <- spflow:::derive_approxldet_noncartesian(
     Wd = Wd,
     Wo = Wo,
     Ww = Ww,
@@ -408,7 +408,7 @@ expect_equal({
   info = "noncartesian model_5")
 
 expect_equal({
-  log_det_fun <- spflow:::generate_approxldet_noncartesian(
+  log_det_fun <- spflow:::derive_approxldet_noncartesian(
     Wd = Wd,
     Wo = Wo,
     Ww = Ww,
@@ -422,7 +422,7 @@ expect_equal({
   info = "noncartesian model_4")
 
 expect_equal({
-  log_det_fun <- spflow:::generate_approxldet_noncartesian(
+  log_det_fun <- spflow:::derive_approxldet_noncartesian(
     Wd = Wd,
     Wo = Wo,
     Ww = Ww,
@@ -436,7 +436,7 @@ expect_equal({
   info = "noncartesian model_3")
 
 expect_equal({
-  log_det_fun <- spflow:::generate_approxldet_noncartesian(
+  log_det_fun <- spflow:::derive_approxldet_noncartesian(
     Wd = Wd,
     Wo = Wo,
     Ww = Ww,
@@ -449,3 +449,11 @@ expect_equal({
   },
   info = "noncartesian model_2")
 
+# ---- multinom coef ----------------------------------------------------------
+expect_equal(
+  spflow:::multinom_coef(list(c(1,2), c(1,3), c(1,4))),
+  c(factorial(1 + 1 + 1)/1/1/1,
+    factorial(2 + 3 + 4) / factorial(2) / factorial(3) / factorial(4)))
+
+expect_inherits(spflow:::multinom_table(max_power = 1,coef_names = c("A","B","C")),
+                "data.frame")

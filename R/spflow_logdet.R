@@ -1,4 +1,25 @@
+#' @title A function to compute the Jacobean term in the spatial econometric interaction model
+#' @description These are internal functions called within the estimation procedure
+#' @details
+#' The Jacobean term of the model corresponds to the log-determinant of the
+#' spatial filter matrix, which is costly to compute.
+#' To reduce the computational burden of the MLE or MCMC estimators the package
+#' uses a power-series approximation of this term.
+#' This approximation was first proposed by \insertCite{Martin1992;textual}{spflow},
+#' has been adapted to interaction models by \insertCite{LeSage2008;textual}{spflow} and
+#' \insertCite{Dargel2022;textual}{spflow} extend the approximation to the
+#' non-cartesian and rectangular cases, where the OD-matrix can be sparse and where the
+#' list of origins may be different from the list of destinations.
+#'
+#' By using this approximation we can avoid to directly calculate the determinant term.
+#' Moreover, it is possible to factor out the autoregression parameters from
+#' all remaining terms, which means that we do not need to repeat the most
+#' costly computations.
+#'
+#' @author Lukas Dargel
+#' @return A function that takes the autoregression parameters as an argument and returns the log-determinant value
 #' @keywords internal
+#' @references \insertAllCited{}
 derive_logdet_calculator <- function(
   OW,
   DW,
@@ -11,7 +32,7 @@ derive_logdet_calculator <- function(
 
   if (is.null(M_indicator)) {
 
-    approx_logdet <- generate_approxldet_cartesian(
+    approx_logdet <- derive_approxldet_cartesian(
       OW = OW,
       DW = DW,
       n_o = n_o,
@@ -22,7 +43,7 @@ derive_logdet_calculator <- function(
   }
 
   if (approx_order == 2) {
-    approx_logdet <- generate_approxldet_noncartesian2(
+    approx_logdet <- derive_approxldet_noncartesian2(
       OW = OW,
       DW = DW,
       M_indicator = M_indicator,
@@ -41,7 +62,7 @@ derive_logdet_calculator <- function(
     M_indicator = M_indicator,
     model = model)
 
-  approx_logdet <- generate_approxldet_noncartesian(
+  approx_logdet <- derive_approxldet_noncartesian(
     Wd = W_flow[["Wd"]],
     Wo = W_flow[["Wo"]],
     Ww = W_flow[["Ww"]],
@@ -52,17 +73,19 @@ derive_logdet_calculator <- function(
 
 
 
+#' @rdname derive_logdet_calculator
+#' @usage derive_approxldet_cartesian(OW, DW, n_o, n_d, model, approx_order)
 #' @keywords internal
-generate_approxldet_cartesian <- function(
-  OW = NULL,
-  DW = NULL,
-  n_o,
-  n_d,
-  model,
-  approx_order) {
+derive_approxldet_cartesian <- function(
+    OW = NULL,
+    DW = NULL,
+    n_o,
+    n_d,
+    model,
+    approx_order) {
 
   if (approx_order == 2)
-    return(generate_approxldet_cartesian2(OW = OW, DW = DW, n_o = n_o, n_d = n_d, model = model))
+    return(derive_approxldet_cartesian2(OW = OW, DW = DW, n_o = n_o, n_d = n_d, model = model))
 
 
   # the first trace is always zero
@@ -105,7 +128,7 @@ generate_approxldet_cartesian <- function(
 
   # for models 5,6,7 and 9 we use a multinomial expansion
   # to compute the trace values
-  tracevals <- tracevals2params_c(
+  tracevals <- tracevals2params_cartesian(
     OW = OW,
     DW = DW,
     n_o = n_o,
@@ -117,14 +140,10 @@ generate_approxldet_cartesian <- function(
 }
 
 
-#' @title Order 2 approximations for the cartesian case
+#' @rdname derive_logdet_calculator
+#' @usage derive_approxldet_cartesian2(OW, DW, n_o, n_d, model) # order = 2
 #' @keywords internal
-generate_approxldet_cartesian2 <- function(
-  OW = NULL,
-  DW = NULL,
-  n_o,
-  n_d,
-  model) {
+derive_approxldet_cartesian2 <- function(OW = NULL, DW = NULL, n_o, n_d, model) {
 
   model_num <- substr(model,7,7)
 
@@ -142,40 +161,9 @@ generate_approxldet_cartesian2 <- function(
   return(logdet_calculator_123456789)
 }
 
-
-
-#' @title Order 2 approximations for the non-cartesian case
+#' @rdname derive_logdet_calculator
 #' @keywords internal
-generate_approxldet_noncartesian2 <- function(
-  OW = NULL,
-  DW = NULL,
-  M_indicator,
-  n_o,
-  n_d,
-  model) {
-
-  model_num <- substr(model,7,7)
-
-  trace_dd <- if (model_num %in% c(2,5:9))
-    sum(M_indicator * ((DW * t(DW)) %*% M_indicator))
-
-  trace_oo <- if (model_num %in% c(3,5:9))
-    sum(M_indicator * (M_indicator %*% ((OW * t(OW)))))
-
-  trace_ww <- if (model_num %in% c(3,5,6,8,9))
-    sum(M_indicator * ((DW * t(DW)) %*% M_indicator %*% ((OW * t(OW)))))
-
-  tracevals <- c(trace_dd,trace_oo,trace_ww) / 2
-  logdet_calculator_123456789 <- function(rho) {
-    logdet_val <- as.numeric(sum(rho^2 * tracevals))
-    return(-logdet_val)
-  }
-  return(logdet_calculator_123456789)
-}
-
-#' @title Order 4 approximations for non cartesian case
-#' @keywords internal
-generate_approxldet_noncartesian <- function(
+derive_approxldet_noncartesian <- function(
     Wd,
     Wo,
     Ww,
@@ -216,19 +204,44 @@ generate_approxldet_noncartesian <- function(
   }
 
   assert(approx_order <= 4, warn = TRUE,
-         "For the non-cartesian models with multiple parameters we can only
-         use the log-determinant approximation of order four or lower.
+         "For the non-cartesian models with multiple autoregression parameters
+         we only use the log-determinant approximation of order four or lower.
          The estimation proceeds with order four.")
 
-  trace_values <- tracevals2params_nc(
+  trace_values <- tracevals2params_noncartesian(
     Wd = Wd, Wo = Wo, Ww = Ww,
     model =  model, approx_order = approx_order)
   logdet_calculator_789 <- tracevals2approxldet(trace_values)
   return(logdet_calculator_789)
 }
 
+#' @rdname derive_logdet_calculator
+#' @usage derive_approxldet_noncartesian2(OW, DW, M_indicator, n_o, n_d, model) # order = 2
 #' @keywords internal
-tracevals2params_c <- function(OW, DW, n_o, n_d, model, approx_order) {
+derive_approxldet_noncartesian2 <- function(OW = NULL, DW = NULL, M_indicator, n_o, n_d, model) {
+
+  model_num <- substr(model,7,7)
+
+  trace_dd <- if (model_num %in% c(2,5:9))
+    sum(M_indicator * ((DW * t(DW)) %*% M_indicator))
+
+  trace_oo <- if (model_num %in% c(3,5:9))
+    sum(M_indicator * (M_indicator %*% ((OW * t(OW)))))
+
+  trace_ww <- if (model_num %in% c(3,5,6,8,9))
+    sum(M_indicator * ((DW * t(DW)) %*% M_indicator %*% ((OW * t(OW)))))
+
+  tracevals <- c(trace_dd,trace_oo,trace_ww) / 2
+  logdet_calculator_123456789 <- function(rho) {
+    logdet_val <- as.numeric(sum(rho^2 * tracevals))
+    return(-logdet_val)
+  }
+  return(logdet_calculator_123456789)
+}
+
+#' @rdname derive_logdet_calculator
+#' @keywords internal
+tracevals2params_cartesian <- function(OW, DW, n_o, n_d, model, approx_order) {
 
   # model 5,6,7 and 9 require a multinomial expansions
   # the parameters in 5 and 6 are those of 7 and 9
@@ -276,10 +289,11 @@ tracevals2params_c <- function(OW, DW, n_o, n_d, model, approx_order) {
 }
 
 
+#' @rdname derive_logdet_calculator
 #' @keywords  internal
-tracevals2params_nc <- function(Wd, Wo, Ww, model, approx_order) {
+tracevals2params_noncartesian <- function(Wd, Wo, Ww, model, approx_order) {
 
-  tl <- trace_template_nc()
+  tl <- trace_template_noncartesian()
 
   if (model == "model_7") {
 
@@ -391,8 +405,9 @@ tracevals2params_nc <- function(Wd, Wo, Ww, model, approx_order) {
 
 }
 
+#' @rdname derive_logdet_calculator
 #' @keywords internal
-trace_template_nc <- function() {
+trace_template_noncartesian <- function() {
 
   order_2 <- data.frame(
     "TRACE_ORDER" = 2,
@@ -444,6 +459,7 @@ trace_template_nc <- function() {
   return(full_template)
 }
 
+#' @rdname derive_logdet_calculator
 #' @keywords  internal
 tracevals2approxldet <- function(tracevals) {
 
@@ -458,3 +474,39 @@ tracevals2approxldet <- function(tracevals) {
 
   return(approxldet)
 }
+
+#' @rdname derive_logdet_calculator
+#' @keywords internal
+#' @importFrom utils combn
+multinom_table <- function(max_power, coef_names) {
+
+  # Create a table for  multinomial coefficient and parameter powers
+  nb_coefs <- length(coef_names)
+  possible_powers <- seq(0, max_power)
+  coef_powers <- combn(rep(possible_powers,nb_coefs),nb_coefs,simplify = FALSE)
+  coef_powers <- as.data.frame(do.call("rbind",coef_powers),row.names = NULL)
+  names(coef_powers) <- coef_names
+
+  coef_powers[["POWER_ORDER"]] <- rowSums(coef_powers)
+  coef_powers <- coef_powers[coef_powers$POWER_ORDER <= max_power & coef_powers$POWER_ORDER > 0,, drop = FALSE]
+  coef_powers <- unique(coef_powers)
+  coef_powers[["COEF_MULTINOM"]] <- multinom_coef(coef_powers[coef_names])
+  row.names(coef_powers) <- NULL
+  return(coef_powers)
+}
+
+#' @rdname derive_logdet_calculator
+#' @keywords internal
+multinom_coef <- function(...) {
+
+  #  Compute the multinomial coefficient
+  #  The coefficient is computed for each row in a data.frame where the
+  #  rows correspond to the power and the columns for one element
+  k_args <- flatlist(list(...))
+  t <- Reduce("+",k_args)
+
+  # calculate the denominator
+  chose_k_factorial <- Reduce("*", lapply(k_args , factorial))
+  return(factorial(t)/chose_k_factorial)
+}
+

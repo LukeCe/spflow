@@ -49,10 +49,3 @@ spflow_network_nodes(
   as.data.frame(germany_grid),
   "ID_STATE")
 }
-\seealso{
-Other Constructors for spflow network classes: 
-\code{\link{spflow_network_classes}},
-\code{\link{spflow_network_multi}},
-\code{\link{spflow_network_pairs}}
-}
-\concept{Constructors for spflow network classes}

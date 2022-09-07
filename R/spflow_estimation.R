@@ -64,6 +64,7 @@ spflow_estimation <- function(
 #' goodness-of-fit measure.
 #'
 #' @return An object of class spflow_model
+#' @noRd
 #' @keywords  internal
 spflow_post_estimation <- function(
     object,
@@ -116,7 +117,7 @@ solve_savely <- function(ZZ, ZY, TCORR, error_msg) {
     answer <- askYesNo(question, default = FALSE)
 
     if (answer)
-      corr_map(TCORR)
+      cor_image(TCORR)
   }
 
   if (missing(error_msg))

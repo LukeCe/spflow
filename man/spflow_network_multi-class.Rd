@@ -42,14 +42,14 @@ contained in the \code{spflow_network_multi}}
 
 \item{value}{A data.frame to replace the existing data}
 
-\item{new_dat}{A named list of data.frames.
-The names should correspond to spflow_network_nodes or spflow_pair objects inside
-the spflow_network_multi.}
+\item{new_dat}{A named list of data.frames that contain the new data.
+The names should correspond to spflow_network_nodes or spflow_pair
+objects contained in the \code{\link[=spflow_network_multi-class]{spflow_network_multi-class()}}.}
 }
 \description{
-A S4 class that gathers information on multiple \code{\link[=spflow_network_nodes]{spflow_network_nodes()}} and \code{\link[=spflow_network_pairs]{spflow_network_pairs()}}.
+An S4 class that gathers information on multiple \code{\link[=spflow_network_nodes]{spflow_network_nodes()}} and \code{\link[=spflow_network_pairs]{spflow_network_pairs()}}.
 Its purpose is to ensure that the identification between the nodes that
-serve as origins or destinations, and the od-pairs is consistent
+serve as origins or destinations, and the OD-pairs is consistent
 (similar to relational data bases).
 }
 \section{Slots}{
@@ -82,16 +82,16 @@ pull_member(multi_net_usa_ge, .id = "ge")
 pull_member(multi_net_usa_ge, .id = "usa")
 pull_member(multi_net_usa_ge, .id ="ge_ge")
 
-## access the data of a network or a network_pair inside a multi_network
 
-dat(multi_net_usa_ge, "ge")    # extract data of nodes
-dat(multi_net_usa_ge, "ge_ge") # extract data of pairs
+# update data for individual observations
+new_ge <- dat(multi_net_usa_ge, "ge")[1:2,1:2]
+new_ge$X <- new_ge$X * .25
+multi_net_usa_ge2 <- update_dat(multi_net_usa_ge, list("ge" = new_ge))
+dat(multi_net_usa_ge2, "ge")
 
 }
 \seealso{
 Other spflow network classes: 
-\code{\link{spflow_network_classes}},
-\code{\link{spflow_network_nodes-class}},
-\code{\link{spflow_network_pairs-class}}
+\code{\link{spflow_network_classes}}
 }
 \concept{spflow network classes}

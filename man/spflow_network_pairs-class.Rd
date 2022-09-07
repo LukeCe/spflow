@@ -39,11 +39,8 @@ The first characters may be used as shortcuts.}
 }
 \description{
 An S4 class which holds information on origin-destination (OD) pairs.
-Each OD pair is composed of two nodes.
-All origins belong to the same set of nodes and all destination too
-(see \code{\link[=spflow_network_nodes-class]{spflow_network_nodes-class()}}).
-When the origins and the destinations belong to the same set of nodes the
-corresponding ids should be equal
+Each OD pair is composed of two nodes, and the set of origin nodes as well
+as the set of destination nodes are identify by an id.
 }
 \section{Slots}{
 
@@ -59,18 +56,15 @@ corresponding ids should be equal
 
 \examples{
 ## access the data describing the node pairs
-
 net_pair_ge_ge <- pull_member(multi_net_usa_ge,"ge_ge")
 dat(net_pair_ge_ge)
 
 ## access the id of a network pair
-
 net_pair_ge_ge <- pull_member(multi_net_usa_ge,"ge_ge")
 id(net_pair_ge_ge)
 id(net_pair_ge_ge) <- "Germany_Germany"
 
 ## access the number of node pairs in a network pair
-
 net_pair_ge_ge <- pull_member(multi_net_usa_ge,"ge_ge")
 npairs(net_pair_ge_ge)
 
@@ -82,10 +76,3 @@ nnodes(net_pair_ge_ge)["dest"]
 prod(nnodes(net_pair_ge_ge) == npairs(net_pair_ge_ge))
 
 }
-\seealso{
-Other spflow network classes: 
-\code{\link{spflow_network_classes}},
-\code{\link{spflow_network_multi-class}},
-\code{\link{spflow_network_nodes-class}}
-}
-\concept{spflow network classes}

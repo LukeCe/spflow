@@ -71,10 +71,3 @@ neighborhood(germany_net)
 nnodes(germany_net)
 
 }
-\seealso{
-Other spflow network classes: 
-\code{\link{spflow_network_classes}},
-\code{\link{spflow_network_multi-class}},
-\code{\link{spflow_network_pairs-class}}
-}
-\concept{spflow network classes}

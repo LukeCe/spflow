@@ -2,7 +2,7 @@
 % Please edit documentation in R/spflow_neighborhood.R
 \name{expand_spflow_neighborhood}
 \alias{expand_spflow_neighborhood}
-\title{Derive the flow neighborhood matrices}
+\title{Derive the OD-level neighborhood matrices}
 \usage{
 expand_spflow_neighborhood(
   OW,
@@ -14,9 +14,9 @@ expand_spflow_neighborhood(
 )
 }
 \arguments{
-\item{OW}{Origin neighborhood matrix}
+\item{OW}{The origin neighborhood matrix}
 
-\item{DW}{Destination neighborhood matrix}
+\item{DW}{The destination neighborhood matrix}
 
 \item{n_o}{A numeric indicating the number of origins}
 
@@ -27,21 +27,26 @@ pairs that should be included in the model. When the argument is NULL or
 when all entries of this matrix are different from zero we consider the
 Cartesian product of all origins and destinations as OD pairs.}
 
-\item{model}{A character indicating the model identifier}
+\item{model}{A character indicating the model number, that controls different spatial
+dependence structures should be one of \code{paste0("model_", 1:9)}.
+Details are given in the documentation of \code{\link[=spflow_control]{spflow_control()}}.}
 }
 \value{
 A list of at most three (sparse) matrices with names
-given by c("Wd", "Wo", "Ww").
+given by \code{c("Wd", "Wo", "Ww")}.
 }
 \description{
 Use the neighborhood matrices of origins and destinations to derive the
-three neighborhood matrices of the origin-destination flows.
-This function is used for simulations or for comparisons with the vectorized
-formulations of the model.
+up to three neighborhood matrices of the origin-destination pairs:
+\itemize{
+\item \code{W_d} relates to flows starting from the same origin going to neighbors of the destination
+\item \code{W_o} relates to flows starting from the neighbors of the origin going the same destination
+\item \code{W_w} relates to flows starting from the neighbors of the origin going the neighbors of the destination
 }
-\seealso{
-Other spflow simulation functions: 
-\code{\link{spatial_filter}()},
-\code{\link{spflow_sim}()}
 }
-\concept{spflow simulation functions}
+\examples{
+expand_spflow_neighborhood(DW = 1-diag(2),OW = 1-diag(2))
+}
+\author{
+Lukas Dargel
+}

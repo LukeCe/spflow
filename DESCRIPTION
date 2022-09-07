@@ -1,7 +1,7 @@
 Package: spflow
 Title: Spatial Econometric Interaction Models
 Version: 0.2.0
-Date: 2022-07-12
+Date: 2022-09-07
 Authors@R: c(
     person("Lukas", "Dargel", role = c("aut", "cre"),
            email = "lukas.dargel@mailbox.org",
@@ -18,7 +18,7 @@ Description:
     Efficient estimation of spatial econometric models of origin-destination flows, which may exhibit spatial autocorrelation in the dependent variable, the explanatory variables or both.
     The model is the one proposed by LeSage and Pace (2008) <doi:10.1111/j.1467-9787.2008.00573.x>, who develop a matrix formulation that exploits the relational structure of flow data.
     The estimation procedures follow most closely those outlined by Dargel (2021) <https://doi.org/10.1007/s43071-021-00016-1>.
-    Extensions to cover the case of an incomplete OD matrix, where the list of origins may be different from the list of destinations are based on the developments of Dargel and Thomas-Agnan (2022, working paper available at <https://www.tse-fr.eu/sites/default/files/TSE/documents/doc/wp/2022/wp_tse_1312.pdf>).
+    Extensions to cover the case of an incomplete OD matrix, where the list of origins may be different from the list of destinations are based on the developments of Dargel and Thomas-Agnan (2022, a working paper is available at <https://www.tse-fr.eu/sites/default/files/TSE/documents/doc/wp/2022/wp_tse_1312.pdf>).
 License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: true
@@ -33,14 +33,15 @@ Imports:
     Rdpack,
     utils
 Collate: 
+    'utils.R'
     'spflow_package.R'
-    'utils_classes.R'
     'class_generics_and_maybes.R'
     'class_spflow_network_pairs.R'
     'class_spflow_network_nodes.R'
     'class_spflow_network_multi.R'
     'class_spflow_model.R'
     'class_spflow_network_meta.R'
+    'cor_image.R'
     'example_data.R'
     'fit_spflow_mcmc.R'
     'fit_spflow_mle.R'
@@ -61,13 +62,7 @@ Collate:
     'spflow_predictors.R'
     'spflow_simulations.R'
     'spflow_spatial_lags.R'
-    'utils.R'
     'utils_error.R'
-    'utils_formula.R'
-    'utils_fp.R'
-    'utils_math.R'
-    'utils_matrix.R'
-    'utils_strings.R'
 URL: https://github.com/LukeCe/spflow
 BugReports: https://github.com/LukeCe/spflow/issues
 Suggests: 

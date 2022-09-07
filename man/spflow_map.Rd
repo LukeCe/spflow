@@ -14,9 +14,9 @@ spflow_map(object, ...)
 \S4method{spflow_map}{spflow_model}(object, ..., flow_type = "resid", add_title = TRUE)
 }
 \arguments{
-\item{object}{A \code{\link[=spflow_model-class]{spflow_model-class()}}}
+\item{object}{A \code{\link[=spflow_network_multi-class]{spflow_network_multi-class()}} or a \code{\link[=spflow_model-class]{spflow_model-class()}}}
 
-\item{...}{further arguments passed to \code{\link[=map_flows]{map_flows()}}}
+\item{...}{arguments passed to methods and \code{map_flows()}}
 
 \item{id_spflow_pairs}{A character indicating the id of a \code{\link[=spflow_network_pairs]{spflow_network_pairs()}} (only relevant if
 the \code{\link[=spflow_network_multi]{spflow_network_multi()}} contains multiple \code{spflow_network_pairs}-objects:
@@ -30,7 +30,8 @@ Should be one of c("resid", "fitted", "actual").}
 \item{add_title}{A logical, if \code{TRUE} the flow_type is added as title.}
 }
 \description{
-Geographic representation of flows
+This generic is used as an interface to \code{map_flows()}, where all information
+available in the object is extracted and provided as arguments.
 }
 \examples{
 
@@ -49,6 +50,6 @@ Geographic representation of flows
  spflow_map(gravity_ge, flow_type = "actual")
 
 }
-\seealso{
-\code{\link[=map_flows]{map_flows()}}
+\author{
+Lukas Dargel
 }

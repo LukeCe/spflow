@@ -563,9 +563,9 @@ expect_zero_diff(target_matrices[["Y9_"]][[1]], actual_matrices[["Y_"]][[1]])
 
 # predictions
 expect_equal(fitted(res_model_9_s2sls_narm),
-             predict(res_model_9_s2sls_narm, return_type = "V", method = "BPI"))
+             predict(res_model_9_s2sls_narm, return_type = "V", method = "TS"))
 expect_equal(npairs(multi_net_usa_ge2, "usa_usa"),
-             length(predict(res_model_9_s2sls_narm, return_type = "V", method = "TC", out_of_sample = TRUE)))
+             length(predict(res_model_9_s2sls_narm, return_type = "V", method = "TC")))
 rm(res_model_9_s2sls_narm)
 
 

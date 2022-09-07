@@ -36,7 +36,7 @@ paris10km_commuteflows
 paris10km_neighborhood
 }
 \description{
-The package includes an example data set that contains home-to-work
+The package includes data set that contains home-to-work
 commuting flows for 71 municipalities around the center of Paris.
 The data for the example is stored in three objects
 }
@@ -54,5 +54,8 @@ alternative definitions of the neighborhood of the municipalities.
 The first is based on contiguity, the second one on distance and the third
 one is based on the three nearest neighbors.
 }
+}
+\author{
+Lukas Dargel
 }
 \keyword{datasets}

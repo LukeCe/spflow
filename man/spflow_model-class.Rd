@@ -13,16 +13,14 @@
 \alias{mcmc_results,spflow_model_mcmc-method}
 \alias{nobs,spflow_model-method}
 \alias{neighborhood,spflow_model-method}
-\alias{plot,spflow_model,ANY-method}
-\alias{predict,spflow_model-method}
-\alias{predict_effect,spflow_model-method}
+\alias{plot,spflow_model-method}
 \alias{resid,spflow_model-method}
 \alias{results,spflow_model-method}
 \alias{sd_error,spflow_model-method}
 \alias{varcov,spflow_model_varcov-method}
 \title{Class spflow_model}
 \usage{
-\S4method{coef}{spflow_model}(object, which = NULL)
+\S4method{coef}{spflow_model}(object, param_subset = NULL)
 
 \S4method{fitted}{spflow_model}(object, return_type = "V")
 
@@ -32,30 +30,9 @@
 
 \S4method{nobs}{spflow_model}(object, which = "sample")
 
-\S4method{neighborhood}{spflow_model}(object, which)
+\S4method{neighborhood}{spflow_model}(object, which_nb)
 
-\S4method{plot}{spflow_model,ANY}(x, y, ...)
-
-\S4method{predict}{spflow_model}(
-  object,
-  ...,
-  new_data = NULL,
-  method = "BPA",
-  approx_expectation = TRUE,
-  expectation_approx_order = 10,
-  return_type = "OD",
-  add_new_signal = FALSE
-)
-
-\S4method{predict_effect}{spflow_model}(
-  object,
-  ...,
-  new_data,
-  old_signal = NULL,
-  approx_expectation = TRUE,
-  expectation_approx_order = 10,
-  return_type = "OD"
-)
+\S4method{plot}{spflow_model}(x, y, ...)
 
 \S4method{resid}{spflow_model}(object, return_type = "V")
 
@@ -66,38 +43,30 @@
 \S4method{varcov}{spflow_model_varcov}(object)
 }
 \arguments{
-\item{object}{A \code{\link[=spflow_model-class]{spflow_model-class()}}}
+\item{object}{A spflow_model}
 
-\item{which}{A character vector: "OW" for origin- and "DW" for destination neighborhood}
+\item{param_subset}{A character indicating the subset of model parameters to be returned "rho"
+relates to the autoregression parameters and "delta" to those of the
+exogenous variables.}
 
-\item{return_type}{A character indicating which format the return values should
-have: "V" for vector, "M" for matrix, "OD" for data.frame
-predictions. Should be one of c("TS", "TC", "BP").
-predictions}
+\item{return_type}{A character indicating the format of the returned values:
+\itemize{
+\item "V" leads to an atomic vector
+\item "M" leads to a OD matrix where missing data is replaced by zeros
+\item "OD" leads to a data.frame with columns being the the values
+and the id's of the destinations and the origins
+}}
+
+\item{which}{A character vector indicating the subset of observations to consider
+should be one of \code{c("fit", "cart", "pop", "pair", "orig", "dest")}.}
+
+\item{which_nb}{A character vector: "OW" for origin- and "DW" for destination neighborhood}
 
 \item{x}{A \linkS4class{spflow_model}}
 
 \item{y}{not used}
 
-\item{...}{Further arguments passed to the prediction function}
-
-\item{new_data}{An object containing new data (to be revised)}
-
-\item{method}{A character indicating which method to use for computing the
-predictions. Should be one of c("TS", "TC", "BP").}
-
-\item{approx_expectation}{A logical, if \code{TRUE} the expected value of the dependent variable is
-approximated by a Taylor series. For spatial models this can lead to
-significant performance gains.}
-
-\item{expectation_approx_order}{A numeric, defining the order of the Taylor series approximation.}
-
-\item{add_new_signal}{A logical, if \code{TRUE} the new signal is added to the as a column to
-the results. This only works when the return type is "OD".}
-
-\item{old_signal}{A matrix that can be supplied to specify the reference
-value for the signal.
-If not given the signal contained in the model is used.}
+\item{...}{Arguments passed on to other plotting functions}
 }
 \description{
 An S4 class that contains the estimation results of spatial econometric
@@ -118,17 +87,17 @@ method but most behaviors and data are identical among them.
 
 \item{\code{estimation_diagnostics}}{A list of further indicators about the estimation}
 
-\item{\code{spflow_matrices}}{A list or NULL}
+\item{\code{spflow_formula}}{A formula}
 
-\item{\code{spflow_data}}{A list containing the data.frames for origins, destinations, and od-pairs}
+\item{\code{spflow_networks}}{A \code{\link[=spflow_network_multi-class]{spflow_network_multi-class()}}}
+
+\item{\code{spflow_matrices}}{A list or NULL}
 
 \item{\code{spflow_formula}}{The formula used to fit the model}
 
 \item{\code{spflow_indicators}}{A data.frame containing the indicators of od-pairs}
 
 \item{\code{spflow_moments}}{A list of moment matrices used for estimating the model}
-
-\item{\code{spflow_neighborhood}}{The neighborhood matrices for origins and destinations}
 }}
 
 \section{Main results}{
@@ -172,10 +141,12 @@ spflow_results_mcmc <- spflow(
   multi_net_usa_ge,
   estimation_control = spflow_control(estimation_method = "mcmc",
                                 model = "model_2"))
-results(spflow_results)
-mcmc_results(spflow_results_mcmc) # parameter values during the mcmc sampling
-
+results(spflow_results_mcmc)
+plot(mcmc_results(spflow_results_mcmc)) # parameter values during the mcmc sampling
 }
 \seealso{
 \code{\link[=spflow]{spflow()}}, \code{\link[=spflow_network_classes]{spflow_network_classes()}}
+}
+\author{
+Lukas Dargek
 }

@@ -1,7 +1,30 @@
-#' @title Compute the principal moments for a spatial flow model
+#' @title Compute the moment matrices used during the estimation with [spflow()]
+#' @description These are internal functions called within the estimation procedure
+#' @details
+#'
+#' The implementation details are derived in
+#' \insertCite{Dargel2021;textual}{spflow} and
+#' \insertCite{Dargel2022;textual}{spflow}.
+#'
+#' ## The variance moment:
+#'
+#' The moment (U'U) moment matrix is grouped into 4 x 4 blocks.
+#' These 16 blocks are derived as interactions from the four sets of variables
+#' U_alpha, U_alpha_I, U_beta, U_gamma.
+#' Only ten blocks are unique and the remaining six are inferred by symmetry.
+#'
+#' ## The covariance moment:
+#'
+#' The moment (U'y) is grouped into four blocks using the same arguments.
+#' Here we can use the same function to compute the inner product of y and its
+#' spatial lags with U.
+#'
+#' @return A list containing all moments required for the estimation
+#' @author Lukas Dargel
 #' @importFrom Matrix nnzero
 #' @keywords internal
-compute_spflow_moments <- function(
+#' @references \insertAllCited{}
+derive_spflow_moments <- function(
     spflow_matrices,
     n_o,
     n_d,
@@ -74,19 +97,7 @@ compute_spflow_moments <- function(
 }
 
 # ---- Variance Moment --------------------------------------------------------
-
-#' @title
-#' Compute the moment expression in an interaction model in matrix form
-#'
-#' @details
-#' The moment (U'U) moment matrix is grouped into (4x4) blocks.
-#' These 16 blocks are derived as interactions from the four blocks
-#' {alpha, alpha_I, beta, gamma}.
-#' Only ten blocks are unique and the remaining six are inferred by symmetry.
-#' The developments follow the theory presented in
-#' \insertCite{Dargel2021;textual}{spflow}.
-#'
-#' @references \insertAllCited{}
+#' @rdname derive_spflow_moments
 #' @importFrom Matrix forceSymmetric rowSums colSums diag
 #' @keywords internal
 spflow_moment_var <- function(spflow_matrices, wt,N,n_d,n_o) {
@@ -255,19 +266,20 @@ var_block_beta_gamma <- function(X, P) {
 }
 
 # ---- Covariance Moments -----------------------------------------------------
+#' @rdname derive_spflow_moments
 #' @keywords internal
-spflow_moment_cov <- function(Y, model_matrices) {
+spflow_moment_cov <- function(Y, spflow_matrices) {
 
   order_keys <- c("D_","O_","I_")
-  X <- compact(model_matrices[order_keys])
-  if (!is.null(model_matrices$weights))
-    Y <- Y * model_matrices$weights
+  X <- compact(spflow_matrices[order_keys])
+  if (!is.null(spflow_matrices$weights))
+    Y <- Y * spflow_matrices$weights
 
   result <- Reduce("c", c(
     cov_moment_alpha(Y),
-    cov_moment_alpha_I(Y, model_matrices[["CONST"]][-1] %||% NULL),
+    cov_moment_alpha_I(Y, spflow_matrices[["CONST"]][-1] %||% NULL),
     cov_moment_beta(Y, X),
-    cov_moment_gamma(Y, model_matrices[["P_"]])
+    cov_moment_gamma(Y, spflow_matrices[["P_"]])
   ))
   return(result)
 }

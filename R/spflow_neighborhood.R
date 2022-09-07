@@ -1,26 +1,29 @@
-#' @title Derive the flow neighborhood matrices
+#' @title Derive the OD-level neighborhood matrices
 #'
 #' @description
 #' Use the neighborhood matrices of origins and destinations to derive the
-#' three neighborhood matrices of the origin-destination flows.
-#' This function is used for simulations or for comparisons with the vectorized
-#' formulations of the model.
+#' up to three neighborhood matrices of the origin-destination pairs:
+#' - `W_d` relates to flows starting from the same origin going to neighbors of the destination
+#' - `W_o` relates to flows starting from the neighbors of the origin going the same destination
+#' - `W_w` relates to flows starting from the neighbors of the origin going the neighbors of the destination
 #'
-#' @param OW Origin neighborhood matrix
-#' @param DW Destination neighborhood matrix
+#' @param OW The origin neighborhood matrix
+#' @param DW The destination neighborhood matrix
 #' @param n_o A numeric indicating the number of origins
 #' @param n_d A numeric indicating the number of destinations
-#' @param model A character indicating the model identifier
 #' @param M_indicator A matrix of binary indicators for origin-destination
 #'   pairs that should be included in the model. When the argument is NULL or
 #'   when all entries of this matrix are different from zero we consider the
 #'   Cartesian product of all origins and destinations as OD pairs.
+#' @inheritParams spflow_control
 #'
 #' @return A list of at most three (sparse) matrices with names
-#'   given by c("Wd", "Wo", "Ww").
-#' @family spflow simulation functions
+#'   given by `c("Wd", "Wo", "Ww")`.
 #' @importFrom Matrix Diagonal bdiag drop0
+#' @author Lukas Dargel
 #' @export
+#' @examples
+#' expand_spflow_neighborhood(DW = 1-diag(2),OW = 1-diag(2))
 expand_spflow_neighborhood <- function(
   OW,
   DW,
@@ -120,22 +123,23 @@ expand_spflow_neighborhood <- function(
 #' Use the neighborhood matrices of origins and destinations to derive the
 #' three neighborhood matrices of the origin-destination flows.
 #'
+#' @param weight_matrices
+#'   A list of OD-pair neighborhood matrices
+#' @param autoreg_parameters
+#'   A numeric containing values for the autoregression parameters
 #'
-#' @param weight_matrices List of flow neighborhood matrices
-#' @param autoreg_parameters A numeric containing values for the
-#'     auto-regressive parameters
-#'
-#' @family spflow simulation functions
 #' @importFrom Matrix Diagonal Matrix
 #' @keywords internal
+#' @noRd
 spatial_filter <- function(
   weight_matrices,
   autoreg_parameters) {
 
-  combined_weight_matrices <-
-    Map("*", safely_to_list(weight_matrices),autoreg_parameters)
-  combined_weight_matrices <-
-    Matrix(Reduce("+", combined_weight_matrices))
+  if (!is.list(weight_matrices))
+    weight_matrices <- list(weight_matrices)
+
+  combined_weight_matrices <- Map("*", weight_matrices,autoreg_parameters)
+  combined_weight_matrices <- Matrix(Reduce("+", combined_weight_matrices))
 
   N <- nrow(combined_weight_matrices)
   A <- Diagonal(N) - combined_weight_matrices
@@ -152,6 +156,7 @@ spatial_filter <- function(
 #' @inheritParams spflow_control
 #' @return An integer corresponding to the number of weight matrices
 #' @keywords internal
+#' @noRd
 spatial_model_order <- function(model = "model_9") {
 
   model_number <- substr(model,7,7)
@@ -207,24 +212,23 @@ pull_spflow_neighborhood <-  function(spflow_network_multi, id_spflow_network_pa
 }
 
 # ---- helpers ----------------------------------------------------------------
-#' @title Remove origins or destinations from the neighborhood matrix that do
-#'   not appear in any of the OD pairs.
 #' @keywords internal
-drop_superfluent_nodes <- function(OW,DW,flow_indicator) {
-
-  true_origs <- colSums(flow_indicator) != 0
-  true_dests <- rowSums(flow_indicator) != 0
+drop_superfluent_nodes <- function(OW,DW,M_indicator) {
+  # Remove origins or destinations from the neighborhood matrix that do
+  # not appear in any of the OD pairs.
+  true_origs <- colSums(M_indicator) != 0
+  true_dests <- rowSums(M_indicator) != 0
 
   return(list(OW = DW %|!|% OW[true_origs,true_origs],
               DW = DW %|!|% DW[true_dests,true_dests],
-              flow_indicator = flow_indicator[true_dests, true_origs]))
+              flow_indicator = M_indicator[true_dests, true_origs]))
 }
 
 #' @keywords internal
-get_flow_indicator <- function(sp_net_pair) {
+get_flow_indicator <- function(spflow_pairs) {
 
-  do_indexes <- get_do_indexes(dat(sp_net_pair))
-  n_nodes <- nnodes(sp_net_pair)
+  do_indexes <- get_do_indexes(dat(spflow_pairs))
+  n_nodes <- nnodes(spflow_pairs)
   indicator_mat <- matrix_format_d_o(
     values = NULL,
     dest_index = do_indexes[,1],

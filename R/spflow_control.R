@@ -1,16 +1,14 @@
-#' @title
-#' Define details of the estimation procedure with the [spflow()] function.
+#' @title Control parameters for passed to [spflow()]
 #'
 #' @description
-#' This function creates a list to fine tune the estimation of a spatial
-#' interaction model with [spflow()].
-#' The options allow to adjust the estimation method and give the user full
-#' control over the use of the explanatory variables.
-#' The user can also adjust the form of autocorrelation to be considered.
+#' This function creates a list of parameters, that are used to fine tune the
+#' estimation with [spflow()].
+#' Here we can change the estimation method, adjust how the exogenous
+#' variables enter the model, and also define the spatial autocorrelation structure.
 #'
 #' @section Details:
 #'
-#' ## Adjusting the form of autocorrelation
+#' ## Adjusting the autocorrelation structure
 #'
 #' The option `model` allows to declare one of nine different forms of
 #' autocorrelation that follow the naming convention of
@@ -39,9 +37,9 @@
 #'   A character which indicates the estimation method, should be one of
 #'   `c("mle","s2sls","mcmc")`
 #' @param model
-#'   A character indicating the model number,  indicating different spatial
-#'   dependence structures (see documentation for details), should be one of
-#'   `paste0("model_", 1:9)`
+#'   A character indicating the model number, that controls different spatial
+#'   dependence structures should be one of `paste0("model_", 1:9)`.
+#'   Details are given in the documentation of [spflow_control()].
 #' @param use_intra
 #'   A logical which activates the option to use a separate set of parameters
 #'   for intra-regional flows (origin == destination)
@@ -108,6 +106,7 @@
 #'
 #' @seealso [spflow()]
 #' @references \insertAllCited{}
+#' @author Lukas Dargel
 #' @return
 #'   A list of parameters used to control the model estimation with [spflow()]
 #' @export
@@ -160,12 +159,10 @@ spflow_control <- function(
 
   assert_is_single_x(use_intra, "logical")
 
-  check_formula_msg <-
-    "The %s must either be declared as a formula " %p%
-    'or one string among c("none", "all", "same")!'
-  sdm_shortcuts <- c("none","same","all")
-  assert(is(sdm_variables,"formula") || sdm_variables %in% sdm_shortcuts,
-         check_formula_msg, sdm_variables)
+  formula_shortcuts <- c("none","same","all")
+  assert(is(sdm_variables,"formula") || sdm_variables %in% formula_shortcuts,
+         'The sdm_variables should be a formula or one of %s!',
+         deparse(formula_shortcuts))
 
   assert(is_single_character(weight_variable) || is.null(weight_variable),
          "The weight_variable must be a character of length one!")
@@ -206,8 +203,9 @@ spflow_control <- function(
     assert_is_single_x(twosls_decorrelate_instruments, "logical")
     assert_is_single_x(twosls_reduce_pair_instruments, "logical")
     assert(is(twosls_instrumental_variables,"formula")
-           || twosls_instrumental_variables %in% c("none","same","all"),
-           check_formula_msg)
+           || twosls_instrumental_variables %in% formula_shortcuts,
+           'The twosls_instrumental_variables should be a formula or one of %s!',
+           deparse(formula_shortcuts))
 
     twosls_control <- list(
       "twosls_instrumental_variables"  = twosls_instrumental_variables,
@@ -264,11 +262,14 @@ spflow_control <- function(
 
 
 
-#' @title Enhance the estimation_control object for estimation
+#' @title Derive additional information from the [spflow_control()] arguments
 #' @description
-#' Validate the input to flow control and add additional information related
-#' to the matrix form expression of the model.
+#' This is an internal function to validates the content of the
+#' `estimation_control` argument of [spflow()].
+#' It also derives some verbal descriptions of the estimated model.
 #' @keywords internal
+#' @author Lukas Dargel
+#' @return A list of control parameters
 enhance_spflow_control <- function(estimation_control, is_within) {
 
   # validate by calling again

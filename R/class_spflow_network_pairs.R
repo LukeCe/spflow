@@ -4,11 +4,8 @@
 #'
 #' @description
 #' An S4 class which holds information on origin-destination (OD) pairs.
-#' Each OD pair is composed of two nodes.
-#' All origins belong to the same set of nodes and all destination too
-#' (see [spflow_network_nodes-class()]).
-#' When the origins and the destinations belong to the same set of nodes the
-#' corresponding ids should be equal
+#' Each OD pair is composed of two nodes, and the set of origin nodes as well
+#' as the set of destination nodes are identify by an id.
 #'
 #'
 #' @slot id_spflow_network_pairs
@@ -22,7 +19,6 @@
 #'
 #' @param object A spflow_network_pairs-class
 #' @param value An object to replace the existing id/data
-#' @family spflow network classes
 #' @importClassesFrom Matrix Matrix
 #' @name spflow_network_pairs-class
 #' @export
@@ -39,7 +35,6 @@ setClass("spflow_network_pairs", slots = c(
 #' @export
 #' @examples
 #' ## access the data describing the node pairs
-#'
 #' net_pair_ge_ge <- pull_member(multi_net_usa_ge,"ge_ge")
 #' dat(net_pair_ge_ge)
 #'
@@ -65,7 +60,6 @@ setReplaceMethod(
 #' @export
 #' @examples
 #' ## access the id of a network pair
-#'
 #' net_pair_ge_ge <- pull_member(multi_net_usa_ge,"ge_ge")
 #' id(net_pair_ge_ge)
 #' id(net_pair_ge_ge) <- "Germany_Germany"
@@ -115,7 +109,6 @@ setReplaceMethod(
 #' @export
 #' @examples
 #' ## access the number of node pairs in a network pair
-#'
 #' net_pair_ge_ge <- pull_member(multi_net_usa_ge,"ge_ge")
 #' npairs(net_pair_ge_ge)
 #'
@@ -132,7 +125,6 @@ setMethod(
 #' @export
 #' @examples
 #' ## access the number of origin and destination nodes in a network pair
-
 #' net_pair_ge_ge <- pull_member(multi_net_usa_ge,"ge_ge")
 #' nnodes(net_pair_ge_ge)
 #' nnodes(net_pair_ge_ge)["orig"]
@@ -189,7 +181,7 @@ setMethod(
     has_data <- !is.null(dat(object))
     if (has_data) {
       cat("\n\nData on node-pairs:\n")
-      print(dat(object))
+      pprint_df(dat(object))
     }
     cat("\n")
     invisible(object)
@@ -200,13 +192,11 @@ setMethod(
 #' @rdname spflow_network_pairs-class
 #' @param new_dat A data.frame
 #' @export
-#'
 setMethod(
   f = "update_dat",
   signature = "spflow_network_pairs",
   function(object, new_dat) {
 
-    # browser()
     assert(is_column_subset(dat(object), new_dat),
            'All columns in new_dat must exist and have the same
            type as in the pair_data of "%s"!', id(object)["pair"])
@@ -288,7 +278,7 @@ setValidity("spflow_network_pairs", function(object) {
 })
 # ---- Constructors -----------------------------------------------------------
 
-#' Create an S4 object that contains information on origin-destination pairs
+#' @title Constructor for the [spflow_network_pairs-class()]
 #'
 #' @param id_orig_nodes
 #'   A character that serves as identifier for the origin network
@@ -305,8 +295,7 @@ setValidity("spflow_network_pairs", function(object) {
 #'   A character indicating the name of the column containing the identifiers
 #'   of the destinations
 #'
-#' @return An S4 class of type [spflow_network_pairs-class()]
-#' @family Constructors for spflow network classes
+#' @return A [spflow_network_pairs-class()]
 #' @export
 #' @examples
 #' pair_frame <- data.frame(

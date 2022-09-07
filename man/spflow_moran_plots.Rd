@@ -32,13 +32,18 @@ defaults to the of them)}
 
 \item{flow_var}{A character, indicating one variable from the network pair data}
 
+\item{model}{A character indicating the model number, that controls different spatial
+dependence structures should be one of \code{paste0("model_", 1:9)}.
+Details are given in the documentation of \code{\link[=spflow_control]{spflow_control()}}.}
+
 \item{DW, OW}{A matrix to replace the neighborhood of the destinations (DW) and origins (OW).
 Defaults to the one supplied to the model.}
 
 \item{add_lines}{A logical, if \code{TRUE} regression lines are added to the Moran scatter plots.}
 }
 \description{
-Moran scatter plots of interaction data
+Generate up to three Moran scatter plots, related to origin-, destination-,
+and origin-to-destination-dependence.
 }
 \examples{
 
@@ -47,13 +52,14 @@ Moran scatter plots of interaction data
  spflow_moran_plots(multi_net_usa_ge, "ge_ge",flow_var = "y9")
 
 
- # Used with a model...
- # To check the if there is spatial correlation in the residuals
+ # Used with a spflow_model...
+ # Check the if there is spatial correlation in the residuals
  gravity_ge <- spflow(
    y9 ~ . + P_(DISTANCE),
    multi_net_usa_ge,
    "ge_ge",
    spflow_control(model = "model_1"))
+
  spflow_moran_plots(gravity_ge)
 
 }

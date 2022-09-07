@@ -48,6 +48,9 @@ Our estimation procedures makes use of the matrix formulation introduced by
 \insertCite{LeSage2008;textual}{spflow} and further developed by
 \insertCite{Dargel2021;textual}{spflow} to reduce the computational
 effort and memory requirements.
+Further generalizations to deal with non-cartesian and rectangular flows
+are developed by \insertCite{Dargel2022;textual}{spflow}.
+
 The estimation procedure can be adjusted through the \code{estimation_method}
 argument in \code{\link[=spflow_control]{spflow_control()}}.
 \subsection{Maximum likelihood estimation (MLE)}{
@@ -180,4 +183,7 @@ spflow(spflow_formula = y9 ~ O_(X) + D_(X) + I_(X) + P_(DISTANCE),
 }
 \seealso{
 \code{\link[=spflow_control]{spflow_control()}} \code{\link[=spflow_network_classes]{spflow_network_classes()}}
+}
+\author{
+Lukas Dargel
 }

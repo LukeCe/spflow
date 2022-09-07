@@ -2,8 +2,8 @@
 
 ## New functions
 
-* Added `pair_corr()` method for `spflow_model-class` and `spflow_network_multi-class`. The method creates a correlation matrix for origin, destination and OD-pair variables and their spatial lags.
-* Added `corr_map()` to visualize such correlations.
+* Added `pair_cor()` method for `spflow_model-class` and `spflow_network_multi-class`. The method creates a correlation matrix for origin, destination and OD-pair variables and their spatial lags.
+* Added `cor_image()` to visualize such correlations.
 * Added `plot()` method for some quick diagnostics of the `spflow_model`
 * Added `map_flows()` to visualize flow data
 * Added `spflow_moran_plots()` for Moran scatter plots of flow-data and residuals of interaction models 

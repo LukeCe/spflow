@@ -33,6 +33,7 @@
 #' @aliases spflow-package
 #' @docType package
 #' @importClassesFrom Matrix Matrix
+#' @importMethodsFrom Matrix image diag
 #' @importFrom utils head tail
 #' @importFrom methods as canCoerce is isGeneric new setClassUnion setGeneric
 #'   slot validObject
@@ -54,16 +55,6 @@
 #' @keywords internal
 NULL
 
-# ---- pkg_defunct ------------------------------------------------------------
-
-#' @title Defunct functions in package \pkg{spflow}.
-#' @description The functions listed below are defunct. When possible,
-#'   alternative functions with similar functionality are also mentioned. Help
-#'   pages for deprecated functions are available at
-#'   \code{help("<function>-defunct")}.
-#' @name spflow-deprecated
-#' @keywords internal
-NULL
 
 # ---- other ------------------------------------------------------------------
 
@@ -72,8 +63,6 @@ NULL
 ## usethis namespace: start
 ## usethis namespace: end
 NULL
-
-
 
 # A trick to use the x %>% fun(.) notation without R CMD Note
 utils::globalVariables(c(".","ORIG_ID","DEST_ID","ID"))

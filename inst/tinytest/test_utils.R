@@ -78,23 +78,46 @@ expect_equal({
     c(450,6)},
   info = "uninformative columns are dropped")
 
-# ---- sandwich_prod ----------------------------------------------------------
-expect_null(spflow:::sandwich_prod(w1 = NULL,w2 = NULL,mat = NULL))
-expect_equal(spflow:::sandwich_prod(diag(2,5,5),matrix(1,5,5),diag(2,5,5)),
-             matrix(4,5,5))
-expect_equal(spflow:::sandwich_prod(diag(2,5,5),matrix(1,5,5),NULL),
-             matrix(2,5,5))
-expect_equal(spflow:::sandwich_prod(NULL,matrix(1,5,5),diag(2,5,5)),
-             matrix(2,5,5))
-expect_equal(spflow:::sandwich_prod(NULL,matrix(1,5,5),NULL),
-             matrix(1,5,5))
+# ---- rbind_fill_left---------------------------------------------------------
+expect_equal({
+  spflow:::rbind_fill_left(matrix(1:6,nrow = 2),
+                           matrix(1:4,nrow = 2),
+                           matrix(1:2,nrow = 2))
+},
+{
+  rbind(matrix(1:6,nrow = 2),
+        cbind(c(NA,NA),matrix(1:4,nrow = 2)),
+        cbind(c(NA,NA),c(NA,NA),matrix(1:2,nrow = 2)))
+})
+
+expect_equal({
+  spflow:::rbind_fill_left(matrix(1:6,nrow = 2),
+                           matrix(1:4,nrow = 2),
+                           matrix(1:2,nrow = 2),fill = 0)
+},
+{
+  rbind(matrix(1:6,nrow = 2),
+        cbind(c(0,0),matrix(1:4,nrow = 2)),
+        cbind(c(0,0),c(0,0),matrix(1:2,nrow = 2)))
+})
+
+# ---- stack_columns ----------------------------------------------------------
+expect_equal({
+  test_mat <- matrix(letters[1:4],2,2,
+                     dimnames = list(LETTERS[1:2],LETTERS[3:4]))
+  spflow:::stack_columns(test_mat)
+},
+{
+  data.frame(col = factor(c("C","D","C","D")),
+             row = factor(c("A","A","B","B")),
+             value = letters[1:4])
+})
+
+# ---- trace_sequence ---------------------------------------------------------
+expect_equal(spflow:::trace_sequence(diag(3),max_power = 5), rep(3,5))
 
 
-# ---- multinom coef ----------------------------------------------------------
-expect_equal(
-  spflow:::multinom_coef(list(c(1,2), c(1,3), c(1,4))),
-  c(factorial(1 + 1 + 1)/1/1/1,
-    factorial(2 + 3 + 4) / factorial(2) / factorial(3) / factorial(4)))
+# ---- count_pattern  ---------------------------------------------------------
+expect_equal(spflow:::count_pattern(c("aab","bbc", "acc"), "b"),
+             c(1,2,0))
 
-expect_inherits(spflow:::multinom_table(max_power = 1,coef_names = c("A","B","C")),
-                "data.frame")

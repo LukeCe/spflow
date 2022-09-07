@@ -3,24 +3,22 @@
 #' @title spflow network classes
 #'
 #' @description
-#' The spflow package provides three additional classes to the R environment
-#' that allow to handle origin-destination flow data efficiently.
+#' The spflow package provides three additional classes to the R environment.
+#' These allow to handle origin-destination flow data efficiently, by exploiting
+#' the relational structure of origin-destination data.
 #'
-#' The main idea is to exploit the relational structure of origin-destination
-#' data to reduce the memory requirements.
 #' Data on origins and destinations are stored in the
 #' [spflow_network_nodes-class()] and data on the origin-destination pairs are
 #' stored in an [spflow_network_pairs-class()].
 #'
-#' A third object of type [spflow_network_multi-class()] is then used to store
-#' information on the nodes and pairs in an efficient relational storage.
-#' It makes sure that all origin-destination pairs can be identified with the
-#' nodes at the origin and destination.
+#' A third object of type [spflow_network_multi-class()] gathers all information
+#' from the different data sources. The class can be thought of as a simple
+#' relational database which ensures correct identification of origin-destination
+#'  pairs with the node level information.
 #'
 #'
 #' @name spflow_network_classes
 #' @family spflow network classes
-#' @family Constructors for spflow network classes
 #' @examples
 #'
 #' ### An example use case for the spflow network classes and model estimation
@@ -77,7 +75,6 @@
 #'
 #' # define the list of control parameters
 #' estimation_control <- spflow_control(sdm_variables = sdm_formula)
-#'
 #'
 #' # Estimate the model
 #' spflow(flow_formula, paris10km_multinet, estimation_control = estimation_control)

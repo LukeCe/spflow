@@ -2,7 +2,7 @@
 % Please edit documentation in R/class_spflow_network_pairs.R
 \name{spflow_network_pairs}
 \alias{spflow_network_pairs}
-\title{Create an S4 object that contains information on origin-destination pairs}
+\title{Constructor for the \code{\link[=spflow_network_pairs-class]{spflow_network_pairs-class()}}}
 \usage{
 spflow_network_pairs(
   id_orig_nodes,
@@ -29,10 +29,10 @@ of the origins}
 of the destinations}
 }
 \value{
-An S4 class of type \code{\link[=spflow_network_pairs-class]{spflow_network_pairs-class()}}
+A \code{\link[=spflow_network_pairs-class]{spflow_network_pairs-class()}}
 }
 \description{
-Create an S4 object that contains information on origin-destination pairs
+Constructor for the \code{\link[=spflow_network_pairs-class]{spflow_network_pairs-class()}}
 }
 \examples{
 pair_frame <- data.frame(
@@ -40,10 +40,3 @@ pair_frame <- data.frame(
   DEST_ID_STATE = rep(germany_grid$ID_STATE, each = 16))
 spflow_network_pairs("ge","ge","ge_ge",pair_frame,"ORIG_ID_STATE","DEST_ID_STATE")
 }
-\seealso{
-Other Constructors for spflow network classes: 
-\code{\link{spflow_network_classes}},
-\code{\link{spflow_network_multi}},
-\code{\link{spflow_network_nodes}}
-}
-\concept{Constructors for spflow network classes}

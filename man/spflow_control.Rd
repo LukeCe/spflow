@@ -2,7 +2,7 @@
 % Please edit documentation in R/spflow_control.R
 \name{spflow_control}
 \alias{spflow_control}
-\title{Define details of the estimation procedure with the \code{\link[=spflow]{spflow()}} function.}
+\title{Control parameters for passed to \code{\link[=spflow]{spflow()}}}
 \usage{
 spflow_control(
   estimation_method = "mle",
@@ -31,9 +31,9 @@ spflow_control(
 \item{estimation_method}{A character which indicates the estimation method, should be one of
 \code{c("mle","s2sls","mcmc")}}
 
-\item{model}{A character indicating the model number,  indicating different spatial
-dependence structures (see documentation for details), should be one of
-\code{paste0("model_", 1:9)}}
+\item{model}{A character indicating the model number, that controls different spatial
+dependence structures should be one of \code{paste0("model_", 1:9)}.
+Details are given in the documentation of \code{\link[=spflow_control]{spflow_control()}}.}
 
 \item{use_intra}{A logical which activates the option to use a separate set of parameters
 for intra-regional flows (origin == destination)}
@@ -103,15 +103,14 @@ contains \code{NA} values. Otherwise the estimation proceeds with a sub-sample.}
 A list of parameters used to control the model estimation with \code{\link[=spflow]{spflow()}}
 }
 \description{
-This function creates a list to fine tune the estimation of a spatial
-interaction model with \code{\link[=spflow]{spflow()}}.
-The options allow to adjust the estimation method and give the user full
-control over the use of the explanatory variables.
-The user can also adjust the form of autocorrelation to be considered.
+This function creates a list of parameters, that are used to fine tune the
+estimation with \code{\link[=spflow]{spflow()}}.
+Here we can change the estimation method, adjust how the exogenous
+variables enter the model, and also define the spatial autocorrelation structure.
 }
 \section{Details}{
 
-\subsection{Adjusting the form of autocorrelation}{
+\subsection{Adjusting the autocorrelation structure}{
 
 The option \code{model} allows to declare one of nine different forms of
 autocorrelation that follow the naming convention of
@@ -161,4 +160,7 @@ custom_control <- spflow_control(use_intra = FALSE, sdm_variables = "none")
 }
 \seealso{
 \code{\link[=spflow]{spflow()}}
+}
+\author{
+Lukas Dargel
 }
