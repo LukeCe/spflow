@@ -1,4 +1,4 @@
-# spflow 0.2.0 (2022-07-12)
+# spflow 0.2.0 (2022-09-07)
 
 ## New functions
 
@@ -22,7 +22,7 @@
 These are heavy changes, which may break existing code.
 Such changes will not occur in future releases and are due to the early stage of the package.
 
-* Restructured the `spflow_model-class` (to better handle `NA` data and to make predictions easier)
+* Restructured the `spflow_model-class` (to better handle `NA` values and to enable predictions)
 * Renamed and restructured classes
   * `sp_multinetwork-class` -> `spflow_network_multi-class`
   * `sp_network_nodes-class` -> `spflow_network_nodes-class`
