@@ -31,6 +31,9 @@
 #'   A data.frame containing the indicators of od-pairs
 #' @slot spflow_moments
 #'   A list of moment matrices used for estimating the model
+#' @slot spflow_nbfunctions
+#'   A list that may contain a function to calculate the log-determinant term
+#'   and one to validate the parameter space for the spatial interaction model.
 #'
 #' @name spflow_model-class
 #' @author Lukas Dargek
@@ -73,13 +76,17 @@ setClass("spflow_model", slots = c(
   spflow_networks = "maybe_spflow_network_multi",
   spflow_moments = "maybe_list",
   spflow_matrices = "maybe_list",
-  spflow_indicators = "maybe_data.frame"))
+  spflow_indicators = "maybe_data.frame",
+  spflow_nbfunctions = "maybe_list"))
 
 
 setClass("spflow_model_ols", contains = "spflow_model")
 setClass("spflow_model_mle", contains = "spflow_model")
 setClass("spflow_model_s2sls", contains = "spflow_model")
 setClass("spflow_model_mcmc", contains = "spflow_model")
+setClassUnion("spflow_model_ll",
+              c("spflow_model_ols",
+                "spflow_model_mle"))
 setClassUnion("spflow_model_varcov",
               c("spflow_model_ols",
                 "spflow_model_mle",
@@ -161,7 +168,7 @@ setMethod(
 #' @export
 setMethod(
   f = "logLik",
-  signature = "spflow_model_mle",
+  signature = "spflow_model",
   function(object) return(object@estimation_diagnostics[["ll"]]))
 
 # ---- ... mcmc_results -------------------------------------------------------
@@ -370,6 +377,10 @@ setMethod(
 #' The former will return the predicted values of the dependent variables and
 #' the later computes the change in its levels given the input data changes.
 #'
+#' @details
+#' The prediction methods used here have been developed or analyzed by \insertCite{Goulard2017;textual}{spflow}.
+#' \insertCite{Dargel2022;textual}{spflow} describe how they can be adapted to the case of interaction models.
+#'
 #' @param object A [spflow_model-class()]
 #' @param method A character indicating which method to use for computing the
 #'   predictions. Should be one of c("TS", "TC", "BP").
@@ -388,6 +399,7 @@ setMethod(
 #'
 #' @inheritParams spflow_network_multi-class
 #' @inheritParams spflow_model-class
+#' @references \insertAllCited{}
 #' @importFrom Matrix crossprod diag solve
 #' @aliases predict,spflow_model-method predict_effect,spflow_model-method
 #' @rdname predict
@@ -424,7 +436,6 @@ setMethod(
 
     if (!is.null(new_dat)) {
       stop("Data update not yet implmented!")
-
     }
 
     # for in-sample methods the population is set equal to the sample
@@ -653,8 +664,110 @@ setMethod(
 setMethod(
   f = "results",
   signature = "spflow_model",
-  function(object) {
-    return(object@estimation_results)
+  function(object,
+           as_column = FALSE,
+           sig_levels = c("***" = .001, "**" = 0.01, "*" = 0.05, "'" = 0.1),
+           global_vars = c( "model_coherence", "N_sample", "R2_corr", "ll"),
+           digits = 3,
+           add_dispersion = FALSE
+           ){
+
+    if (!as_column)
+      return(object@estimation_results)
+
+
+    rd <- function(x) round(x, digits)
+    res <- object@estimation_results
+    res_col <- data.frame("T" = "param", "M" = rd(res$est), row.names = rownames(res))
+
+    if (!is.null(sig_levels)) {
+      assert(is.numeric(sig_levels) &&
+               all(sig_levels >= 0) && all(sig_levels <= 1) &&
+               !is.null(names(sig_levels)),
+             "The argument sig_levels must be a named numeric
+              with values between 0 and 1!")
+
+      c_breaks <- c(0,as.numeric(sig_levels),1)
+      c_labels <- c(names(sig_levels),"")
+      stars <- cut(pmin(res[["p.val"]], .9999999),c_breaks,c_labels,include.lowest = TRUE)
+      res_col[["M"]] <- paste0(res_col[["M"]], stars)
+    }
+
+    if (add_dispersion)
+      res_col[["M"]] <- sprintf("%s\n(%s)", res_col[["M"]], rd(res$sd))
+
+    if (!is.null(global_vars)) {
+      assert_is(global_vars, "character")
+      global_vars <- c(
+        object@estimation_control[global_vars],
+        object@estimation_diagnostics[global_vars])
+      global_vars <- Filter(function(x) length(x) == 1, global_vars)
+      global_vars <- lapply(global_vars, function(x) as.character(ifelse(is.numeric(x), rd(x), x)))
+      global_vars <- data.frame("T" = "global", "M" = unlist(global_vars))
+      res_col <- rbind(res_col, global_vars)
+    }
+
+    return(res_col)
+  })
+
+
+# ---- ... results (for mcmc) -------------------------------------------------
+#' @rdname spflow_model-class
+#' @export
+setMethod(
+  f = "results",
+  signature = "spflow_model_mcmc",
+  function(object,
+           as_column = FALSE,
+           sig_levels = c("***" = .001, "**" = 0.01, "*" = 0.05, "'" = 0.1),
+           global_vars = c( "model_coherence", "N_sample", "R2_corr"),
+           digits = 3,
+           add_dispersion = FALSE
+  ){
+
+    if (!as_column)
+      return(object@estimation_results)
+
+    rd <- function(x) round(x, digits)
+    res <- object@estimation_results
+    res_col <- data.frame("T" = "param", "M" = rd(res$est), row.names = rownames(res))
+
+    if (length(sig_levels) > 0) {
+      assert(is.numeric(sig_levels) &&
+               all(sig_levels >= 0) && all(sig_levels <= 1) &&
+               !is.null(names(sig_levels)),
+             "The argument sig_levels must be a named numeric
+              with values between 0 and 1!")
+
+      mcmc_res <- seq(object@estimation_control$mcmc_burn_in)
+      mcmc_res <- mcmc_results(object)[-mcmc_res,]
+      mcmc_res <- mcmc_res[,-ncol(mcmc_res)]
+
+      has_sig_level <- function(x, lv) outside(0, quantile(x, c(lv/2, 1-lv/2)))
+      mcmc_sig_stars <- structure(rep("", nrow(res_col)), names = rownames(res_col))
+      sig_levels <- sort(sig_levels,decreasing = TRUE)
+      for (i in seq_along(sig_levels)) {
+        mcmc_sig <- apply(mcmc_res, 2, has_sig_level, sig_levels[i])
+        mcmc_sig_stars[mcmc_sig] <- names(sig_levels[i])
+      }
+      res_col[["M"]] <- paste0(res_col[["M"]], mcmc_sig_stars)
+    }
+
+    if (add_dispersion)
+      res_col[["M"]] <- sprintf("%s\n[%s;%s]", res_col[["M"]], rd(res$quant_025), rd(res$quant_975))
+
+    if (!is.null(global_vars)) {
+      assert_is(global_vars, "character")
+      global_vars <- c(
+        object@estimation_control[global_vars],
+        object@estimation_diagnostics[global_vars])
+      global_vars <- Filter(function(x) length(x) == 1, global_vars)
+      global_vars <- lapply(global_vars, function(x) as.character(ifelse(is.numeric(x), rd(x), x)))
+      global_vars <- data.frame("T" = "global", "M" = unlist(global_vars))
+      res_col <- rbind(res_col, global_vars)
+    }
+
+    return(res_col)
   })
 
 # ---- ... results <- ---------------------------------------------------------
@@ -668,6 +781,31 @@ setReplaceMethod(
     object@estimation_results <- value
     if (validObject(object))
       return(object)
+  })
+
+# ---- ... results_flat -------------------------------------------------------
+#' @rdname spflow_model-class
+#' @param coef_info A character indicating column names in the results
+#' @param main_info A character indicating named elements in the estimation_control or estimation_diagnostics
+#' @export
+setMethod(
+  f = "results_flat",
+  signature = "spflow_model",
+  function(object,
+           coef_info = c("est","sd"),
+           main_info = c("estimation_method", "model_coherence", "R2_corr", "ll","sd_error")){
+
+    res <- results(object)
+    coef_info <- Filter(function(x) x %in% names(res),coef_info)
+    flat_param <- lapply(coef_info, function(.col) {
+      tmp <- suffix_columns(t(res[.col]), paste0("_",.col))
+      data.frame(tmp, row.names = NULL,check.names = FALSE)
+    })
+
+    main_info <- c(object@estimation_control[main_info], object@estimation_diagnostics[main_info])
+    main_info <- Filter(function(x) length(x) == 1, main_info)
+    flat_results <- cbind(as.data.frame(main_info), flat_param)
+    return(flat_results)
   })
 
 # ---- ... sd_error -----------------------------------------------------------
@@ -697,7 +835,7 @@ setMethod(
                 cntrl$spatial_type,
                 cntrl$model))
     cat(sprintf("\nDependent variable: %s",
-                as.character(pull_lhs(object@spflow_formula))[-1]))
+                names(object@spflow_matrices$Y_)[1]))
 
 
     cat("\n\n")
@@ -712,10 +850,9 @@ setMethod(
     cat("\nR2_corr:", object@estimation_diagnostics[["R2_corr"]], collapse = " ")
     cat("\nObservations:", nobs(object), collapse = " ")
 
-    pspace <- "Model coherence:"
-    pspace_res <- object@estimation_diagnostics[[pspace]]
+    pspace_res <- object@estimation_diagnostics[["model_coherence"]]
     if (!is.null(pspace_res))
-      cat(sprintf("\n%s %s", pspace, pspace_res))
+      cat(sprintf("\nModel coherence: %s", pspace_res))
 
     invisible(object)
   })
@@ -865,7 +1002,8 @@ spflow_model <- function(
     spflow_networks = NULL,
     spflow_indicators = NULL,
     spflow_matrices = NULL,
-    spflow_moments = NULL) {
+    spflow_moments = NULL,
+    spflow_nbfunctions = NULL) {
 
   model_class <- paste0("spflow_model_", estimation_control[["estimation_method"]])
   model_results <- new(
@@ -876,13 +1014,14 @@ spflow_model <- function(
     spflow_networks = spflow_networks,
     spflow_indicators = spflow_indicators,
     spflow_matrices = spflow_matrices,
-    spflow_moments = spflow_moments)
+    spflow_moments = spflow_moments,
+    spflow_nbfunctions = spflow_nbfunctions)
   return(model_results)
 }
 
 # ---- Helper functions -------------------------------------------------------
 #' @keywords internal
-create_results <- function(...) {
+create_results <- function(..., df = 1) {
 
   r <- list(...)
   if (is.null(r[["est"]]))
@@ -895,7 +1034,7 @@ create_results <- function(...) {
     r <- c(r, list("t.stat" = r[["est"]] / r[["sd"]]))
 
   if (is.null(r[["p.val"]]))
-    r <- c(r, list("p.val" = pt(1 - abs(r[["t.stat"]]), 1)))
+    r <- c(r, list("p.val" = 2 * pt(abs(r[["t.stat"]]), max(df,1e-10), lower.tail = FALSE)))
 
   if (is.null(r[["quant_025"]]))
     r <- c(r, list("quant_025" = qnorm(.025, r[["est"]], r[["sd"]])))
@@ -914,4 +1053,36 @@ actual <- function(object, return_type = "V"){
   spflow_indicators2format(do_k[,c(names(do_k)[1:2],"ACTUAL")], return_type, do_k[["IN_SAMPLE"]])
 }
 
+#' @keywords internal
+outside <- function(x, bounds) {
+    bounds <- range(bounds)
+  x > bounds[2] | x < bounds[1]
+}
 
+
+#' @keywords internal
+compare_results <- function(model_list, global_vars = c("model_coherence", "R2_corr", "ll", "N_sample")) {
+
+  res <- lapply(model_list, results, as_column = TRUE, global_vars = global_vars)
+
+  pnames <- lapply(res, function(x) rownames(x[x[["T"]] == "param",]))
+  pnames <- sort(unique(unlist(pnames)))
+  rhos <- intersect(paste0("rho_", c("d","o","w","od","odw")),pnames)
+  pnames <- c(rhos , setdiff(pnames, rhos))
+
+  gnames <- lapply(res, function(x) rownames(x[x[["T"]] == "global",]))
+  gnames <- unique(unlist(gnames))
+  pnames <- c(pnames, gnames)
+
+  mnames <- sprintf("Fit (%s)", seq_along(res))
+  if (!is.null(names(res)))
+    mnames <- names(res)
+
+  res_mat <- matrix(
+    "", ncol = length(mnames), nrow = length(pnames),
+    dimnames = list(pnames, mnames))
+  for (i in seq_along(res))
+    res_mat[rownames(res[[i]]), i] <- res[[i]][["M"]]
+
+  return(as.data.frame(res_mat))
+}

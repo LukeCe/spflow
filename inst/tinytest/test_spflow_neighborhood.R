@@ -50,7 +50,7 @@ info = "neighborhood expansion (model_9 + non-cartesian + rectangular)")
 expect_equal({
   a <- matrix(1:25,5,5)
   diag(a) <- 0
-  a / rowSums(a)
+  as(a / rowSums(a),"dgCMatrix")
   }, {
   spflow:::normalize_neighborhood(matrix(1:25,5,5),by_row = TRUE)
   }
@@ -61,7 +61,7 @@ expect_equal({
 expect_equal({
   a <- matrix(1:25,5,5)
   diag(a) <- 0
-  a / abs(eigen(a)$values[1])
+  as(a / abs(eigen(a)$values[1]),"dgCMatrix")
 }, {
   spflow:::normalize_neighborhood(matrix(1:25,5,5),by_row = FALSE)
 }

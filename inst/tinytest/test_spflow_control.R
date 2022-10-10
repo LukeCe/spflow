@@ -7,7 +7,7 @@ expect_error(spflow_control(model = "no_model"))
 expect_error(spflow_control(use_intra = "no_logical"))
 expect_error(spflow_control(use_intra = "no_logical"))
 expect_error(spflow_control(sdm_variables = "no_sdm_option"))
-expect_error(spflow_control(parameter_space = "no_parameter_space_option"))
+expect_error(spflow_control(approx_parameter_space = "no_logical"))
 
 ## specific options
 expect_null({

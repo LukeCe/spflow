@@ -54,7 +54,6 @@ Collate:
     'spflow_estimation.R'
     'spflow_formula.R'
     'spflow_indicators.R'
-    'spflow_likelihood.R'
     'spflow_logdet.R'
     'spflow_matrices.R'
     'spflow_moments.R'

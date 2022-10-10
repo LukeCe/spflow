@@ -13,35 +13,43 @@ expect_equal({
   check.attributes = FALSE,
   info = "neighborhood matrix is transformed for efficiency")
 
+
+expect_inherits({
+  test_neighborhood <- matrix(1:9,3,3)
+  test_neighborhood <- test_neighborhood + t(test_neighborhood)
+  test_neighborhood <- Diagonal(3) %x% test_neighborhood
+  neighborhood(spflow_network_nodes("net1",node_neighborhood = test_neighborhood))
+  },class = "dgCMatrix", info = "deal with symmetric sparse matrices")
+
 expect_equal({
   test_node_data <- data.frame(key = LETTERS[3:1], val = seq(3))
-  ids <- dat(spflow_network_nodes("net1",NULL,test_node_data,"key"))[["key"]]
+  ids <- dat(spflow_network_nodes("net1",NULL,test_node_data,node_key_column = "key"))[["key"]]
   as.numeric(ids)
   }, seq(3),
   info = "order of the origins is set correctly")
 
 expect_error({
-  spflow_network_nodes(network_id = "id_with_special_characters")
+  spflow_network_nodes(id_spflow_network_nodes = "id_with_special_characters")
   },
-  info = "network id must be alphanumeric")
+  pattern = "only alphanumeric characters!")
 
 expect_error({
   test_node_data <- data.frame(key = LETTERS[seq(3)], val = seq(3))
   spflow_network_nodes("net1",NULL,test_node_data)
   },
-  info = "node key column must exist and identify uniquely")
+  pattern = "node_key_column is not available")
 
 expect_error({
   test_node_data <- data.frame(key = LETTERS[seq(3)], val = seq(3))
   spflow_network_nodes("net1",NULL,test_node_data,"not_a_column")
   },
-  info = "node key column must exist and identify uniquely")
+  pattern = "node_key_column is not available")
 
 expect_error({
   test_node_data <- data.frame(key = LETTERS[c(1,1,3)], val = seq(3))
   spflow_network_nodes("net1",NULL,test_node_data,"not_a_column")
   },
-  info = "node key column must exist and identify uniquely")
+  pattern = "node_key_column is not available")
 
 expect_error({
   test_node_data <- data.frame(key = LETTERS[seq(3)], val = seq(3))
@@ -66,9 +74,10 @@ expect_equal({
 expect_error({
   valid_node_data <- data.frame(key = factor(LETTERS[seq(3)]), val = seq(3))
   test_sp_nodes <- spflow_network_nodes("net1",NULL,valid_node_data,"key")
+  names(valid_node_data) <- c("key2", "val")
   dat(test_sp_nodes) <- valid_node_data
   },
-  pattern = "invalid class",
+  pattern =  "node_key_column is not available",
   info = "data replacement is rejected for unspecifyed keys")
 
 expect_error({
@@ -78,7 +87,7 @@ expect_error({
   invalid_node_data[["key"]] <- factor(LETTERS[c(1,1,2)])
   dat(test_sp_nodes) <- invalid_node_data
   },
-  pattern = "invalid class",
+  pattern =  "nodes are not uniquely identfyed",
   info = "data replacement is rejected for duplicated keys")
 
 expect_true({
@@ -92,9 +101,9 @@ expect_true({
 
 expect_error({
   valid_node_data <- data.frame(key = factor(LETTERS[seq(3)]), val = seq(3))
-  test_sp_nodes <- spflow_network_nodes("net1",NULL,valid_node_data,"key")
+  test_sp_nodes <- spflow_network_nodes("net1",node_neighborhood = matrix(1:9,3),valid_node_data,"key")
   to_small_data <- data.frame(key = factor(LETTERS[seq(2)]), val = seq(2))
-  dat(test_sp_nodes) <- to_small_data
+  suppressWarnings(dat(test_sp_nodes) <- to_small_data)
   },
   pattern = "invalid class",
   info = "data replacement is rejected for dimension missmatch")

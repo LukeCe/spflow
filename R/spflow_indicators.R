@@ -3,17 +3,32 @@ spflow_indicators2obs <- function(spflow_indicators) {
 
   n_o <- nlevels(spflow_indicators[[2]])
   n_d <- nlevels(spflow_indicators[[1]])
-  N <- nrow(spflow_indicators)
-  filter_len <- function(.f) if (is.null(spflow_indicators[[.f]])) N else sum(spflow_indicators[[.f]])
+  N <- N_pop <- N_sample <- nrow(spflow_indicators)
 
-  list(
+  in_pop <- spflow_indicators[["HAS_ZZ"]]
+  if (!is.null(in_pop))
+    N_pop <- sum(in_pop)
+
+  in_sample <- update_logicals(
+    spflow_indicators[["HAS_ZZ"]],
+    spflow_indicators[["HAS_ZY"]],
+    spflow_indicators[["WEIGHT"]] > 0)
+  if (!is.null(in_sample))
+    N_sample <- sum(in_sample)
+
+  obs <- list(
     N_orig = n_o,
     N_dest = n_d,
-    N_sample = filter_len("IN_SAMPLE"),
-    N_pop = filter_len("IN_POP"),
+    N_sample = N_sample,
+    N_pop = N_pop,
     N_pair = N,
     N_cart = n_o * n_d)
+
+
+
+
 }
+
 
 #' @keywords internal
 spflow_indicators2pairindex <- function(spflow_indicators, do_filter = NULL) {
@@ -55,12 +70,12 @@ spflow_indicators2matlist <- function(do_keyed_data) {
 #' @keywords internal
 spflow_indicators2mat <- function(do_keys, do_filter = NULL, do_values = NULL) {
 
-  if (is.character(do_values))
-    do_values <- do_keys[[do_values]]
   if (is.character(do_filter))
     do_filter <- do_keys[[do_filter]]
   if (!is.null(do_filter))
     do_keys <- do_keys[do_filter, (1:2),drop = FALSE]
+  if (is.character(do_values))
+    do_values <- do_keys[[do_values]]
 
   n_o <- nlevels(do_keys[[2]])
   n_d <- nlevels(do_keys[[1]])
@@ -75,6 +90,13 @@ spflow_indicators2mat <- function(do_keys, do_filter = NULL, do_values = NULL) {
     num_dest = n_d,
     num_orig = n_o))
 }
+
+#' @keywords internal
+spflow_indicators2wtmat <- function(do_keys, as_binary = FALSE) {
+  do_filter <- update_logicals(do_keys[["HAS_ZZ"]], do_keys[["HAS_ZY"]], do_keys[["WEIGHT"]] > 0)
+  spflow_indicators2mat(do_keys, do_filter, "WEIGHT" %T% (!as_binary))
+}
+
 
 #' @keywords internal
 spflow_indicators2format <-  function(do_keys_val, return_type = "V", do_filter = NULL) {

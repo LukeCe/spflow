@@ -15,7 +15,13 @@
 \usage{
 \S4method{dat}{spflow_network_nodes}(object)
 
-\S4method{dat}{spflow_network_nodes}(object) <- value
+\S4method{dat}{spflow_network_nodes}(
+  object,
+  node_key_column,
+  node_coord_columns,
+  derive_coordinates = FALSE,
+  prefer_lonlat = TRUE
+) <- value
 
 \S4method{id}{spflow_network_nodes}(object)
 

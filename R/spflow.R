@@ -177,6 +177,7 @@ spflow <- function(
     id_spflow_pairs =  id_spflow_pairs,
     model = estimation_control[["model"]])
 
+
   spflow_matrices <- derive_spflow_matrices(
     id_spflow_pairs = id_spflow_pairs,
     spflow_networks = spflow_networks,
@@ -185,7 +186,6 @@ spflow <- function(
     na_rm = estimation_control[["na_rm"]])
   spflow_indicators <- spflow_matrices[["spflow_indicators"]]
   spflow_matrices[["spflow_indicators"]] <- NULL
-  spflow_obs <- spflow_indicators2obs(spflow_indicators)
 
   spflow_nbfunctions <- derive_spflow_nbfunctions(
     OW = neighborhood(spflow_networks, od_ids["orig"]),
@@ -193,17 +193,13 @@ spflow <- function(
     estimation_control = estimation_control,
     spflow_indicators = spflow_indicators)
 
-  weights <- spflow_indicators2mat(
-    do_keys = spflow_indicators,
-    do_filter = "IN_SAMPLE",
-    do_values = "WEIGHTS")
+  spflow_obs <- spflow_indicators2obs(spflow_indicators)
   spflow_moments <- derive_spflow_moments(
     spflow_matrices = spflow_matrices,
     n_o = spflow_obs[["N_orig"]],
     n_d = spflow_obs[["N_dest"]],
     N = spflow_obs[["N_sample"]],
-    wt = weights,
-    na_rm = estimation_control[["na_rm"]])
+    wt = spflow_indicators2wtmat(spflow_indicators))
 
   estimation_results <- spflow_estimation(
     spflow_moments = spflow_moments,
@@ -260,8 +256,9 @@ drop_instruments <- function(model_matrices) {
       if (is.null(mat))
         return(NULL)
       is_inst <- attr_inst_status(mat)
+      mat <- mat[,!is_inst, drop = FALSE]
       attr_inst_status(mat) <- is_inst[!is_inst]
-      mat[,!is_inst, drop = FALSE]
+      mat
     }
   mm <- "D_"
   model_matrices[[mm]] <- filter_inst_mat(model_matrices[[mm]])
@@ -314,7 +311,7 @@ derive_spflow_nbfunctions <- function(
     n_o = nlevels(spflow_indicators[[2]]),
     n_d = nlevels(spflow_indicators[[1]]),
     approx_order = estimation_control[["logdet_approx_order"]],
-    M_indicator = spflow_indicators2mat(spflow_indicators, "IN_SAMPLE"))
+    M_indicator = spflow_indicators2mat(spflow_indicators, "HAS_ZZ"))
 
   return(list("logdet_calculator" = logdet_calculator,
               "pspace_validator" = pspace_validator))
@@ -335,14 +332,15 @@ derive_pspace_validator <- function(
   req_OW <- model_num %in% c(3:9)
   req_DW <- model_num %in% c(2,4:9)
 
-  # For now when eigenvalues are complex we cannot validate the
-  # parameter space
+  check <- "
+  The validity of the the parameter space cannot be validated because the
+  neighborhood matrix has complex eigen values."
   has_complex_evs <- function(x) any(Im(x[c("LR","SR")]) != 0)
-  if (req_OW & has_complex_evs(OW_character))
+  if ((req_OW & has_complex_evs(OW_character)) ||
+      (req_DW & has_complex_evs(DW_character))) {
+    assert(FALSE, check, warn = TRUE)
     return(function(...) FALSE)
-
-  if (req_DW & has_complex_evs(DW_character))
-    return(function(...) FALSE)
+  }
 
   DWmax <- as.numeric(Re(DW_character["LR"])) %T% req_DW
   DWmin <- as.numeric(Re(DW_character["SR"])) %T% req_DW

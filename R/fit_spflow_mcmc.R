@@ -163,7 +163,8 @@ spflow_mcmc <- function(
     est = colMeans(mcmc_results[-seq_len(nb_burn_in),]),
     quant_025 = apply(mcmc_results, 2, quantile, 0.025),
     quant_975 = apply(mcmc_results, 2, quantile, 0.975),
-    sd = apply(mcmc_results, 2, sd)
+    sd = apply(mcmc_results, 2, sd),
+    df = N - ncol(mcmc_results)
   )
 
 
@@ -172,7 +173,7 @@ spflow_mcmc <- function(
   estimation_diagnostics <- list(
     "sd_error" = sqrt(results_df$est[id_sd]),
     "varcov" = cor(mcmc_results[-seq_len(nb_burn_in),, drop = FALSE]),
-    "Model coherence:" = ifelse(pspace_validator(rho), "Validated", "Unknown"),
+    "model_coherence" = ifelse(pspace_validator(rho), "Validated", "Unknown"),
     "mcmc_results" = as.mcmc(mcmc_results))
   if (isTRUE(estimation_control[["track_condition_numbers"]]))
     estimation_diagnostics <- c(estimation_diagnostics, "rcond" = rcond(ZZ))
@@ -185,3 +186,4 @@ spflow_mcmc <- function(
 
   return(estimation_results)
 }
+

@@ -9,13 +9,15 @@
 \alias{spflow_model_ols}
 \alias{coef,spflow_model-method}
 \alias{fitted,spflow_model-method}
-\alias{logLik,spflow_model_mle-method}
+\alias{logLik,spflow_model_ll-method}
 \alias{mcmc_results,spflow_model_mcmc-method}
 \alias{nobs,spflow_model-method}
 \alias{neighborhood,spflow_model-method}
 \alias{plot,spflow_model-method}
 \alias{resid,spflow_model-method}
 \alias{results,spflow_model-method}
+\alias{results,spflow_model_mcmc-method}
+\alias{results_flat,spflow_model-method}
 \alias{sd_error,spflow_model-method}
 \alias{varcov,spflow_model_varcov-method}
 \title{Class spflow_model}
@@ -24,7 +26,7 @@
 
 \S4method{fitted}{spflow_model}(object, return_type = "V")
 
-\S4method{logLik}{spflow_model_mle}(object)
+\S4method{logLik}{spflow_model_ll}(object)
 
 \S4method{mcmc_results}{spflow_model_mcmc}(object)
 
@@ -36,7 +38,29 @@
 
 \S4method{resid}{spflow_model}(object, return_type = "V")
 
-\S4method{results}{spflow_model}(object)
+\S4method{results}{spflow_model}(
+  object,
+  as_column = FALSE,
+  sig_levels = c(`***` = 0.001, `**` = 0.01, `*` = 0.05, `'` = 0.1),
+  global_vars = c("model_coherence", "N_sample", "R2_corr", "ll"),
+  digits = 3,
+  add_dispersion = FALSE
+)
+
+\S4method{results}{spflow_model_mcmc}(
+  object,
+  as_column = FALSE,
+  sig_levels = c(`***` = 0.001, `**` = 0.01, `*` = 0.05, `'` = 0.1),
+  global_vars = c("model_coherence", "N_sample", "R2_corr"),
+  digits = 3,
+  add_dispersion = FALSE
+)
+
+\S4method{results_flat}{spflow_model}(
+  object,
+  coef_info = c("est", "sd"),
+  main_info = c("estimation_method", "model_coherence", "R2_corr", "ll", "sd_error")
+)
 
 \S4method{sd_error}{spflow_model}(object)
 
@@ -67,6 +91,10 @@ should be one of \code{c("fit", "cart", "pop", "pair", "orig", "dest")}.}
 \item{y}{not used}
 
 \item{...}{Arguments passed on to other plotting functions}
+
+\item{coef_info}{A character indicating column names in the results}
+
+\item{main_info}{A character indicating named elements in the estimation_control or estimation_diagnostics}
 }
 \description{
 An S4 class that contains the estimation results of spatial econometric
@@ -98,6 +126,9 @@ method but most behaviors and data are identical among them.
 \item{\code{spflow_indicators}}{A data.frame containing the indicators of od-pairs}
 
 \item{\code{spflow_moments}}{A list of moment matrices used for estimating the model}
+
+\item{\code{spflow_nbfunctions}}{A list that may contain a function to calculate the log-determinant term
+and one to validate the parameter space for the spatial interaction model.}
 }}
 
 \section{Main results}{

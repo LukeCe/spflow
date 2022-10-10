@@ -4,6 +4,7 @@ output:
   rmarkdown::html_vignette:
     toc: true
     toc_depth: 3
+bibliography: '`r system.file("REFERENCES.bib", package="spflow")`'
 vignette: >
   %\VignetteIndexEntry{Home-to-work commuting flows within the municipalities around Paris}
   %\VignetteEncoding{UTF-8}
@@ -52,7 +53,7 @@ plot(paris10km_municipalities[drop_area])
 
 There are three different neighborhood matrices that can be used to describe the connectivity between the municipalities.
 
-```{r}
+```{r, fig.show='hold'}
 old_par <- par(mfrow = c(1, 3), mar = c(0,0,1,0))
 
 mid_points <- suppressWarnings({
@@ -240,11 +241,13 @@ cor_image(res_corr)
 
 We can also create Moran scatter plots to check whether the residuals still exhibit spatial autocorrelation with respect to the three potential neighborhood matrices $W_d$, $W_o$ and $W_w$.
 
-```{r}
+```{r, fig.show='hold'}
 old_par <- par(mfrow = c(1, 3), mar = c(2,2,2,2))
 spflow_moran_plots(results_mcmc)
 par(old_par)
 ```
+
+
 
 A quick investigation of the 2% residuals with largest magnitude reveals that long distances seem to be predicted with lower precision.
 
@@ -316,3 +319,10 @@ plot(cbind("TOTAL_INFLOWS" = colSums(effect_matrix2), paris10km_municipalities["
 ```{r "cleanup", include=FALSE, echo=FALSE}
 options(old_opt)
 ```
+
+
+# References
+
+Dargel L, Thomas-Agnan C (2022). “A generalized framework for estimating spatial econometric interaction models.” TSE Working Paper, n. 22-1312, https://www.tse-fr.eu/publications/generalized-framework-estimating-spatial-econometric-interaction-models.
+
+Goulard M, Laurent T, Thomas-Agnan C (2017). “About predictions in spatial autoregressive models: optimal and almost optimal strategies.” Spatial Economic Analysis, 304–325. https://doi.org/10.1080/17421772.2017.1300679. 

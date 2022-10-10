@@ -39,9 +39,16 @@ devtools::install_github("LukeCe/spflow")
 The package provides a new `spflow_network_multi-class` that combines
 information on the origins, the destinations, and the origin-destination
 pairs. Once this object is created, we can estimate an interaction model
-with the `spflow()` function. The [package
-vignette](https://lukece.github.io/spflow/articles/paris_commute_flows.html)
-contains a more detailed example.
+with the `spflow()` function. By default the model includes three
+autoregression parameters: rho_o, rho_d, rho_w. These parameters are
+related to origin-, destination-, and origin-to-destination-dependence.
+
+Through the formula interface we specify which variables are used as
+origin `O_()`, destination `D_()`, intra-regional `I_()` and OD-pair
+`P_()` characteristics.
+
+For more detailed examples have a look at the [package
+vignette](https://lukece.github.io/spflow/articles/paris_commute_flows.html).
 
 ``` r
 library("spflow")
@@ -51,6 +58,7 @@ spflow(y9 ~ O_(X) + D_(X) + I(X) + P_(DISTANCE), multi_net_usa_ge)
 #> --------------------------------------------------
 #> Spatial interaction model estimated by: MLE  
 #> Spatial correlation structure: SDM (model_9)
+#> Dependent variable: y9
 #> 
 #> --------------------------------------------------
 #> Coefficients:
@@ -60,12 +68,12 @@ spflow(y9 ~ O_(X) + D_(X) + I(X) + P_(DISTANCE), multi_net_usa_ge)
 #> rho_w        -0.23  0.04   -5.13   0.08
 #> (Intercept)  10.58  2.14    4.96   0.08
 #> (Intra)       9.75  1.53    6.37   0.06
-#> DEST_X        0.99  0.07   14.59   0.02
-#> DEST_X.lag1   0.53  0.11    4.64   0.09
-#> ORIG_X       -0.77  0.04  -20.38   0.02
-#> ORIG_X.lag1  -0.38  0.09   -4.14   0.10
-#> INTRA_I(X)    2.04  0.08   24.64   0.01
-#> DISTANCE     -2.69  0.38   -7.13   0.05
+#> D_X           0.99  0.07   14.60   0.02
+#> D_X.lag1      0.53  0.11    4.64   0.09
+#> O_X          -0.77  0.04  -20.38   0.02
+#> O_X.lag1     -0.38  0.09   -4.14   0.10
+#> I_I(X)        2.04  0.08   24.64   0.01
+#> P_DISTANCE   -2.69  0.38   -7.13   0.05
 #> 
 #> --------------------------------------------------
 #> R2_corr: 0.9921277  

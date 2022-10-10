@@ -48,13 +48,14 @@ spflow_s2sls <- function(UU,UY,ZZ,ZY,TSS,N,TCORR,pspace_validator,estimation_con
 
   results_df <- create_results(
     "est" = mu,
-    "sd" = sd_mu)
+    "sd" = sd_mu,
+    df = N - length(mu) - 1)
 
   rho <- mu[index_rho]
   estimation_diagnostics <- list(
     "sd_error" = sqrt(sigma2),
     "varcov" = varcov,
-    "Model coherence:" = ifelse(pspace_validator(rho), "Validated", "Unknown"))
+    "model_coherence" = ifelse(pspace_validator(rho), "Validated", "Unknown"))
   if (isTRUE(estimation_control[["track_condition_numbers"]]))
     estimation_diagnostics <- c(estimation_diagnostics, "rcond" = rcond(ZZ), "rcond_stage1" = rcond(UU), "rcond_stage2" = rcond(stage2_ZZ))
 

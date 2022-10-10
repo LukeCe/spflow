@@ -2,19 +2,19 @@
 % Please edit documentation in R/spflow_control.R
 \name{spflow_control}
 \alias{spflow_control}
-\title{Control parameters for passed to \code{\link[=spflow]{spflow()}}}
+\title{Control parameters passed to \code{\link[=spflow]{spflow()}}}
 \usage{
 spflow_control(
   estimation_method = "mle",
   model = "model_9",
   use_intra = TRUE,
   sdm_variables = "same",
-  weight_variable = NULL,
+  weight_functions = NULL,
   approx_parameter_space = TRUE,
   fitted_value_method = "TS",
   approx_expectation = TRUE,
   expectation_approx_order = 10,
-  logdet_approx_order = 10,
+  logdet_approx_order = 2,
   mle_hessian_method = "mixed",
   mle_optim_limit = 100,
   mcmc_iterations = 5500,
@@ -24,7 +24,10 @@ spflow_control(
   twosls_decorrelate_instruments = FALSE,
   twosls_reduce_pair_instruments = TRUE,
   track_condition_numbers = FALSE,
-  na_rm = FALSE
+  na_rm = FALSE,
+  reduce_model_size = FALSE,
+  fit_submodels = FALSE,
+  submodel_infos = c("model_coherence", "R2_corr", "ll", "N_sample")
 )
 }
 \arguments{
@@ -43,7 +46,11 @@ declare the variables in SDM specification, the character should be one of
 \code{c("same", "all")} which are short cuts for using all available variables
 or the same as used in the main formula provided to \code{\link[=spflow]{spflow()}}}
 
-\item{weight_variable}{A character indicating the name of one column in the node pair data.}
+\item{weight_functions}{A named list of functions that derive weights from the input data.
+The function "pair" is evaluated in the data-set of OD-pairs, "orig" in the
+data for origins and "dest" relates to the destination.
+Each function should return a single vector weight and in case there
+are multiple ones their product is used as weights.}
 
 \item{approx_parameter_space}{A logical indicating whether the test for
 the feasible parameter space should be based on an approximation. Note
@@ -98,6 +105,17 @@ of the systems that are solved during the estimation are tracked.}
 
 \item{na_rm}{A logical, if \code{FALSE} the estimation throws an error when the data
 contains \code{NA} values. Otherwise the estimation proceeds with a sub-sample.}
+
+\item{reduce_model_size}{A logical, if \code{TRUE} all data will be removed from the model.
+This is helpful when comparing many models but inhibits some
+functionalists of the model, such as predictions, fitted values, etc..}
+
+\item{fit_submodels}{A logical, if \code{TRUE} all possible submodels will be estimated
+(see the table in section Details).
+A comparative table of results is then available in the estimation diagnostics.}
+
+\item{submodel_infos}{A character, containing the names of elements in the estimation diagnostics
+that should be reported in the comparative table of the submodels.}
 }
 \value{
 A list of parameters used to control the model estimation with \code{\link[=spflow]{spflow()}}

@@ -130,3 +130,8 @@ reminder_spflow_loglik <- function(N,sigma2,RSS){
 
   return(ll_without_logdet)
 }
+
+#' @keywords internal
+update_RSS <- function(TSS,ZZ,ZY,delta, tau){
+  (tau %*% TSS - 2 * delta %*% ZY) %*% tau + delta %*% ZZ %*% delta
+}

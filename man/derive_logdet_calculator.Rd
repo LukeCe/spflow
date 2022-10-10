@@ -10,8 +10,6 @@
 \alias{tracevals2params_noncartesian}
 \alias{trace_template_noncartesian}
 \alias{tracevals2approxldet}
-\alias{multinom_table}
-\alias{multinom_coef}
 \title{A function to compute the Jacobean term in the spatial econometric interaction model}
 \usage{
 derive_logdet_calculator(
@@ -40,10 +38,6 @@ tracevals2params_noncartesian(Wd, Wo, Ww, model, approx_order)
 trace_template_noncartesian()
 
 tracevals2approxldet(tracevals)
-
-multinom_table(max_power, coef_names)
-
-multinom_coef(...)
 }
 \value{
 A function that takes the autoregression parameters as an argument and returns the log-determinant value

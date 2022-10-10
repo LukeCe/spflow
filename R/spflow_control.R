@@ -1,4 +1,4 @@
-#' @title Control parameters for passed to [spflow()]
+#' @title Control parameters passed to [spflow()]
 #'
 #' @description
 #' This function creates a list of parameters, that are used to fine tune the
@@ -48,8 +48,12 @@
 #'   declare the variables in SDM specification, the character should be one of
 #'   `c("same", "all")` which are short cuts for using all available variables
 #'   or the same as used in the main formula provided to [spflow()]
-#' @param weight_variable
-#'   A character indicating the name of one column in the node pair data.
+#' @param weight_functions
+#'   A named list of functions that derive weights from the input data.
+#'   The function "pair" is evaluated in the data-set of OD-pairs, "orig" in the
+#'   data for origins and "dest" relates to the destination.
+#'   Each function should return a single vector weight and in case there
+#'   are multiple ones their product is used as weights.
 #' @param approx_parameter_space A logical indicating whether the test for
 #'   the feasible parameter space should be based on an approximation. Note
 #'   that FALSE requires solving a system with a potentially large number
@@ -103,6 +107,10 @@
 #' @param na_rm
 #'   A logical, if `FALSE` the estimation throws an error when the data
 #'   contains `NA` values. Otherwise the estimation proceeds with a sub-sample.
+#' @param reduce_model_size
+#'   A logical, if `TRUE` all data will be removed from the model.
+#'   This is helpful when comparing many models but doing will inhibit some
+#'   methods of the model.
 #'
 #' @seealso [spflow()]
 #' @references \insertAllCited{}
@@ -132,12 +140,12 @@ spflow_control <- function(
     model = "model_9",
     use_intra = TRUE,
     sdm_variables = "same",
-    weight_variable = NULL,
+    weight_functions = NULL,
     approx_parameter_space = TRUE,
     fitted_value_method = "TS",
     approx_expectation = TRUE,
     expectation_approx_order = 10,
-    logdet_approx_order = 10,
+    logdet_approx_order = 2,
     mle_hessian_method = "mixed",
     mle_optim_limit = 100,
     mcmc_iterations = 5500,
@@ -147,8 +155,8 @@ spflow_control <- function(
     twosls_decorrelate_instruments = FALSE,
     twosls_reduce_pair_instruments = TRUE,
     track_condition_numbers = FALSE,
-    na_rm = FALSE) {
-
+    na_rm = FALSE,
+    reduce_model_size = FALSE) {
 
   assert_valid_option(estimation_method, c("s2sls", "mle","mcmc","ols"))
   assert_valid_option(model, paste0("model_", 1:9))
@@ -164,13 +172,19 @@ spflow_control <- function(
          'The sdm_variables should be a formula or one of %s!',
          deparse(formula_shortcuts))
 
-  assert(is_single_character(weight_variable) || is.null(weight_variable),
-         "The weight_variable must be a character of length one!")
+  weight_fun_opts <- c("pair", "orig", "dest")
+  assert(is.null(weight_functions) || (
+         is.list(weight_functions) &&
+         all(sapply(weight_functions, is.function)) &&
+         all(names(weight_functions) %in% weight_fun_opts)),
+         "The weight_functions must be a list of functions with names in %s!",
+         deparse(weight_fun_opts))
 
   assert_is_single_x(track_condition_numbers, "logical")
   assert_is_single_x(na_rm, "logical")
-
-
+  assert_is_single_x(reduce_model_size, "logical")
+  assert_is_single_x(fit_submodels, "logical")
+  assert_is(submodel_infos, "character")
 
   # control parameter used in all cases
   general_control <- list(
@@ -178,10 +192,11 @@ spflow_control <- function(
     "model" = model,
     "use_intra" = use_intra,
     "sdm_variables" = sdm_variables,
-    "weight_variable" = weight_variable,
+    "weight_functions" = weight_functions,
     "track_condition_numbers" = track_condition_numbers,
     "na_rm" = na_rm,
-    "fitted_value_method" = fitted_value_method)
+    "fitted_value_method" = fitted_value_method,
+    "reduce_model_size" = reduce_model_size)
 
   if (estimation_method == "ols")
     return(general_control)

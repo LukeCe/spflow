@@ -75,16 +75,18 @@ spflow_mle <- function(
 
   ll_const_part <- -(N/2)*log(2*pi) + (N/2)*log(N) - N/2
   ll_partial <- -optim_results$value
-  loglik_value <- ll_partial + ll_const_part
+  ll <- ll_partial + ll_const_part
 
   id_sigma <- length(sd_mu)
-  results_df <- create_results(est = mu, sd = sd_mu[-id_sigma])
+  results_df <- create_results(est = mu, sd = sd_mu[-id_sigma], df = N - ncol(varcov))
 
   estimation_diagnostics <- list(
     "sd_error" = sqrt(sigma2),
     "varcov" = varcov,
-    "ll" = loglik_value,
-    "Model coherence:" = ifelse(pspace_validator(rho), "Validated", "Unknown"))
+    "ll" = ll,
+    "AIC" = -2 * ll + 2 * length(delta),
+    "BIC" = -2 * ll + log(N) * length(delta),
+    "model_coherence" = ifelse(pspace_validator(rho), "Validated", "Unknown"))
   if (isTRUE(estimation_control[["track_condition_numbers"]]))
     estimation_diagnostics <- c(estimation_diagnostics, "rcond" = rcond(ZZ))
 
@@ -94,4 +96,15 @@ spflow_mle <- function(
     estimation_diagnostics = estimation_diagnostics)
 
   return(estimation_results)
+}
+
+#' @keywords internal
+draw_initial_guess <- function(n_param) {
+  init <- runif(n_param)
+
+  if (n_param > 1) {
+    norm <- (0.7 / 3) * n_param
+    init <- norm * init / sum(init)
+  }
+  return(init)
 }

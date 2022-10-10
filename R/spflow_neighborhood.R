@@ -181,6 +181,7 @@ normalize_neighborhood <- function(mat, by_row = FALSE) {
          "Neighborhood matrices musst be square!")
 
   diag(mat) <- 0
+  mat <- drop0(mat)
   if (by_row) {
     m_scale <- rowSums(mat)
     m_scale[m_scale == 0] <- 1
@@ -259,7 +260,8 @@ charactrize_spectrum <- function(mat) {
 
 
   ev_methods <- lookup(names(eigenvalues))
-  if (isSymmetric(mat)) {
+  sym_method <- c("matrix", "dgeMatrix", "dgCMatrix", "dgRMatrix")
+  if (isSymmetric(mat) && class(mat) %in% sym_method) {
     ev_methods[2:3] <- c("LA","SA")
     eigs <- eigs_sym
   }

@@ -196,7 +196,7 @@ setGeneric(
 #' @export
 setGeneric(
   name = "results",
-  def = function(object) standardGeneric("results"))
+  def = function(object, ...) standardGeneric("results"))
 
 
 # ---- ... results<- ----------------------------------------------------------

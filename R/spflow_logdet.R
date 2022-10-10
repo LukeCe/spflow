@@ -475,7 +475,6 @@ tracevals2approxldet <- function(tracevals) {
   return(approxldet)
 }
 
-#' @rdname derive_logdet_calculator
 #' @keywords internal
 #' @importFrom utils combn
 multinom_table <- function(max_power, coef_names) {
@@ -495,7 +494,6 @@ multinom_table <- function(max_power, coef_names) {
   return(coef_powers)
 }
 
-#' @rdname derive_logdet_calculator
 #' @keywords internal
 multinom_coef <- function(...) {
 

@@ -121,3 +121,12 @@ expect_equal(spflow:::trace_sequence(diag(3),max_power = 5), rep(3,5))
 expect_equal(spflow:::count_pattern(c("aab","bbc", "acc"), "b"),
              c(1,2,0))
 
+# ---- update_logicals --------------------------------------------------------
+expect_equal(spflow:::update_logicals(c(T,T),T,F,c(T,F)),
+             c(F,F))
+
+expect_equal(spflow:::update_logicals(c(T,T),T,NULL,c(T,F)),
+             c(T,F))
+
+expect_equal(spflow:::update_logicals(c(T,T),T,F,c(T,F), by = "|"),
+             c(T,T))

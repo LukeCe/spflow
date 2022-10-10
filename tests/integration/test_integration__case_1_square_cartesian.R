@@ -24,7 +24,7 @@ data("multi_net_usa_ge")
 data("simulation_params")
 
 test_dir <- ""
-# test_dir <- "tests/integration/" # uncomment for interactive check
+test_dir <- "tests/integration/" # uncomment for interactive check
 ge_ge_vec_data <-
   readRDS(paste0(test_dir,"vec_data_usa_ge.Rds"))[["ge_ge"]]
 ge_ge_pairnb <-
@@ -213,6 +213,26 @@ expect_zero_diff(target_matrices[["Y1_"]][[1]], actual_matrices[["Y_"]][[1]])
 expectied_signal <- as.vector(Z %*% target_results$delta1_ols)
 expect_zero_diff(expectied_signal, fitted(res_model_1_ols))
 expect_zero_diff(expectied_signal, predict(res_model_1_ols, return_type = "V"))
+
+# test refit
+refit <- spflow_refit(res_model_1_ols, "stepwise")
+expect_inherits(refit, "data.frame")
+expect_equal(ncol(refit), length(coef(res_model_1_ols)))
+
+refit <- spflow_refit(res_model_1_ols, "ar_family")
+expect_inherits(refit, "data.frame")
+expect_equal(ncol(refit), length(coef(res_model_1_ols)))
+
+od_dropper <- function(drop_nodes) {
+  ff <- function(x) !x[["ID_STATE"]] %in% drop_nodes
+  list("orig" = ff, "dest" = ff)
+}
+wt_funs <- lapply(1:13, function(x) od_dropper(germany_grid$ID_STATE[seq(x)]))
+names(wt_funs) <- paste0("drop",1:13)
+refit <- spflow_refit(res_model_1_ols, "samples", sample_weights = wt_funs)
+expect_inherits(refit, "data.frame")
+expect_equal(ncol(refit), 14)
+
 rm(res_model_1_ols)
 
 # ---- ... s2sls - model 2 ----------------------------------------------------
@@ -333,6 +353,25 @@ expect_zero_diff(expected_bpa, predict(res_model_9_s2sls,method = "BPA", return_
 bp_corr <- A9 %*% crossprod(A9, y9 - expected_tc)
 expected_bp <- expected_tc - solve(crossprod(A9), bp_corr)
 expect_zero_diff(expected_bp, predict(res_model_9_s2sls,method = "BP", return_type = "V",approx_expectation = FALSE))
+
+# test refit
+refit <- spflow_refit(res_model_9_s2sls, "stepwise")
+expect_inherits(refit, "data.frame")
+expect_equal(ncol(refit), length(coef(res_model_9_s2sls, "delta")))
+
+refit <- spflow_refit(res_model_9_s2sls, "ar_family")
+expect_inherits(refit, "data.frame")
+expect_equal(ncol(refit), 9)
+
+od_dropper <- function(drop_nodes) {
+  ff <- function(x) !x[["ID_STATE"]] %in% drop_nodes
+  list("orig" = ff, "dest" = ff)
+}
+wt_funs <- lapply(1:12, function(x) od_dropper(germany_grid$ID_STATE[seq(x)]))
+refit <- spflow_refit(res_model_9_s2sls, "samples", sample_weights = wt_funs)
+expect_inherits(refit, "data.frame")
+expect_equal(ncol(refit), 13)
+
 rm(res_model_9_s2sls)
 
 # ---- ... mle - model 2 ------------------------------------------------------
@@ -395,6 +434,26 @@ expect_zero_diff(target_matrices[["Y9_"]][[2]], actual_matrices[["Y_"]][[2]])
 expect_zero_diff(target_matrices[["Y9_"]][[3]], actual_matrices[["Y_"]][[3]])
 expect_zero_diff(target_matrices[["Y9_"]][[4]], actual_matrices[["Y_"]][[4]])
 
+
+# test refit
+refit <- spflow_refit(res_model_9_mle, "stepwise")
+expect_inherits(refit, "data.frame")
+expect_equal(ncol(refit), length(coef(res_model_9_mle, "delta")))
+
+refit <- spflow_refit(res_model_9_mle, "ar_family")
+expect_inherits(refit, "data.frame")
+expect_equal(ncol(refit), 9)
+
+od_dropper <- function(drop_nodes) {
+  ff <- function(x) !x[["ID_STATE"]] %in% drop_nodes
+  list("orig" = ff, "dest" = ff)
+}
+wt_funs <- lapply(1:12, function(x) od_dropper(germany_grid$ID_STATE[seq(x)]))
+names(wt_funs) <- paste0("drop",1:12)
+refit <- spflow_refit(res_model_9_mle, "samples", sample_weights = wt_funs)
+expect_inherits(refit, "data.frame")
+expect_equal(ncol(refit), 13)
+
 rm(res_model_9_mle)
 
 # ---- ... mcmc - model 2 -----------------------------------------------------
@@ -455,6 +514,28 @@ expect_zero_diff(target_matrices[["Y9_"]][[1]], actual_matrices[["Y_"]][[1]])
 expect_zero_diff(target_matrices[["Y9_"]][[2]], actual_matrices[["Y_"]][[2]])
 expect_zero_diff(target_matrices[["Y9_"]][[3]], actual_matrices[["Y_"]][[3]])
 expect_zero_diff(target_matrices[["Y9_"]][[4]], actual_matrices[["Y_"]][[4]])
+
+
+
+# test refit
+refit <- spflow_refit(res_model_9_mcmc, "stepwise")
+expect_inherits(refit, "data.frame")
+expect_equal(ncol(refit), length(coef(res_model_9_mcmc, "delta")))
+
+refit <- spflow_refit(res_model_9_mcmc, "ar_family")
+expect_inherits(refit, "data.frame")
+expect_equal(ncol(refit), 9)
+
+od_dropper <- function(drop_nodes) {
+  ff <- function(x) !x[["ID_STATE"]] %in% drop_nodes
+  list("orig" = ff, "dest" = ff)
+}
+wt_funs <- lapply(1:12, function(x) od_dropper(germany_grid$ID_STATE[seq(x)]))
+names(wt_funs) <- paste0("drop",1:12)
+refit <- spflow_refit(res_model_9_mcmc, "samples", sample_weights = wt_funs)
+expect_inherits(refit, "data.frame")
+expect_equal(ncol(refit), 13)
+
 rm(res_model_9_mcmc)
 
 # ---- ... incomplete models --------------------------------------------------
@@ -477,3 +558,40 @@ expect_spflow_model(y9 ~ + O_(X) + I_(-1) - 1)
 expect_spflow_model(y9 ~ + I_(X) + -1)
 expect_spflow_model(y9 ~ + I_(X-1) + -1)
 expect_spflow_model(y9 ~ + I_(-1))
+
+
+# ---- ... weighted models ----------------------------------------------------
+res_wt_dist <- spflow(
+  spflow_formula = y9 ~ . + P_(DISTANCE),
+  spflow_networks =  multi_net_usa_ge,
+  id_spflow_pairs = "ge_ge",
+  estimation_control = spflow_control(
+    use_intra = FALSE,
+    weight_functions = list("pair" = function(x) x[["DISTANCE"]] > 0)))
+
+expect_equal(nobs(res_wt_dist, "sample"), n^2-n,
+             info = "drop intra using weights.")
+
+res_wt_dist_orig <- spflow(
+  spflow_formula = y9 ~ . + P_(DISTANCE),
+  spflow_networks =  multi_net_usa_ge,
+  id_spflow_pairs = "ge_ge",
+  estimation_control = spflow_control(
+    use_intra = FALSE,
+    weight_functions = list("pair" = function(x) x[["DISTANCE"]] > 0,
+                            "orig" = function(x) x[["ID_STATE"]] != "HH")))
+expect_equal(nobs(res_wt_dist_orig, "sample"), n^2- n - n + 1,
+             info = "drop and one origin using weights.")
+
+
+res_wt_dist_orig <- spflow(
+  spflow_formula = y9 ~ . + P_(DISTANCE),
+  spflow_networks =  multi_net_usa_ge,
+  id_spflow_pairs = "ge_ge",
+  estimation_control = spflow_control(
+    use_intra = FALSE,
+    weight_functions = list("pair" = function(x) x[["DISTANCE"]] > 0,
+                            "orig" = function(x) x[["ID_STATE"]] != "HH",
+                            "dest" = function(x) x[["ID_STATE"]] != "SH")))
+expect_equal(nobs(res_wt_dist_orig, "sample"), n^2- n - n + 1 - n + 2,
+             info = "drop and one origin and one destination using weights.")

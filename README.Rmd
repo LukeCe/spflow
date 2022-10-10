@@ -46,7 +46,12 @@ devtools::install_github("LukeCe/spflow")
 
 The package provides a new `spflow_network_multi-class` that combines information on the origins, the destinations, and the origin-destination pairs.
 Once this object is created, we can estimate an interaction model with the `spflow()` function. 
-The [package vignette](https://lukece.github.io/spflow/articles/paris_commute_flows.html) contains a more detailed example.
+By default the model includes three autoregression parameters: rho_o, rho_d, rho_w.
+These parameters are related to origin-, destination-, and origin-to-destination-dependence.
+
+Through the formula interface we specify which variables are used as origin `O_()`, destination `D_()`, intra-regional `I_()` and OD-pair `P_()` characteristics.
+
+For more detailed examples have a look at the [package vignette](https://lukece.github.io/spflow/articles/paris_commute_flows.html).
 
 
 ```{r, message=FALSE}

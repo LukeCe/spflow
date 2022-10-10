@@ -48,7 +48,44 @@ setMethod(
 #' @rdname spflow_network_nodes-class
 setReplaceMethod(
   f = "dat",
-  signature = "spflow_network_nodes", function(object, value) {
+  signature = "spflow_network_nodes",
+  function(object,
+           value,
+           node_key_column,
+           node_coord_columns,
+           derive_coordinates = FALSE,
+           prefer_lonlat = TRUE) {
+
+
+    value <- simplfy2df(value,derive_coordinates, prefer_lonlat)
+
+    check <- "The node_key_column is not available or not unique!"
+    if (missing(node_key_column))
+      node_key_column <- attr_key_nodes(value)
+    if (is.null(node_key_column))
+      node_key_column <- attr_key_nodes(dat(object))
+    assert(sum(node_key_column == names(value)) == 1, check)
+    attr_key_nodes(value) <- node_key_column
+
+    check <- "The nodes are not uniquely identfyed!"
+    new_keys <- factor_in_order(value[[node_key_column]])
+    assert(length(new_keys) == length(levels(new_keys)), check)
+    value[[node_key_column]] <- new_keys
+
+    check <- "The node keys are updated and may imply a diffrent ordering!"
+    if (!is.null(dat(object))) {
+      old_keys <- dat(object)[[attr_key_nodes(dat(object))]]
+      assert(identical(old_keys, new_keys), check, warn = TRUE)
+    }
+
+    check <- "The node_coord_columns are not found!"
+    if (missing(node_coord_columns))
+      node_coord_columns <- attr_coord_col(value)
+    if (is.null(node_key_column))
+      node_coord_columns <- attr_coord_col(dat(object))
+    if (!is.null(node_coord_columns))
+      attr_coord_col(value) <- node_coord_columns
+    assert(all(node_coord_columns %in% names(value)), check)
 
     object@node_data <- value
     validObject(object)
@@ -187,7 +224,7 @@ setMethod(
            type as in the node_data of "%s"!', id(object))
 
     new_cols <- colnames(new_dat)
-    keys <- get_keycols(dat(object), no_coords = TRUE)
+    keys <- attr_key_nodes(dat(object))
     assert(all(keys %in% new_cols),
            'The new_dat for spflow_network_nodes with id "%s"
            must have the column %s to identify the nodes!',
@@ -324,7 +361,7 @@ spflow_network_nodes <- function(
 
   # checks for validity of dimensions are done before the return
   if (!is.null(node_neighborhood)) {
-    node_neighborhood <- try_coercion(node_neighborhood,"Matrix")
+    node_neighborhood <- try_coercion(node_neighborhood,"dgCMatrix")
     node_neighborhood <- normalize_neighborhood(node_neighborhood, normalize_byrow)
   }
 
@@ -336,25 +373,7 @@ spflow_network_nodes <- function(
   if (is.null(node_data))
     return(nodes)
 
-  node_data <- simplfy2df(
-    node_data,
-    derive_coord_cols = derive_coordinates,
-    prefer_lonlat = prefer_lonlat)
-
-  # identfyers for nodes and coordinates
-  if (missing(node_key_column))
-    node_key_column <- attr_key_nodes(node_data)
-  node_data[[node_key_column]] <- factor_in_order(node_data[[node_key_column]])
-  attr_key_nodes(node_data) <- node_key_column
-
-  if (missing(node_coord_columns))
-    node_coord_columns <- attr_coord_col(node_data)
-  attr_coord_col(node_data) <- node_coord_columns
-
-  if (inherits(node_data, "data.table") && requireNamespace("data.table", quietly = TRUE))
-    node_data <- data.table::as.data.table(node_data)
-
-  nodes@node_data <- node_data
+  dat(nodes, node_key_column = node_key_column) <- node_data
   validObject(nodes)
   return(nodes)
 }
@@ -369,8 +388,7 @@ attr_key_nodes <- function(df) {
 `attr_key_nodes<-` <- function(df, value) {
 
   assert(sum(value == names(df)) == 1, "
-         The node_key_column musst unquily identfy one
-         column name of in the node_data!")
+         The node_key_column musst identfy exactly one column in the node_data!")
   attr(df, "node_key_column") <- value
   df
 }

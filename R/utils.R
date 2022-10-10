@@ -60,8 +60,61 @@ try_coercion <- function(obj, class) {
   return(obj_as_class)
 }
 
-# ---- infix operators --------------------------------------------------------
+#' @keywords internal
+update_logicals <- function(..., by = "&") {
 
+  logicals <- compact(list(...))
+  if (length(logicals) == 0)
+    return(NULL)
+  return(Reduce(by, logicals))
+}
+
+# ---- geographic -------------------------------------------------------------
+#' @keywords internal
+haversine_distance <- function(lon1, lat1, lon2, lat2) {
+
+  dg2rad <- pi/180
+  earth_radius_km <- 6378.137
+
+  diff_lon <- (lon2 - lon1) * (dg2rad/2)
+  diff_lat <- (lat2 - lat1) * (dg2rad/2)
+
+  arc_dist <- sin(diff_lat)^2 + cos(lat1 * dg2rad) * cos(lat2 * dg2rad) * sin(diff_lon)^2
+  arc_dist[arc_dist > 1] <- 1
+  arc_dist <- asin(sqrt(arc_dist)) * (2 * earth_radius_km)
+
+  return(arc_dist)
+}
+
+#' @title Convert the `nb-class` from spdep to a sparse Matrix
+#' @description
+#'    This function genereates a sparse Matrix from a neighborhood matrix.
+#'    It bypasses `spdep::nb2mat()` which leads to a dense matrix representation.
+#'
+#' @param nb A `nb-class` from spdep
+#' @return A sparse matrix
+#' @importFrom Matrix sparseMatrix
+#' @examples
+#' nb <- spdep::poly2nb(germany_grid)
+#' nb2Mat(nb)
+nb2Mat <- function(nb) {
+
+  assert_inherits(nb, "nb")
+  n <- length(nb)
+  nonzeros <- !unlist(lapply(nb, "identical", 0L))
+  rows_index <- seq_along(nb)[nonzeros]
+  nb <- nb[nonzeros]
+
+  gi <- unlist(nb)
+  gj <- unlist(Map("rep", seq_along(nb), lapply(nb, length)))
+  Matrix::sparseMatrix(
+    i = unlist(nb),
+    j = unlist(Map("rep", seq_along(nb), lapply(nb, length))),
+    dims = list(n, n),
+    repr = "C")
+}
+
+# ---- infix operators --------------------------------------------------------
 #' @keywords internal
 "%T%" <- function(x, y) {
   if (isTRUE(y)) x else NULL

@@ -49,7 +49,7 @@ npairs(object, ...)
 
 pull_member(object, ...)
 
-results(object)
+results(object, ...)
 
 results(object) <- value # internal
 
