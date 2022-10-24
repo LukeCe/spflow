@@ -1,6 +1,5 @@
 # ---- diverse ----------------------------------------------------------------
 #' @keywords internal
-#' @importFrom Matrix drop0
 drop_na <- function(x) {
 
   if (is.numeric(x)) {
@@ -10,7 +9,7 @@ drop_na <- function(x) {
 
   if (inherits(x, "Matrix")) {
     x@x[is.na(x@x)] <- 0
-    return(drop0(x))
+    return(x)
   }
 
   stop("Input musst be numeric or Matrix!")

@@ -532,7 +532,7 @@ res_model_9_s2sls_narm <- spflow(
     estimation_method = "s2sls",
     model = "model_9",
     na_rm = TRUE,
-    weight_variable = "wt_9"))
+    weight_functions = list(pair = function(x) x[["wt_9"]])))
 
 
 # test results

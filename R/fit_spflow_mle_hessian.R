@@ -19,18 +19,19 @@ spflow_mixed_hessian <- function(
 ) {
 
   size_rho <- length(rho)
+  dd <- !is.na(delta)
 
   # block 2,2 = theta,theta     = standard linear model block
   # ... theta = c(delta,sigma2) = parameters of gaussian model
   sigma4 <- sigma2^2
-  hess_22 <- -block_diag(ZZ/sigma2, N/(2*sigma4))
+  hess_22 <- -block_diag(ZZ[dd,dd]/sigma2, N/(2*sigma4))
 
   # block 2,1 = interaction of rho and theta
   tau <- c(1, -rho)
-  ZJ <- ZY[ ,-1, drop = FALSE]
+  ZJ <- ZY[dd,-1, drop = FALSE]
 
   hess_21 <- rbind(-ZJ/sigma2,
-                   (crossprod(delta,ZJ) - tau %*% TSS[, -1])/sigma4)
+                   (crossprod(delta[dd],ZJ) - tau %*% TSS[, -1])/sigma4)
   hess_21 <- matrix(hess_21, ncol = size_rho)
   hess_12 <- t(hess_21)
 
@@ -40,7 +41,7 @@ spflow_mixed_hessian <- function(
   full_hessian <-
     rbind(cbind(hess_11, hess_12),
           cbind(hess_21, hess_22))
-
+  dimnames(full_hessian) <- list(c(names(rho),names(delta[dd]),"sigma"))[c(1,1)]
   return(full_hessian)
 }
 

@@ -221,7 +221,7 @@ expect_equal(ncol(refit), length(coef(res_model_1_ols)))
 
 refit <- spflow_refit(res_model_1_ols, "ar_family")
 expect_inherits(refit, "data.frame")
-expect_equal(ncol(refit), length(coef(res_model_1_ols)))
+expect_equal(ncol(refit), 9)
 
 od_dropper <- function(drop_nodes) {
   ff <- function(x) !x[["ID_STATE"]] %in% drop_nodes
@@ -291,9 +291,19 @@ expect_zero_diff(expected_bpa, predict(res_model_2_s2sls,method = "BPA", return_
 bp_corr <- A2 %*% crossprod(A2, y2 - expected_tc)
 expected_bp <- expected_tc - solve(crossprod(A2), bp_corr)
 expect_zero_diff(expected_bp, predict(res_model_2_s2sls,method = "BP", return_type = "V",approx_expectation = FALSE))
-rm(res_model_2_s2sls, rd)
 
 
+# check singular case
+multi_net_usa_ge2 <- multi_net_usa_ge
+dat(multi_net_usa_ge2,"ge")[["X2"]] <- dat(multi_net_usa_ge2,"ge")[["X"]] * 10
+res_model_2_s2sls_singular <- spflow(
+  y2 ~ . + P_(DISTANCE), multi_net_usa_ge2, "ge_ge",
+  spflow_control(estimation_method = "s2sls", model = "model_2"))
+expect_true(16 > sum(
+  predict(res_model_2_s2sls_singular, return_type = "M") -
+  predict(res_model_2_s2sls, return_type = "M")))
+
+rm(res_model_2_s2sls, res_model_2_s2sls_singular, rd)
 # ---- ... s2sls - model 9 ----------------------------------------------------
 res_model_9_s2sls <- spflow(
   y9 ~ . + P_(DISTANCE), multi_net_usa_ge, "ge_ge",
@@ -367,11 +377,10 @@ od_dropper <- function(drop_nodes) {
   ff <- function(x) !x[["ID_STATE"]] %in% drop_nodes
   list("orig" = ff, "dest" = ff)
 }
-wt_funs <- lapply(1:12, function(x) od_dropper(germany_grid$ID_STATE[seq(x)]))
+wt_funs <- lapply(1:11, function(x) od_dropper(germany_grid$ID_STATE[seq(x)]))
 refit <- spflow_refit(res_model_9_s2sls, "samples", sample_weights = wt_funs)
 expect_inherits(refit, "data.frame")
-expect_equal(ncol(refit), 13)
-
+expect_equal(ncol(refit), 12)
 rm(res_model_9_s2sls)
 
 # ---- ... mle - model 2 ------------------------------------------------------
@@ -402,7 +411,19 @@ expect_zero_diff(target_matrices[["I_"]], actual_matrices[["I_"]])
 expect_zero_diff(target_matrices[["P_"]][[1]], actual_matrices[["P_"]][[1]])
 expect_zero_diff(target_matrices[["Y2_"]][[1]], actual_matrices[["Y_"]][[1]])
 expect_zero_diff(target_matrices[["Y2_"]][[2]], actual_matrices[["Y_"]][[2]])
-rm(res_model_2_mle)
+
+# check singular case
+multi_net_usa_ge2 <- multi_net_usa_ge
+dat(multi_net_usa_ge2,"ge")[["X2"]] <- dat(multi_net_usa_ge2,"ge")[["X"]] * 10
+res_model_2_mle_singular <- spflow(
+  y2 ~ . + P_(DISTANCE), multi_net_usa_ge2, "ge_ge",
+  spflow_control(estimation_method = "mle", model = "model_2"))
+expect_true( 16 > sum(
+  predict(res_model_2_mle_singular, return_type = "M") -
+  predict(res_model_2_mle, return_type = "M")))
+rm(res_model_2_mle, res_model_2_mle_singular)
+
+
 
 # ---- ... mle - model 9 ------------------------------------------------------
 res_model_9_mle <- spflow(
@@ -416,6 +437,8 @@ expect_equal(target_results$mu9_input / coef(res_model_9_mle),
              rep(1,11), tolerance = 0.3, check.names = FALSE)
 expect_equal(target_results$sigma_input / sd_error(res_model_9_mle),
              1, tolerance = 0.1, check.names = FALSE)
+expect_equal(res_model_9_mle@estimation_diagnostics$R2_corr,
+             spflow:::mom2Rcorr(spflow:::derive_empric_moments(res_model_9_mle),coef(res_model_9_mle)))
 
 # test moments
 actual_moments <- res_model_9_mle@spflow_moments
@@ -483,7 +506,18 @@ expect_zero_diff(target_matrices[["I_"]], actual_matrices[["I_"]])
 expect_zero_diff(target_matrices[["P_"]][[1]], actual_matrices[["P_"]][[1]])
 expect_zero_diff(target_matrices[["Y2_"]][[1]], actual_matrices[["Y_"]][[1]])
 expect_zero_diff(target_matrices[["Y2_"]][[2]], actual_matrices[["Y_"]][[2]])
-rm(res_model_2_mcmc)
+
+
+# check singular case
+multi_net_usa_ge2 <- multi_net_usa_ge
+dat(multi_net_usa_ge2,"ge")[["X2"]] <- dat(multi_net_usa_ge2,"ge")[["X"]] * 10
+res_model_2_mcmc_singular <- spflow(
+  y2 ~ . + P_(DISTANCE), multi_net_usa_ge2, "ge_ge",
+  spflow_control(estimation_method = "mcmc", model = "model_2"))
+expect_true( 16 > sum(
+  predict(res_model_2_mcmc_singular, return_type = "M") -
+  predict(res_model_2_mcmc, return_type = "M")))
+rm(res_model_2_mcmc, res_model_2_mcmc_singular)
 
 # ---- ... mcmc - model 9 -----------------------------------------------------
 res_model_9_mcmc <- spflow(
@@ -580,7 +614,7 @@ res_wt_dist_orig <- spflow(
     use_intra = FALSE,
     weight_functions = list("pair" = function(x) x[["DISTANCE"]] > 0,
                             "orig" = function(x) x[["ID_STATE"]] != "HH")))
-expect_equal(nobs(res_wt_dist_orig, "sample"), n^2- n - n + 1,
+expect_equal(nobs(res_wt_dist_orig, "sample"), n^2 - n - n + 1,
              info = "drop and one origin using weights.")
 
 
@@ -593,5 +627,5 @@ res_wt_dist_orig <- spflow(
     weight_functions = list("pair" = function(x) x[["DISTANCE"]] > 0,
                             "orig" = function(x) x[["ID_STATE"]] != "HH",
                             "dest" = function(x) x[["ID_STATE"]] != "SH")))
-expect_equal(nobs(res_wt_dist_orig, "sample"), n^2- n - n + 1 - n + 2,
+expect_equal(nobs(res_wt_dist_orig, "sample"), n^2 - n - n + 1 - n + 2,
              info = "drop and one origin and one destination using weights.")

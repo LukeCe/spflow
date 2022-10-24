@@ -25,9 +25,8 @@ spflow_control(
   twosls_reduce_pair_instruments = TRUE,
   track_condition_numbers = FALSE,
   na_rm = FALSE,
-  reduce_model_size = FALSE,
-  fit_submodels = FALSE,
-  submodel_infos = c("model_coherence", "R2_corr", "ll", "N_sample")
+  allow_singular = TRUE,
+  reduce_model_size = FALSE
 )
 }
 \arguments{
@@ -107,15 +106,8 @@ of the systems that are solved during the estimation are tracked.}
 contains \code{NA} values. Otherwise the estimation proceeds with a sub-sample.}
 
 \item{reduce_model_size}{A logical, if \code{TRUE} all data will be removed from the model.
-This is helpful when comparing many models but inhibits some
-functionalists of the model, such as predictions, fitted values, etc..}
-
-\item{fit_submodels}{A logical, if \code{TRUE} all possible submodels will be estimated
-(see the table in section Details).
-A comparative table of results is then available in the estimation diagnostics.}
-
-\item{submodel_infos}{A character, containing the names of elements in the estimation diagnostics
-that should be reported in the comparative table of the submodels.}
+This is helpful when comparing many models but doing will inhibit some
+methods of the model.}
 }
 \value{
 A list of parameters used to control the model estimation with \code{\link[=spflow]{spflow()}}

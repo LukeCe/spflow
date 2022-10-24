@@ -190,6 +190,219 @@ add_lagged_cols <- function(df, W, col_lags) {
 
 
 #' @keywords internal
+spatial_lag <- function(
+    M,
+    W,
+    na_handling = "propagate",
+    left = TRUE,
+    na_M = is.na(M)) {
+
+  na_lag_options <- c("propagate", "ignore", "reweight")
+  assert_valid_option(na_handling, na_lag_options)
+
+  mltp <- if (left) function(w, z) w %*% z else function(w, z) tcrossprod(z, w)
+  if (sum(na_M) == 0)
+    return(mltp(W, M))
+
+  if (na_handling == "propagate")
+    return(mltp(W,M))
+
+  M[na_M] <- 0
+  if (na_handling == "ignore")
+    return(mltp(W,M))
+
+  assert(left, "Right lags and rweight does not work!")
+  rw_W <- rowSums(W)
+  rw_W <- rw_W / (rw_W - mltp(W,na_M))
+  return(mltp(W, M) * rw_W)
+}
+
+
+#' @keywords internal
+spatial_do_lag <- function(
+    M,
+    OW,
+    DW,
+    na_M = drop0(is.na(M)),
+    lag_keys = c("d","o","w"),
+    na_handling = "propagate",
+    pair_index = NULL,
+    dow_rowsums = na_M %|!|% derive_dow_rowsums(OW,DW,lag_keys,pair_index, ncol(M), nrow(M))) {
+
+  assert_valid_option(lag_keys, c("d","o","w"))
+  if (sum(na_M) == 0)
+    na_M <- NULL # complete data
+
+  if (!is.null(na_M) & na_handling != "propagate")
+    M <- drop_na(M)
+
+  lags <- dow_lags(M = M, OW = OW, DW = DW, na_M = na_M, lag_keys = lag_keys)
+  lags <- subset_pair_index(lags, pair_index,M = M)
+  if (na_handling == "reweight" & !is.null(na_M)) {
+    lagweights_na <- dow_lags(M = na_M, OW = OW, DW = DW, na_M = NULL, lag_keys = lag_keys)
+    lagweights_na <- subset_pair_index(lagweights_na,pair_index, TRUE)
+
+    lagweights_na <- Map(
+      function(.lw_na, .lw_complet) .lw_complet - .lw_na,
+      .lw_na = lagweights_na,
+      .lw_complet = dow_rowsums)
+
+    for (i in seq_along(lags)) {
+      lags[[i]]@x <- if (identical(dow_rowsums[[i]], 1)) {
+        lags[[i]]@x / lagweights_na[[i]]
+        } else {
+        lags[[i]]@x * dow_rowsums[[i]] / lagweights_na[[i]]
+        }
+    }
+  }
+  return(lags)
+}
+
+
+#' @keywords internal
+spatial_do_lag2 <- function(
+    M,
+    OW,
+    DW,
+    na_M = drop0(is.na(M)),
+    lag_keys2 = c("d","o","w", "dd","do","dw","od","oo","ow","wd","wo","ww"),
+    na_handling = "propagate",
+    pair_index = NULL,
+    dow_rowsums) {
+
+  lag_options <- c("d","o","w", "dd","do","dw","od","oo","ow","wd","wo","ww")
+  assert_valid_option(lag_keys2, lag_options)
+  if (is.null(pair_index))
+    lag_keys2 <- setdiff(lag_keys2, c("od", "wd", "wo"))
+
+  # order 1 lags
+  declared_lag1 <- lag_keys2[nchar(lag_keys2) == 1] %||% NULL
+  undeclared_lag1 <- unique(substr(lag_keys2[nchar(lag_keys2) == 2],1,1))
+  undeclared_lag1 <- setdiff(undeclared_lag1, declared_lag1)
+  lag1_keys <- c(declared_lag1,undeclared_lag1)
+
+  if (missing(dow_rowsums))
+    dow_rowsums <- na_M %|!|% derive_dow_rowsums(OW,DW,lag1_keys,pair_index, ncol(M), nrow(M))
+  lags1 <- spatial_do_lag(M, OW, DW, na_M, lag1_keys, na_handling, pair_index, dow_rowsums)
+
+  # order 2 lags
+  lag_keys2 <- lag_keys2[nchar(lag_keys2) == 2]
+  get_l2 <- function(k) {
+
+    k2 <- substr(Filter(function(x) substr(x,1,1) == k, lag_keys2),2,2)
+    if (length(k2) == 0)
+      return(NULL)
+
+    l2 <- spatial_do_lag(
+      lags1[[k]], OW = OW, DW = DW,
+      lag_keys = k2, na_handling = na_handling,
+      pair_index = pair_index, dow_rowsums = dow_rowsums)
+    names(l2) <- paste0(k,k2)
+    l2
+  }
+
+  lags2d <- get_l2("d")
+  lags2o <- get_l2("o")
+  lags2w <- get_l2("w")
+  return(c(lags1[declared_lag1], lags2d, lags2o, lags2w))
+}
+
+
+#' @keywords
+derive_dow_rowsums <- function(
+    OW,
+    DW,
+    lag_keys,
+    pair_index = NULL,
+    n_o = nrow(OW),
+    n_d = nrow(DW)) {
+
+  if (is.null(lag_keys))
+    return(NULL) # no lags
+
+  assert_valid_option(lag_keys, c("d","o","w"))
+
+  l <- function(.k) .k %in% lag_keys
+  if (is.null(pair_index) || (length(pair_index) == n_d*n_o)) {
+    # cartesian case
+    iOW <- rowSums(OW)
+    iDW <- rowSums(DW)
+
+    # assume row-normalization then verify
+    rw <- named_list(lag_keys, 1)
+    D_nonstochastic <- any(iDW != 1)
+    O_nonstochastic <- any(iOW != 1)
+
+    if (D_nonstochastic)
+      rw[["d"]] <- `dim<-`(outer(iDW, rep(1,n_o)),NULL) %T% l("d")
+    if (O_nonstochastic)
+      rw[["o"]] <- `dim<-`(outer(rep(1,n_d), iOW),NULL) %T% l("o")
+    if (O_nonstochastic | D_nonstochastic)
+      rw[["w"]] <- `dim<-`(outer(iDW,iOW),NULL) %T% l("w")
+
+  } else {
+    # non cartesian
+    I_OD <- Matrix::Matrix(0L, nrow = n_d, ncol = n_o)
+    I_OD[pair_index] <- 1L
+
+    rw <- dow_lags(I_OD, OW, DW, NULL, lag_keys)
+    rw <- subset_pair_index(rw, pair_index =  pair_index, as_vec = TRUE)
+  }
+
+  return(rw)
+}
+
+#' @keywords internal
+dow_lags <- function(
+    M,
+    OW,
+    DW,
+    na_M,
+    lag_keys) {
+  l <- function(l) l %in% lag_keys
+  lg <- named_list(lag_keys)
+  lg[["d"]] <- spatial_lag(M,DW, na_M = na_M) %T% l("d")
+  lg[["o"]] <- spatial_lag(M,OW, na_M = na_M, left = FALSE) %T% l("o")
+  # if possible exploit previous lags for two sided version
+  if (l("w") & l("d"))
+    lg[["w"]] <- spatial_lag(lg[["d"]], OW, na_M = na_M, left = FALSE)
+  if (l("w") & !l("d") & l("o"))
+    lg[["w"]] <- spatial_lag(lg[["o"]], DW, na_M = na_M)
+  if (l("w") & !l("d") & !l("o"))
+    lg[["w"]] <- spatial_lag(spatial_lag(M, DW, na_M = na_M), OW, na_M = na_M, left = FALSE)
+  return(lg)
+}
+
+#' @keywords internal
+subset_pair_index <- function(lags, pair_index, as_vec = FALSE, M) {
+
+  if (is.null(lags))
+    return(NULL)
+
+  assert(is.list(lags) & all(sapply(lags, inherits, "Matrix")))
+
+
+  if (is.null(pair_index) & !as_vec)
+    return(lags)
+
+  if (is.null(pair_index) & as_vec)
+    return(lapply(lags, "as.vector"))
+
+
+  .lg <- lapply(lags, "[", pair_index)
+  if (as_vec)
+    return(.lg)
+
+  assert_inherits(M, "Matrix")
+  .lg <- lapply(.lg, function(.l) {
+    M@x <- .l
+    M})
+
+  return(.lg)
+  }
+
+
+#' @keywords internal
 orthoginolize_instruments <- function(mat) {
 
   inst_index <- attr_inst_status(mat)

@@ -841,7 +841,7 @@ setMethod(
     cat("\n\n")
     cat(print_line(50))
     cat("\nCoefficients:\n")
-    print(round(results(object)[,1:4], digits = 2),
+    print(round(results(object)[,1:4], digits = 3),
           print.gap = 2L,
           quote = FALSE)
 

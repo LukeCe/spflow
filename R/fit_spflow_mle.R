@@ -15,8 +15,11 @@ spflow_mle <- function(
   hessian_method <- estimation_control[["mle_hessian_method"]]
 
   # compute the decomposed coefficients to obtain the decomposed RSS
-  delta_t <- solve_savely(ZZ, ZY, TCORR)
-  RSS <- TSS - crossprod(ZY,delta_t)
+  delta_t <- qr.coef(qr(ZZ), ZY)
+  dd <- !is.na(delta_t[,1])
+  RSS <- TSS - crossprod(ZY[dd,,drop=FALSE],delta_t[dd,,drop=FALSE])
+  assert(all(dd) || estimation_control[["allow_singular"]],
+         "Encountered singular fit!")
 
   # initialization for optimization
   nb_rho <- ncol(ZY) - 1
@@ -34,7 +37,7 @@ spflow_mle <- function(
 
     optim_results <- try(silent = TRUE, expr = {
       optim(rho_tmp, optim_part_LL, gr = NULL, method = "L-BFGS-B",
-            lower = rep(-0.99, nb_rho), upper = rep(0.99, nb_rho),
+            lower = rep(-0.999, nb_rho), upper = rep(0.999, nb_rho),
             hessian = TRUE)})
     optim_count <- optim_count + 1
 
@@ -70,22 +73,25 @@ spflow_mle <- function(
   }
 
   hessian <- spflow_hessian(hessian_method, hessian_inputs)
-  varcov <- -solve(hessian)
-  sd_mu <- sqrt(diag(varcov))
+  varcov <- chol2inv(chol(-hessian))
+  dimnames(varcov) <- dimnames(hessian)
+  sd_mu <- mu
+  sd_mu[colnames(varcov)] <- sqrt(diag(varcov))
 
   ll_const_part <- -(N/2)*log(2*pi) + (N/2)*log(N) - N/2
   ll_partial <- -optim_results$value
   ll <- ll_partial + ll_const_part
 
   id_sigma <- length(sd_mu)
-  results_df <- create_results(est = mu, sd = sd_mu[-id_sigma], df = N - ncol(varcov))
+  k <- ncol(varcov)
+  results_df <- create_results(est = mu, sd = sd_mu[-id_sigma], df = N - k)
 
   estimation_diagnostics <- list(
     "sd_error" = sqrt(sigma2),
     "varcov" = varcov,
     "ll" = ll,
-    "AIC" = -2 * ll + 2 * length(delta),
-    "BIC" = -2 * ll + log(N) * length(delta),
+    "AIC" = -2 * ll + 2 * k,
+    "BIC" = -2 * ll + log(N) * k,
     "model_coherence" = ifelse(pspace_validator(rho), "Validated", "Unknown"))
   if (isTRUE(estimation_control[["track_condition_numbers"]]))
     estimation_diagnostics <- c(estimation_diagnostics, "rcond" = rcond(ZZ))

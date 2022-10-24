@@ -43,52 +43,88 @@ compute_signal <- function(
     intra_i <- as.numeric(spflow_indicators[[1]] == spflow_indicators[[2]]) %T% req_intra
   }
 
-  SIG <- 0
+
+
+  if (is_cartesian) {
+    n_o <- unique(c(
+      ncol(spflow_matrices[["CONST"]][["(Intra)"]]),
+      ncol(spflow_matrices[["P_"]][[1]]),
+      ncol(spflow_matrices[["Y_"]][[1]]),
+      nrow(spflow_matrices[["OX"]]),
+      nrow(spflow_matrices[["IX"]])))
+    assert_is_single_x(n_o, "numeric")
+
+    n_d <- unique(c(
+      nrow(spflow_matrices[["CONST"]][["(Intra)"]]),
+      nrow(spflow_matrices[["P_"]][[1]]),
+      nrow(spflow_matrices[["Y_"]][[1]]),
+      nrow(spflow_matrices[["DX"]]),
+      nrow(spflow_matrices[["IX"]])))
+    assert_is_single_x(n_d, "numeric")
+
+
+    o_index <- rep(seq(n_o), each = n_d)
+    d_index <- rep(seq(n_d), times = n_o)
+    intra_i <- as.vector(diag(n_o)) %T% (req_intra)
+  }
+
+  if (!is_cartesian) {
+    filter_sig <- spflow_indicators[["IN_POP"]] %||% TRUE
+    spflow_indicators <- spflow_indicators[filter_sig,,drop = FALSE]
+    n_o <- obs[["n_orig"]]
+    n_d <- obs[["n_dest"]]
+    o_index <- as.numeric(spflow_indicators[[2]])
+    d_index <- as.numeric(spflow_indicators[[1]])
+    intra_i <- as.numeric(spflow_indicators[[1]] == spflow_indicators[[2]]) %T% req_intra
+  }
+
+  signal <- 0
   id_coef <- 0
-  if (!is.null(spflow_matrices[["CONST"]][["(Intercept)"]])) {
-    id_coef <- id_coef + 1
-    SIG <- SIG + delta[id_coef]
-  }
+  delta <- delta[!is.na(delta)]
+  coef_mlt <- function(X_part = "D_") {
+    X_delta <- delta[grep(paste0("^", X_part),names(delta))]
+    X_mat <- spflow_matrices[[X_part]]
 
-  if (!is.null(spflow_matrices[["CONST"]][["(Intra)"]])) {
-    id_coef <- id_coef + 1
-    SIG <- SIG + delta[id_coef] * intra_i
-  }
+    if (is.list(X_mat)) {
+      names(X_mat) <- paste0(X_part, names(X_mat))
+      return(Reduce("+", Map("*", X_mat[names(X_delta)], X_delta)))
+    }
 
-  if (!is.null(spflow_matrices[["D_"]])) {
-    id_coef <- seq_len(ncol(spflow_matrices[["D_"]])) + max(id_coef)
-    SIG <- SIG + (spflow_matrices[["D_"]]  %*%  delta[id_coef])[d_index]
+    colnames(X_mat) <- paste0(X_part, colnames(X_mat))
+    return(X_mat[,names(X_delta),drop = FALSE] %*% X_delta)
   }
+  if ("(Intercept)" %in% names(delta))
+    signal <- signal + delta["(Intercept)"]
 
-  if (!is.null(spflow_matrices[["O_"]])) {
-    id_coef <- seq_len(ncol(spflow_matrices[["O_"]])) + max(id_coef)
-    SIG <- SIG + (spflow_matrices[["O_"]]  %*%  delta[id_coef])[o_index]
-  }
+  if ("(Intra)" %in% names(delta))
+    signal <- signal + delta["(Intra)"] * intra_i
 
-  if (!is.null(spflow_matrices[["I_"]])) {
-    id_coef <- seq_len(ncol(spflow_matrices[["I_"]])) + max(id_coef)
-    SIG_I <- spflow_matrices[["I_"]]  %*%  delta[id_coef]
-    SIG <- SIG + (SIG_I[o_index] * intra_i)
-  }
+  if (any(grepl("^D_", names(delta))))
+    signal <- signal + coef_mlt("D_")[d_index]
+
+  if (any(grepl("^O_", names(delta))))
+    signal <- signal +  coef_mlt("O_")[o_index]
+
+  if (any(grepl("^I_", names(delta))))
+    signal <- signal + coef_mlt("I_")[o_index] * intra_i
 
   if (keep_matrix_form & !is_cartesian)
-    SIG <- spflow_indicators2mat(spflow_indicators, do_filter = "IN_POP", do_values = SIG)
+    signal <- spflow_indicators2mat(spflow_indicators, do_filter = "IN_POP", do_values = signal)
 
   if (keep_matrix_form & is_cartesian)
-    SIG <- matrix(SIG, nrow = n_d, ncol = n_o)
+    signal <- matrix(signal, nrow = n_d, ncol = n_o)
 
-  if (!is.null(spflow_matrices[["P_"]])) {
-    id_coef <- seq_along(spflow_matrices[["P_"]]) + max(id_coef)
-    SIG_G <- Reduce("+", Map("*", spflow_matrices[["P_"]], delta[id_coef]))
+  if (any(grepl("^P_", names(delta)))) {
+    signal_P <- coef_mlt("P_")
 
     if (!keep_matrix_form & is_cartesian)
-      SIG_G <- as.vector(SIG_G)
+      signal_P <- as.vector(signal_P)
     if (!keep_matrix_form & !is_cartesian)
-      SIG_G <- SIG_G[spflow_indicators2pairindex(spflow_indicators, do_filter = "IN_POP")]
-    SIG <- SIG + SIG_G
+      signal_P <- signal_P[spflow_indicators2pairindex(spflow_indicators, do_filter = "HAS_ZZ")]
+    signal <- signal + signal_P
   }
 
-  return(SIG)
+  return(signal)
 }
 
 

@@ -9,7 +9,7 @@ expect_equal({
   }, {
   n_o <- 5
   n_d <- 5
-  params <- c("(Intercept)", "(Intra)", "D_", "O_", "I_", "G")
+  params <- c("(Intercept)", "(Intra)", "D_", "O_", "I_", "P_")
   params <- spflow:::lookup(1, params)
   mats <- list(
     "Y_" = list(matrix(1,n_d,n_o)),

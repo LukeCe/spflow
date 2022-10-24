@@ -156,6 +156,7 @@ spflow_control <- function(
     twosls_reduce_pair_instruments = TRUE,
     track_condition_numbers = FALSE,
     na_rm = FALSE,
+    allow_singular = TRUE,
     reduce_model_size = FALSE) {
 
   assert_valid_option(estimation_method, c("s2sls", "mle","mcmc","ols"))
@@ -183,8 +184,7 @@ spflow_control <- function(
   assert_is_single_x(track_condition_numbers, "logical")
   assert_is_single_x(na_rm, "logical")
   assert_is_single_x(reduce_model_size, "logical")
-  assert_is_single_x(fit_submodels, "logical")
-  assert_is(submodel_infos, "character")
+  assert_is_single_x(allow_singular, "logical")
 
   # control parameter used in all cases
   general_control <- list(
@@ -196,7 +196,8 @@ spflow_control <- function(
     "track_condition_numbers" = track_condition_numbers,
     "na_rm" = na_rm,
     "fitted_value_method" = fitted_value_method,
-    "reduce_model_size" = reduce_model_size)
+    "reduce_model_size" = reduce_model_size,
+    "allow_singular" = allow_singular)
 
   if (estimation_method == "ols")
     return(general_control)

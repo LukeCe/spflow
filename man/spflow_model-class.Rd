@@ -9,7 +9,7 @@
 \alias{spflow_model_ols}
 \alias{coef,spflow_model-method}
 \alias{fitted,spflow_model-method}
-\alias{logLik,spflow_model_ll-method}
+\alias{logLik,spflow_model-method}
 \alias{mcmc_results,spflow_model_mcmc-method}
 \alias{nobs,spflow_model-method}
 \alias{neighborhood,spflow_model-method}
@@ -26,7 +26,7 @@
 
 \S4method{fitted}{spflow_model}(object, return_type = "V")
 
-\S4method{logLik}{spflow_model_ll}(object)
+\S4method{logLik}{spflow_model}(object)
 
 \S4method{mcmc_results}{spflow_model_mcmc}(object)
 

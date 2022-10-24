@@ -88,22 +88,12 @@ spflow_post_estimation <- function(
     method = object@estimation_control[["fitted_value_method"]],
     add_new_signal = TRUE)
   object@spflow_indicators[c("SIGNAL","FITTED")] <- pred[c("NEW_SIGNAL", "PREDICTION")]
-
-  object@estimation_diagnostics[["R2_corr"]] <- as.numeric(cor(
-    object@spflow_indicators[["FITTED"]],
-    object@spflow_indicators[["ACTUAL"]],
-    use = "complete.obs"))^2
+  object@estimation_diagnostics[["R2_corr"]] <-
+    spflow_indicators2Rcorr(object@spflow_indicators)
 
   object@estimation_diagnostics <- c(
     object@estimation_diagnostics,
     spflow_indicators2obs(spflow_indicators))
-
-  submodel_results <- list("submodel_results" = spflow_submodels(object)) %T%
-    object@estimation_control[["fit_submodels"]]
-
-  object@estimation_diagnostics <- c(
-    object@estimation_diagnostics,
-    submodel_results)
 
   if (isTRUE(object@estimation_control[["reduce_model_size"]])) {
     object@spflow_matrices <- NULL
@@ -140,7 +130,7 @@ solve_savely <- function(ZZ, ZY, TCORR, error_msg) {
 }
 
 
-#' @keywords internal
+#' @export
 spflow_refit <- function(
     object,
     refit_type = "ar_family",
@@ -152,13 +142,11 @@ spflow_refit <- function(
   refit_options <- c("ar_family", "stepwise", "samples")
   assert_valid_option(refit_type,refit_options)
 
-  if (refit_type == "ar_family") {
+  if (refit_type == "ar_family")
     models <- spflow_refit_ar_family(object)
-  }
 
-  if (refit_type == "stepwise") {
+  if (refit_type == "stepwise")
     models <- spflow_refit_stepwise(object, protected_params)
-  }
 
   if (refit_type == "samples") {
     if (object@estimation_control[["estimation_method"]] == "s2sls")
@@ -186,7 +174,6 @@ spflow_refit_ar_family <- function(object) {
       obs_Y <- NULL
     obs_Y
   }
-  get_sample <- function(x) update_logicals(x[["WEIGHTS"]] > 0, x[["HAS_ZZ"]], x[["WEIGHTS"]])
   estimate_with_new_Y <- function(...) tryCatch(estimate_with_new_Y2(...), error = function(e) NULL)
   estimate_with_new_Y2 <- function(Y_, new_control, new_mom, new_mom_emp) {
 
@@ -417,23 +404,33 @@ spflow_refit_samples <- function(
     object,
     new_weights) {
 
+  # solve naming
+  nwt <- names(new_weights)
+  names(new_weights) <- sprintf("Sample (%s)", seq(length(new_weights)))
+  if (!is.null(nwt))
+    names(new_weights)[nwt != ""] <- nwt[nwt != ""]
+
   old_weights <- object@spflow_indicators[["WEIGHT"]]
-  new_weights <- Reduce("cbind", lapply(
+  new_weights <- lapply(
     new_weights, "derive_spflow_weights",
     spflow_data = pull_spflow_data(object@spflow_networks),
-    do_indexes = sapply(object@spflow_indicators, as.integer)))
+    do_indexes = sapply(object@spflow_indicators, as.integer))
 
-  res <- vector("list", length = ncol(new_weights) + 1)
-  names(res) <- sprintf("Sample (%s)", seq(0, ncol(new_weights)))
-  res[[1]] <- object
+
+  res <- vector("list", length = length(new_weights) + 1)
+  names(res) <- c("Original", names(new_weights))
+  res[["Original"]] <- object
   estimate_with_new_weights <- function(...) tryCatch(estimate_with_new_weights2(...), error = function(e) NULL)
   estimate_with_new_weights2 <- function(object, new_wt) {
 
-    n_o <- nobs(object)
-    n_d <- nobs(object)
-    N <- if (is.null(new_wt)) n_o * n_d else sum(new_wt > 0)
 
     object@spflow_indicators[["WEIGHT"]] <- new_wt
+    new_wt <- spflow_indicators2wtmat(object@spflow_indicators)
+    n_o <- nobs(object, "orig")
+    n_d <- nobs(object, "dest")
+    N <- if (is.null(new_wt)) n_o * n_d else nnzero(new_wt)
+
+
     new_mom <- derive_spflow_moments(
       spflow_matrices = object@spflow_matrices,
       n_o = n_o, n_d = n_d, N = N,
@@ -443,17 +440,17 @@ spflow_refit_samples <- function(
     new_res <- spflow_estimation(new_mom,object@spflow_nbfunctions,object@estimation_control)
     new_dg <- spflow_indicators2obs(object@spflow_indicators)
 
-    new_mom_emp <- derive_empric_moments(object)
+    new_mom_emp <- derive_empric_moments(object, dg = new_dg, mom = new_mom)
     new_dg[["R2_corr"]] <- mom2Rcorr(new_mom_emp, coef(new_res))
     new_res@estimation_diagnostics[names(new_dg)] <- new_dg
     return(new_res)
   }
 
   # go backwards to handle NULL cases on the fly
-  s <- ncol(new_weights)
+  s <- length(new_weights)
   p <- s + 1
   for (i in seq_len(s))
-    res[[p - i + 1]] <- estimate_with_new_weights(object, new_weights[,p - i])
+    res[[p - i + 1]] <- estimate_with_new_weights(object, new_weights[[p - i]])
 
   return(res)
 }
@@ -547,7 +544,6 @@ derive_empric_moments <- function(
 #' @keywords internal
 mom2Rcorr <- function(mom, mu) {
 
-  YY <- mom[["TSS"]][1,1]
   ZZ <- mom[["ZZ"]]
   ZY <- mom[["ZY"]][,1,drop=FALSE]
 
@@ -559,17 +555,13 @@ mom2Rcorr <- function(mom, mu) {
   N <- mom[["N"]]
   sumY <- mom[["sumY"]]
   sumZ <- mom[["sumZ"]]
+  sumYhat <- as.numeric(mu %*% c(sumY[-1] %||% NULL, sumZ))
+  prodYYhat <- as.numeric(mu %*% rbind(YJ,ZY))
+  num <- N * prodYYhat - sumYhat * sumY[1]
 
-  y_bar <- sumY[1] / N
-  y_hat_bar <- mu %*% c(sumY[-1] %||% NULL, sumZ) / N
-
-  ss_yyhat <-  mu %*% rbind(YJ,ZY) - y_bar * y_hat_bar * N
-
-  yy_hat <- rbind(cbind(JJ,t_ZJ),cbind(ZJ,ZZ))
-  yy_hat <- mu %*% yy_hat %*% mu
-  rt_yhat <- sqrt(yy_hat - y_hat_bar^2 * N)
-  rt_y <- sqrt(YY - y_bar^2 * N)
-  corr <- ss_yyhat / (rt_yhat * rt_y)
-  return(corr^2)
+  sqsumY <- mom[["TSS"]][1,1]
+  sqsumYhat <- mu %*% rbind(cbind(JJ,t_ZJ),cbind(ZJ,ZZ)) %*% mu
+  denum <- sqrt(N * sqsumY - sumY[1]^2) * sqrt(N * sqsumYhat - sumYhat^2)
+  return(as.numeric((num/denum)^2))
 }
 

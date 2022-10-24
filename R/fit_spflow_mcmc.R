@@ -17,6 +17,21 @@ spflow_mcmc <- function(
   nb_burn_in <- estimation_control$mcmc_burn_in
   resampling_limit <- estimation_control$mcmc_resampling_limit
 
+  # pre-compute quantities that are used repeatedly
+  delta_x <- delta_t <- qr.coef(qr(ZZ), ZY)
+  dd <- !is.na(delta_t[,1])
+  assert(all(dd) | estimation_control[["allow_singular"]],
+         "Encountered singular fit!")
+
+  delta_t <- delta_t[dd,,drop=FALSE]
+  ZY <- ZY[dd,,drop=FALSE]
+  ZZ <- ZZ[dd,dd,drop=FALSE]
+  RSS_t <- TSS - crossprod(ZY,delta_t)
+  varcov_delta <- chol2inv(chol(ZZ))
+  varcov_delta_chol <- chol(varcov_delta)
+  fast_multi_rnorm <- function(n, sd = NULL) rnorm(n,sd = sd) %*% varcov_delta_chol
+
+
   ## initialize rho for M-H sampling
   nb_rho <- ncol(ZY) - 1
   pre_rho <- draw_initial_guess(nb_rho)
@@ -28,14 +43,13 @@ spflow_mcmc <- function(
 
   ## create collectors for each parameter
   size_delta <- ncol(ZZ)
-
   collect_delta  <- matrix(
     0, nrow = nb_draw + 1, ncol = size_delta,
     dimnames = list(NULL, colnames(ZZ)))
   collect_sigma2 <- matrix(
     0, nrow = nb_draw + 1, ncol = 1,
     dimnames = list(NULL, "sigma2"))
-  collect_rho    <- matrix(
+  collect_rho <- matrix(
     0, nrow = nb_draw + 1, ncol = nb_rho,
     dimnames = list(NULL, define_spatial_lag_params(model)))
 
@@ -45,25 +59,11 @@ spflow_mcmc <- function(
   collect_rho[1,] <- pre_rho
   shape_sigma2 <- N/2
 
-
   ## for adaptive M-H sampling we need to monitor the acceptance rate
   # the sample uses a tuned random walk procedure initialized at 0.2
+  # we also calculate an initial log-determinant value ...
   acceptance_rate <- rep(0,nb_rho)
   tune_rw <- rep(0.2,nb_rho)
-
-  # pre-compute quantities that are used repeatedly
-  delta_t <- solve_savely(ZZ, ZY, TCORR)
-  RSS_t <- TSS - crossprod(ZY,delta_t)
-  varcov_delta <- chol2inv(chol(ZZ))
-  varcov_delta_chol <- chol(varcov_delta)
-  fast_multi_rnorm <- function(n, sd = NULL) {
-    rnorm(n,sd = sd) %*% varcov_delta_chol
-  }
-
-
-
-  # we also calculate an initial log-determinant value ...
-  #... and pass it to the mcmc variable
   previous_log_det <- logdet_calculator(pre_rho)
 
   ## begin MCMC sampling ----
@@ -92,25 +92,13 @@ spflow_mcmc <- function(
 
     ## 3. Metropolis Hastings sampling for rho..
 
-    # 3.1) Generation of candidates
-    # ... sample jointly candidates for new values of rho that respect:
-    # ... the interval [-LB, UB] for each rho
-    # ... the stability restriction |sum(rho)| < SR
-    # ... the stability restriction sum(|rho|) < SR
-    # ... non-zero log-determinant (-> A non-singular): not applied
+    # 3.1) Generation of candidates that satisfy the parameter space
     valid_candidates <- FALSE
     count_draws <- 1
     while (!valid_candidates & count_draws <= resampling_limit) {
 
       candidate_rho <- collect_rho[i_mcmc ,] + rnorm(nb_rho) * tune_rw
-
-      # TODO replace with exact constraints
-      valid_candidates <- (
-        min(candidate_rho) > bound_rho["low"]
-        & max(candidate_rho) < bound_rho["up"]
-        & abs(sum(candidate_rho)) < bound_sum_rho
-        & sum(abs(candidate_rho)) < bound_sum_abs_rho
-      )
+      valid_candidates <- pspace_validator(candidate_rho)
       count_draws <- count_draws + 1
       count_failed_candidates <-
         count_failed_candidates + (count_draws >= resampling_limit)
@@ -159,19 +147,19 @@ spflow_mcmc <- function(
   }
 
   mcmc_results <- cbind(collect_rho,collect_delta,collect_sigma2)
+  mcmc_results2 <- mcmc_results[-seq_len(nb_burn_in), -ncol(mcmc_results)]
   results_df <- create_results(
-    est = colMeans(mcmc_results[-seq_len(nb_burn_in),]),
-    quant_025 = apply(mcmc_results, 2, quantile, 0.025),
-    quant_975 = apply(mcmc_results, 2, quantile, 0.975),
-    sd = apply(mcmc_results, 2, sd),
-    df = N - ncol(mcmc_results)
-  )
+    est = colMeans(mcmc_results2),
+    quant_025 = apply(mcmc_results2, 2, quantile, 0.025),
+    quant_975 = apply(mcmc_results2, 2, quantile, 0.975),
+    sd = apply(mcmc_results2, 2, sd),
+    df = N - ncol(mcmc_results))
+  results_df2 <- data.frame(row.names = c(colnames(collect_rho),rownames(delta_x)))
+  results_df2[row.names(results_df),colnames(results_df)] <- results_df
 
-
-  id_sd <- nrow(results_df)
   rho <- results_df$est[seq_len(ncol(collect_rho))]
   estimation_diagnostics <- list(
-    "sd_error" = sqrt(results_df$est[id_sd]),
+    "sd_error" = sqrt(mean(collect_sigma2[-seq_len(nb_burn_in)])),
     "varcov" = cor(mcmc_results[-seq_len(nb_burn_in),, drop = FALSE]),
     "model_coherence" = ifelse(pspace_validator(rho), "Validated", "Unknown"),
     "mcmc_results" = as.mcmc(mcmc_results))
@@ -180,7 +168,7 @@ spflow_mcmc <- function(
 
 
   estimation_results <- spflow_model(
-    estimation_results = results_df[-id_sd,,drop = FALSE],
+    estimation_results = results_df2,
     estimation_control = estimation_control,
     estimation_diagnostics = estimation_diagnostics)
 

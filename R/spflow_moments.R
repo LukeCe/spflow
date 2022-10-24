@@ -67,10 +67,10 @@ derive_spflow_moments <- function(
   TSS <- crossproduct_mat_list(spflow_matrices$Y_, Y_wt)
 
   # covariance matrix
-  TCORR <- rbind(cbind(UU,UY), cbind(t(UY), TSS))
-  TCORR <- TCORR - (outer(TCORR[1,], TCORR[1,])/N)
-  TCORR <- TCORR / outer(sqrt(diag(TCORR)), sqrt(diag(TCORR)))
-  diag(TCORR[-1,-1]) <- 1
+  # TCORR <- rbind(cbind(UU,UY), cbind(t(UY), TSS))
+  # TCORR <- TCORR - (outer(TCORR[1,], TCORR[1,])/N)
+  # TCORR <- TCORR / outer(sqrt(diag(TCORR)), sqrt(diag(TCORR)))
+  # diag(TCORR[-1,-1]) <- 1
 
   model_moments <- compact(list(
     "n_d"   = n_d,
@@ -80,8 +80,7 @@ derive_spflow_moments <- function(
     "ZZ"    = ZZ,
     "UY"    = UY,
     "ZY"    = ZY,
-    "TSS"   = TSS,
-    "TCORR" = TCORR))
+    "TSS"   = TSS))
 
   error_msg <- "
   The estimation is aborted because the %s variables contain

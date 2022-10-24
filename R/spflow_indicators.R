@@ -9,10 +9,7 @@ spflow_indicators2obs <- function(spflow_indicators) {
   if (!is.null(in_pop))
     N_pop <- sum(in_pop)
 
-  in_sample <- update_logicals(
-    spflow_indicators[["HAS_ZZ"]],
-    spflow_indicators[["HAS_ZY"]],
-    spflow_indicators[["WEIGHT"]] > 0)
+  in_sample <- get_sample(spflow_indicators)
   if (!is.null(in_sample))
     N_sample <- sum(in_sample)
 
@@ -73,7 +70,7 @@ spflow_indicators2mat <- function(do_keys, do_filter = NULL, do_values = NULL) {
   if (is.character(do_filter))
     do_filter <- do_keys[[do_filter]]
   if (!is.null(do_filter))
-    do_keys <- do_keys[do_filter, (1:2),drop = FALSE]
+    do_keys <- do_keys[do_filter,, drop = FALSE]
   if (is.character(do_values))
     do_values <- do_keys[[do_values]]
 
@@ -94,7 +91,7 @@ spflow_indicators2mat <- function(do_keys, do_filter = NULL, do_values = NULL) {
 #' @keywords internal
 spflow_indicators2wtmat <- function(do_keys, as_binary = FALSE) {
   do_filter <- update_logicals(do_keys[["HAS_ZZ"]], do_keys[["HAS_ZY"]], do_keys[["WEIGHT"]] > 0)
-  spflow_indicators2mat(do_keys, do_filter, "WEIGHT" %T% (!as_binary))
+  spflow_indicators2mat(do_keys, do_filter,"WEIGHT" %T% (!as_binary))
 }
 
 
@@ -120,6 +117,26 @@ spflow_indicators2format <-  function(do_keys_val, return_type = "V", do_filter 
 
 }
 
+#' @keywords internal
+get_sample <- function(x) {
+  update_logicals(x[["WEIGHT"]] > 0, x[["HAS_ZZ"]], x[["HAS_ZY"]])
+}
+
+#' @keywords internal
+spflow_indicators2Rcorr <- function(x) {
+
+  if (is.null(x[["FITTED"]]) | is.null(x[["ACTUAL"]]))
+    return(NULL)
+
+  in_sample <- get_sample(x)
+  if (!is.null(in_sample))
+    x <- x[in_sample,]
+
+  cor(x[["FITTED"]],x[["ACTUAL"]],
+      use = "pairwise.complete.obs",
+      method = "pearson")^2
+
+}
 
 #' @keywords internal
 spflow_mat2format <- function(mat, do_keys, return_type = "M", name = "OD_VAR") {
