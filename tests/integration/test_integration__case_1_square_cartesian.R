@@ -24,7 +24,7 @@ data("multi_net_usa_ge")
 data("simulation_params")
 
 test_dir <- ""
-test_dir <- "tests/integration/" # uncomment for interactive check
+# test_dir <- "tests/integration/" # uncomment for interactive check
 ge_ge_vec_data <-
   readRDS(paste0(test_dir,"vec_data_usa_ge.Rds"))[["ge_ge"]]
 ge_ge_pairnb <-

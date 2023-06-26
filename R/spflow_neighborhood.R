@@ -66,7 +66,7 @@ expand_spflow_neighborhood <- function(
   ### non-Cartesian expansion
   # when Wo or Ww are required it is most efficient to reduce the problem
   # first to its minimal Cartesian representation
-  M_indicator <- as(M_indicator, "lgCMatrix")
+  M_indicator <- as(M_indicator, "lMatrix")
   if (require_Wd) {
     return_nbs$Wd <- apply(M_indicator, 2, function(d_index) DW[d_index,d_index])
     return_nbs$Wd <- bdiag(return_nbs$Wd)

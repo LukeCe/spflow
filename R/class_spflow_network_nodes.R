@@ -361,7 +361,7 @@ spflow_network_nodes <- function(
 
   # checks for validity of dimensions are done before the return
   if (!is.null(node_neighborhood)) {
-    node_neighborhood <- try_coercion(node_neighborhood,"dgCMatrix")
+    node_neighborhood <- try_coercion(node_neighborhood,"CsparseMatrix")
     node_neighborhood <- normalize_neighborhood(node_neighborhood, normalize_byrow)
   }
 

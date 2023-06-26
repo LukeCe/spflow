@@ -236,7 +236,7 @@ expect_equal({
   Wd <- diag(4) %x% W
   Ww <- W %x% W
   Y <- Y_na <- matrix(1:16,4)
-  diag(Y_na) <- NA
+  diag(Y_na) <- NA_real_
 
   y <- as.vector(Y_na)
   obs_y <- !is.na(y)
@@ -260,7 +260,7 @@ expect_equal({
 {
   W <- Matrix::sparseMatrix(i = c(1,1,2,3,4),j =  c(2,3,3,4,1),x =  c(.5,.5,1,1,1))
   Y <- Y_na <- Matrix(1:16,4)
-  diag(Y_na) <- NA
+  diag(Y_na) <- NA_real_
   d <- function(l) data.frame(lapply(l, as.vector))
   y <- as.vector(Y_na)
   obs_y <- !is.na(y)
@@ -281,7 +281,7 @@ expect_equal({
   Wd <- diag(4) %x% W
   Ww <- W %x% W
   Y <- Y_na <- matrix(1:16,4)
-  diag(Y_na) <- NA
+  diag(Y_na) <- NA_real_
   pair_index <- which(as.vector(W == 0))
   y <- as.vector(Y_na[pair_index])
 
@@ -310,7 +310,7 @@ expect_equal({
 {
   W <- Matrix::sparseMatrix(i = c(1,1,2,3,4),j =  c(2,3,3,4,1),x =  c(.5,.5,1,1,1))
   Y <- Y_na <- Matrix(1:16,4)
-  diag(Y_na) <- NA
+  diag(Y_na) <- NA_real_
   pair_index <- which(as.vector(W == 0))
   y <- as.vector(Y_na[pair_index])
   Y_na[-pair_index] <- 0
@@ -334,9 +334,9 @@ expect_equal({
   Wd <- diag(4) %x% W
   Ww <- W %x% W
   Y <- Y_na <- matrix(1:16,4)
-  diag(Y_na) <- NA
+  diag(Y_na) <- NA_real_
 
-  y <- drop_na(as.vector(Y_na))
+  y <- spflow:::drop_na(as.vector(Y_na))
   d <- function(l) data.frame(lapply(l, as.vector))
   d(list(
     "d"  = Wd %*% y,
@@ -353,7 +353,7 @@ expect_equal({
 {
   W <- Matrix::sparseMatrix(i = c(1,1,2,3,4),j =  c(2,3,3,4,1),x =  c(.5,.5,1,1,1))
   Y <- Y_na <- Matrix(1:16,4)
-  diag(Y_na) <- NA
+  diag(Y_na) <- NA_real_
   d <- function(l) data.frame(lapply(l, as.vector))
   d(spflow:::spatial_do_lag2(drop0(Y_na),W,W,na_handling = "ignore"))
 },
@@ -364,7 +364,7 @@ check.attributes = FALSE)
 expect_equal({
   W <- Matrix::sparseMatrix(i = c(1,1,2,3,4),j =  c(2,3,3,4,1),x =  c(.5,.5,1,1,1))
   Y <- Y_na <- matrix(1:16,4)
-  diag(Y_na) <- NA
+  diag(Y_na) <- NA_real_
   pair_index <- which(as.vector(W == 0))
 
   #
@@ -378,7 +378,7 @@ expect_equal({
 
   y <- as.vector(Y_na[pair_index])
   obs_y <- !is.na(y)
-  y <- drop_na(y)
+  y <- spflow:::drop_na(y)
 
   yd <- Wd %*% y * Matrix::rowSums(Wd) / (Wd %*% obs_y)
   yo <- Wo %*% y * Matrix::rowSums(Wo) / (Wo %*% obs_y)
@@ -387,20 +387,20 @@ expect_equal({
     "d" = yd,
     "o" = yo,
     "w" = yw,
-    "dd" = Wd %*% drop_na(yd) * Matrix::rowSums(Wd) / (Wd %*% is.finite(yd)),
-    "do" = Wo %*% drop_na(yd) * Matrix::rowSums(Wo) / (Wo %*% is.finite(yd)),
-    "dw" = Ww %*% drop_na(yd) * Matrix::rowSums(Ww) / (Ww %*% is.finite(yd)),
-    "od" = Wd %*% drop_na(yo) * Matrix::rowSums(Wd) / (Wd %*% is.finite(yo)),
-    "oo" = Wo %*% drop_na(yo) * Matrix::rowSums(Wo) / (Wo %*% is.finite(yo)),
-    "ow" = Ww %*% drop_na(yo) * Matrix::rowSums(Ww) / (Ww %*% is.finite(yo)),
-    "od" = Wd %*% drop_na(yw) * Matrix::rowSums(Wd) / (Wd %*% is.finite(yw)),
-    "oo" = Wo %*% drop_na(yw) * Matrix::rowSums(Wo) / (Wo %*% is.finite(yw)),
-    "ww" = Ww %*% drop_na(yw) * Matrix::rowSums(Ww) / (Ww %*% is.finite(yw))))
+    "dd" = Wd %*% spflow:::drop_na(yd) * Matrix::rowSums(Wd) / (Wd %*% is.finite(yd)),
+    "do" = Wo %*% spflow:::drop_na(yd) * Matrix::rowSums(Wo) / (Wo %*% is.finite(yd)),
+    "dw" = Ww %*% spflow:::drop_na(yd) * Matrix::rowSums(Ww) / (Ww %*% is.finite(yd)),
+    "od" = Wd %*% spflow:::drop_na(yo) * Matrix::rowSums(Wd) / (Wd %*% is.finite(yo)),
+    "oo" = Wo %*% spflow:::drop_na(yo) * Matrix::rowSums(Wo) / (Wo %*% is.finite(yo)),
+    "ow" = Ww %*% spflow:::drop_na(yo) * Matrix::rowSums(Ww) / (Ww %*% is.finite(yo)),
+    "od" = Wd %*% spflow:::drop_na(yw) * Matrix::rowSums(Wd) / (Wd %*% is.finite(yw)),
+    "oo" = Wo %*% spflow:::drop_na(yw) * Matrix::rowSums(Wo) / (Wo %*% is.finite(yw)),
+    "ww" = Ww %*% spflow:::drop_na(yw) * Matrix::rowSums(Ww) / (Ww %*% is.finite(yw))))
 },
 {
   W <- Matrix::sparseMatrix(i = c(1,1,2,3,4),j =  c(2,3,3,4,1),x =  c(.5,.5,1,1,1))
   Y <- Y_na <- Matrix(1:16,4)
-  diag(Y_na) <- NA
+  diag(Y_na) <- NA_real_
   pair_index <- which(as.vector(W == 0))
   Y_na[-pair_index] <- 0
   Y_na <- drop0(Y_na)
@@ -418,7 +418,7 @@ expect_equal({
   Wd <- diag(4) %x% W
   Ww <- W %x% W
   Y <- Y_na <- matrix(1:16,4)
-  diag(Y_na) <- NA
+  diag(Y_na) <- NA_real_
   pair_index <- which(as.vector(W == 0))
   y <- as.vector(Y_na[pair_index])
 
@@ -435,9 +435,9 @@ expect_equal({
 {
   W <- Matrix::sparseMatrix(i = c(1,1,2,3,4),j =  c(2,3,3,4,1),x =  c(.5,.5,1,1,1))
   Y <- Y_na <- Matrix(1:16,4)
-  diag(Y_na) <- NA
+  diag(Y_na) <- NA_real_
   pair_index <- which(as.vector(W == 0))
-  as.data.frame(derive_dow_rowsums(W,W,lag_keys = c("d","o","w"), pair_index = pair_index))
+  as.data.frame(spflow:::derive_dow_rowsums(W,W,lag_keys = c("d","o","w"), pair_index = pair_index))
 },
 info = "Check NA handling for spatial lags of non-cartesian flow matrix.",
 check.attributes = FALSE)
