@@ -198,6 +198,7 @@ setMethod(
            add_lags_y = FALSE) {
 
     pair_ids <- id(object)[["pairs"]]
+    assert_is_single_x(id_spflow_pairs, "character")
     assert(id_spflow_pairs %in% pair_ids,
            "spflow_network_pairs with id %s was not found!", id_spflow_pairs)
     od_id <- id(pull_member(object, id_spflow_pairs))
@@ -232,7 +233,19 @@ setMethod(
       wt = wt,
       na_rm = TRUE)
 
-    return(mom[["TCORR"]][-1,-1, drop = FALSE])
+
+    N <- mom[["N"]]
+    UU <- mom[["UU"]]
+    UY <- mom[["UY"]]
+    TSS <- mom[["TSS"]]
+
+    # covariance matrix
+    TCORR <- rbind(cbind(UU,UY), cbind(UY %|!|% t, TSS))
+    TCORR <- TCORR - (outer(TCORR[1,], TCORR[1,])/N)
+    TCORR <- TCORR / outer(sqrt(diag(TCORR)), sqrt(diag(TCORR)))
+    diag(TCORR[-1,-1]) <- 1
+
+    return(TCORR)
   })
 
 # ---- ... pair_merge ---------------------------------------------------------
@@ -387,9 +400,10 @@ setMethod(
 
     assert_is_single_x(.id, "character")
     .id_type <- sapply(id(object), function(x) .id %in% x)
-    assert(sum(unlist(.id_type)) == 1, ".id not found!")
-    from <- names(.id_type[.id_type])
-    return(slot(object,from)[[.id]])
+    .id_type <- names(.id_type[.id_type])
+
+    res <- if (length(.id_type) == 0) NULL else slot(object,.id_type)[[.id]]
+    return(res)
   })
 
 # ---- ... show ---------------------------------------------------------------
@@ -404,7 +418,6 @@ setMethod(
     cat(print_line(50))
     plural <- function(s, x) paste0(s, ifelse(x == 1, "", "s"))
     multi_net_ids <- id(object)
-
 
     nodes_ids <- multi_net_ids$nodes
     num_nodes <- length(nodes_ids)
@@ -730,7 +743,9 @@ spflow_network_multi <- function(...) {
       dest_keys <- subset_keycols(dat(sp_nodes[[dest_net]]), drop_keys = FALSE)[[1]]
       assert(all(as.character(dest_keys_od) %in% as.character(dest_keys)),
              error_template, net_pair, "destination", "destination")
-      wrong_od_order <- any(c(wrong_od_order, levels(dest_keys_od) != levels(dest_keys)))
+      wrong_od_order <- wrong_od_order ||
+        length(levels(dest_keys_od)) != length(levels(dest_keys)) ||
+        any(levels(dest_keys_od) != levels(dest_keys))
     }
 
     if (wrong_od_order) {
@@ -763,37 +778,43 @@ check_pair_completeness <- function(pair_id, multi_net) {
   this_pair <- pull_member(multi_net, pair_id)
   od_id <- id(this_pair)
   od_nnodes <- nnodes(this_pair)
-  o_nnodes <- nnodes(pull_member(multi_net, od_id["orig"]))
-  d_nnodes <- nnodes(pull_member(multi_net, od_id["dest"]))
 
+  # node informations
+  o_nnodes <- pull_member(multi_net, od_id["orig"])
+  o_nnodes <- o_nnodes %|!|% nnodes(o_nnodes)
+  d_nnodes <- pull_member(multi_net, od_id["dest"])
+  d_nnodes <- d_nnodes %|!|% nnodes(d_nnodes)
 
   pair_infos <- data.frame(
     "ID_ORIG_NET" = od_id["orig"],
     "ID_DEST_NET" = od_id["dest"],
     "ID_NET_PAIR" = pair_id,
     "COMPLETENESS" = npairs(this_pair) / prod(od_nnodes),
-    "C_PAIRS" = sprintf("%s/%s", npairs(this_pair), o_nnodes * d_nnodes),
-    "C_ORIG" = sprintf("%s/%s", o_nnodes, od_nnodes["orig"]),
-    "C_DEST" = sprintf("%s/%s", d_nnodes, od_nnodes["dest"]),
+    "C_PAIRS" = sprintf("%s/%s", npairs(this_pair), (o_nnodes * d_nnodes) %||% "(?)"),
+    "C_ORIG" = sprintf("%s/%s", od_nnodes["orig"], o_nnodes %||% "(?)"),
+    "C_DEST" = sprintf("%s/%s", od_nnodes["dest"], d_nnodes %||% "(?)"),
     "NPAIRS" = npairs(this_pair),
     "NORIG" = od_nnodes["orig"],
     "NDEST" = od_nnodes["dest"],
-    "ORIG_NNODES" = o_nnodes,
-    "DEST_NNODES" = d_nnodes)
+    "ORIG_NNODES" = o_nnodes %||% NA,
+    "DEST_NNODES" = d_nnodes %||% NA)
 
 
-  o_infos <- d_infos <- NULL
   if (od_id["orig"] %in% all_ids$nodes) {
     o_infos <- check_node_infos(pull_member(multi_net, od_id["orig"]))
     names(o_infos) <- paste0("ORIG_", names(o_infos))
+    pair_infos <- cbind(pair_infos, o_infos, row.names = NULL)
   }
 
   if (od_id["dest"] %in% all_ids$nodes) {
     d_infos <- check_node_infos(pull_member(multi_net, od_id["dest"]))
     names(d_infos) <- paste0("DEST_", names(d_infos))
+    pair_infos <- cbind(pair_infos, d_infos, row.names = NULL)
+
   }
 
-  return(cbind(pair_infos, o_infos, d_infos, row.names = NULL))
+
+  return(pair_infos)
 }
 
 #' @keywords internal

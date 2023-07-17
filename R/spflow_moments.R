@@ -83,10 +83,11 @@ derive_spflow_moments <- function(
     "TSS"   = TSS))
 
   error_msg <- "
-  The estimation is aborted because the %s variables contain
-  NA|Inf|NaN values!
-  <br>Check that all variables are well defined and that all
-  tranformations are valid (e.g. avoid logarithms of 0)."
+  The estimation is aborted because the
+  %s variables contain NA|Inf|NaN values! <br>
+  Check that all variables are well defined
+  and that all tranformations are valid
+  (e.g. avoid logarithms of 0)."
   assert(all(is.finite(UU)),error_msg, "explanatory")
   assert(all(is.finite(UY)), error_msg, "response")
   return(model_moments)

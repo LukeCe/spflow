@@ -92,7 +92,10 @@ haversine_distance <- function(lon1, lat1, lon2, lat2) {
 #'
 #' @param nb A `nb-class` from spdep
 #' @return A sparse matrix
+#' @author Lukas Dargel
+#'
 #' @importFrom Matrix sparseMatrix
+#' @export
 #' @examples
 #' nb <- spdep::poly2nb(germany_grid)
 #' nb2Mat(nb)

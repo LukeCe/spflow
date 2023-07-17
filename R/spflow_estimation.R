@@ -115,10 +115,9 @@ solve_savely <- function(ZZ, ZY, TCORR, error_msg) {
 
   if (interactive()) {
     question <- sprintfwrap("
-         The covariates of your models lead to a singular fit!
-         <br>Type \"yes\" to show a correlpation plot.")
+    The covariates of your models lead to a singular fit! <br>
+    Type \"yes\" to show a correlpation plot.")
     answer <- askYesNo(question, default = FALSE)
-
     if (answer)
       cor_image(TCORR)
   }

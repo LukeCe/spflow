@@ -308,7 +308,7 @@ spatial_do_lag2 <- function(
 }
 
 
-#' @keywords
+#' @keywords internal
 derive_dow_rowsums <- function(
     OW,
     DW,

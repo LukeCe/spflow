@@ -248,6 +248,8 @@ setMethod(
     assert_is_single_x(add_fitted, "logical")
     assert_is_single_x(add_resid, "logical")
     assert_is_single_x(exploit_fit, "logical")
+    if (missing(model)) model <- object@estimation_control[["model"]]
+    assert_valid_option(model, paste0("model_", 1:9))
 
     new_mat <- object@spflow_matrices
     new_mat[["CONST"]][["(Intercept)"]] <- 1
@@ -269,14 +271,10 @@ setMethod(
     if (!add_resid & !add_fitted)
       return(new_mom$TCORR)
 
-    if (missing(model))
-      model <- object@estimation_control[["model"]]
-
     # recompute the moments pretending the errors are the flows
     # with flows becoming exogenous variables
     new_mat[["P_"]] <- c(new_mat[["P_"]], new_mat[["Y_"]])
     new_mat[["Y_"]] <- NULL
-
 
     if (add_fitted) {
       new_mat[["Y_"]] <- list(fitted(object, "M"))

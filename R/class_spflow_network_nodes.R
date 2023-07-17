@@ -57,7 +57,7 @@ setReplaceMethod(
            prefer_lonlat = TRUE) {
 
 
-    value <- simplfy2df(value,derive_coordinates, prefer_lonlat)
+    value <- simplfy2df(value, derive_coordinates, prefer_lonlat)
 
     check <- "The node_key_column is not available or not unique!"
     if (missing(node_key_column))
@@ -361,7 +361,7 @@ spflow_network_nodes <- function(
 
   # checks for validity of dimensions are done before the return
   if (!is.null(node_neighborhood)) {
-    node_neighborhood <- try_coercion(node_neighborhood,"CsparseMatrix")
+    node_neighborhood <- try_coercion(node_neighborhood, "CsparseMatrix")
     node_neighborhood <- normalize_neighborhood(node_neighborhood, normalize_byrow)
   }
 
@@ -373,7 +373,10 @@ spflow_network_nodes <- function(
   if (is.null(node_data))
     return(nodes)
 
-  dat(nodes, node_key_column = node_key_column) <- node_data
+  dat(nodes,
+      node_key_column = node_key_column,
+      derive_coordinates = derive_coordinates,
+      prefer_lonlat = prefer_lonlat) <- node_data
   validObject(nodes)
   return(nodes)
 }

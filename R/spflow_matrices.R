@@ -85,24 +85,25 @@ derive_spflow_matrices <- function(
     assert_NA(matrix_key)
     return(obs_X)
   }
+  model_cols <- function(x) Filter(Negate(is.character), subset_keycols(x))
 
   spflow_matrices[["D_"]] <- transform_node_data(
     threepart_formula = fourmulas_by_source[["D_"]],
-    node_df = subset_keycols(spflow_data[["dest"]]),
+    node_df = model_cols(spflow_data[["dest"]]),
     W = DW)
   obs_D <- complete_nodeobs("D_")
 
 
   spflow_matrices[["O_"]] <- transform_node_data(
     threepart_formula = fourmulas_by_source[["O_"]],
-    node_df = subset_keycols(spflow_data[["orig"]]),
+    node_df = model_cols(spflow_data[["orig"]]),
     W = OW)
   obs_O <- complete_nodeobs("O_")
 
 
   spflow_matrices[["I_"]] <- transform_node_data(
     threepart_formula = fourmulas_by_source[["I_"]],
-    node_df = subset_keycols(spflow_data[["orig"]]),
+    node_df = model_cols(spflow_data[["orig"]]),
     W = OW)
   obs_I <- complete_nodeobs("I_")
 
@@ -354,8 +355,7 @@ get_keycols <- function(df, no_coords = FALSE) {
 #' @keywords internal
 subset_keycols <- function(df, drop_keys = TRUE) {
   keep_cols <- get_keycols(df)
-  if (drop_keys)
-    keep_cols <- setdiff(names(df), keep_cols)
+  if (drop_keys) keep_cols <- setdiff(names(df), keep_cols)
   return(df[, keep_cols, drop = FALSE])
 }
 

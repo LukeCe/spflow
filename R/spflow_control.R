@@ -165,6 +165,8 @@ spflow_control <- function(
     estimation_method <- "ols"
     model <- "model_1"
   }
+  assert(model != "model_8" || estimation_method == "mle",
+         "Model 8 is only implemented for the MLE estimator!")
 
   assert_is_single_x(use_intra, "logical")
 
