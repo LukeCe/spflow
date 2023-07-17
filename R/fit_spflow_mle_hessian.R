@@ -28,20 +28,20 @@ spflow_mixed_hessian <- function(
 
   # block 2,1 = interaction of rho and theta
   tau <- c(1, -rho)
-  ZJ <- ZY[dd,-1, drop = FALSE]
+  model_8 <- length(rho) == 3 && prod(rho[1:2]) == -rho[3]
+  del <- if (model_8) rbind(0,-diag(2), rho[1:2]) else rbind(0,-diag(length(rho)))
 
-  hess_21 <- rbind(-ZJ/sigma2,
-                   (crossprod(delta[dd],ZJ) - tau %*% TSS[, -1])/sigma4)
-  hess_21 <- matrix(hess_21, ncol = size_rho)
+  hess_21 <- rbind(-ZY/sigma2, (crossprod(delta[dd],ZY) - tau %*% TSS)/sigma4) %*% del
   hess_12 <- t(hess_21)
+  hess_21 <- t(hess_12)
 
-  # block 1,1 = rho, rho = mixed numerical analytical solution
+
+  # block 1,1 = rho, rho = mixed numeric analytic solution
   hess_11 <- numerical_hess + hess_12 %*% solve(hess_22, hess_21)
 
   full_hessian <-
     rbind(cbind(hess_11, hess_12),
           cbind(hess_21, hess_22))
-  dimnames(full_hessian) <- list(c(names(rho),names(delta[dd]),"sigma"))[c(1,1)]
   return(full_hessian)
 }
 

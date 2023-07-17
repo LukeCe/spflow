@@ -22,16 +22,26 @@ spflow_mle <- function(
          "Encountered singular fit!")
 
   # initialization for optimization
-  nb_rho <- ncol(ZY) - 1
-  rho_tmp <- draw_initial_guess(nb_rho)
-  optim_results <- structure(rho_tmp,class = "try-error")
   optim_count <- 1
   optim_limit <- estimation_control[["mle_optim_limit"]]
+  nb_rho <- ncol(ZY) - 1
   optim_part_LL <- function(rho) {
     tau <- c(1, -rho)
     rss_part <- N * log(tau %*% RSS %*% tau) / 2
     return(rss_part - logdet_calculator(rho))
   }
+  if (model == "model_8") {
+    nb_rho <- 2
+    rho_tmp <- draw_initial_guess(nb_rho)
+    optim_part_LL <- function(rho) {
+      rho <- c(rho, -prod(rho))
+      tau <- c(1, -rho)
+      rss_part <- N * log(tau %*% RSS %*% tau) / 2
+      return(rss_part - logdet_calculator(rho))
+      }
+  }
+  rho_tmp <- draw_initial_guess(nb_rho)
+  optim_results <- structure(rho_tmp,class = "try-error")
 
   while (is(optim_results,"try-error") & (optim_count < optim_limit)) {
 
@@ -50,7 +60,9 @@ spflow_mle <- function(
          optim_limit)
 
   # coeffcients
-  rho <- lookup(optim_results$par, define_spatial_lag_params(model))
+  rho <- optim_results$par
+  if (model == "model_8") rho <- c(rho, -prod(rho))
+  rho <- lookup(rho, define_spatial_lag_params(model))
   tau <- c(1, -rho)
   delta <- (delta_t %*% tau)[,1]
   mu <- c(rho, delta)
@@ -62,19 +74,26 @@ spflow_mle <- function(
     "ZZ" = ZZ, "ZY" = ZY, "TSS" = TSS, "N" = N,
     "rho" = rho, "delta" = delta, "sigma2" = sigma2)
 
+
   if ( hessian_method == "mixed" ) {
     mixed_specific <- list("numerical_hess" = -optim_results$hessian)
     hessian_inputs <- c(hessian_inputs,mixed_specific)
   }
 
   if ( hessian_method == "f2" ) {
+    assert(model != "model_8", "F2 hessian approximation cannot be used for model_8!")
     f2_specific <- list("delta_t" = delta_t, "calc_log_det" = logdet_calculator)
     hessian_inputs <- c(hessian_inputs,f2_specific)
   }
 
   hessian <- spflow_hessian(hessian_method, hessian_inputs)
   varcov <- chol2inv(chol(-hessian))
-  dimnames(varcov) <- dimnames(hessian)
+  if (model == "model_8") { # derive Var(rho_w) with delta method
+    del <- rbind(diag(2),-rho[2:1])
+    del <- block_diag(del, diag(length(delta) + 1))
+    varcov <- del %*% varcov %*% t(del)
+  }
+  dimnames(varcov) <- list(c(names(rho),names(delta),"sigma2"))[c(1,1)]
   sd_mu <- mu
   sd_mu[colnames(varcov)] <- sqrt(diag(varcov))
 
