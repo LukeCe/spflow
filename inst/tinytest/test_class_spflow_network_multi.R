@@ -137,9 +137,9 @@ expect_equal({
   spflow_network_nodes("net1"),
   info = "pull existing net")
 
-expect_error({
+expect_true({
   test_multinet <- spflow_network_multi(spflow_network_nodes("net1"))
-  pull_member(test_multinet, "net2")
+  is.null(pull_member(test_multinet, "net2"))
   },
   info = "pull non-existing net")
 
@@ -150,9 +150,9 @@ expect_equal({
   spflow_network_pairs("net1","net1"),
   info = "pull existing pair")
 
-expect_error({
+expect_true({
   test_multinet <- spflow_network_multi(spflow_network_pairs("net1","net1"))
-  pull_member(test_multinet, "net2_net2")
+  is.null(pull_member(test_multinet, "net2_net2"))
   },
   info = "pull non-existing pair")
 
