@@ -34,7 +34,7 @@ predict_effect(object, ...)
 \item{...}{Arguments passed on to other plotting functions}
 
 \item{new_dat}{A named list of data.frames that contain the new data.
-The names should correspond to spflow_network_nodes or spflow_pair
+The names should correspond to spflow_network or spflow_pair
 objects contained in the \code{\link[=spflow_network_multi-class]{spflow_network_multi-class()}}.}
 
 \item{method}{A character indicating which method to use for computing the

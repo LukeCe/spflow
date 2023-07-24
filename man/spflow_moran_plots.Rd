@@ -26,8 +26,8 @@ spflow_moran_plots(object, ...)
 
 \item{...}{arguments passed to methods}
 
-\item{id_spflow_pairs}{A character indicating the id of a \code{\link[=spflow_network_pairs]{spflow_network_pairs()}} (only relevant if
-the \code{\link[=spflow_network_multi]{spflow_network_multi()}} contains multiple \code{spflow_network_pairs}-objects:
+\item{id_spflow_pairs}{A character indicating the id of a \code{\link[=spflow_network_pair]{spflow_network_pair()}} (only relevant if
+the \code{\link[=spflow_network_multi]{spflow_network_multi()}} contains multiple \code{spflow_network_pair}-objects:
 defaults to the of them)}
 
 \item{flow_var}{A character, indicating one variable from the network pair data}

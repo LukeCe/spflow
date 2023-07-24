@@ -9,8 +9,8 @@ These allow to handle origin-destination flow data efficiently, by exploiting
 the relational structure of origin-destination data.
 
 Data on origins and destinations are stored in the
-\code{\link[=spflow_network_nodes-class]{spflow_network_nodes-class()}} and data on the origin-destination pairs are
-stored in an \code{\link[=spflow_network_pairs-class]{spflow_network_pairs-class()}}.
+\code{\link[=spflow_network-class]{spflow_network-class()}} and data on the origin-destination pairs are
+stored in an \code{\link[=spflow_network_pair-class]{spflow_network_pair-class()}}.
 
 A third object of type \code{\link[=spflow_network_multi-class]{spflow_network_multi-class()}} gathers all information
 from the different data sources. The class can be thought of as a simple
@@ -25,27 +25,27 @@ data("paris10km_municipalities")
 data("paris10km_neighborhood")
 data("paris10km_commuteflows")
 
-# define the spflow_network_nodes...
+# define the spflow_network...
 # ... they are used as origins and destinations
 # ... their neighborhood is based on contiguity
-paris10km_net <- spflow_network_nodes(
-  id_spflow_network_nodes = "paris10km",
+paris10km_net <- spflow_network(
+  id_net = "paris10km",
   node_neighborhood = paris10km_neighborhood$by_contiguity,
   node_data = sf::st_drop_geometry(paris10km_municipalities),
   node_key_column = "ID_MUN")
 
-# define the spflow_network_pairs...
+# define the spflow_network_pair...
 # ... contains pairwise data (flows and distances)
 # ... must be linked to an origin and a destination network
-paris10km_net_pairs <- spflow_network_pairs(
-  id_orig_nodes = "paris10km",
-  id_dest_nodes = "paris10km",
+paris10km_net_pairs <- spflow_network_pair(
+  id_orig_net = "paris10km",
+  id_dest_net = "paris10km",
   pair_data = paris10km_commuteflows,
   orig_key_column = "ID_ORIG",
   dest_key_column = "ID_DEST")
 
 
-# define the spflow_network_pairs...
+# define the spflow_network_pair...
 # ... combines information on nodes and pairs
 paris10km_multinet <- spflow_network_multi(paris10km_net,paris10km_net_pairs)
 

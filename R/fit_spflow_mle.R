@@ -71,8 +71,10 @@ spflow_mle <- function(
   sigma2 <-  as.numeric(1 / N * (tau %*% RSS %*% tau))
 
   hessian_inputs <- list(
-    "ZZ" = ZZ, "ZY" = ZY, "TSS" = TSS, "N" = N,
-    "rho" = rho, "delta" = delta, "sigma2" = sigma2)
+    "ZZ"  = ZZ[dd, dd, drop = FALSE],
+    "ZY"  = ZY[dd,   , drop = FALSE],
+    "TSS" = TSS, "N" = N,
+    "rho" = rho, "delta" = delta[dd], "sigma2" = sigma2)
 
 
   if ( hessian_method == "mixed" ) {
@@ -90,8 +92,15 @@ spflow_mle <- function(
   varcov <- chol2inv(chol(-hessian))
   if (model == "model_8") { # derive Var(rho_w) with delta method
     del <- rbind(diag(2),-rho[2:1])
-    del <- block_diag(del, diag(length(delta) + 1))
+    del <- block_diag(del, diag(length(delta[dd]) + 1))
     varcov <- del %*% varcov %*% t(del)
+  }
+  if (any(is.na(mu))){
+    vv <- length(rho) + length(delta) + length("sigma2")
+    vv <- matrix(nrow = vv, ncol = vv)
+    v_obs <- c(!is.na(mu), TRUE) # (sigma)
+    vv[v_obs, v_obs] <- varcov
+    varcov <- vv
   }
   dimnames(varcov) <- list(c(names(rho),names(delta),"sigma2"))[c(1,1)]
   sd_mu <- mu

@@ -1,6 +1,6 @@
 Package: spflow
 Title: Spatial Econometric Interaction Models
-Version: 0.2.0
+Version: 0.1.0.9009
 Date: 2022-09-07
 Authors@R: c(
     person("Lukas", "Dargel", role = c("aut", "cre"),
@@ -36,8 +36,8 @@ Collate:
     'utils.R'
     'spflow_package.R'
     'class_generics_and_maybes.R'
-    'class_spflow_network_pairs.R'
-    'class_spflow_network_nodes.R'
+    'class_spflow_network_pair.R'
+    'class_spflow_network.R'
     'class_spflow_network_multi.R'
     'class_spflow_model.R'
     'class_spflow_network_meta.R'

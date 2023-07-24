@@ -1,5 +1,5 @@
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-# Project: spflow - create an example dataset for illustrations
+# Project: spflow - create an example data set for illustrations
 # Author: Lukas Dargel
 # = = = = = = = = = = = = = = = = = = =
 # Description:

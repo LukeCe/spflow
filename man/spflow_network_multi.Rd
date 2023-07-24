@@ -7,7 +7,7 @@
 spflow_network_multi(...)
 }
 \arguments{
-\item{...}{objects of type \code{\link[=spflow_network_nodes]{spflow_network_nodes()}} and \code{\link[=spflow_network_pairs]{spflow_network_pairs()}}}
+\item{...}{objects of type \code{\link[=spflow_network]{spflow_network()}} and \code{\link[=spflow_network_pair]{spflow_network_pair()}}}
 }
 \value{
 An S4 class of type \code{\link[=spflow_network_multi-class]{spflow_network_multi-class()}}

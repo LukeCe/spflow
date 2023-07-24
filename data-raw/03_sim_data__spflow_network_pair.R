@@ -60,34 +60,34 @@ subsample_pairs <- function(pair_df) {
 }
 
 
-within_ge_pairs <- spflow_network_pairs(
-  id_orig_nodes = "ge",
-  id_dest_nodes = "ge",
+within_ge_pairs <- spflow_network_pair(
+  id_orig_net = "ge",
+  id_dest_net = "ge",
   pair_data = dist_ge_ge,
   orig_key_column = "ID_ORIG",
   dest_key_column = "ID_DEST"
 )
 
 
-within_usa_pairs <- spflow_network_pairs(
-  id_orig_nodes = "usa",
-  id_dest_nodes = "usa",
+within_usa_pairs <- spflow_network_pair(
+  id_orig_net = "usa",
+  id_dest_net = "usa",
   pair_data = subsample_pairs(dist_usa_usa),
   orig_key_column = "ID_ORIG",
   dest_key_column = "ID_DEST"
 )
 
-ge_to_usa_pairs <- spflow_network_pairs(
-  id_orig_nodes = "ge",
-  id_dest_nodes = "usa",
+ge_to_usa_pairs <- spflow_network_pair(
+  id_orig_net = "ge",
+  id_dest_net = "usa",
   pair_data = dist_ge_usa,
   orig_key_column = "ID_ORIG",
   dest_key_column = "ID_DEST"
 )
 
-usa_to_ge_pairs <- spflow_network_pairs(
-  id_orig_nodes = "usa",
-  id_dest_nodes = "ge",
+usa_to_ge_pairs <- spflow_network_pair(
+  id_orig_net = "usa",
+  id_dest_net = "ge",
   pair_data = subsample_pairs(dist_usa_ge),
   orig_key_column = "ID_ORIG",
   dest_key_column = "ID_DEST"

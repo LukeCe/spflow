@@ -23,13 +23,13 @@ data("paris10km_municipalities")
 data("paris10km_neighborhood")
 
 # data.frames
-paris_net <- spflow_network_nodes(
+paris_net <- spflow_network(
   network_id = "paris10km",
   node_neighborhood = paris10km_neighborhood[["by_contiguity"]],
   node_data = st_drop_geometry(paris10km_municipalities),
   node_key_column = "ID_MUN")
 
-paris_pairs <- spflow_network_pairs(
+paris_pairs <- spflow_network_pair(
   orig_net_id = "paris10km",
   dest_net_id = "paris10km",
   orig_key_column = "ID_ORIG",
@@ -43,13 +43,13 @@ results_default <- spflow(default_formula, pairs_multinet)
 expect_inherits(results_default,"spflow_model")
 
 # data.tables
-paris_net_DT <- spflow_network_nodes(
+paris_net_DT <- spflow_network(
   network_id = "paris10km",
   node_neighborhood = paris10km_neighborhood[["by_contiguity"]],
   node_data = as.data.table(st_drop_geometry(paris10km_municipalities)),
   node_key_column = "ID_MUN")
 
-paris_pairs_DT <- spflow_network_pairs(
+paris_pairs_DT <- spflow_network_pair(
   orig_net_id = "paris10km",
   dest_net_id = "paris10km",
   orig_key_column = "ID_ORIG",
@@ -64,13 +64,13 @@ expect_inherits(results_default_DT,"spflow_model")
 rm(paris_net_DT, paris_pairs_DT, pairs_multinet_DT, results_default_DT)
 
 # tibbles
-paris_net_tib <- spflow_network_nodes(
+paris_net_tib <- spflow_network(
   network_id = "paris10km",
   node_neighborhood = paris10km_neighborhood[["by_contiguity"]],
   node_data = as.data.table(st_drop_geometry(paris10km_municipalities)),
   node_key_column = "ID_MUN")
 
-paris_pairs_tib <- spflow_network_pairs(
+paris_pairs_tib <- spflow_network_pair(
   orig_net_id = "paris10km",
   dest_net_id = "paris10km",
   orig_key_column = "ID_ORIG",

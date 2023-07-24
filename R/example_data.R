@@ -9,9 +9,9 @@
 #'
 #' There are two \pkg{sf} objects that contain the geography and data for the country
 #' examples.
-#' The same information is also provided by two [spflow_network_nodes-class()] objects.
+#' The same information is also provided by two [spflow_network-class()] objects.
 #' Additionally, there is an [spflow_network_multi-class()] that contains the
-#' two [spflow_network_nodes()] and four [spflow_network_pairs()], which contain
+#' two [spflow_network()] and four [spflow_network_pair()], which contain
 #' OD-pairs where each states of each country can be origins or destinations.
 #'
 #' For each of the OD-pairs we simulated three flow vectors `y1`, `y2` and `y9`.

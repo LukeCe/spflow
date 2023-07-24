@@ -30,7 +30,7 @@ pair_cor(object, ...)
 
 \item{...}{Arguments to be passed to methods}
 
-\item{id_spflow_pairs}{A character indicating the id of a \code{\link[=spflow_network_pairs-class]{spflow_network_pairs-class()}}}
+\item{id_spflow_pairs}{A character indicating the id of a \code{\link[=spflow_network_pair-class]{spflow_network_pair-class()}}}
 
 \item{spflow_formula}{A formula specifying how variables should be used
 (for details see section Formula interface in the help page of \code{\link[=spflow]{spflow()}})}

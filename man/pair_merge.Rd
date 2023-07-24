@@ -23,7 +23,7 @@ pair_merge(object, ...)
 
 \item{...}{Arguments to be passed to methods}
 
-\item{id_spflow_pairs}{A character indicating the id of a \code{\link[=spflow_network_pairs-class]{spflow_network_pairs-class()}}}
+\item{id_spflow_pairs}{A character indicating the id of a \code{\link[=spflow_network_pair-class]{spflow_network_pair-class()}}}
 
 \item{dest_cols}{A character, indicating the columns to be kept in the final data.frame
 that contain information on the nodes in the destination network.
@@ -39,7 +39,7 @@ that contain information on the origin-destination pairs.
 
 \item{make_cartesian}{A logical, when set to \code{TRUE} the resulting data.frame contains all
 possible pairs of origins and destination, even if the data in the
-\code{\link[=spflow_network_pairs-class]{spflow_network_pairs-class()}} does not have them.}
+\code{\link[=spflow_network_pair-class]{spflow_network_pair-class()}} does not have them.}
 
 \item{keep_od_keys}{A logical, indicating whether the id of the od should be included.}
 }

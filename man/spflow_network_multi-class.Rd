@@ -35,19 +35,19 @@
 \arguments{
 \item{object}{spflow_network_multi-class}
 
-\item{ids_spflow_pairs}{A character indicating of one or several \code{\link[=spflow_network_pairs]{spflow_network_pairs()}} objects}
+\item{ids_spflow_pairs}{A character indicating of one or several \code{\link[=spflow_network_pair]{spflow_network_pair()}} objects}
 
-\item{.id}{A character, corresponding to the id of a \code{spflow_network_nodes()} object
+\item{.id}{A character, corresponding to the id of a \code{spflow_network()} object
 contained in the \code{spflow_network_multi}}
 
 \item{value}{A data.frame to replace the existing data}
 
 \item{new_dat}{A named list of data.frames that contain the new data.
-The names should correspond to spflow_network_nodes or spflow_pair
+The names should correspond to spflow_network or spflow_pair
 objects contained in the \code{\link[=spflow_network_multi-class]{spflow_network_multi-class()}}.}
 }
 \description{
-An S4 class that gathers information on multiple \code{\link[=spflow_network_nodes]{spflow_network_nodes()}} and \code{\link[=spflow_network_pairs]{spflow_network_pairs()}}.
+An S4 class that gathers information on multiple \code{\link[=spflow_network]{spflow_network()}} and \code{\link[=spflow_network_pair]{spflow_network_pair()}}.
 Its purpose is to ensure that the identification between the nodes that
 serve as origins or destinations, and the OD-pairs is consistent
 (similar to relational data bases).
@@ -55,9 +55,9 @@ serve as origins or destinations, and the OD-pairs is consistent
 \section{Slots}{
 
 \describe{
-\item{\code{nodes}}{A list of \code{\link[=spflow_network_nodes-class]{spflow_network_nodes-class()}} objects}
+\item{\code{nodes}}{A list of \code{\link[=spflow_network-class]{spflow_network-class()}} objects}
 
-\item{\code{pairs}}{A list of \code{\link[=spflow_network_pairs-class]{spflow_network_pairs-class()}} objects}
+\item{\code{pairs}}{A list of \code{\link[=spflow_network_pair-class]{spflow_network_pair-class()}} objects}
 }}
 
 \examples{
@@ -76,7 +76,7 @@ dat(multi_net_usa_ge, "ge_ge") # extract data of pairs
 dat(multi_net_usa_ge, "ge")    # extract data of nodes
 dat(multi_net_usa_ge, "ge_ge") # extract data of pairs
 
-## access spflow_network_nodes or spflow_network_pairs inside a spflow_network_multi
+## access spflow_network or spflow_network_pair inside a spflow_network_multi
 
 pull_member(multi_net_usa_ge, .id = "ge")
 pull_member(multi_net_usa_ge, .id = "usa")

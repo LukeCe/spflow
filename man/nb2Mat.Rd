@@ -20,3 +20,6 @@ It bypasses \code{spdep::nb2mat()} which leads to a dense matrix representation.
 nb <- spdep::poly2nb(germany_grid)
 nb2Mat(nb)
 }
+\author{
+Lukas Dargel
+}

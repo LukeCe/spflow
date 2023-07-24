@@ -6,13 +6,13 @@
 #
 # For all four sets of od-pairs we simulate two types of models.
 # - - - - - - - - - - - - - - - - - - -
-# Date: Jul 2022
+# Date: Jul 2023
 
 
 library("spflow")
 source("data-raw/01_sim_data__germany_16_states.R")
 source("data-raw/02_sim_data__usa_51_states.R")
-source("data-raw/03_sim_data__spflow_network_pairs.R")
+source("data-raw/03_sim_data__spflow_network_pair.R")
 source("data-raw/04_sim_data__parameters.R")
 
 # default multi-network
