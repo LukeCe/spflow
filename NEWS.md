@@ -1,4 +1,4 @@
-# spflow 0.2.0 (2022-09-07)
+# spflow (development version)
 
 ## New functions
 
