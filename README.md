@@ -32,7 +32,7 @@ And the development version from
 
 ``` r
 # install.packages("devtools")
-devtools::install_github("LukeCe/spflow")
+devtools::install_github("LukeCe/spflow@non-cartesian-flows")
 ```
 
 ## Example
