@@ -107,6 +107,8 @@
 #' @param na_rm
 #'   A logical, if `FALSE` the estimation throws an error when the data
 #'   contains `NA` values. Otherwise the estimation proceeds with a sub-sample.
+#' @param allow_singular
+#'   A logical, when `FALSE` a singular fit will lead to an error.
 #' @param reduce_model_size
 #'   A logical, if `TRUE` all data will be removed from the model.
 #'   This is helpful when comparing many models but doing will inhibit some

@@ -130,3 +130,12 @@ expect_equal(spflow:::update_logicals(c(T,T),T,NULL,c(T,F)),
 
 expect_equal(spflow:::update_logicals(c(T,T),T,F,c(T,F), by = "|"),
              c(T,T))
+
+# ---- flatlist ---------------------------------------------------------------
+nlist <- list(
+  "A" = "A",
+  "B" = list("B" = "B", "C" = "C"),
+  "D" = list("D" = list("D" = "D"), "E" = "E", "F" = list("F" = list("F" = "F"))))
+
+expect_equal(flatlist(nlist), as.list(LETTERS[1:6]),
+             check.attributes = FALSE)

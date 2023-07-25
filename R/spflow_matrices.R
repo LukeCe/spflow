@@ -363,7 +363,7 @@ subset_keycols <- function(df, drop_keys = TRUE) {
 flow_conform_model_matrix <- function(formula,data) {
   terms_obj <- terms(formula, data = data)
   attr(terms_obj,"intercept") <- formula_expands_factors(formula,data) * 1
-  mat <- model.matrix.lm(terms_obj,data,na.action = "na.pass")
+  mat <- stats::model.matrix.lm(terms_obj,data,na.action = "na.pass")
   mat[,colnames(mat) != "(Intercept)", drop = FALSE]
 }
 

@@ -105,6 +105,8 @@ of the systems that are solved during the estimation are tracked.}
 \item{na_rm}{A logical, if \code{FALSE} the estimation throws an error when the data
 contains \code{NA} values. Otherwise the estimation proceeds with a sub-sample.}
 
+\item{allow_singular}{A logical, when \code{FALSE} a singular fit will lead to an error.}
+
 \item{reduce_model_size}{A logical, if \code{TRUE} all data will be removed from the model.
 This is helpful when comparing many models but doing will inhibit some
 methods of the model.}

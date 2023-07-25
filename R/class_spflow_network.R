@@ -46,6 +46,7 @@ setMethod(
 
 # ---- ... dat <- -------------------------------------------------------------
 #' @rdname spflow_network-class
+#' @inheritParams spflow_network
 setReplaceMethod(
   f = "dat",
   signature = "spflow_network",
@@ -213,7 +214,6 @@ setMethod(
 #' @rdname spflow_network-class
 #' @param new_dat A data.frame
 #' @export
-#'
 setMethod(
   f = "update_dat",
   signature = "spflow_network",
@@ -338,9 +338,9 @@ setValidity(
 #' @param normalize_byrow
 #'   A logical, if `TRUE` the neighborhood will be row-normalized, otherwise
 #'   it is scaled to have a spectral radius of one.
+#' @return An S4 class of type [spflow_network-class()]
 #'
 #' @importClassesFrom Matrix Matrix
-#' @return An S4 class of type [spflow_network-class()]
 #' @export
 #' @examples
 #' spflow_network(

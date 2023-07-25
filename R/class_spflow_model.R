@@ -36,7 +36,7 @@
 #'   and one to validate the parameter space for the spatial interaction model.
 #'
 #' @name spflow_model-class
-#' @author Lukas Dargek
+#' @author Lukas Dargel
 #' @aliases spflow_model_mcmc, spflow_model_mle, spflow_model_s2sls, spflow_model_ols
 #' @seealso [spflow()], [spflow_network_classes()]
 #' @export
@@ -322,14 +322,13 @@ setMethod(
 #' @rdname spflow_model-class
 #' @importFrom graphics abline image.default par title
 #' @importFrom stats aggregate complete.cases lm.fit qnorm qqline qqnorm
-#' @param x A [spflow_model-class]
+#' @param x A [spflow_model-class()]
 #' @param ... Arguments passed on to other plotting functions
 #' @param y not used
 #' @export
 setMethod(
   f = "plot",
-  signature = "spflow_model",
-  function(x, ...) {
+  signature = "spflow_model",  function(x, ...) {
 
     qqnorm(y = resid(x), main = "Normal QQ-Plot of Residuals")
     qqline(resid(x), col = "red")
@@ -354,7 +353,7 @@ setMethod(
       x_or_25_percent <- min(50,nobs(x) / 4)
       keep_x_at_most <- (nobs(x) - x_or_25_percent)  / nobs(x)
       spflow_map(x, coords_s = coords_s, flow_type = "fitted", filter_lowest = keep_x_at_most, legend = "bottomright")
-      spflow_map(x, coords_s= coords_s, flow_type = "resid", filter_lowest = keep_x_at_most, legend = "bottomright")
+      spflow_map(x, coords_s = coords_s, flow_type = "resid", filter_lowest = keep_x_at_most, legend = "bottomright")
     }
 
     if (!inherits(x, "spflow_model_ols"))
@@ -662,51 +661,7 @@ setMethod(
 setMethod(
   f = "results",
   signature = "spflow_model",
-  function(object,
-           as_column = FALSE,
-           sig_levels = c("***" = .001, "**" = 0.01, "*" = 0.05, "'" = 0.1),
-           global_vars = c( "model_coherence", "N_sample", "R2_corr", "ll"),
-           digits = 3,
-           add_dispersion = FALSE
-           ){
-
-    if (!as_column)
-      return(object@estimation_results)
-
-
-    rd <- function(x) round(x, digits)
-    res <- object@estimation_results
-    res_col <- data.frame("T" = "param", "M" = rd(res$est), row.names = rownames(res))
-
-    if (!is.null(sig_levels)) {
-      assert(is.numeric(sig_levels) &&
-               all(sig_levels >= 0) && all(sig_levels <= 1) &&
-               !is.null(names(sig_levels)),
-             "The argument sig_levels must be a named numeric
-              with values between 0 and 1!")
-
-      c_breaks <- c(0,as.numeric(sig_levels),1)
-      c_labels <- c(names(sig_levels),"")
-      stars <- cut(pmin(res[["p.val"]], .9999999),c_breaks,c_labels,include.lowest = TRUE)
-      res_col[["M"]] <- paste0(res_col[["M"]], stars)
-    }
-
-    if (add_dispersion)
-      res_col[["M"]] <- sprintf("%s\n(%s)", res_col[["M"]], rd(res$sd))
-
-    if (!is.null(global_vars)) {
-      assert_is(global_vars, "character")
-      global_vars <- c(
-        object@estimation_control[global_vars],
-        object@estimation_diagnostics[global_vars])
-      global_vars <- Filter(function(x) length(x) == 1, global_vars)
-      global_vars <- lapply(global_vars, function(x) as.character(ifelse(is.numeric(x), rd(x), x)))
-      global_vars <- data.frame("T" = "global", "M" = unlist(global_vars))
-      res_col <- rbind(res_col, global_vars)
-    }
-
-    return(res_col)
-  })
+  function(object) return(object@estimation_results))
 
 
 # ---- ... results (for mcmc) -------------------------------------------------
@@ -1058,10 +1013,29 @@ outside <- function(x, bounds) {
 }
 
 
-#' @keywords internal
-compare_results <- function(model_list, global_vars = c("model_coherence", "R2_corr", "ll", "N_sample")) {
+#' @title Compare results of multiple spflow_models
+#'
+#' @param model_list a list of models that should be compared (only [spflow_model-class()] is used)
+#' @param global_vars a character indicating which statistics should be reported
+#' @param digits a numeric indicating to what decimal the results should be rounded
+#' @param sig_levels a named numeric indicating the codification of significance levels
+#' @param add_dispersion a logical, if `TRUE` the standard errors are added in parenthesis
+#' @return a data.frame
+#'
+#' @author Lukas Dargel
+#' @export
+#' @examples
+#'
+#' res_ge  <- spflow(y9 ~ . + P_(DISTANCE), multi_net_usa_ge, "ge_ge")
+#' res_usa <- spflow(y9 ~ . + P_(DISTANCE), multi_net_usa_ge, "usa_usa")
+#' compare_results(list("GE" = res_ge, "US" = res_usa),
+#'                 global_vars = c("N_sample", "R2_corr", "model_coherence")) )
+compare_results <- function(model_list, global_vars = c("model_coherence", "R2_corr", "ll", "AIC", "N_sample")) {
 
-  res <- lapply(model_list, results, as_column = TRUE, global_vars = global_vars)
+  model_list <- Filter(function(x) is(x, "spflow_model"), model_list)
+  if (length(model_list) == 0) return(NULL)
+
+  res <- lapply(model_list, results2column, global_vars = global_vars)
 
   pnames <- lapply(res, function(x) rownames(x[x[["T"]] == "param",]))
   pnames <- sort(unique(unlist(pnames)))
@@ -1083,4 +1057,68 @@ compare_results <- function(model_list, global_vars = c("model_coherence", "R2_c
     res_mat[rownames(res[[i]]), i] <- res[[i]][["M"]]
 
   return(as.data.frame(res_mat))
+}
+
+
+
+
+#' @keywords internal
+results2column <- function(
+    object,
+    sig_levels = c("***" = .001, "**" = 0.01, "*" = 0.05, "'" = 0.1),
+    global_vars = c( "model_coherence", "N_sample", "R2_corr", "ll", "AIC"),
+    digits = 3,
+    add_dispersion = FALSE
+    ) {
+
+  res <- results(object)
+  rd <- function(x) round(x, digits)
+  res <- object@estimation_results
+  res_col <- data.frame("T" = "param", "M" = rd(res$est), row.names = rownames(res))
+
+  if (!is.null(sig_levels)) {
+    assert(is.numeric(sig_levels) &&
+             all(sig_levels >= 0) && all(sig_levels <= 1) &&
+             !is.null(names(sig_levels)),
+           "The argument sig_levels must be a named numeric
+              with values between 0 and 1!")
+
+    is_mcmc <- "spflow_model_mcmc" %in% class(object)
+    if (!is_mcmc) {
+      c_breaks <- c(0,as.numeric(sig_levels),1)
+      c_labels <- c(names(sig_levels),"")
+      stars <- cut(pmin(res[["p.val"]], .9999999),c_breaks,c_labels,include.lowest = TRUE)
+      res_col[["M"]] <- paste0(res_col[["M"]], stars)
+    }
+    if (is_mcmc) {
+      mcmc_res <- seq(object@estimation_control$mcmc_burn_in)
+      mcmc_res <- mcmc_results(object)[-mcmc_res,]
+      mcmc_res <- mcmc_res[,-ncol(mcmc_res)]
+
+      has_sig_level <- function(x, lv) outside(0, quantile(x, c(lv/2, 1-lv/2)))
+      mcmc_sig_stars <- structure(rep("", nrow(res_col)), names = rownames(res_col))
+      sig_levels <- sort(sig_levels,decreasing = TRUE)
+      for (i in seq_along(sig_levels)) {
+        mcmc_sig <- apply(mcmc_res, 2, has_sig_level, sig_levels[i])
+        mcmc_sig_stars[mcmc_sig] <- names(sig_levels[i])
+      }
+      res_col[["M"]] <- paste0(res_col[["M"]], mcmc_sig_stars)
+    }
+  }
+
+  if (add_dispersion)
+    res_col[["M"]] <- sprintf("%s\n(%s)", res_col[["M"]], rd(res$sd))
+
+  if (!is.null(global_vars)) {
+    assert_is(global_vars, "character")
+    global_vars <- c(
+      object@estimation_control[global_vars],
+      object@estimation_diagnostics[global_vars])
+    global_vars <- Filter(function(x) length(x) == 1, global_vars)
+    global_vars <- lapply(global_vars, function(x) as.character(ifelse(is.numeric(x), rd(x), x)))
+    global_vars <- data.frame("T" = "global", "M" = unlist(global_vars))
+    res_col <- rbind(res_col, global_vars)
+  }
+
+  return(res_col)
 }

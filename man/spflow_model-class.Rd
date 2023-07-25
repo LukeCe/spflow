@@ -38,14 +38,7 @@
 
 \S4method{resid}{spflow_model}(object, return_type = "V")
 
-\S4method{results}{spflow_model}(
-  object,
-  as_column = FALSE,
-  sig_levels = c(`***` = 0.001, `**` = 0.01, `*` = 0.05, `'` = 0.1),
-  global_vars = c("model_coherence", "N_sample", "R2_corr", "ll"),
-  digits = 3,
-  add_dispersion = FALSE
-)
+\S4method{results}{spflow_model}(object)
 
 \S4method{results}{spflow_model_mcmc}(
   object,
@@ -86,7 +79,7 @@ should be one of \code{c("fit", "cart", "pop", "pair", "orig", "dest")}.}
 
 \item{which_nb}{A character vector: "OW" for origin- and "DW" for destination neighborhood}
 
-\item{x}{A \linkS4class{spflow_model}}
+\item{x}{A \code{\link[=spflow_model-class]{spflow_model-class()}}}
 
 \item{y}{not used}
 
@@ -179,5 +172,5 @@ plot(mcmc_results(spflow_results_mcmc)) # parameter values during the mcmc sampl
 \code{\link[=spflow]{spflow()}}, \code{\link[=spflow_network_classes]{spflow_network_classes()}}
 }
 \author{
-Lukas Dargek
+Lukas Dargel
 }

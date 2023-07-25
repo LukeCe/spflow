@@ -19,6 +19,7 @@
 \alias{pull_member}
 \alias{results}
 \alias{results<-}
+\alias{results_flat}
 \alias{sd_error}
 \alias{update_dat}
 \alias{varcov}
@@ -52,6 +53,8 @@ pull_member(object, ...)
 results(object, ...)
 
 results(object) <- value # internal
+
+results_flat(object, ...)
 
 sd_error(object)
 

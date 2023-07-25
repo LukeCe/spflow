@@ -40,6 +40,17 @@
 
 \item{value}{An object to replace the existing id/data/neighborhood}
 
+\item{node_key_column}{A character indicating the column containing the identifiers for the nodes}
+
+\item{node_coord_columns}{A character indicating the columns that represent the coordinates of the
+nodes. For example \code{c("LON", "LAT")}.}
+
+\item{derive_coordinates}{A logical indicating whether there should be an attempt to infer the
+coordinates from the node_data.}
+
+\item{prefer_lonlat}{A logical indicating whether the coordinates should be transformed to
+longitude and latitude.}
+
 \item{new_dat}{A data.frame}
 }
 \description{

@@ -211,10 +211,9 @@ setGeneric(
 
 # ---- ... results_flat -------------------------------------------------------
 #' @rdname spflow_generics
-#' @noRd
 #' @name results_flat
-#' @keywords internal
-#' @usage results_flat(object, ...) # internal
+#' @usage results_flat(object, ...)
+#' @export
 setGeneric(
   name = "results_flat",
   def = function(object, ...) standardGeneric("results_flat"))
