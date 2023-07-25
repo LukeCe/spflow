@@ -1,15 +1,22 @@
 #' @include class_generics_and_maybes.R
 
-#' @title spflow_network Class
+#' @title Class spflow_network
 #'
 #' @description
-#' An S4 class that contains all information on a single network.
-#' In this representation a network is composed of nodes which must be
-#' identified uniquely by and ID.
-#' Each node is described by variables stored in a data.frame.
-#' The node neighborhood matrix describes strength of links between the nodes
-#' of the network.
+#' An S4 class that contains all information on a spatial network which is
+#' composed by a set of nodes that are linked by some neighborhood relation.
 #' The class is constructed by the [spflow_network()] function.
+#'
+#' @details
+#' The data on each node is stored in a data.frame, where each node must be
+#' uniquely identified by a key.
+#' The neighborhood relations are described by a matrix that satisfies the
+#' usual assumptions of the spatial weight matrix in spatial econometric models.
+#' In most cases each node will only neighbor to a few others, in which case
+#' the neighborhood matrix is represented as a [sparseMatrix()].
+#' Function to create spatial neighborhood matrices can be found in the
+#' **spdep** package.
+#'
 #'
 #' @slot id_net
 #'   A character that serves as an identifier for the set of nodes

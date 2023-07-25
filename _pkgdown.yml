@@ -1,1 +1,45 @@
 destination: docs
+
+reference:
+
+- title: "spflow network classes"
+- subtitle: "overview and construtors"
+  contents:
+  - spflow_network_classes
+  - spflow_network
+  - spflow_network_pair
+  - spflow_network_multi
+- subtitle: "class description and methods"
+  contents:
+  - spflow_network-class
+  - spflow_network_pair-class
+  - spflow_network_multi-class
+
+- title: "spflow models"
+- subtitle: "Estimation"
+  contents:
+  - spflow
+  - spflow_control
+  - spflow_refit
+  - compare_results
+- subtitle: "class description and methods"
+  contents:
+  - spflow_model-class
+  - pair_cor
+  - predict_effect
+  - spflow_map
+
+- title: "Other functions"
+  contents:
+  - cor_image
+  - expand_spflow_neighborhood
+  - map_flows
+  - nb2Mat
+  - pair_merge
+  - spflow_moran_plots
+
+- title: "Package data"
+  contents:
+  - example_data
+  - paris_data
+

@@ -1,6 +1,6 @@
 #' @include class_generics_and_maybes.R
 
-#' @title spflow network classes
+#' @title Overview on spflow network classes
 #'
 #' @description
 #' The spflow package provides three additional classes to the R environment.
@@ -12,13 +12,12 @@
 #' stored in an [spflow_network_pair-class()].
 #'
 #' A third object of type [spflow_network_multi-class()] gathers all information
-#' from the different data sources. The class can be thought of as a simple
-#' relational database which ensures correct identification of origin-destination
-#'  pairs with the node level information.
+#' from the different data sources.
+#' The class can be thought of as a simple relational database which ensures
+#' correct identification of origin-destination pairs with the node level information.
 #'
 #'
 #' @name spflow_network_classes
-#' @family spflow network classes
 #' @examples
 #'
 #' ### An example use case for the spflow network classes and model estimation

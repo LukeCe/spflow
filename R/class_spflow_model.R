@@ -596,7 +596,7 @@ setMethod(
 
     new_networks <- update_dat(object@spflow_networks, new_dat)
     new_matrices <- derive_spflow_matrices(
-      id_spflow_pairs = names(new_networks@pairs)[1],
+      id_net_pair = names(new_networks@pairs)[1],
       spflow_networks = new_networks,
       spflow_formula = object@spflow_formula,
       spflow_control = object@estimation_control,
@@ -662,66 +662,6 @@ setMethod(
   f = "results",
   signature = "spflow_model",
   function(object) return(object@estimation_results))
-
-
-# ---- ... results (for mcmc) -------------------------------------------------
-#' @rdname spflow_model-class
-#' @export
-setMethod(
-  f = "results",
-  signature = "spflow_model_mcmc",
-  function(object,
-           as_column = FALSE,
-           sig_levels = c("***" = .001, "**" = 0.01, "*" = 0.05, "'" = 0.1),
-           global_vars = c( "model_coherence", "N_sample", "R2_corr"),
-           digits = 3,
-           add_dispersion = FALSE
-  ){
-
-    if (!as_column)
-      return(object@estimation_results)
-
-    rd <- function(x) round(x, digits)
-    res <- object@estimation_results
-    res_col <- data.frame("T" = "param", "M" = rd(res$est), row.names = rownames(res))
-
-    if (length(sig_levels) > 0) {
-      assert(is.numeric(sig_levels) &&
-               all(sig_levels >= 0) && all(sig_levels <= 1) &&
-               !is.null(names(sig_levels)),
-             "The argument sig_levels must be a named numeric
-              with values between 0 and 1!")
-
-      mcmc_res <- seq(object@estimation_control$mcmc_burn_in)
-      mcmc_res <- mcmc_results(object)[-mcmc_res,]
-      mcmc_res <- mcmc_res[,-ncol(mcmc_res)]
-
-      has_sig_level <- function(x, lv) outside(0, quantile(x, c(lv/2, 1-lv/2)))
-      mcmc_sig_stars <- structure(rep("", nrow(res_col)), names = rownames(res_col))
-      sig_levels <- sort(sig_levels,decreasing = TRUE)
-      for (i in seq_along(sig_levels)) {
-        mcmc_sig <- apply(mcmc_res, 2, has_sig_level, sig_levels[i])
-        mcmc_sig_stars[mcmc_sig] <- names(sig_levels[i])
-      }
-      res_col[["M"]] <- paste0(res_col[["M"]], mcmc_sig_stars)
-    }
-
-    if (add_dispersion)
-      res_col[["M"]] <- sprintf("%s\n[%s;%s]", res_col[["M"]], rd(res$quant_025), rd(res$quant_975))
-
-    if (!is.null(global_vars)) {
-      assert_is(global_vars, "character")
-      global_vars <- c(
-        object@estimation_control[global_vars],
-        object@estimation_diagnostics[global_vars])
-      global_vars <- Filter(function(x) length(x) == 1, global_vars)
-      global_vars <- lapply(global_vars, function(x) as.character(ifelse(is.numeric(x), rd(x), x)))
-      global_vars <- data.frame("T" = "global", "M" = unlist(global_vars))
-      res_col <- rbind(res_col, global_vars)
-    }
-
-    return(res_col)
-  })
 
 # ---- ... results <- ---------------------------------------------------------
 #' @title Internal method for overwriting the results
@@ -1029,13 +969,18 @@ outside <- function(x, bounds) {
 #' res_ge  <- spflow(y9 ~ . + P_(DISTANCE), multi_net_usa_ge, "ge_ge")
 #' res_usa <- spflow(y9 ~ . + P_(DISTANCE), multi_net_usa_ge, "usa_usa")
 #' compare_results(list("GE" = res_ge, "US" = res_usa),
-#'                 global_vars = c("N_sample", "R2_corr", "model_coherence")) )
-compare_results <- function(model_list, global_vars = c("model_coherence", "R2_corr", "ll", "AIC", "N_sample")) {
+#'                 global_vars = c("N_sample", "R2_corr", "model_coherence"))
+compare_results <- function(
+    model_list,
+    global_vars = c("model_coherence", "R2_corr", "ll", "AIC", "N_sample"),
+    sig_levels = c("***" = .001, "**" = 0.01, "*" = 0.05, "'" = 0.1),
+    digits = 3,
+    add_dispersion = FALSE) {
 
   model_list <- Filter(function(x) is(x, "spflow_model"), model_list)
   if (length(model_list) == 0) return(NULL)
 
-  res <- lapply(model_list, results2column, global_vars = global_vars)
+  res <- lapply(model_list, results2column, global_vars = global_vars, sig_levels = sig_levels, digits = digits, add_dispersion = add_dispersion)
 
   pnames <- lapply(res, function(x) rownames(x[x[["T"]] == "param",]))
   pnames <- sort(unique(unlist(pnames)))

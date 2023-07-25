@@ -230,7 +230,7 @@ setGeneric(
 # ---- ... spflow_map ---------------------------------------------------------
 #' @title Geographic representation of flows
 #' @description
-#' This generic is used as an interface to `map_flows()`, where all information
+#' This generic is used as an interface to [map_flows()], where all information
 #' available in the object is extracted and provided as arguments.
 #'
 #' @name spflow_map

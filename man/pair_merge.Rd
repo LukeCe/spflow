@@ -10,7 +10,7 @@ pair_merge(object, ...)
 
 \S4method{pair_merge}{spflow_network_multi}(
   object,
-  id_spflow_pairs = id(object)[["pairs"]][[1]],
+  id_net_pair = id(object)[["pairs"]][[1]],
   dest_cols = NULL,
   orig_cols = NULL,
   pair_cols = NULL,
@@ -23,7 +23,7 @@ pair_merge(object, ...)
 
 \item{...}{Arguments to be passed to methods}
 
-\item{id_spflow_pairs}{A character indicating the id of a \code{\link[=spflow_network_pair-class]{spflow_network_pair-class()}}}
+\item{id_net_pair}{A character indicating the id of a \code{\link[=spflow_network_pair-class]{spflow_network_pair-class()}}}
 
 \item{dest_cols}{A character, indicating the columns to be kept in the final data.frame
 that contain information on the nodes in the destination network.

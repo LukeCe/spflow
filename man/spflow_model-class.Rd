@@ -13,10 +13,9 @@
 \alias{mcmc_results,spflow_model_mcmc-method}
 \alias{nobs,spflow_model-method}
 \alias{neighborhood,spflow_model-method}
-\alias{plot,spflow_model-method}
+\alias{plot,spflow_model,ANY-method}
 \alias{resid,spflow_model-method}
 \alias{results,spflow_model-method}
-\alias{results,spflow_model_mcmc-method}
 \alias{results_flat,spflow_model-method}
 \alias{sd_error,spflow_model-method}
 \alias{varcov,spflow_model_varcov-method}
@@ -34,20 +33,11 @@
 
 \S4method{neighborhood}{spflow_model}(object, which_nb)
 
-\S4method{plot}{spflow_model}(x, y, ...)
+\S4method{plot}{spflow_model,ANY}(x, y, ...)
 
 \S4method{resid}{spflow_model}(object, return_type = "V")
 
 \S4method{results}{spflow_model}(object)
-
-\S4method{results}{spflow_model_mcmc}(
-  object,
-  as_column = FALSE,
-  sig_levels = c(`***` = 0.001, `**` = 0.01, `*` = 0.05, `'` = 0.1),
-  global_vars = c("model_coherence", "N_sample", "R2_corr"),
-  digits = 3,
-  add_dispersion = FALSE
-)
 
 \S4method{results_flat}{spflow_model}(
   object,

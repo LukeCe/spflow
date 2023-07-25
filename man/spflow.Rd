@@ -7,7 +7,7 @@
 spflow(
   spflow_formula,
   spflow_networks,
-  id_spflow_pairs = id(spflow_networks)[["pairs"]][[1]],
+  id_net_pair = id(spflow_networks)[["pairs"]][[1]],
   estimation_control = spflow_control()
 )
 }
@@ -18,7 +18,7 @@ section Formula interface)}
 \item{spflow_networks}{A \code{\link[=spflow_network_multi]{spflow_network_multi()}} object that contains information on the
 origins, the destinations and their neighborhood structure}
 
-\item{id_spflow_pairs}{A character indicating the id of a \code{\link[=spflow_network_pair]{spflow_network_pair()}} (only relevant if
+\item{id_net_pair}{A character indicating the id of a \code{\link[=spflow_network_pair]{spflow_network_pair()}} (only relevant if
 the \code{\link[=spflow_network_multi]{spflow_network_multi()}} contains multiple \code{spflow_network_pair}-objects:
 defaults to the of them)}
 
@@ -157,24 +157,24 @@ two equivalent options below illustrate.
 # Estimate flows between the states of Germany
 spflow(spflow_formula = y9 ~ . + P_(DISTANCE),
        spflow_networks = multi_net_usa_ge,
-       id_spflow_pairs = "ge_ge")
+       id_net_pair = "ge_ge")
 
 # Same as above with explicit declaration of variables...
 # ... X is the only variable available
 # ... it is used for origins, destination and intra-state flows
 spflow(spflow_formula = y9 ~ X + P_(DISTANCE),
        spflow_networks = multi_net_usa_ge,
-       id_spflow_pairs = "ge_ge")
+       id_net_pair = "ge_ge")
 
 # Same as above
 spflow(spflow_formula = y9 ~ O_(.) + D_(.) + I_(.) + P_(DISTANCE),
        spflow_networks = multi_net_usa_ge,
-       id_spflow_pairs = "ge_ge")
+       id_net_pair = "ge_ge")
 
 # Same as above
 spflow(spflow_formula = y9 ~ O_(X) + D_(X) + I_(X) + P_(DISTANCE),
        spflow_networks = multi_net_usa_ge,
-       id_spflow_pairs = "ge_ge")
+       id_net_pair = "ge_ge")
 
 
 }

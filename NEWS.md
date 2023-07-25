@@ -7,6 +7,8 @@
 * Added `plot()` method for some quick diagnostics of the `spflow_model`
 * Added `map_flows()` to visualize flow data
 * Added `spflow_moran_plots()` for Moran scatter plots of flow-data and residuals of interaction models 
+* Added `compare_results()` to quickly compare multiple model
+* Added `spflow_refit()` to efficiently estimate nested models (this functionality is still experimental)
 
 ## Additional options, features and fixes
 
@@ -27,6 +29,12 @@ Such changes will not occur in future releases and are due to the early stage of
   * `sp_multinetwork-class` -> `spflow_network_multi-class`
   * `sp_network_nodes-class` -> `spflow_network-class`
   * `sp_network_pairs-class` -> `spflow_network_pair-class`
+
+## Other changes in arguments etc.
+
+* the spflow_formula use `P_()` instead of `G_()` to refer to variables on the level of OD-pairs
+* arguments in spflow()
+
 
 # spflow 0.1.0 (2021-09-08)
 

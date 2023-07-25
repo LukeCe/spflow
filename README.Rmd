@@ -35,7 +35,7 @@ You can install the released version of spflow from [CRAN](https://CRAN.R-projec
 install.packages("spflow")
 ```
 
-And the  development version from [GitHub](https://github.com/) with:
+And the  development version from [GitHub](https://github.com/LukeCe/spflow/) with:
 
 ``` r
 # install.packages("devtools")

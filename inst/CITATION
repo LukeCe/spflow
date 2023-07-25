@@ -1,0 +1,16 @@
+citHeader("To cite the estimation methodology behind spflow in publications use:")
+
+citEntry(
+  entry    = "Article",
+  title    = "Revisiting estimation methods for spatial econometric interaction models",
+  author   = "Dargel Lukas",
+  journal  = {"Journal of Spatial Econometrics"},
+  year     = {2021},
+  volume   = {2},
+  number   = {1},
+  pages    = {10},
+  url      = {"https://doi.org/10.1007/s43071-021-00016-1"},
+  textVersion = paste(
+  'Dargel L (2021). “Revisiting estimation methods for spatial econometric interaction models.” Journal of Spatial Econometrics, 10. https://doi.org/10.1007/s43071-021-00016-1'
+  )
+)

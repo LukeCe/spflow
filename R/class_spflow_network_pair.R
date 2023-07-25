@@ -4,8 +4,9 @@
 #'
 #' @description
 #' An S4 class which holds information on origin-destination (OD) pairs.
-#' Each OD pair is composed of two nodes, and the set of origin nodes as well
-#' as the set of destination nodes are identify by an id.
+#' Each OD pair is composed of two nodes, each belonging to one network.
+#' All origin nodes must belong to the same origin network should be contained
+#' in one [spflow_network-class()] - and likewise for the destinations.
 #'
 #'
 #' @slot id_net_pair
@@ -24,9 +25,9 @@
 #' @export
 setClass("spflow_network_pair", slots = c(
   id_net_pair = "character",
-  id_orig_net   = "character",
-  id_dest_net   = "character",
-  pair_data       = "maybe_data.frame"))
+  id_orig_net = "character",
+  id_dest_net = "character",
+  pair_data   = "maybe_data.frame"))
 
 # ---- Methods ----------------------------------------------------------------
 
@@ -278,7 +279,7 @@ setValidity("spflow_network_pair", function(object) {
 })
 # ---- Constructors -----------------------------------------------------------
 
-#' @title Constructor for the [spflow_network_pair-class()]
+#' @title Create a [spflow_network_pair-class()]
 #'
 #' @param id_orig_net
 #'   A character that serves as identifier for the origin network

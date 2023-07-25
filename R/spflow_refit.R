@@ -56,7 +56,7 @@ spflow_refit <- function(
   if (refit_type == "samples") {
     if (object@estimation_control[["estimation_method"]] == "s2sls")
       object@spflow_matrices <- derive_spflow_matrices(
-        id_spflow_pairs = id(object@spflow_networks)[["pairs"]],
+        id_net_pair = id(object@spflow_networks)[["pairs"]],
         spflow_networks = object@spflow_networks,
         spflow_formula = object@spflow_formula,
         spflow_control = object@estimation_control,

@@ -6,7 +6,10 @@
 \usage{
 compare_results(
   model_list,
-  global_vars = c("model_coherence", "R2_corr", "ll", "AIC", "N_sample")
+  global_vars = c("model_coherence", "R2_corr", "ll", "AIC", "N_sample"),
+  sig_levels = c(`***` = 0.001, `**` = 0.01, `*` = 0.05, `'` = 0.1),
+  digits = 3,
+  add_dispersion = FALSE
 )
 }
 \arguments{
@@ -14,9 +17,9 @@ compare_results(
 
 \item{global_vars}{a character indicating which statistics should be reported}
 
-\item{digits}{a numeric indicating to what decimal the results should be rounded}
-
 \item{sig_levels}{a named numeric indicating the codification of significance levels}
+
+\item{digits}{a numeric indicating to what decimal the results should be rounded}
 
 \item{add_dispersion}{a logical, if \code{TRUE} the standard errors are added in parenthesis}
 }
@@ -31,7 +34,7 @@ Compare results of multiple spflow_models
 res_ge  <- spflow(y9 ~ . + P_(DISTANCE), multi_net_usa_ge, "ge_ge")
 res_usa <- spflow(y9 ~ . + P_(DISTANCE), multi_net_usa_ge, "usa_usa")
 compare_results(list("GE" = res_ge, "US" = res_usa),
-                global_vars = c("N_sample", "R2_corr", "model_coherence")) )
+                global_vars = c("N_sample", "R2_corr", "model_coherence"))
 }
 \author{
 Lukas Dargel

@@ -5,7 +5,7 @@
 \title{Compute the design matrices used during the estimation with \code{\link[=spflow]{spflow()}}}
 \usage{
 derive_spflow_matrices(
-  id_spflow_pairs,
+  id_net_pair,
   spflow_networks,
   spflow_formula,
   spflow_control,

@@ -2,7 +2,7 @@
 % Please edit documentation in R/class_spflow_network_pair.R
 \name{spflow_network_pair}
 \alias{spflow_network_pair}
-\title{Constructor for the \code{\link[=spflow_network_pair-class]{spflow_network_pair-class()}}}
+\title{Create a \code{\link[=spflow_network_pair-class]{spflow_network_pair-class()}}}
 \usage{
 spflow_network_pair(
   id_orig_net,
@@ -32,7 +32,7 @@ of the destinations}
 A \code{\link[=spflow_network_pair-class]{spflow_network_pair-class()}}
 }
 \description{
-Constructor for the \code{\link[=spflow_network_pair-class]{spflow_network_pair-class()}}
+Create a \code{\link[=spflow_network_pair-class]{spflow_network_pair-class()}}
 }
 \examples{
 pair_frame <- data.frame(

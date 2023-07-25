@@ -27,7 +27,8 @@ You can install the released version of spflow from
 install.packages("spflow")
 ```
 
-And the development version from [GitHub](https://github.com/) with:
+And the development version from
+[GitHub](https://github.com/LukeCe/spflow/) with:
 
 ``` r
 # install.packages("devtools")
@@ -62,21 +63,21 @@ spflow(y9 ~ O_(X) + D_(X) + I(X) + P_(DISTANCE), multi_net_usa_ge)
 #> 
 #> --------------------------------------------------
 #> Coefficients:
-#>                est    sd  t.stat  p.val
-#> rho_d         0.49  0.03   16.66   0.02
-#> rho_o         0.33  0.04    9.10   0.04
-#> rho_w        -0.23  0.04   -5.13   0.08
-#> (Intercept)  10.58  2.14    4.96   0.08
-#> (Intra)       9.75  1.53    6.37   0.06
-#> D_X           0.99  0.07   14.60   0.02
-#> D_X.lag1      0.53  0.11    4.64   0.09
-#> O_X          -0.77  0.04  -20.38   0.02
-#> O_X.lag1     -0.38  0.09   -4.14   0.10
-#> I_I(X)        2.04  0.08   24.64   0.01
-#> P_DISTANCE   -2.69  0.38   -7.13   0.05
+#>                 est     sd   t.stat  p.val
+#> rho_d         0.497  0.030   16.499      0
+#> rho_o         0.333  0.037    9.001      0
+#> rho_w        -0.227  0.044   -5.117      0
+#> (Intercept)  10.198  2.161    4.719      0
+#> (Intra)       9.871  1.531    6.445      0
+#> D_X           0.983  0.069   14.321      0
+#> D_X.lag1      0.509  0.115    4.437      0
+#> O_X          -0.759  0.038  -19.917      0
+#> O_X.lag1     -0.367  0.093   -3.965      0
+#> I_I(X)        2.035  0.083   24.650      0
+#> P_DISTANCE   -2.622  0.384   -6.829      0
 #> 
 #> --------------------------------------------------
-#> R2_corr: 0.9921277  
+#> R2_corr: 0.9921423  
 #> Observations: 256  
 #> Model coherence: Validated
 ```

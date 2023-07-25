@@ -436,7 +436,7 @@ rm(res_model_9_mle)
 res_model_2_mcmc <- spflow(
   spflow_formula = y2 ~ . + P_(DISTANCE),
   spflow_networks =  multi_net_usa_ge,
-  id_spflow_pairs =  "usa_usa",
+  id_net_pair =  "usa_usa",
   estimation_control = spflow_control(estimation_method = "mcmc", model = "model_2"))
 
 # test results
@@ -527,7 +527,7 @@ dat(multi_net_usa_ge2, "usa_usa")[["DISTANCEi"]] <- spflow:::na2zero(dat(multi_n
 
 res_model_9_s2sls_narm <- spflow(
   spflow_formula = y9i ~ . + P_(DISTANCEi), multi_net_usa_ge2,
-  id_spflow_pairs = "usa_usa",
+  id_net_pair = "usa_usa",
   estimation_control = spflow_control(
     estimation_method = "s2sls",
     model = "model_9",

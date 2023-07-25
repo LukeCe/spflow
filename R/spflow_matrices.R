@@ -44,7 +44,7 @@
 #' @keywords internal
 #' @return A list containing all design matrices required for estimation, impact calculation and prediction
 derive_spflow_matrices <- function(
-  id_spflow_pairs,
+  id_net_pair,
   spflow_networks,
   spflow_formula,
   spflow_control,
@@ -55,7 +55,7 @@ derive_spflow_matrices <- function(
   spflow_indicators <- subset_keycols(spflow_data[["pair"]], drop_keys = FALSE)
   do_indexes <- cbind(as.integer(spflow_indicators[[1]]), as.integer(spflow_indicators[[2]]))
 
-  od_ids <- id(pull_member(spflow_networks, id_spflow_pairs))
+  od_ids <- id(pull_member(spflow_networks, id_net_pair))
   OW <- neighborhood(spflow_networks, od_ids["orig"])
   DW <- neighborhood(spflow_networks, od_ids["dest"])
 

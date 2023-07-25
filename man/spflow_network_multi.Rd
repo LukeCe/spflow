@@ -2,18 +2,18 @@
 % Please edit documentation in R/class_spflow_network_multi.R
 \name{spflow_network_multi}
 \alias{spflow_network_multi}
-\title{Constructor for the \code{\link[=spflow_network_multi-class]{spflow_network_multi-class()}}}
+\title{Create a \code{\link[=spflow_network_multi-class]{spflow_network_multi-class()}}}
 \usage{
 spflow_network_multi(...)
 }
 \arguments{
-\item{...}{objects of type \code{\link[=spflow_network]{spflow_network()}} and \code{\link[=spflow_network_pair]{spflow_network_pair()}}}
+\item{...}{objects of type \code{\link[=spflow_network-class]{spflow_network-class()}} and \code{\link[=spflow_network_pair-class]{spflow_network_pair-class()}}}
 }
 \value{
 An S4 class of type \code{\link[=spflow_network_multi-class]{spflow_network_multi-class()}}
 }
 \description{
-Constructor for the \code{\link[=spflow_network_multi-class]{spflow_network_multi-class()}}
+Create a \code{\link[=spflow_network_multi-class]{spflow_network_multi-class()}}
 }
 \examples{
 spflow_network_multi() # empty

@@ -9,7 +9,7 @@
 \usage{
 spflow_map(object, ...)
 
-\S4method{spflow_map}{spflow_network_multi}(object, id_spflow_pairs = id(object)[["pairs"]][[1]], ..., flow_var)
+\S4method{spflow_map}{spflow_network_multi}(object, id_net_pair = id(object)[["pairs"]][[1]], ..., flow_var)
 
 \S4method{spflow_map}{spflow_model}(object, ..., flow_type = "resid", add_title = TRUE)
 }
@@ -18,7 +18,7 @@ spflow_map(object, ...)
 
 \item{...}{arguments passed to methods and \code{map_flows()}}
 
-\item{id_spflow_pairs}{A character indicating the id of a \code{\link[=spflow_network_pair]{spflow_network_pair()}} (only relevant if
+\item{id_net_pair}{A character indicating the id of a \code{\link[=spflow_network_pair]{spflow_network_pair()}} (only relevant if
 the \code{\link[=spflow_network_multi]{spflow_network_multi()}} contains multiple \code{spflow_network_pair}-objects:
 defaults to the of them)}
 
@@ -30,7 +30,7 @@ Should be one of c("resid", "fitted", "actual").}
 \item{add_title}{A logical, if \code{TRUE} the flow_type is added as title.}
 }
 \description{
-This generic is used as an interface to \code{map_flows()}, where all information
+This generic is used as an interface to \code{\link[=map_flows]{map_flows()}}, where all information
 available in the object is extracted and provided as arguments.
 }
 \examples{

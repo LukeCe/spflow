@@ -137,5 +137,5 @@ nlist <- list(
   "B" = list("B" = "B", "C" = "C"),
   "D" = list("D" = list("D" = "D"), "E" = "E", "F" = list("F" = list("F" = "F"))))
 
-expect_equal(flatlist(nlist), as.list(LETTERS[1:6]),
+expect_equal(spflow:::flatlist(nlist), as.list(LETTERS[1:6]),
              check.attributes = FALSE)

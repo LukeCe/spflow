@@ -2,7 +2,7 @@
 % Please edit documentation in R/class_spflow_network_meta.R
 \name{spflow_network_classes}
 \alias{spflow_network_classes}
-\title{spflow network classes}
+\title{Overview on spflow network classes}
 \description{
 The spflow package provides three additional classes to the R environment.
 These allow to handle origin-destination flow data efficiently, by exploiting
@@ -13,9 +13,9 @@ Data on origins and destinations are stored in the
 stored in an \code{\link[=spflow_network_pair-class]{spflow_network_pair-class()}}.
 
 A third object of type \code{\link[=spflow_network_multi-class]{spflow_network_multi-class()}} gathers all information
-from the different data sources. The class can be thought of as a simple
-relational database which ensures correct identification of origin-destination
-pairs with the node level information.
+from the different data sources.
+The class can be thought of as a simple relational database which ensures
+correct identification of origin-destination pairs with the node level information.
 }
 \examples{
 
@@ -77,8 +77,3 @@ estimation_control <- spflow_control(sdm_variables = sdm_formula)
 # Estimate the model
 spflow(flow_formula, paris10km_multinet, estimation_control = estimation_control)
 }
-\seealso{
-Other spflow network classes: 
-\code{\link{spflow_network_multi-class}}
-}
-\concept{spflow network classes}

@@ -47,7 +47,8 @@ The names should correspond to spflow_network or spflow_pair
 objects contained in the \code{\link[=spflow_network_multi-class]{spflow_network_multi-class()}}.}
 }
 \description{
-An S4 class that gathers information on multiple \code{\link[=spflow_network]{spflow_network()}} and \code{\link[=spflow_network_pair]{spflow_network_pair()}}.
+An S4 class that gathers information on multiple objects of types
+\code{\link[=spflow_network-class]{spflow_network-class()}} and \code{\link[=spflow_network_pair-class]{spflow_network_pair-class()}}.
 Its purpose is to ensure that the identification between the nodes that
 serve as origins or destinations, and the OD-pairs is consistent
 (similar to relational data bases).
@@ -90,8 +91,3 @@ multi_net_usa_ge2 <- update_dat(multi_net_usa_ge, list("ge" = new_ge))
 dat(multi_net_usa_ge2, "ge")
 
 }
-\seealso{
-Other spflow network classes: 
-\code{\link{spflow_network_classes}}
-}
-\concept{spflow network classes}

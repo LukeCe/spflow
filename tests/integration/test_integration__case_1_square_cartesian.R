@@ -187,7 +187,7 @@ expect_zero_diff <- function(y,x) expect_equal(max(abs(x - y)), 0)
 res_model_1_ols <- spflow(
   spflow_formula = y1 ~ . + P_(DISTANCE),
   spflow_networks =  multi_net_usa_ge,
-  id_spflow_pairs =  "ge_ge",
+  id_net_pair =  "ge_ge",
   estimation_control = spflow_control(estimation_method = "ols", model = "model_1"))
 
 # test results
@@ -216,10 +216,14 @@ expect_zero_diff(expectied_signal, predict(res_model_1_ols, return_type = "V"))
 
 # test refit
 refit <- spflow_refit(res_model_1_ols, "stepwise")
+expect_inherits(refit, "list")
+refit <- compare_results(refit)
 expect_inherits(refit, "data.frame")
 expect_equal(ncol(refit), length(coef(res_model_1_ols)))
 
 refit <- spflow_refit(res_model_1_ols, "ar_family")
+expect_inherits(refit, "list")
+refit <- compare_results(refit)
 expect_inherits(refit, "data.frame")
 expect_equal(ncol(refit), 9)
 
@@ -230,6 +234,8 @@ od_dropper <- function(drop_nodes) {
 wt_funs <- lapply(1:13, function(x) od_dropper(germany_grid$ID_STATE[seq(x)]))
 names(wt_funs) <- paste0("drop",1:13)
 refit <- spflow_refit(res_model_1_ols, "samples", sample_weights = wt_funs)
+expect_inherits(refit, "list")
+refit <- compare_results(refit)
 expect_inherits(refit, "data.frame")
 expect_equal(ncol(refit), 14)
 
@@ -239,7 +245,7 @@ rm(res_model_1_ols)
 res_model_2_s2sls <- spflow(
   spflow_formula = y2 ~ . + P_(DISTANCE),
   spflow_networks =  multi_net_usa_ge,
-  id_spflow_pairs =  "ge_ge",
+  id_net_pair =  "ge_ge",
   estimation_control = spflow_control(estimation_method = "s2sls", model = "model_2"))
 
 # test results
@@ -366,12 +372,16 @@ expect_zero_diff(expected_bp, predict(res_model_9_s2sls,method = "BP", return_ty
 
 # test refit
 refit <- spflow_refit(res_model_9_s2sls, "stepwise")
+expect_inherits(refit, "list")
+refit <- compare_results(refit)
 expect_inherits(refit, "data.frame")
 expect_equal(ncol(refit), length(coef(res_model_9_s2sls, "delta")))
 
 refit <- spflow_refit(res_model_9_s2sls, "ar_family")
+expect_inherits(refit, "list")
+refit <- compare_results(refit)
 expect_inherits(refit, "data.frame")
-expect_equal(ncol(refit), 9)
+expect_equal(ncol(refit), 8)
 
 od_dropper <- function(drop_nodes) {
   ff <- function(x) !x[["ID_STATE"]] %in% drop_nodes
@@ -379,6 +389,8 @@ od_dropper <- function(drop_nodes) {
 }
 wt_funs <- lapply(1:11, function(x) od_dropper(germany_grid$ID_STATE[seq(x)]))
 refit <- spflow_refit(res_model_9_s2sls, "samples", sample_weights = wt_funs)
+expect_inherits(refit, "list")
+refit <- compare_results(refit)
 expect_inherits(refit, "data.frame")
 expect_equal(ncol(refit), 12)
 rm(res_model_9_s2sls)
@@ -460,10 +472,14 @@ expect_zero_diff(target_matrices[["Y9_"]][[4]], actual_matrices[["Y_"]][[4]])
 
 # test refit
 refit <- spflow_refit(res_model_9_mle, "stepwise")
+expect_inherits(refit, "list")
+refit <- compare_results(refit)
 expect_inherits(refit, "data.frame")
 expect_equal(ncol(refit), length(coef(res_model_9_mle, "delta")))
 
 refit <- spflow_refit(res_model_9_mle, "ar_family")
+expect_inherits(refit, "list")
+refit <- compare_results(refit)
 expect_inherits(refit, "data.frame")
 expect_equal(ncol(refit), 9)
 
@@ -474,6 +490,8 @@ od_dropper <- function(drop_nodes) {
 wt_funs <- lapply(1:12, function(x) od_dropper(germany_grid$ID_STATE[seq(x)]))
 names(wt_funs) <- paste0("drop",1:12)
 refit <- spflow_refit(res_model_9_mle, "samples", sample_weights = wt_funs)
+expect_inherits(refit, "list")
+refit <- compare_results(refit)
 expect_inherits(refit, "data.frame")
 expect_equal(ncol(refit), 13)
 
@@ -553,12 +571,16 @@ expect_zero_diff(target_matrices[["Y9_"]][[4]], actual_matrices[["Y_"]][[4]])
 
 # test refit
 refit <- spflow_refit(res_model_9_mcmc, "stepwise")
+expect_inherits(refit, "list")
+refit <- compare_results(refit)
 expect_inherits(refit, "data.frame")
 expect_equal(ncol(refit), length(coef(res_model_9_mcmc, "delta")))
 
 refit <- spflow_refit(res_model_9_mcmc, "ar_family")
+expect_inherits(refit, "list")
+refit <- compare_results(refit)
 expect_inherits(refit, "data.frame")
-expect_equal(ncol(refit), 9)
+expect_equal(ncol(refit), 8)
 
 od_dropper <- function(drop_nodes) {
   ff <- function(x) !x[["ID_STATE"]] %in% drop_nodes
@@ -567,6 +589,8 @@ od_dropper <- function(drop_nodes) {
 wt_funs <- lapply(1:12, function(x) od_dropper(germany_grid$ID_STATE[seq(x)]))
 names(wt_funs) <- paste0("drop",1:12)
 refit <- spflow_refit(res_model_9_mcmc, "samples", sample_weights = wt_funs)
+expect_inherits(refit, "list")
+refit <- compare_results(refit)
 expect_inherits(refit, "data.frame")
 expect_equal(ncol(refit), 13)
 
@@ -576,7 +600,7 @@ rm(res_model_9_mcmc)
 expect_spflow_model <- function(formula, m = "model_9") expect_inherits(
   spflow(spflow_formula = formula,
          spflow_networks =  multi_net_usa_ge,
-         id_spflow_pairs =  "ge_ge",
+         id_net_pair =  "ge_ge",
          estimation_control = list("model" = "model_9")
          ), "spflow_model")
 
@@ -598,7 +622,7 @@ expect_spflow_model(y9 ~ + I_(-1))
 res_wt_dist <- spflow(
   spflow_formula = y9 ~ . + P_(DISTANCE),
   spflow_networks =  multi_net_usa_ge,
-  id_spflow_pairs = "ge_ge",
+  id_net_pair = "ge_ge",
   estimation_control = spflow_control(
     use_intra = FALSE,
     weight_functions = list("pair" = function(x) x[["DISTANCE"]] > 0)))
@@ -609,7 +633,7 @@ expect_equal(nobs(res_wt_dist, "sample"), n^2-n,
 res_wt_dist_orig <- spflow(
   spflow_formula = y9 ~ . + P_(DISTANCE),
   spflow_networks =  multi_net_usa_ge,
-  id_spflow_pairs = "ge_ge",
+  id_net_pair = "ge_ge",
   estimation_control = spflow_control(
     use_intra = FALSE,
     weight_functions = list("pair" = function(x) x[["DISTANCE"]] > 0,
@@ -621,7 +645,7 @@ expect_equal(nobs(res_wt_dist_orig, "sample"), n^2 - n - n + 1,
 res_wt_dist_orig <- spflow(
   spflow_formula = y9 ~ . + P_(DISTANCE),
   spflow_networks =  multi_net_usa_ge,
-  id_spflow_pairs = "ge_ge",
+  id_net_pair = "ge_ge",
   estimation_control = spflow_control(
     use_intra = FALSE,
     weight_functions = list("pair" = function(x) x[["DISTANCE"]] > 0,

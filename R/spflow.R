@@ -22,7 +22,7 @@
 #' @param spflow_networks
 #'   A [spflow_network_multi()] object that contains information on the
 #'   origins, the destinations and their neighborhood structure
-#' @param id_spflow_pairs
+#' @param id_net_pair
 #'   A character indicating the id of a [spflow_network_pair()] (only relevant if
 #'   the [spflow_network_multi()] contains multiple `spflow_network_pair`-objects:
 #'   defaults to the of them)
@@ -133,24 +133,24 @@
 #' # Estimate flows between the states of Germany
 #' spflow(spflow_formula = y9 ~ . + P_(DISTANCE),
 #'        spflow_networks = multi_net_usa_ge,
-#'        id_spflow_pairs = "ge_ge")
+#'        id_net_pair = "ge_ge")
 #'
 #' # Same as above with explicit declaration of variables...
 #' # ... X is the only variable available
 #' # ... it is used for origins, destination and intra-state flows
 #' spflow(spflow_formula = y9 ~ X + P_(DISTANCE),
 #'        spflow_networks = multi_net_usa_ge,
-#'        id_spflow_pairs = "ge_ge")
+#'        id_net_pair = "ge_ge")
 #'
 #' # Same as above
 #' spflow(spflow_formula = y9 ~ O_(.) + D_(.) + I_(.) + P_(DISTANCE),
 #'        spflow_networks = multi_net_usa_ge,
-#'        id_spflow_pairs = "ge_ge")
+#'        id_net_pair = "ge_ge")
 #'
 #' # Same as above
 #' spflow(spflow_formula = y9 ~ O_(X) + D_(X) + I_(X) + P_(DISTANCE),
 #'        spflow_networks = multi_net_usa_ge,
-#'        id_spflow_pairs = "ge_ge")
+#'        id_net_pair = "ge_ge")
 #'
 #'
 #' @references \insertAllCited{}
@@ -160,26 +160,26 @@
 spflow <- function(
     spflow_formula,
     spflow_networks,
-    id_spflow_pairs = id(spflow_networks)[["pairs"]][[1]],
+    id_net_pair = id(spflow_networks)[["pairs"]][[1]],
     estimation_control = spflow_control()) {
 
   ## check and correct input arguments
   assert_is(spflow_formula, "formula")
-  assert_is_single_x(id_spflow_pairs, "character")
+  assert_is_single_x(id_net_pair, "character")
 
-  od_ids <- id(pull_member(spflow_networks, id_spflow_pairs))
+  od_ids <- id(pull_member(spflow_networks, id_net_pair))
   estimation_control <- enhance_spflow_control(
     estimation_control = estimation_control,
     is_within = od_ids["orig"] == od_ids["dest"])
 
   spflow_networks <- validate_networks(
     spflow_networks = spflow_networks,
-    id_spflow_pairs =  id_spflow_pairs,
+    id_net_pair =  id_net_pair,
     model = estimation_control[["model"]])
 
 
   spflow_matrices <- derive_spflow_matrices(
-    id_spflow_pairs = id_spflow_pairs,
+    id_net_pair = id_net_pair,
     spflow_networks = spflow_networks,
     spflow_formula = spflow_formula,
     spflow_control = estimation_control,
@@ -373,19 +373,19 @@ derive_pspace_validator <- function(
 #' @keywords internal
 validate_networks <- function(
     spflow_networks,
-    id_spflow_pairs,
+    id_net_pair,
     model,
     do_normalisation) {
 
-  assert_is_single_x(id_spflow_pairs, "character")
+  assert_is_single_x(id_net_pair, "character")
   assert_is(spflow_networks, "spflow_network_multi")
-  assert(id_spflow_pairs %in% id(spflow_networks)[["pairs"]],
+  assert(id_net_pair %in% id(spflow_networks)[["pairs"]],
          'The the spflow_network_pair with id "%s" are not available!',
-         id_spflow_pairs)
+         id_net_pair)
 
-  od_ids <- id(spflow_networks@pairs[[id_spflow_pairs]])
+  od_ids <- id(spflow_networks@pairs[[id_net_pair]])
 
-  remove_pairs <- id(spflow_networks)[["pairs"]] != id_spflow_pairs
+  remove_pairs <- id(spflow_networks)[["pairs"]] != id_net_pair
   remove_nodes <- !id(spflow_networks)[["nodes"]] %in% od_ids[c("orig", "dest")]
   spflow_networks@pairs[remove_pairs] <- NULL
   spflow_networks@nodes[remove_nodes] <- NULL

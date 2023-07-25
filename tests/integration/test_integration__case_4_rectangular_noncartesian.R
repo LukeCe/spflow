@@ -502,7 +502,7 @@ dat(multi_net_usa_ge2, net_pair)[["DISTANCEi"]] <- spflow:::na2zero(dat(multi_ne
 
 res_model_9_s2sls_narm <- spflow(
   spflow_formula = y9i ~ . + P_(DISTANCEi), multi_net_usa_ge2,
-  id_spflow_pairs = net_pair,
+  id_net_pair = net_pair,
   estimation_control = spflow_control(estimation_method = "s2sls", model = "model_9",
                                       weight_functions = list("pair" = function(x) x[["wt_9"]])))
 
