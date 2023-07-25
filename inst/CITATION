@@ -1,7 +1,7 @@
 citHeader("To cite the estimation methodology behind spflow in publications use one of:")
 
-citEntry(
-  entry    = "Article",
+bibentry(
+  bibtype  = "Article",
   title    = "Revisiting estimation methods for spatial econometric interaction models",
   author   = "Dargel Lukas",
   journal  = {"Journal of Spatial Econometrics"},
@@ -15,8 +15,8 @@ citEntry(
   )
 )
 
-citEntry(
-  entry    = "Article",
+bibentry(
+  bibtype  = "Article",
   title    = "Efficient Estimation of Spatial Econometric Interaction Models for Sparse OD Matrices",
   author   = "Dargel Lukas, Thomas-Agnan Christine",
   journal  = {"TSE Working Paper"},
