@@ -18,7 +18,7 @@ Description:
     Efficient estimation of spatial econometric models of origin-destination flows, which may exhibit spatial autocorrelation in the dependent variable, the explanatory variables or both.
     The model is the one proposed by LeSage and Pace (2008) <doi:10.1111/j.1467-9787.2008.00573.x>, who develop a matrix formulation that exploits the relational structure of flow data.
     The estimation procedures follow most closely those outlined by Dargel (2021) <https://doi.org/10.1007/s43071-021-00016-1>.
-    Extensions to cover the case of an incomplete OD matrix, where the list of origins may be different from the list of destinations are based on the developments of Dargel and Thomas-Agnan (2022, a working paper is available at <https://www.tse-fr.eu/sites/default/files/TSE/documents/doc/wp/2022/wp_tse_1312.pdf>).
+    Extensions to cover the case of an incomplete OD matrix, where the list of origins may be different from the list of destinations are based on the developments of Dargel and Thomas-Agnan (2023, a working paper is available at <https://www.tse-fr.eu/sites/default/files/TSE/documents/doc/wp/2023/wp_tse_1409.pdf>).
 License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: true
