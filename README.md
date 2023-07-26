@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# spflow
+# spflow <a href="https://lukece.github.io/spflow/"><img src="man/figures/logo.svg" align="right" height="138" alt="spflow website" /></a>
 
 <!-- badges: start -->
 

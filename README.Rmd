@@ -13,7 +13,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-# spflow
+# spflow <a href="https://lukece.github.io/spflow/"><img src="man/figures/logo.svg" align="right" height="138" alt="spflow website" /></a>
 
 <!-- badges: start -->
 [![CRAN status](https://www.r-pkg.org/badges/version/spflow)](https://CRAN.R-project.org/package=spflow)
