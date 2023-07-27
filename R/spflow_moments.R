@@ -4,7 +4,7 @@
 #'
 #' The implementation details are derived in
 #' \insertCite{Dargel2021;textual}{spflow} and
-#' \insertCite{Dargel2022;textual}{spflow}.
+#' \insertCite{Dargel2023;textual}{spflow}.
 #'
 #' ## The variance moment:
 #'

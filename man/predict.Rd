@@ -70,7 +70,7 @@ the later computes the change in its levels given the input data changes.
 }
 \details{
 The prediction methods used here have been developed or analyzed by \insertCite{Goulard2017;textual}{spflow}.
-\insertCite{Dargel2022;textual}{spflow} describe how they can be adapted to the case of interaction models.
+\insertCite{Dargel2023;textual}{spflow} describe how they can be adapted to the case of interaction models.
 }
 \references{
 \insertAllCited{}

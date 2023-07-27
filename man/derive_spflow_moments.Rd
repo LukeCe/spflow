@@ -21,7 +21,7 @@ These are internal functions called within the estimation procedure
 \details{
 The implementation details are derived in
 \insertCite{Dargel2021;textual}{spflow} and
-\insertCite{Dargel2022;textual}{spflow}.
+\insertCite{Dargel2023;textual}{spflow}.
 \subsection{The variance moment:}{
 
 The moment (U'U) moment matrix is grouped into 4 x 4 blocks.

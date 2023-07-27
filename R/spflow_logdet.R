@@ -7,7 +7,7 @@
 #' uses a power-series approximation of this term.
 #' This approximation was first proposed by \insertCite{Martin1992;textual}{spflow},
 #' has been adapted to interaction models by \insertCite{LeSage2008;textual}{spflow} and
-#' \insertCite{Dargel2022;textual}{spflow} extend the approximation to the
+#' \insertCite{Dargel2023;textual}{spflow} extend the approximation to the
 #' non-cartesian and rectangular cases, where the OD-matrix can be sparse and where the
 #' list of origins may be different from the list of destinations.
 #'

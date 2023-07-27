@@ -49,7 +49,7 @@ Our estimation procedures makes use of the matrix formulation introduced by
 \insertCite{Dargel2021;textual}{spflow} to reduce the computational
 effort and memory requirements.
 Further generalizations to deal with non-cartesian and rectangular flows
-are developed by \insertCite{Dargel2022;textual}{spflow}.
+are developed by \insertCite{Dargel2023;textual}{spflow}.
 
 The estimation procedure can be adjusted through the \code{estimation_method}
 argument in \code{\link[=spflow_control]{spflow_control()}}.

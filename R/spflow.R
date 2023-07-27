@@ -38,7 +38,7 @@
 #' \insertCite{Dargel2021;textual}{spflow} to reduce the computational
 #' effort and memory requirements.
 #' Further generalizations to deal with non-cartesian and rectangular flows
-#' are developed by \insertCite{Dargel2022;textual}{spflow}.
+#' are developed by \insertCite{Dargel2023;textual}{spflow}.
 #'
 #' The estimation procedure can be adjusted through the `estimation_method`
 #' argument in [spflow_control()].
