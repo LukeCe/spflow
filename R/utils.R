@@ -102,15 +102,13 @@ haversine_distance <- function(lon1, lat1, lon2, lat2) {
 nb2Mat <- function(nb) {
 
   assert_inherits(nb, "nb")
-  nonzeros <- !unlist(lapply(nb, "identical", 0L))
-  nb <- nb[nonzeros]
   n <- length(nb)
+  nonzeros <- !unlist(lapply(nb, "identical", 0L))
 
-  Matrix::sparseMatrix(
-    i = unlist(nb),
-    j = unlist(Map("rep", seq_along(nb), lapply(nb, length))),
-    dims = list(n, n),
-    repr = "C")
+  nb_i <- unlist(nb[nonzeros])
+  nb_j <- seq_along(nb)[nonzeros]
+  nb_j <- unlist(Map("rep", nb_j, lapply(nb[nonzeros], length)))
+  Matrix::sparseMatrix(i = nb_i, j = nb_j, dims = list(n, n), repr = "C")
 }
 
 # ---- infix operators --------------------------------------------------------

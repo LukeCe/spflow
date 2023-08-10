@@ -139,3 +139,18 @@ nlist <- list(
 
 expect_equal(spflow:::flatlist(nlist), as.list(LETTERS[1:6]),
              check.attributes = FALSE)
+
+# ---- nb2Mat -----------------------------------------------------------------
+expect_true({
+  nb <- spdep::poly2nb(germany_grid)
+  W <- spdep::nb2mat(nb, style = "B")
+  all(Matrix::Matrix(W) == nb2Mat(nb))
+}, info = "Check in compact spatial data")
+
+
+expect_true({
+  geusa <- rbind(germany_grid,usa_grid)
+  nb <- spdep::poly2nb(geusa)
+  W <- spdep::nb2mat(nb, style = "B", zero.policy = TRUE)
+  all(Matrix::Matrix(W) == nb2Mat(nb))
+}, info = "Check for spatial data with holes.")
