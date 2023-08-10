@@ -41,7 +41,8 @@ spflow_refit <- function(
     object,
     refit_type = "ar_family",
     sample_weights = NULL,
-    protected_params = "(Intercept)") {
+    protected_params = "(Intercept)",
+    keep_data = FALSE) {
 
 
   refit_options <- c("ar_family", "stepwise", "samples")
@@ -61,7 +62,7 @@ spflow_refit <- function(
         spflow_formula = object@spflow_formula,
         spflow_control = object@estimation_control,
         na_rm = object@estimation_control[["na_rm"]])
-    models <- spflow_refit_samples(object, sample_weights)
+    models <- spflow_refit_samples(object, sample_weights, keep_data)
   }
 
   return(models)
@@ -166,10 +167,6 @@ spflow_refit_ar_family <- function(object) {
   }
 
   control9 <- control9[names(control9)]
-
-
-
-
   indic9 <- object@spflow_indicators
   pair_index <- spflow_indicators2pairindex(indic9)
 
@@ -309,7 +306,8 @@ spflow_refit_ar_family <- function(object) {
 #' @keywords internal
 spflow_refit_samples <- function(
     object,
-    new_weights) {
+    new_weights,
+    keep_data = FALSE) {
 
   # solve naming
   nwt <- names(new_weights)
@@ -335,7 +333,7 @@ spflow_refit_samples <- function(
     new_wt <- spflow_indicators2wtmat(object@spflow_indicators)
     n_o <- nobs(object, "orig")
     n_d <- nobs(object, "dest")
-    N <- if (is.null(new_wt)) n_o * n_d else nnzero(new_wt)
+    N   <- if (is.null(new_wt)) n_o * n_d else nnzero(new_wt)
 
 
     new_mom <- derive_spflow_moments(
@@ -350,14 +348,18 @@ spflow_refit_samples <- function(
     new_mom_emp <- derive_empric_moments(object, dg = new_dg, mom = new_mom)
     new_dg[["R2_corr"]] <- mom2Rcorr(new_mom_emp, coef(new_res))
     new_res@estimation_diagnostics[names(new_dg)] <- new_dg
+    new_res@spflow_formula <- res[["Original"]]@spflow_formula
+    new_res@spflow_indicators <- object@spflow_indicators %T% keep_data
+    new_res@spflow_networks <- res[["Original"]]@spflow_networks %T% keep_data
     return(new_res)
   }
 
   # go backwards to handle NULL cases on the fly
   s <- length(new_weights)
   p <- s + 1
-  for (i in seq_len(s))
+  for (i in seq_len(s)) {
     res[[p - i + 1]] <- estimate_with_new_weights(object, new_weights[[p - i]])
+  }
 
   return(res)
 }

@@ -414,7 +414,7 @@ setMethod(
            add_new_signal = FALSE) {
 
 
-    insample_methods <- c("TS","BPI","TCI")
+    insample_methods <- c("TS", "TSI","BPI","TCI")
     fullpop_methods <- c("BPA","TC","BP")
     assert_valid_option(method, c(insample_methods, fullpop_methods))
     assert(is.null(new_dat) | method %in% fullpop_methods,
@@ -469,7 +469,7 @@ setMethod(
     if (method == "LM")
       Y_hat <- signal
 
-    if (method == "TS") {
+    if (method %in% c("TS","TSI")) {
       trend <- Reduce("+", Map("*", object@spflow_matrices$Y_[-1], rho))
       Y_hat <- trend + signal
     }
@@ -577,6 +577,7 @@ setMethod(
 
 # ---- ... predict_effect -----------------------------------------------------
 #' @name predict_effect
+#' @aliases predict_effect
 #' @rdname predict
 #' @export
 setMethod(

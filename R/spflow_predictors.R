@@ -10,29 +10,6 @@ compute_signal <- function(
   is_cartesian <- is.null(spflow_indicators) || obs[["N_cart"]] == obs[["N_pop"]]
   req_intra <- !all(is.null(spflow_matrices[["I_"]]), is.null(spflow_matrices[["CONST"]][["(Intra)"]]))
 
-  if (is_cartesian) {
-    n_o <- unique(c(
-      ncol(spflow_matrices[["CONST"]][["(Intra)"]]),
-      ncol(spflow_matrices[["P_"]][[1]]),
-      ncol(spflow_matrices[["Y_"]][[1]]),
-      nrow(spflow_matrices[["OX"]]),
-      nrow(spflow_matrices[["IX"]])))
-    assert_is_single_x(n_o, "numeric")
-
-    n_d <- unique(c(
-      nrow(spflow_matrices[["CONST"]][["(Intra)"]]),
-      nrow(spflow_matrices[["P_"]][[1]]),
-      nrow(spflow_matrices[["Y_"]][[1]]),
-      nrow(spflow_matrices[["DX"]]),
-      nrow(spflow_matrices[["IX"]])))
-    assert_is_single_x(n_d, "numeric")
-
-
-    o_index <- rep(seq(n_o), each = n_d)
-    d_index <- rep(seq(n_d), times = n_o)
-    intra_i <- as.vector(diag(n_o)) %T% (req_intra)
-  }
-
   if (!is_cartesian) {
     filter_sig <- spflow_indicators[["IN_POP"]] %||% TRUE
     spflow_indicators <- spflow_indicators[filter_sig,,drop = FALSE]
@@ -42,8 +19,6 @@ compute_signal <- function(
     d_index <- as.numeric(spflow_indicators[[1]])
     intra_i <- as.numeric(spflow_indicators[[1]] == spflow_indicators[[2]]) %T% req_intra
   }
-
-
 
   if (is_cartesian) {
     n_o <- unique(c(
@@ -66,16 +41,6 @@ compute_signal <- function(
     o_index <- rep(seq(n_o), each = n_d)
     d_index <- rep(seq(n_d), times = n_o)
     intra_i <- as.vector(diag(n_o)) %T% (req_intra)
-  }
-
-  if (!is_cartesian) {
-    filter_sig <- spflow_indicators[["IN_POP"]] %||% TRUE
-    spflow_indicators <- spflow_indicators[filter_sig,,drop = FALSE]
-    n_o <- obs[["n_orig"]]
-    n_d <- obs[["n_dest"]]
-    o_index <- as.numeric(spflow_indicators[[2]])
-    d_index <- as.numeric(spflow_indicators[[1]])
-    intra_i <- as.numeric(spflow_indicators[[1]] == spflow_indicators[[2]]) %T% req_intra
   }
 
   signal <- 0

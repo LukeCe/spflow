@@ -171,7 +171,6 @@ derive_spflow_matrices <- function(
     has_ZZ <- update_logicals(has_ZZ, (obs_I[do_indexes[2]] | spflow_indicators[[2]] != spflow_indicators[[1]]))
   if (!is.null(na_G))
     has_ZZ <- update_logicals(has_ZZ, !(na_G[do_indexes]))
-   has_ZZ
   if (!is.null(na_Y))
     has_ZY <- update_logicals(has_ZZ, !(na_Y[do_indexes]))
 
