@@ -97,6 +97,8 @@ setClassUnion("spflow_model_spatial",
                 "spflow_model_s2sls"))
 
 # ---- Methods ----------------------------------------------------------------
+# simple methods are here and more complex ones in their own files
+
 # ---- ... coef ---------------------------------------------------------------
 #' @title Extract the coefficient vector from a spatial interaction model
 #' @rdname spflow_model-class
@@ -588,7 +590,8 @@ setMethod(
            old_signal = NULL,
            approx_expectation = TRUE,
            expectation_approx_order = 10,
-           return_type = "OD") {
+           return_type = "OD",
+           y_is_log = FALSE) {
 
     # prepare the data and coefficients....
     model <- object@estimation_control$model
@@ -622,6 +625,12 @@ setMethod(
       M_indicator = spflow_indicators2mat(new_matrices[["spflow_indicators"]]),
       approximate = approx_expectation,
       max_it = expectation_approx_order)
+
+    if (y_is_log) {
+      new_y   <- spflow:::actual(object,return_type = "M")
+      if (!is(new_y, "Matrix")) new_y <- Matrix(new_y) # TODO remove once Matrix is standard
+      diff_effect@x <- exp(new_y@x + diff_effect@x) * diff_effect@x
+    }
 
     result <- spflow_mat2format(
       mat = diff_effect,

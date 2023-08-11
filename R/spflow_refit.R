@@ -22,6 +22,9 @@
 #' @param refit_type A character
 #' @param sample_weights A list of lists
 #' @param protected_params A character
+#' @param keep_data
+#'   A logical, if `TRUE`
+#'   the refitted model retains all data of the original
 #' @return A list of models
 #' @export
 #' @examples

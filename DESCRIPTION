@@ -53,6 +53,7 @@ Collate:
     'spflow_control.R'
     'spflow_estimation.R'
     'spflow_formula.R'
+    'spflow_impacts.R'
     'spflow_indicators.R'
     'spflow_logdet.R'
     'spflow_matrices.R'

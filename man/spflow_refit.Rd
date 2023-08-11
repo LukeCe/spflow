@@ -8,7 +8,8 @@ spflow_refit(
   object,
   refit_type = "ar_family",
   sample_weights = NULL,
-  protected_params = "(Intercept)"
+  protected_params = "(Intercept)",
+  keep_data = FALSE
 )
 }
 \arguments{
@@ -19,6 +20,9 @@ spflow_refit(
 \item{sample_weights}{A list of lists}
 
 \item{protected_params}{A character}
+
+\item{keep_data}{A logical, if \code{TRUE}
+the refitted model retains all data of the original}
 }
 \value{
 A list of models

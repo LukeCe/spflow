@@ -55,7 +55,7 @@ vignette](https://lukece.github.io/spflow/articles/paris_commute_flows.html).
 library("spflow")
 data("multi_net_usa_ge")
 
-spflow(y9 ~ O_(X) + D_(X) + I(X) + P_(DISTANCE), multi_net_usa_ge)
+spflow(y9 ~ O_(X) + D_(X) + I_(X) + P_(DISTANCE), multi_net_usa_ge)
 #> --------------------------------------------------
 #> Spatial interaction model estimated by: MLE  
 #> Spatial correlation structure: SDM (model_9)
@@ -73,7 +73,7 @@ spflow(y9 ~ O_(X) + D_(X) + I(X) + P_(DISTANCE), multi_net_usa_ge)
 #> D_X.lag1      0.509  0.115    4.437      0
 #> O_X          -0.759  0.038  -19.917      0
 #> O_X.lag1     -0.367  0.093   -3.965      0
-#> I_I(X)        2.035  0.083   24.650      0
+#> I_X           2.035  0.083   24.650      0
 #> P_DISTANCE   -2.622  0.384   -6.829      0
 #> 
 #> --------------------------------------------------

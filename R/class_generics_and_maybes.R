@@ -88,6 +88,14 @@ setGeneric(
   name = "id<-",
   def = function(object, ..., value) standardGeneric("id<-"))
 
+# ---- ... impacts_matrix -----------------------------------------------------
+#' @rdname spflow_generics
+#' @name impacts_matrix
+#' @export
+setGeneric(
+  name = "impacts_matrix",
+  def = function(object, ...) standardGeneric("impacts_matrix"))
+
 
 # ---- ... mcmc_results -------------------------------------------------------
 #' @rdname spflow_generics

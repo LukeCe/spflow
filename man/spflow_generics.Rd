@@ -10,6 +10,7 @@
 \alias{id}
 \alias{id<-}
 \alias{id-set}
+\alias{impacts_matrix}
 \alias{mcmc_results}
 \alias{neighborhood}
 \alias{neighborhood<-}
@@ -37,6 +38,8 @@ dat(object, ...) <- value
 id(object, ...)
 
 id(object, ...) <- value
+
+impacts_matrix(object, ...)
 
 mcmc_results(object)
 

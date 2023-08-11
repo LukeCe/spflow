@@ -58,7 +58,7 @@ For more detailed examples have a look at the [package vignette](https://lukece.
 library("spflow")
 data("multi_net_usa_ge")
 
-spflow(y9 ~ O_(X) + D_(X) + I(X) + P_(DISTANCE), multi_net_usa_ge)
+spflow(y9 ~ O_(X) + D_(X) + I_(X) + P_(DISTANCE), multi_net_usa_ge)
 ```
 
 

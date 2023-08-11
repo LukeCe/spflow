@@ -25,7 +25,8 @@ predict_effect(object, ...)
   old_signal = NULL,
   approx_expectation = TRUE,
   expectation_approx_order = 10,
-  return_type = "OD"
+  return_type = "OD",
+  y_is_log = FALSE
 )
 }
 \arguments{

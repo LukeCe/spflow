@@ -63,7 +63,7 @@ assert_inherits <- function(x, class){
 #' @rdname assertions_and_primitives
 #' @keywords internal
 assert_valid_option <- function(x, options) {
-  assert(all(x %in% options),
+  assert(length(x) > 0 && all(x %in% options),
          'The %s argument must be one of %s!',
          deparse(substitute(x)), deparse(options))
 }

@@ -1,4 +1,8 @@
 # ---- diverse ----------------------------------------------------------------
+
+#' @keywords internal
+c2 <- function(...) c(..., recursive = TRUE, use.names = FALSE)
+
 #' @keywords internal
 drop_na <- function(x) {
 
