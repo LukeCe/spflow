@@ -13,7 +13,7 @@
 \alias{mcmc_results,spflow_model_mcmc-method}
 \alias{nobs,spflow_model-method}
 \alias{neighborhood,spflow_model-method}
-\alias{plot}
+\alias{plot,spflow_model-method}
 \alias{resid,spflow_model-method}
 \alias{results,spflow_model-method}
 \alias{results_flat,spflow_model-method}

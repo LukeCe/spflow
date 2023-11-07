@@ -321,8 +321,7 @@ setMethod(
 
 
 # ---- ... plot ---------------------------------------------------------------
-#' @rdname spflow_model-class
-#' @name plot
+#' @title Diagnostic plots for the results of a spatial interaction model
 #' @importFrom graphics abline image.default par title
 #' @importFrom stats aggregate complete.cases lm.fit qnorm qqline qqnorm
 #' @param x A [spflow_model-class()]
