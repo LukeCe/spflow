@@ -32,6 +32,8 @@ predict_effect(object, ...)
 \arguments{
 \item{object}{A \code{\link[=spflow_model-class]{spflow_model-class()}}}
 
+\item{...}{not used (generic).}
+
 \item{new_dat}{A named list of data.frames that contain the new data.
 The names should correspond to spflow_network or spflow_pair
 objects contained in the \code{\link[=spflow_network_multi-class]{spflow_network_multi-class()}}.}

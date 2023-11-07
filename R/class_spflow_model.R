@@ -381,6 +381,7 @@ setMethod(
 #' \insertCite{Dargel2023;textual}{spflow} describe how they can be adapted to the case of interaction models.
 #'
 #' @param object A [spflow_model-class()]
+#' @param ... not used (generic).
 #' @param method A character indicating which method to use for computing the
 #'   predictions. Should be one of c("TS", "TC", "BP").
 #' @param old_signal
