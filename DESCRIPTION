@@ -1,7 +1,7 @@
 Package: spflow
 Title: Spatial Econometric Interaction Models
-Version: 0.1.0.9000
-Date: 2021-09-14
+Version: 0.1.0.9010
+Date: 2023-07-25
 Authors@R: c(
     person("Lukas", "Dargel", role = c("aut", "cre"),
            email = "lukas.dargel@mailbox.org",
@@ -17,12 +17,13 @@ Authors@R: c(
 Description: 
     Efficient estimation of spatial econometric models of origin-destination flows, which may exhibit spatial autocorrelation in the dependent variable, the explanatory variables or both.
     The model is the one proposed by LeSage and Pace (2008) <doi:10.1111/j.1467-9787.2008.00573.x>, who develop a matrix formulation that exploits the relational structure of flow data.
-    The estimation procedures follow most closely those outlined by Dargel (2021) (preprint available at <https://www.tse-fr.eu/fr/publications/revisiting-estimation-methods-spatial-econometric-interaction-models>).
+    The estimation procedures follow most closely those outlined by Dargel (2021) <doi:10.1007/s43071-021-00016-1>.
+    Extensions to cover the case of an incomplete OD matrix and to the case where the list of origins may be different from the list of destinations are based on the developments of Dargel and Thomas-Agnan (2023, a working paper is available at <https://www.tse-fr.eu/sites/default/files/TSE/documents/doc/wp/2023/wp_tse_1409.pdf>).
 License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.1.1
+RoxygenNote: 7.2.3
 RdMacros: Rdpack
 Imports: 
     coda,
@@ -32,45 +33,42 @@ Imports:
     Rdpack,
     utils
 Collate: 
-    'spflow-package.R'
-    'utils_classes.R'
-    'class_0_generics-and-maybe-classes.R'
-    'class_sp-network-pair.R'
-    'class_sp-network-nodes.R'
-    'class_sp-network-meta.R'
-    'class_sp-network-multi.R'
-    'class_spflow-model-meta.R'
-    'class_spflow-model-children.R'
-    'example_data.R'
-    'fit-spflow-mcmc.R'
-    'fit-spflow-mle.R'
-    'fit-spflow-mle_hessian.R'
-    'fit-spflow-ols.R'
-    'fit-spflow-s2sls.R'
-    'map_flows.R'
-    'spflow-control.R'
-    'spflow-formula.R'
-    'spflow-likelihood.R'
-    'spflow-logdet.R'
-    'spflow-model-estimation.R'
-    'spflow-model-matrix_1.R'
-    'spflow-model-matrix_2-transformations.R'
-    'spflow-model-matrix_3-spatial-lags.R'
-    'spflow-model-moments_1.R'
-    'spflow-model-moments_2-blocks.R'
-    'spflow-simulations.R'
-    'spflow.R'
     'utils.R'
+    'spflow_package.R'
+    'class_generics_and_maybes.R'
+    'class_spflow_network_pair.R'
+    'class_spflow_network.R'
+    'class_spflow_network_multi.R'
+    'class_spflow_model.R'
+    'class_spflow_network_meta.R'
+    'cor_image.R'
+    'example_data.R'
+    'fit_spflow_mcmc.R'
+    'fit_spflow_mle.R'
+    'fit_spflow_mle_hessian.R'
+    'fit_spflow_ols.R'
+    'fit_spflow_s2sls.R'
+    'map_flows.R'
+    'spflow.R'
+    'spflow_control.R'
+    'spflow_estimation.R'
+    'spflow_formula.R'
+    'spflow_impacts.R'
+    'spflow_indicators.R'
+    'spflow_logdet.R'
+    'spflow_matrices.R'
+    'spflow_moments.R'
+    'spflow_neighborhood.R'
+    'spflow_predictors.R'
+    'spflow_refit.R'
+    'spflow_simulations.R'
+    'spflow_spatial_lags.R'
     'utils_error.R'
-    'utils_formula.R'
-    'utils_fp.R'
-    'utils_math.R'
-    'utils_matrix.R'
-    'utils_strings.R'
 URL: https://github.com/LukeCe/spflow
 BugReports: https://github.com/LukeCe/spflow/issues
 Suggests: 
     covr,
+    data.table,
     knitr,
     sf,
     sp,

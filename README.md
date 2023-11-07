@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# spflow
+# spflow <a href="https://lukece.github.io/spflow/"><img src="man/figures/logo.svg" align="right" height="138" alt="spflow website" /></a>
 
 <!-- badges: start -->
 
@@ -20,55 +20,66 @@ computational burden and memory requirements.
 
 ## Installation
 
-<!-- You can install the released version of spflow from [CRAN](https://CRAN.R-project.org) with: -->
-<!-- ``` r -->
-<!-- install.packages("spflow") -->
-<!-- ``` -->
-<!-- And the  -->
+You can install the released version of spflow from
+[CRAN](https://CRAN.R-project.org/package=spflow) with:
 
-You can install development version from [GitHub](https://github.com/)
-with:
+``` r
+install.packages("spflow")
+```
+
+And the development version from
+[GitHub](https://github.com/LukeCe/spflow/) with:
 
 ``` r
 # install.packages("devtools")
-devtools::install_github("LukeCe/spflow")
+devtools::install_github("LukeCe/spflow@non-cartesian-flows")
 ```
 
 ## Example
 
-The package provides a new `sp_multi_network-class` that combines
+The package provides a new `spflow_network_multi-class` that combines
 information on the origins, the destinations, and the origin-destination
 pairs. Once this object is created, we can estimate an interaction model
-with the `spflow()` function. The [package
-vignette](https://lukece.github.io/spflow/articles/paris_commute_flows.html)
-contains a more detailed example.
+with the `spflow()` function. By default the model includes three
+autoregression parameters: rho_o, rho_d, rho_w. These parameters are
+related to origin-, destination-, and origin-to-destination-dependence.
+
+Through the formula interface we specify which variables are used as
+origin `O_()`, destination `D_()`, intra-regional `I_()` and OD-pair
+`P_()` characteristics.
+
+For more detailed examples have a look at the [package
+vignette](https://lukece.github.io/spflow/articles/paris_commute_flows.html).
 
 ``` r
 library("spflow")
-spflow(y9 ~ . + G_(DISTANCE), multi_net_usa_ge)
+data("multi_net_usa_ge")
+
+spflow(y9 ~ O_(X) + D_(X) + I_(X) + P_(DISTANCE), multi_net_usa_ge)
 #> --------------------------------------------------
 #> Spatial interaction model estimated by: MLE  
-#> Autocorrelation structure: model_9 (SDM)  
-#> Observations: 256  
+#> Spatial correlation structure: SDM (model_9)
+#> Dependent variable: y9
 #> 
 #> --------------------------------------------------
 #> Coefficients:
-#>                 est    sd  t.stat  p.value
-#> rho_d          0.48  0.03   15.75     0.02
-#> rho_o          0.36  0.03   10.59     0.03
-#> rho_w         -0.25  0.04   -5.95     0.05
-#> (Intercept)   10.00  1.92    5.21     0.06
-#> (Intra)       11.32  3.07    3.69     0.08
-#> DEST_X         0.94  0.06   14.97     0.02
-#> DEST_X.lag1    0.62  0.11    5.80     0.05
-#> ORIG_X        -0.78  0.04  -21.20     0.02
-#> ORIG_X.lag1   -0.32  0.08   -3.93     0.08
-#> INTRA_X        1.95  0.08   23.98     0.01
-#> INTRA_X.lag1  -0.34  0.19   -1.76     0.16
-#> DISTANCE      -2.80  0.34   -8.25     0.04
+#>                 est     sd   t.stat  p.val
+#> rho_d         0.497  0.030   16.499      0
+#> rho_o         0.333  0.037    9.001      0
+#> rho_w        -0.227  0.044   -5.117      0
+#> (Intercept)  10.198  2.161    4.719      0
+#> (Intra)       9.871  1.531    6.445      0
+#> D_X           0.983  0.069   14.321      0
+#> D_X.lag1      0.509  0.115    4.437      0
+#> O_X          -0.759  0.038  -19.917      0
+#> O_X.lag1     -0.367  0.093   -3.965      0
+#> I_X           2.035  0.083   24.650      0
+#> P_DISTANCE   -2.622  0.384   -6.829      0
 #> 
 #> --------------------------------------------------
-#> R2_corr: 0.9927709
+#> R2_corr: 0.9921423  
+#> Observations: 256  
+#> Model coherence: Validated
 ```
 
 ## License

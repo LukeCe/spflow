@@ -13,7 +13,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-# spflow
+# spflow <a href="https://lukece.github.io/spflow/"><img src="man/figures/logo.svg" align="right" height="138" alt="spflow website" /></a>
 
 <!-- badges: start -->
 [![CRAN status](https://www.r-pkg.org/badges/version/spflow)](https://CRAN.R-project.org/package=spflow)
@@ -29,30 +29,36 @@ It is designed to exploit the relational structure of flow data, reducing the co
 
 ## Installation
 
-<!-- You can install the released version of spflow from [CRAN](https://CRAN.R-project.org) with: -->
+You can install the released version of spflow from [CRAN](https://CRAN.R-project.org/package=spflow) with:
 
-<!-- ``` r -->
-<!-- install.packages("spflow") -->
-<!-- ``` -->
+``` r
+install.packages("spflow")
+```
 
-<!-- And the  -->
-You can install development version from [GitHub](https://github.com/) with:
+And the  development version from [GitHub](https://github.com/LukeCe/spflow/) with:
 
 ``` r
 # install.packages("devtools")
-devtools::install_github("LukeCe/spflow")
+devtools::install_github("LukeCe/spflow@non-cartesian-flows")
 ```
 
 ## Example
 
-The package provides a new `sp_multi_network-class` that combines information on the origins, the destinations, and the origin-destination pairs.
+The package provides a new `spflow_network_multi-class` that combines information on the origins, the destinations, and the origin-destination pairs.
 Once this object is created, we can estimate an interaction model with the `spflow()` function. 
-The [package vignette](https://lukece.github.io/spflow/articles/paris_commute_flows.html) contains a more detailed example.
+By default the model includes three autoregression parameters: rho_o, rho_d, rho_w.
+These parameters are related to origin-, destination-, and origin-to-destination-dependence.
+
+Through the formula interface we specify which variables are used as origin `O_()`, destination `D_()`, intra-regional `I_()` and OD-pair `P_()` characteristics.
+
+For more detailed examples have a look at the [package vignette](https://lukece.github.io/spflow/articles/paris_commute_flows.html).
 
 
 ```{r, message=FALSE}
 library("spflow")
-spflow(y9 ~ . + G_(DISTANCE), multi_net_usa_ge)
+data("multi_net_usa_ge")
+
+spflow(y9 ~ O_(X) + D_(X) + I_(X) + P_(DISTANCE), multi_net_usa_ge)
 ```
 
 

@@ -1,104 +1,160 @@
 # ---- assertions -------------------------------------------------------------
-#' @title A set of functions to create customized error messages
-#' @description The functions are build on top of [sprintf()]
-#' @return Functions called for their side effect, raises warning or error
+#' @title A set of functions to create standardized error messages
+#' @description
+#'   These are internal function for the developers of the package.
+#'   The assertions are build on top of [sprintf()] to handle line breaks and
+#'   automate insertion of arguments.
+#' @return
+#'   - The assertions are called for their side effect, they raise warnings or errors
+#'   - The primitives return `TRUE` or `FALSE`
 #' @keywords internal
-#' @name assert_errors
-#' @rdname assert_errors
+#' @name assertions_and_primitives
+#' @rdname assertions_and_primitives
 #' @author Lukas Dargel
+#' @examples
+#'
+#' \dontrun{
+#' assert(FALSE, "My %s error message!", "nice")
+#' }
+#'
 assert <- function(expr, error_msg = "ERROR", ..., warn = FALSE) {
   if (expr) {
     return(invisible(TRUE))
   }
-  error_msg <- sprintf(error_msg, ...)
+  error_msg <- sprintfwrap(error_msg, ...)
   do.call(ifelse(warn,yes = "warning",no = "stop"),
           list(error_msg = error_msg, call. = FALSE))
+  return(invisible(FALSE))
 }
 
-#' @rdname assert_errors
+#' @rdname assertions_and_primitives
 #' @keywords internal
-assert_is <- function(obj,.class){
-  assert(is(obj,.class),
+assert_is <- function(x,class){
+  assert(is(x,class),
          "The input argument %s must be of class %s!",
-         deparse(substitute(obj)),.class)
+         deparse(substitute(x)),class)
 }
 
-#' @rdname assert_errors
+#' @rdname assertions_and_primitives
 #' @keywords internal
-assert_inherits <- function(obj,.class){
-  assert(inherits(obj,.class),
-         "The input argument %s must inherit from class %s!",
-         deparse(substitute(obj)),.class)
-}
-
-#' @rdname assert_errors
-#' @keywords internal
-assert_is_one_of <- function(obj,.classes){
-  assert(is_one_of(obj,.classes),
+assert_is_one_of <- function(x,classes){
+  assert(is_one_of(x,classes),
          "The input argument %s must be of class %s!",
-         deparse(substitute(obj)),paste(.classes, collapse = " or "))
+         deparse(substitute(x)),paste(classes, collapse = " or "))
 }
 
-#' @rdname assert_errors
+#' @rdname assertions_and_primitives
 #' @keywords internal
-assert_is_single_x <- function(obj, x){
-  is_single_x <- match.fun("is_single_" %p% x)
-  assert(is_single_x(obj),
+assert_is_single_x <- function(x, class){
+  is_single_class <- match.fun(paste0("is_single_", class))
+  assert(is_single_class(x),
          "The input argument %s must be a %s of length one!",
-         deparse(substitute(obj)), x)
+         deparse(substitute(x)), class)
 }
 
-#' @rdname assert_errors
+#' @rdname assertions_and_primitives
 #' @keywords internal
-assert_valid_case <- function(argument,cases) {
-  assert(all(argument %in% cases),
-         "The %s argument must be a subset of the character vector [%s]!",
-         deparse(substitute(argument)), deparse(cases))
+assert_inherits <- function(x, class){
+  assert(inherits(x, class),
+         "The input argument %s must inherit from class %s!",
+         deparse(substitute(x)),class)
+}
+
+#' @rdname assertions_and_primitives
+#' @keywords internal
+assert_valid_option <- function(x, options) {
+  assert(length(x) > 0 && all(x %in% options),
+         'The %s argument must be one of %s!',
+         deparse(substitute(x)), deparse(options))
 }
 
 # ---- primitives -------------------------------------------------------------
-#' @title A set of primitive functions to test conditions
 #' @keywords internal
-#' @return A logical
-#' @name custom_primitives
-#' @rdname custom_primitives
-#' @author Lukas Dargel
-is_one_of <- function(.obj, .classes) {
-  return(any(class(.obj) %in% .classes))
+#' @rdname assertions_and_primitives
+is_one_of <- function(x, classes) {
+  return(any(class(x) %in% classes))
 }
 
-#' @rdname custom_primitives
+#' @rdname assertions_and_primitives
+#' @keywords internal
+is_column_subset <- function(
+    df1,
+    df2,
+    interger_tolerance = TRUE,
+    factor_tolerance = TRUE) {
+
+  if (!all(colnames(df2) %in% colnames(df1)))
+    return(FALSE)
+
+  df2 <- as.data.frame(df2)[0,,drop = FALSE]
+  df1 <- as.data.frame(df1)[0,colnames(df2),drop = FALSE]
+
+  if (interger_tolerance) {
+    df2 <- integercols2numeric(df2)
+    df1 <- integercols2numeric(df1)
+  }
+
+  if (factor_tolerance) {
+    df2 <- factorcols2character(df2)
+    df1 <- factorcols2character(df1)
+  }
+
+  row.names(df2) <- row.names(df1) <- NULL
+  identical(df2, df1, attrib.as.set = FALSE)
+}
+
+#' @rdname assertions_and_primitives
 #' @keywords internal
 is_single_character <- function(x) {
   is.character(x) && (length(x) == 1L)
 }
 
-#' @rdname custom_primitives
+#' @rdname assertions_and_primitives
 #' @keywords internal
 is_single_logical <- function(x) {
   is.logical(x) && (length(x) == 1L)
 }
 
-#' @rdname custom_primitives
+#' @rdname assertions_and_primitives
 #' @keywords internal
 is_single_numeric <- function(x) {
   is.numeric(x) && (length(x) == 1L)
 }
 
-#' @rdname custom_primitives
+#' @rdname assertions_and_primitives
 #' @keywords internal
-has_equal_elements <- function(obj) {
-  length(unique(obj)) <= 1
+has_equal_elements <- function(x) {
+  length(unique(x)) <= 1
 }
 
-#' @rdname custom_primitives
+#' @rdname assertions_and_primitives
 #' @keywords internal
-has_distinct_elements <- function(obj) {
-  length(unique(obj)) == length(obj)
+has_distinct_elements <- function(x) {
+  length(unique(x)) == length(x)
 }
 
-#' @rdname custom_primitives
+#' @rdname assertions_and_primitives
 #' @keywords internal
-none <- function(x){
-  all(!x)
+none <- function(..., na.rm = FALSE){
+  !any(..., na.rm = FALSE)
+}
+
+
+# ---- helpers ----------------------------------------------------------------
+#' @keywords internal
+integercols2numeric <- function(df) {
+  integer_cols <- sapply(df, is.integer)
+  if (none(integer_cols))
+    return(df)
+  df[integer_cols] <- lapply(df[integer_cols], as.numeric)
+  df
+}
+
+#' @keywords internal
+factorcols2character <- function(df) {
+  factor_cols <- sapply(df, is.factor)
+  if (none(factor_cols))
+    return(df)
+  df[factor_cols] <- lapply(df[factor_cols], as.character)
+  df
 }

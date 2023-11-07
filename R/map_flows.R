@@ -1,4 +1,4 @@
-#' Geographic representation of origin-destination flows
+#' Geographical representation of origin-destination flows
 #'
 #' The graphic combines a graphical representation of origin-destination
 #' flows with bar charts that represent the total inflow and outflow per site.
@@ -38,11 +38,15 @@
 #'    A logical, controlling whether the site names should be printed
 #' @param remove_intra
 #'    A logical that sets the intra flow to null values
+#' @param cex
+#'    A numeric, controlling the font size of the legends
+#' @inheritParams spflow_control
 #'
 #' @return Creates a graphical representation of origin-destination flows
 #' @export
 #' @importFrom grDevices colors
 #' @importFrom graphics arrows legend lines polygon text
+#' @author Thibault Laurent
 #'
 #' @examples
 #'
@@ -76,16 +80,35 @@
 #'           remove_intra = TRUE)
 #'
 map_flows <- function(
-  y, index_o, index_d, coords_s,
-  color_palette = sample(colors(), size = nrow(coords_s)),
-  add = FALSE, max_lwd = 1, filter_lowest = 0.75, max_bar = 1,
-  legend_position = "none", decimal_points = 0,
-  add_labels = FALSE, remove_intra = FALSE) {
+  y,
+  index_o,
+  index_d,
+  coords_s,
+  color_palette = sample(colors(), size = nrow(coords_s), replace = nrow(coords_s) > length(colors())),
+  add = FALSE,
+  max_lwd = 1,
+  filter_lowest = 0.75,
+  max_bar = 1,
+  legend_position = "none",
+  decimal_points = 0,
+  add_labels = FALSE,
+  remove_intra = FALSE,
+  cex = .6,
+  na_rm = TRUE) {
 
   # verification
   # size of the vectors
   stopifnot(length(y) == length(index_o),
             length(index_o) == length(index_d))
+
+
+  valid_y <- is.finite(y)
+  if (!all(valid_y)) {
+    assert(na_rm, "NA/NaN/Inf in y!")
+    y <- y[valid_y]
+    index_o <- index_o[valid_y]
+    index_d <- index_d[valid_y]
+    }
 
   stopifnot(legend_position %in% c("none", "bottomright", "bottom", "bottomleft",
             "left", "topleft", "top", "topright", "right", "center"))
@@ -107,10 +130,11 @@ map_flows <- function(
     y[index_o == index_d] <- 0
   }
 
-  # coords must have rownames corresponding with S
-  site_s <- rownames(coords_s)
+
   # Check on the spatial coordinates data
-  stopifnot(all(S %in% site_s))
+  stopifnot(all(S %in% rownames(coords_s)))
+  coords_s <- coords_s[rownames(coords_s) %in% S, , drop = FALSE]
+  site_s <- rownames(coords_s)
 
   # initialisation
   rownames(coords_s) <- site_s
@@ -213,14 +237,14 @@ map_flows <- function(
   }
 
   # plot the highest flows
-  ind_biggest <- which(y > quantile(y, filter_lowest))
+  ind_biggest <- which(y > quantile(y, filter_lowest, na.rm = TRUE))
   for(i in ind_biggest) {
       A <- xy_origin[as.character(index_o[i]), ]
       B <- xy_dest[as.character(index_d[i]), ]
-      xA <- A[1]
-      yA <- A[2]
-      xB <- B[1]
-      yB <- B[2]
+      xA <- A[[1]]
+      yA <- A[[2]]
+      xB <- B[[1]]
+      yB <- B[[2]]
       my_arc_don <- my_arc(xA, yA, xB, yB)
       lines(my_arc_don[, 1], my_arc_don[, 2],
             lwd = max_lwd_flows[i], col = my_col_flow[i])
@@ -286,7 +310,7 @@ map_flows <- function(
            legend = flows_legend,
            lty = 1,
            lwd = max_lwd * flows_legend / max(y, na.rm = T),
-           cex = 0.6,
+           cex = cex,
            title = "Flow size",
            box.lwd = 0)
 
@@ -320,7 +344,7 @@ map_flows <- function(
                   y_bottom))
 
     # Print out and In
-    text(x_left, y_bottom + max(bar_out, bar_in), "Out / In", cex = 0.5, pos = 3)
+    text(x_left, y_bottom + max(bar_out, bar_in), "  Out / In", cex = cex - .1, pos = 3)
     # text(x_left + diff(range(xy_origin[, 1])) * shift, y_bottom, "In", cex = 0.5, pos = 1)
 
     # Print the arrows
@@ -331,14 +355,14 @@ map_flows <- function(
 
     # Print the values
     text(x_left + 2.1 * diff(range(xy_origin[, 1])) * shift,
-         y_bottom, "0", cex = 0.5, pos = 4)
+         y_bottom, "0", cex = cex - .1, pos = 4)
     text(x_left + 2.1 * diff(range(xy_origin[, 1])) * shift,
          y_bottom + max(bar_out, bar_in),
          round(max(outflows, inflows), decimal_points),
-         cex = 0.5, pos = 4)
+         cex = cex - .1, pos = 4)
     text(x_left + 2.1 * diff(range(xy_origin[, 1])) * shift,
          y_bottom + max(bar_out, bar_in) / 2,
          round(max(outflows, inflows) / 2, decimal_points),
-         cex = 0.5, pos = 4)
+         cex = cex - .1, pos = 4)
   }
 }

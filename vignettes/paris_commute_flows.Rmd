@@ -2,36 +2,41 @@
 title: "Home-to-work commuting flows within the municipalities around Paris"
 output: 
   rmarkdown::html_vignette:
+    toc: true
+    toc_depth: 3
+bibliography: '`r system.file("REFERENCES.bib", package="spflow")`'
 vignette: >
   %\VignetteIndexEntry{Home-to-work commuting flows within the municipalities around Paris}
-  %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  markdown: 
+    wrap: sentence
 ---
 
 ```{r, include = FALSE}
 old_opt <- options(max.print = 200)
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
-)
-```
-
-
-```{r setup, echo=TRUE, results=FALSE, message=FALSE}
-library("spflow")
-library("sf")
-library("spdep")
+  comment = "#>",
+  # out.width = "100%",
+  fig.width = 7.5,
+  fig.align = 'center')
 ```
 
 # Introduction
 
-This article illustrates the use of the **spflow** package for modeling spatial interactions using the example of home-to-work commuting flows. 
+This article illustrates the use of the **spflow** package for modeling spatial interactions using the example of home-to-work commuting flows.
 For our example we use information on the 71 municipalities that are located closest to the center of Paris.
 This data is contained in the package and was originally diffused by the French National Institutes of Statistics and Economic Studies (INSEE), and of Geographic and Forest Information (IGN).
 (For more information see `help(paris_data)`.)
 
+```{r setup, echo=TRUE, results=FALSE, message=FALSE}
+library("Matrix")
+library("spflow")
+library("sf")
+library("spdep")
 
-```{r}
 data("paris10km_municipalities")
 data("paris10km_commuteflows")
 ```
@@ -46,10 +51,9 @@ drop_area <- names(paris10km_municipalities) != "AREA"
 plot(paris10km_municipalities[drop_area])
 ```
 
-
 There are three different neighborhood matrices that can be used to describe the connectivity between the municipalities.
 
-```{r}
+```{r, fig.show='hold'}
 old_par <- par(mfrow = c(1, 3), mar = c(0,0,1,0))
 
 mid_points <- suppressWarnings({
@@ -76,14 +80,13 @@ title("3 Nearest Neighbors")
 par(old_par)
 ```
 
-Finally, there is data on the size of the commuting flows and the distance between all pairs of municipalities.
+Finally, there is data on the size of the commuting flows and the distance between all pairs of municipalities
 
 ```{r}
-paris10km_commuteflows 
+head(paris10km_commuteflows)
 ```
 
-
-# Modeling Spatial interactions
+# Modeling Spatial Interactions with `spflow()`
 
 The **spflow** package builds on the idea that flows correspond to pairwise interactions between the nodes of an origin network with the nodes of a destination network.
 
@@ -91,30 +94,29 @@ In our example, the origin and destination networks are the same because every m
 
 To estimate the model efficiently, the **spflow** package uses moment-based estimation methods, that exploit the relational structure of flow data.
 This avoids duplication arising from the fact that each municipality is at the origin and destination of many flows.
+For more details on the model and the estimation methods see LeSage (2008), Dargel (2021) and Dargel (2022).
 
+## The `spflow network objects`
 
-## The network objects 
-
-To describe the nodes of a network the package provides `sp_network_nodes-class` that combines attributes of the nodes with the chosen network structure.
+To describe the nodes of a network the package provides `spflow_network-class` that combines attributes of the nodes with the chosen network structure.
 For our model we choose the contiguity based neighborhood structure.
 
 ```{r}
-paris10km_net <- 
-  sp_network_nodes(
-    network_id = "paris",
+paris10km_net <- spflow_network(
+    id_net = "paris",
     node_neighborhood = nb2mat(paris10km_nb$by_contiguity),
-    node_data = st_drop_geometry(paris10km_municipalities),
+    node_data = paris10km_municipalities,
     node_key_column = "ID_MUN")
 
 paris10km_net
 ```
 
-The `sp_network_pair-class` contains all information on the pairs of nodes belonging to the origin and destination networks.
+The `spflow_network_pair-class` contains all information on the pairs of nodes belonging to the origin and destination networks.
 
 ```{r}
-paris10km_net_pairs <- sp_network_pair(
-  orig_net_id = "paris",
-  dest_net_id = "paris",
+paris10km_net_pairs <- spflow_network_pair(
+  id_orig_net = "paris",
+  id_dest_net = "paris",
   pair_data = paris10km_commuteflows,
   orig_key_column = "ID_ORIG",
   dest_key_column = "ID_DEST")
@@ -122,12 +124,39 @@ paris10km_net_pairs <- sp_network_pair(
 paris10km_net_pairs
 ```
 
-The `sp_multi_network-class` combines information on the nodes and the node-pairs and also ensures that both data sources are consistent.
-For example, if some of the origins in the `sp_network_pair-class` are not identified with the nodes in the `sp_network_nodes-class` an error will be raised.
+The `spflow_network_multi-class` combines information on the nodes and the node-pairs and also ensures that both data sources are consistent.
+For example, if some of the origins in the `spflow_network_pair-class` are not identified with the nodes in the `spflow_network-class` an error will be raised.
 
 ```{r}
-paris10km_multi_net <- sp_multi_network(paris10km_net,paris10km_net_pairs)
-paris10km_multi_net
+paris10km_multinet <- spflow_network_multi(paris10km_net,paris10km_net_pairs)
+paris10km_multinet
+```
+
+Given the information on origins, destinations and OD pairs we can use the `spflow_map()` method for a simple geographic representation of the largest flows.
+
+```{r, fig.width=8, fig.height=7}
+plot(paris10km_municipalities$geometry) # polygons as background
+spflow_map(
+  paris10km_multinet,
+  flow_var = "COMMUTE_FLOW",
+  add = TRUE,          # add to existing background
+  legend_position = "bottomleft",
+  filter_lowest = .95, # concentrate on the 5% largest
+  remove_intra = TRUE,  # intra-municipality flows are too large
+  cex = 1)
+```
+
+Before estimating a model we should investigate the correlation structure of the input data.
+The `pair_cor()` method creates a correlation matrix, which we can represent using the `cor_image()`.
+The formula is used clarify which variables should be included in the correlation matrix. 
+The details of how to use this formula are explained later in this vignette and documented in `?spflow`.
+
+```{r, fig.width=7.5, fig.height=6.75}
+cor_formula <- log(1 + COMMUTE_FLOW) ~ . + P_(log( 1 + DISTANCE))
+cor_mat <- pair_cor(paris10km_multinet, spflow_formula = cor_formula, add_lags_x = FALSE)
+
+colnames(cor_mat) <- paste0(substr(colnames(cor_mat),1,3),"...") #truncate top labels
+cor_image(cor_mat)
 ```
 
 ## Estimation
@@ -136,25 +165,24 @@ The core function of the package is `spflow()`, which provides an interface to f
 
 ### Estimating with default values
 
-Estimation with default settings requires two arguments: an `sp_multi_network-class` and a `flow_formula`.
-The `flow_formula` specifies the model we want to estimate.
-In this example, the dependent variable is a transformation of commuting flows and we use the dot shortcut to indicate that all available variables should be included in the model.
+Estimation with default settings requires two arguments: a `spflow_network_multi-class` and a `spflow_formula`.
+The `spflow_formula` specifies the model we want to estimate.
+In this example, the dependent variable is a transformation of commuting flows and we use the do- shortcut to indicate that all available variables should be included in the model.
 Using the defaults leads to the most comprehensive spatial interaction model, which includes spatial lags of the dependent variable, the exogenous variables and additional attributes for intra-regional observations.
 
 ```{r}
 results_default <- spflow(
-  flow_formula = log(1 + COMMUTE_FLOW) ~ . + G_(log( 1 + DISTANCE)),
-  sp_multi_network = paris10km_multi_net)
+  spflow_formula = log(1 + COMMUTE_FLOW) ~ . + P_(log( 1 + DISTANCE)),
+  spflow_networks = paris10km_multinet)
 
 results_default
 ```
 
 ### Adjusting the formula
 
-We can adjust how the exogenous variables are to be used by wrapping them into the `D_()`, `O_()`, `I_()` and `G_()` functions.
-The variables in `G_()` are used as OD pair features and those in `D_()`, `O_()` and `I_()` are used as destination, origin and intra-regional features.
+We can adjust how the exogenous variables are to be used by wrapping them into the `D_()`, `O_()`, `I_()` and `P_()` functions.
+The variables in `P_()` are used as OD pair features and those in `D_()`, `O_()` and `I_()` are used as destination, origin and intra-regional features.
 We can take advantage of the formula interface to specify transformations and expand factor variables to dummies.
-
 
 ```{r}
 clog <- function(x) {
@@ -162,26 +190,24 @@ clog <- function(x) {
   log_x - mean(log_x)
 }
 
-flow_formula  <- 
+spflow_formula  <- 
   log(COMMUTE_FLOW + 1) ~
   D_(log(NB_COMPANY) + clog(MED_INCOME)) +
   O_(log(POPULATION) + clog(MED_INCOME)) +
   I_(log(POPULATION)) +
-  G_(log(DISTANCE + 1))
+  P_(log(DISTANCE + 1))
 
 results_mle  <- spflow(
-  flow_formula,
-  paris10km_multi_net)
+  spflow_formula,
+  paris10km_multinet)
 results_mle
 ```
 
-
-### Adjustment through `spflow_control`
+### Fine-grained control with `spflow_control()`
 
 More fine-grained adjustments are possible via the `spflow_control` argument.
 Here we change the estimation method and the way we want to model the spatial autoregression in the flows.
-To use spatial lags only for certain variables, we need to specify them as a second formula. 
-
+To use spatial lags only for certain variables, we need to specify them as a second formula.
 
 ```{r}
 sdm_formula <- ~
@@ -194,15 +220,109 @@ cntrl <- spflow_control(
   model = "model_7") # restricts \rho_w = 0
 
 results_mcmc  <- spflow(
-  flow_formula,
-  paris10km_multi_net,
-  flow_control = cntrl)
+  spflow_formula,
+  paris10km_multinet,
+  estimation_control = cntrl)
 
 results_mcmc
 ```
 
+## Visualisations to diagnose the fit
 
-```{r "cleanup", include=FALSE}
+Calling `plot(results_mcmc)` would create a whole sequence of graphics that allow to diagnose the fit.
+Here we concentrate on a selection of these graphics.
+The pairwise correlations of the model data show, for example, that the residuals and their spatial lags are not correlated with the explanatory variables.
+
+```{r, fig.width=7.5, fig.height=6.75}
+res_corr <- pair_cor(results_mcmc)
+colnames(res_corr) <- substr(colnames(res_corr),1,3)
+cor_image(res_corr)
+```
+
+We can also create Moran scatter plots to check whether the residuals still exhibit spatial autocorrelation with respect to the three potential neighborhood matrices $W_d$, $W_o$ and $W_w$.
+
+```{r, fig.show='hold'}
+old_par <- par(mfrow = c(1, 3), mar = c(2,2,2,2))
+spflow_moran_plots(results_mcmc)
+par(old_par)
+```
+
+
+
+A quick investigation of the 2% residuals with largest magnitude reveals that long distances seem to be predicted with lower precision.
+
+```{r, fig.width=8, fig.height=7}
+plot(paris10km_municipalities$geometry)
+spflow_map(
+  results_mcmc,
+  add = TRUE,
+  legend_position = "bottomleft",
+  filter_lowest = .98, # concentrate on the 2% largest (in magnitude)
+  cex = 1) 
+```
+
+Looking at the relation between the distances and the error confirms this impression.
+A more complex model could account for the increasing variance by weighting the observations during the estimation.
+This could be achieved using the `weight_variable` option in `spflow_control()`, but is left out in this introductory vignette.
+
+```{r}
+plot(log(dat(paris10km_multinet, "paris_paris")[["DISTANCE"]] + 1), resid(results_mcmc))
+```
+
+## Evaluating the impact of changing the input data
+
+Finally we can evaluate the impact certain characteristics have on the outcome.
+Here we look at a scenario where the population in the central municipality is increased by 10%.
+As this has diverse effects on all flows we will first look at an image of the effect matrix.
+For a more detailed treatment of the effect decomposition in the spatial econometric interaction model see \cite{LeSage and Thomas-Agnan (2015)} and \cite{Laurent et.al (2022)}.
+
+
+```{r, fig.width=7.5, fig.height=7.5}
+center_mun <- "75101"
+change_paris <- dat(paris10km_multinet, "paris")
+change_paris <- change_paris[change_paris$ID_MUN == center_mun,]
+change_paris[,"POPULATION"] <- change_paris[,"POPULATION"]*1.1
+change_paris <- change_paris[,1:2] # keep the ID and the variable that changed
+
+effect_matrix <- predict_effect(
+  results_mcmc,                           # the model
+  new_dat = list("paris" = change_paris), # changes in network "paris"
+  return_type = "M")                      # return in matrix form
+  
+
+# in the first row are those flows that go to the center
+# in the first column are those flows that start from the center
+image(effect_matrix)
+```
+
+Here we see that flows starting from the center increase and flows that start from neighbors of the center to the center decrease.
+All other effects are very small.
+We can then have a closer look at the flows that start from the center or go to it.
+Additionally we look at all the internal flows, which decrease for all municipalities except for the center.
+
+```{r}
+plot(cbind("FLOWS_FROM_CENTER" = effect_matrix[,1], paris10km_municipalities["geometry"]))
+plot(cbind("FLOWS_TO_CENTER" = effect_matrix[1,], paris10km_municipalities["geometry"]))
+plot(cbind("INTRA_FLOWS" = diag(effect_matrix), paris10km_municipalities["geometry"]))
+```
+
+We can then look at the indirect effects on all flows that do not have the central municipality as origin or destination.
+To summarize these by total inflow and outflow we additionally set the internal flows to zero.
+
+```{r}
+effect_matrix2 <- effect_matrix
+diag(effect_matrix2) <- effect_matrix2[1,] <- effect_matrix2[,1] <- 0
+plot(cbind("TOTAL_OUTFLOWS" = rowSums(effect_matrix2), paris10km_municipalities["geometry"]))
+plot(cbind("TOTAL_INFLOWS" = colSums(effect_matrix2), paris10km_municipalities["geometry"]))
+```
+
+```{r "cleanup", include=FALSE, echo=FALSE}
 options(old_opt)
 ```
 
+
+# References
+
+Dargel L, Thomas-Agnan C (2022). “A generalized framework for estimating spatial econometric interaction models.” TSE Working Paper, n. 22-1312, https://www.tse-fr.eu/publications/generalized-framework-estimating-spatial-econometric-interaction-models.
+
+Goulard M, Laurent T, Thomas-Agnan C (2017). “About predictions in spatial autoregressive models: optimal and almost optimal strategies.” Spatial Economic Analysis, 304–325. https://doi.org/10.1080/17421772.2017.1300679. 

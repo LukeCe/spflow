@@ -11,20 +11,20 @@
 \alias{simulation_params}
 \title{Simulated data for stylized versions of Germany and the USA}
 \format{
-An object of class \code{sp_multi_network} of length 1.
+An object of class \code{spflow_network_multi} of length 1.
 
 An object of class \code{sf} (inherits from \code{data.frame}) with 16 rows and 3 columns.
 
-An object of class \code{sp_network_nodes} of length 1.
+An object of class \code{spflow_network} of length 1.
 
 An object of class \code{sf} (inherits from \code{data.frame}) with 51 rows and 3 columns.
 
-An object of class \code{sp_network_nodes} of length 1.
+An object of class \code{spflow_network} of length 1.
 
 An object of class \code{list} of length 3.
 }
 \source{
-Simulated data inspired by
+The stylized versions of Germany and the USA are inspired by
 https://ialab.it.monash.edu/~dwyer/papers/maptrix.pdf
 }
 \usage{
@@ -41,23 +41,27 @@ germany_net
 simulation_params
 }
 \description{
-The package uses the same stylized country examples as those presented by
-\insertCite{Yang2017;textual}{spflow}.
-The first example is a stylized version of Germany with 16 states.
-The second example is a stylized version of the USA with 51 states.
+The package provides two stylized country examples that have been already
+used by\insertCite{Yang2017;textual}{spflow}.
+The first example is a stylized version of Germany with 16 states and
+second one is based on the USA with 51 states.
 
-We provide spatial objects that contain the geography of our example,
-as well as two \code{\link[=sp_network_nodes-class]{sp_network_nodes-class()}} objects.
-Finally, there is an \code{\link[=sp_multi_network-class]{sp_multi_network-class()}} containing the two networks
-and four network pair objects based on the same example.
+There are two \pkg{sf} objects that contain the geography and data for the country
+examples.
+The same information is also provided by two \code{\link[=spflow_network-class]{spflow_network-class()}} objects.
+Additionally, there is an \code{\link[=spflow_network_multi-class]{spflow_network_multi-class()}} that contains the
+two \code{\link[=spflow_network]{spflow_network()}} and four \code{\link[=spflow_network_pair]{spflow_network_pair()}}, which contain
+OD-pairs where each states of each country can be origins or destinations.
 
-The simulation parameters are given as \code{rho} for the auto-regressive
-parameter, \code{delta} for the impact of the exogenous variables and \code{sd_error}
-for standard deviation of the simulated Gaussian noise.
-They are used to simulate two flow vectors \code{y2} and \code{y9} for each network
-pair inside the \code{multi_net_usa_ge}.
+For each of the OD-pairs we simulated three flow vectors \code{y1}, \code{y2} and \code{y9}.
+The parameters used for this simulation are given as a list:
+\code{rho} contains the auto-regression parameters, \code{delta} contains the parameters
+for the exogenous variables and \code{sd_error} is the standard deviation of the Gaussian error term.
 }
 \references{
 \insertAllCited{}
+}
+\author{
+Lukas Dargel
 }
 \keyword{datasets}

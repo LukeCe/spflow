@@ -12,16 +12,14 @@
 
 # model coefficients
 delta <- c(
-  "(Intercept)"  =  12,
-  "(Intra)"      =  10,
-  "DEST_X"       =  1,
-  "DEST_X.lag1"  =  0.6,
-  "ORIG_X"       =  -0.8,
-  "ORIG_X.lag1"  =  -0.4,
-  "INTRA_X"      =  2,
-  "INTRA_X.lag1" =  -0.3,
-  "DISTANCE"     = -3
-)
+  "(Intercept)" =  12,
+  "(Intra)"     =  10,
+  "D_X"         =  1,
+  "D_X.lag1"    =  0.6,
+  "O_X"         =  -0.8,
+  "O_X.lag1"    =  -0.4,
+  "I_X"         =  2,
+  "P_DISTANCE"  = -3)
 
 # auto-correlation parameters
 rho <- c(

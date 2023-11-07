@@ -2,14 +2,15 @@
 % Please edit documentation in R/map_flows.R
 \name{map_flows}
 \alias{map_flows}
-\title{Geographic representation of origin-destination flows}
+\title{Geographical representation of origin-destination flows}
 \usage{
 map_flows(
   y,
   index_o,
   index_d,
   coords_s,
-  color_palette = sample(colors(), size = nrow(coords_s)),
+  color_palette = sample(colors(), size = nrow(coords_s), replace = nrow(coords_s) >
+    length(colors())),
   add = FALSE,
   max_lwd = 1,
   filter_lowest = 0.75,
@@ -17,7 +18,9 @@ map_flows(
   legend_position = "none",
   decimal_points = 0,
   add_labels = FALSE,
-  remove_intra = FALSE
+  remove_intra = FALSE,
+  cex = 0.6,
+  na_rm = TRUE
 )
 }
 \arguments{
@@ -56,6 +59,11 @@ connecting the origins with the destinations}
 \item{add_labels}{A logical, controlling whether the site names should be printed}
 
 \item{remove_intra}{A logical that sets the intra flow to null values}
+
+\item{cex}{A numeric, controlling the font size of the legends}
+
+\item{na_rm}{A logical, if \code{FALSE} the estimation throws an error when the data
+contains \code{NA} values. Otherwise the estimation proceeds with a sub-sample.}
 }
 \value{
 Creates a graphical representation of origin-destination flows
@@ -96,4 +104,7 @@ map_flows(paris_arron_commuteflows[, "COMMUTE_FLOW"],
           add_labels = TRUE,
           remove_intra = TRUE)
 
+}
+\author{
+Thibault Laurent
 }

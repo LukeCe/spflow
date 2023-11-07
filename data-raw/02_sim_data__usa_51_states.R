@@ -11,12 +11,13 @@
 #
 # Our examples come from https://ialab.it.monash.edu/~dwyer/papers/maptrix.pdf
 # - - - - - - - - - - - - - - - - - - -
-# Date: February 2021
+# Date: July 2022
 
 library("magrittr")
 library("sf")
 library("sp")
 library("spdep")
+library("spflow")
 source("data-raw/helpers_sim-data.R")
 
 # generate data for the 16 states of the USA
@@ -49,25 +50,24 @@ state_coordinates <- list(
 
 usa_grid <- SpatialPointsDataFrame(
   coords = Reduce("cbind", state_coordinates),
-  data = data.frame(usa_data, row.names = "ID_STATE")) %>%
-  create_grid(.) %>%
-  st_as_sf()
+  data = data.frame(usa_data, row.names = "ID_STATE"))
+usa_grid <-  create_grid(usa_grid)
+usa_grid <-  st_as_sf(usa_grid)
 
 usa_grid <- st_as_sf(usa_grid)[c(2,1,3)]
 names(usa_grid)[c(1,2)] <- names(usa_data)
 
-usa_4_nearest_neighbours <-
-  suppressWarnings(st_centroid(usa_grid)) %>%
-  knearneigh(k = 4) %>%
-  knn2nb() %>%
-  nb2listw() %>%
-  listw2mat()
+usa_4_nearest_neighbours <- suppressWarnings(st_centroid(usa_grid))
+usa_4_nearest_neighbours <- knearneigh(usa_4_nearest_neighbours, k = 4)
+usa_4_nearest_neighbours <- knn2nb(usa_4_nearest_neighbours)
+usa_4_nearest_neighbours <- nb2listw(usa_4_nearest_neighbours)
+usa_4_nearest_neighbours <- listw2mat(usa_4_nearest_neighbours)
 
-usa_net <- sp_network_nodes(
-  network_id = "usa",
+usa_net <- spflow_network(
+  "usa",
   node_neighborhood = usa_4_nearest_neighbours,
-  node_data = usa_data,
+  node_data = usa_grid,
   node_key_column = "ID_STATE")
 
-save(usa_net, file = "data/usa_net.rda")
-save(usa_grid, file = "data/usa_grid.rda")
+save(usa_net, file = "data/usa_net.rda", compress = "bzip2")
+save(usa_grid, file = "data/usa_grid.rda", compress = "bzip2")
