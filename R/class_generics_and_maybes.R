@@ -67,7 +67,7 @@ setGeneric(
 #' @export
 setGeneric(
   name = "dat<-",
-  def = function(object, ... , value) standardGeneric("dat<-"))
+  def = function(object, ..., value) standardGeneric("dat<-"))
 
 
 # ---- ... id -----------------------------------------------------------------

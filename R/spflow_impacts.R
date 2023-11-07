@@ -41,8 +41,6 @@
 #' desti_effect <- sum(MI[8,]) - intra_effect
 #' netwo_effect <- sum(MI[-8,-8])
 #' total_effect == (intra_effect + origi_effect + desti_effect + netwo_effect)
-#' @name impacts_matrix
-#' @aliases impacts_matrix
 #' @rdname impacts_matrix
 #' @export
 setMethod(
@@ -71,7 +69,7 @@ setMethod(
            "The change_obs musst corerspond to integers in 1,...,%s!", nrow(source_dat))
 
     change_dat <- source_dat[change_obs, c(get_keycols(source_dat,no_coords = TRUE), change_var)]
-    change_dat[[2]] <- if (x_is_log) change_dat[[2]] * 1.01 else change_dat[[2]] + 1
+    change_dat[[2]] <- if (x_is_log) change_dat[[change_var]] * 1.01 else change_dat[[change_var]] + 1
     change_dat <- named_list(change_net, change_dat)
     result <- predict_effect(object, change_dat, return_type = "M", ...)
 

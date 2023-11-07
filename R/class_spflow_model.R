@@ -581,7 +581,11 @@ setMethod(
 #' @name predict_effect
 #' @aliases predict_effect
 #' @rdname predict
+#' @param y_is_log Logical, if `TRUE` the dependent variable is considered to be in logarithms and
+#'    the effects calculation is adjusted by the method proposed by Laurent et. al. (2023).
 #' @export
+#' @references
+#'   -Laurent, Thibault, Paula Margaretic, and Christine Thomas‐Agnan. "Generalizing impact computations for the autoregressive spatial interaction model." Geographical Analysis (2023).
 setMethod(
   f = "predict_effect",
   signature = "spflow_model",
@@ -626,10 +630,11 @@ setMethod(
       approximate = approx_expectation,
       max_it = expectation_approx_order)
 
-    if (y_is_log) {
-      new_y   <- spflow:::actual(object,return_type = "M")
+    if (y_is_log){
+      new_y <- spflow:::actual(object,return_type = "M")
       if (!is(new_y, "Matrix")) new_y <- Matrix(new_y) # TODO remove once Matrix is standard
-      diff_effect@x <- exp(new_y@x + diff_effect@x) * diff_effect@x
+      new_y@x <- exp(new_y@x + diff_effect@x)
+      diff_effect@x <- diff_effect@x * new_y@x
     }
 
     result <- spflow_mat2format(

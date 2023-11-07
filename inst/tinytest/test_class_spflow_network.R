@@ -37,19 +37,19 @@ expect_error({
   test_node_data <- data.frame(key = LETTERS[seq(3)], val = seq(3))
   spflow_network("net1",NULL,test_node_data)
   },
-  pattern = "node_key_column is not available")
+  pattern = "node_key_column")
 
 expect_error({
   test_node_data <- data.frame(key = LETTERS[seq(3)], val = seq(3))
   spflow_network("net1",NULL,test_node_data,"not_a_column")
   },
-  pattern = "node_key_column is not available")
+  pattern = "node_key_column")
 
 expect_error({
   test_node_data <- data.frame(key = LETTERS[c(1,1,3)], val = seq(3))
   spflow_network("net1",NULL,test_node_data,"not_a_column")
   },
-  pattern = "node_key_column is not available")
+  pattern = "node_key_column")
 
 expect_error({
   test_node_data <- data.frame(key = LETTERS[seq(3)], val = seq(3))

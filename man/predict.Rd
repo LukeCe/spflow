@@ -60,6 +60,9 @@ the results. This only works when the return type is "OD".}
 
 \item{old_signal}{A matrix that can be supplied to specify the reference value for the signal.
 If not given the signal contained in the model is used.}
+
+\item{y_is_log}{Logical, if \code{TRUE} the dependent variable is considered to be in logarithms and
+the effects calculation is adjusted by the method proposed by Laurent et. al. (2023).}
 }
 \value{
 Predicted values in the format specified by the argument return_type.
@@ -75,4 +78,6 @@ The prediction methods used here have been developed or analyzed by \insertCite{
 }
 \references{
 \insertAllCited{}
+
+-Laurent, Thibault, Paula Margaretic, and Christine Thomas‐Agnan. "Generalizing impact computations for the autoregressive spatial interaction model." Geographical Analysis (2023).
 }
