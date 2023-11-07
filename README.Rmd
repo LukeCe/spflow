@@ -21,6 +21,7 @@ knitr::opts_chunk$set(
 [![test-coverage](https://codecov.io/gh/LukeCe/spflow/branch/master/graph/badge.svg)](https://github.com/LukeCe/spflow/actions)
 [![status](https://tinyverse.netlify.com/badge/spflow)](https://CRAN.R-project.org/package=spflow)
 [![Downloads](https://cranlogs.r-pkg.org/badges/spflow?color=brightgreen)](https://www.r-pkg.org/pkg/spflow)
+<!-- [![R-CMD-check](https://github.com/LukeCe/spflow/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/LukeCe/spflow/actions/workflows/R-CMD-check.yaml) -->
 <!-- badges: end -->
 
 
