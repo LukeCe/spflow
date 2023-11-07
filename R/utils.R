@@ -112,7 +112,7 @@ nb2Mat <- function(nb) {
   nb_i <- unlist(nb[nonzeros])
   nb_j <- seq_along(nb)[nonzeros]
   nb_j <- unlist(Map("rep", nb_j, lapply(nb[nonzeros], length)))
-  Matrix::sparseMatrix(i = nb_i, j = nb_j, dims = list(n, n), repr = "C")
+  Matrix::sparseMatrix(i = nb_i, j = nb_j, dims = c(n, n), repr = "C")
 }
 
 # ---- infix operators --------------------------------------------------------
