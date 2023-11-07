@@ -11,7 +11,6 @@ status](https://www.r-pkg.org/badges/version/spflow)](https://CRAN.R-project.org
 [![test-coverage](https://codecov.io/gh/LukeCe/spflow/branch/master/graph/badge.svg)](https://github.com/LukeCe/spflow/actions)
 [![status](https://tinyverse.netlify.com/badge/spflow)](https://CRAN.R-project.org/package=spflow)
 [![Downloads](https://cranlogs.r-pkg.org/badges/spflow?color=brightgreen)](https://www.r-pkg.org/pkg/spflow)
-<!-- [![R-CMD-check](https://github.com/LukeCe/spflow/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/LukeCe/spflow/actions/workflows/R-CMD-check.yaml) -->
 <!-- badges: end -->
 
 The [**spflow**](https://lukece.github.io/spflow/) package allows to
