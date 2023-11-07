@@ -25,6 +25,8 @@ reference:
 - subtitle: "class description and methods"
   contents:
   - spflow_model-class
+  - impacts_matrix,spflow_model-method
+  - plot,spflow_model-method
   - pair_cor
   - predict_effect
   - spflow_map
@@ -42,4 +44,3 @@ reference:
   contents:
   - example_data
   - paris_data
-
