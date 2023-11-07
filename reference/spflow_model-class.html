@@ -225,372 +225,372 @@ the parameter value is 0.</p></li>
 <span class="r-in"><span><span class="co"># General methods</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="spflow_generics.html">results</a></span><span class="op">(</span><span class="va">spflow_results</span><span class="op">)</span> <span class="co"># data.frame of main results</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                    est         sd     t.stat        p.val  quant_025  quant_975</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> rho_d        0.4973551 0.03014394  16.499340 1.380547e-41  0.4382741  0.5564362</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> rho_o        0.3329123 0.03698759   9.000648 6.519250e-17  0.2604179  0.4054066</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> rho_w       -0.2266928 0.04430102  -5.117100 6.286603e-07 -0.3135212 -0.1398644</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept) 10.1983991 2.16127627   4.718693 4.000334e-06  5.9623755 14.4344228</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> (Intra)      9.8708919 1.53144271   6.445486 6.108850e-10  6.8693194 12.8724645</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> D_X          0.9830507 0.06864235  14.321343 3.560555e-34  0.8485141  1.1175872</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> D_X.lag1     0.5087097 0.11464891   4.437109 1.380829e-05  0.2840020  0.7334175</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> O_X         -0.7587550 0.03809639 -19.916715 4.597554e-53 -0.8334225 -0.6840874</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> O_X.lag1    -0.3671943 0.09261763  -3.964626 9.661601e-05 -0.5487215 -0.1856671</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> I_X          2.0353093 0.08256791  24.650126 3.559779e-68  1.8734792  2.1971394</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> P_DISTANCE  -2.6218362 0.38393397  -6.828873 6.756407e-11 -3.3743330 -1.8693395</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> rho_d        0.4973547 0.03014394  16.499323 1.380740e-41  0.4382736  0.5564357</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> rho_o        0.3329122 0.03698759   9.000647 6.519306e-17  0.2604179  0.4054066</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> rho_w       -0.2266926 0.04430103  -5.117097 6.286715e-07 -0.3135210 -0.1398642</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept) 10.1984199 2.16127645   4.718702 4.000168e-06  5.9623959 14.4344439</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> (Intra)      9.8708850 1.53144280   6.445481 6.109021e-10  6.8693122 12.8724577</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> D_X          0.9830507 0.06864236  14.321342 3.560579e-34  0.8485141  1.1175872</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> D_X.lag1     0.5087106 0.11464892   4.437116 1.380786e-05  0.2840028  0.7334183</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> O_X         -0.7587555 0.03809640 -19.916726 4.597166e-53 -0.8334230 -0.6840879</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> O_X.lag1    -0.3671947 0.09261763  -3.964630 9.661449e-05 -0.5487219 -0.1856675</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> I_X          2.0353094 0.08256791  24.650126 3.559790e-68  1.8734793  2.1971395</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> P_DISTANCE  -2.6218397 0.38393401  -6.828881 6.756072e-11 -3.3743365 -1.8693429</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">spflow_results</span><span class="op">)</span> <span class="co"># vector of estimated coefficients</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>       rho_d       rho_o       rho_w (Intercept)     (Intra)         D_X </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   0.4973551   0.3329123  -0.2266928  10.1983991   9.8708919   0.9830507 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.4973547   0.3329122  -0.2266926  10.1984199   9.8708850   0.9830507 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    D_X.lag1         O_X    O_X.lag1         I_X  P_DISTANCE </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   0.5087097  -0.7587550  -0.3671943   2.0353093  -2.6218362 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   0.5087106  -0.7587555  -0.3671947   2.0353094  -2.6218397 </span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/stats/fitted.values.html" class="external-link">fitted</a></span><span class="op">(</span><span class="va">spflow_results</span><span class="op">)</span> <span class="co"># vector of fitted values</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   [1]  70.5269718  50.7313432  59.2264826  25.3655568  45.6058488  54.4762961</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   [7]  37.6779686  18.7507199  47.9836201  37.5703366  28.7870087  10.6905423</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [13]  16.1966491  11.2783398  -4.9354515  -5.5816651  41.3374537  82.1821213</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [19]  52.1207358  29.9805587  51.1448290  58.5083913  34.4574395  20.0691106</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [25]  49.3828667  37.4529417  27.2178706  10.8583310  15.8500467  11.3125379</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [31]  -5.7514813  -6.1967342  34.1375804  36.0149132  91.3951289  12.3502974</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [37]  41.3826078  53.2312269  37.7203022   7.3806395  37.7303239  30.6623892</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [43]  22.5659209  -0.2063114   6.4415569   2.7836235 -14.8862023 -15.2430090</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [49]  30.5627033  47.7528132  46.8684823  64.3020213  60.0761169  59.1740095</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [55]  38.9652321  40.6681465  69.4908960  48.5042518  36.6737212  29.0457273</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [61]  32.4958887  25.0209673  10.9306859   8.9237011  18.9354631  36.1343792</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [67]  42.6122076  27.4590362  92.6830392  53.7228668  29.3976429  23.3065570</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [73]  53.5330024  39.9311831  24.1628971   8.8976625  14.9695212   9.4347116</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [79]  -8.4324936  -9.6142495   8.7390931  25.8169797  37.2048307   6.3518215</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [85]  35.3401431 104.0637222  34.9837754   3.9658525  42.5432014  36.2965034</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [91]  30.0294215  -2.5893648   4.6375884   2.3782594 -15.9603744 -16.0624166</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [97]  18.5303820  26.9681101  45.9887425  11.7927216  37.4365928  59.4876776</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [103]  82.4410410  11.2762722  44.9284580  46.4316948  42.2520358   5.9158721</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [109]  14.5677684  13.2709939  -6.1348798  -4.7997101  24.6590962  37.5557968</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [115]  42.0719658  39.3316059  55.9344260  55.6190601  37.1786953  69.2205945</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [121]  70.5764305  48.7424542  35.4925569  37.7430792  39.5995682  27.2606738</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [127]  15.4195398  11.8415234  -0.9055034  12.6994817  18.1594360  15.9208248</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [133]  33.5966295  39.5491776  16.1562751  17.6188331 112.6727502  33.4194187</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [139]  14.8840351  14.6381388  17.9169322  10.9619383  -9.0387240 -10.7416682</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [145]   9.9829435  21.9153746  31.8342482  13.0509618  41.0264239  53.3675154</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [151]  39.9722307  14.1352749  52.4940346  92.3529653  38.2953272  10.0997105</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [157]  23.4924026  21.4734545  -1.5214622  -1.5058870  14.0800569  25.0552733</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [163]  37.8915150  13.7516219  38.5051132  60.1218798  49.3519855  14.4964653</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [169]  48.9562656  51.7450346  81.8134747  11.8411627  21.7755530  26.8981978</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [175]   1.3394295   3.8510515  21.6226759  31.9016978  39.6206883  30.8519694</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [181]  48.0189189  53.9346166  36.5267689  40.3964265  69.7619531  48.1084210</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [187]  36.3508605  67.9458813  44.0174999  30.6554879  25.4147037  17.4867915</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [193]  17.2576553  28.5474493  35.9991037  24.4924341  43.6744049  51.8872700</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [199]  35.7232746  35.5621170  65.5965577  52.5095206  36.4785992  37.0401635</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [205]  80.1195343  36.3463650  26.3574670  26.1497564  20.0284766  31.8894566</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [211]  41.3225983  25.9957649  46.6441658  57.7135249  43.0844499  30.2817120</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [217]  67.5022838  58.9613064  49.6887961  31.2874108  44.1960763  69.4418948</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [223]  27.9141910  30.6490829  26.2195535  37.9051593  45.0504270  31.8092128</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [229]  51.7607260  59.6135891  45.7991618  37.7111114  68.0924392  56.7932743</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [235]  46.1957981  45.1392405  53.1312273  46.0212541  58.7370692  36.6092043</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [241]  24.6482569  36.2671943  46.8855440  31.2785886  51.5774579  60.6124861</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [247]  46.6625989  36.5661750  67.8520534  59.1232465  49.2772410  38.5180386</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [253]  52.8097779  49.1932999  39.2000900  60.2497585</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   [1]  70.5269714  50.7313438  59.2264813  25.3655601  45.6058515  54.4762978</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   [7]  37.6779691  18.7507221  47.9836203  37.5703377  28.7870075  10.6905430</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [13]  16.1966491  11.2783405  -4.9354540  -5.5816679  41.3374471  82.1821197</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [19]  52.1207339  29.9805582  51.1448302  58.5083918  34.4574412  20.0691126</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [25]  49.3828677  37.4529444  27.2178711  10.8583329  15.8500487  11.3125403</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [31]  -5.7514817  -6.1967351  34.1375713  36.0149122  91.3951293  12.3503008</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [37]  41.3826090  53.2312287  37.7203015   7.3806426  37.7303268  30.6623934</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [43]  22.5659230  -0.2063087   6.4415599   2.7836281 -14.8862015 -15.2430073</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [49]  30.5627047  47.7528130  46.8684821  64.3020217  60.0761184  59.1740105</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [55]  38.9652316  40.6681479  69.4908949  48.5042522  36.6737188  29.0457289</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [61]  32.4958891  25.0209675  10.9306841   8.9236977  18.9354615  36.1343754</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [67]  42.6122027  27.4590332  92.6830387  53.7228657  29.3976429  23.3065551</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [73]  53.5330013  39.9311829  24.1628968   8.8976655  14.9695239   9.4347148</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [79]  -8.4324922  -9.6142483   8.7390923  25.8169757  37.2048266   6.3518237</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [85]  35.3401430 104.0637226  34.9837712   3.9658545  42.5431999  36.2965027</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [91]  30.0294154  -2.5893626   4.6375913   2.3782630 -15.9603743 -16.0624156</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [97]  18.5303796  26.9681095  45.9887403  11.7927226  37.4365940  59.4876780</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [103]  82.4410414  11.2762724  44.9284581  46.4316953  42.2520340   5.9158728</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [109]  14.5677699  13.2709974  -6.1348805  -4.7997091  24.6590951  37.5557968</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [115]  42.0719644  39.3316067  55.9344261  55.6190608  37.1786941  69.2205942</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [121]  70.5764298  48.7424554  35.4925554  37.7430799  39.5995689  27.2606756</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [127]  15.4195397  11.8415220  -0.9055022  12.6994834  18.1594381  15.9208212</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [133]  33.5966295  39.5491777  16.1562774  17.6188308 112.6727508  33.4194194</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [139]  14.8840369  14.6381350  17.9169322  10.9619384  -9.0387227 -10.7416673</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [145]   9.9829415  21.9153739  31.8342476  13.0509628  41.0264227  53.3675144</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [151]  39.9722262  14.1352760  52.4940337  92.3529657  38.2953233  10.0997124</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [157]  23.4924025  21.4734556  -1.5214615  -1.5058850  14.0800556  25.0552728</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [163]  37.8915148  13.7516229  38.5051146  60.1218789  49.3519835  14.4964664</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [169]  48.9562662  51.7450356  81.8134737  11.8411638  21.7755550  26.8981991</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [175]   1.3394303   3.8510539  21.6226725  31.9016973  39.6206858  30.8519718</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [181]  48.0189195  53.9346162  36.5267668  40.3964283  69.7619523  48.1084226</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [187]  36.3508586  67.9458825  44.0175017  30.6554901  25.4147031  17.4867914</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [193]  17.2576525  28.5474487  35.9991028  24.4924361  43.6744066  51.8872710</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [199]  35.7232743  35.5621154  65.5965569  52.5095209  36.4785991  37.0401619</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [205]  80.1195332  36.3463648  26.3574629  26.1497495  20.0284743  31.8894554</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [211]  41.3225975  25.9957653  46.6441672  57.7135263  43.0844510  30.2817124</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [217]  67.5022825  58.9613080  49.6887945  31.2874109  44.1960761  69.4418945</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [223]  27.9141870  30.6490787  26.2195488  37.9051564  45.0504243  31.8092147</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [229]  51.7607265  59.6135893  45.7991604  37.7111146  68.0924405  56.7932772</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [235]  46.1957980  45.1392431  53.1312301  46.0212568  58.7370703  36.6092050</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [241]  24.6482531  36.2671916  46.8855409  31.2785881  51.5774578  60.6124862</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [247]  46.6625990  36.5661751  67.8520529  59.1232486  49.2772416  38.5180404</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [253]  52.8097787  49.1933030  39.2000900  60.2497586</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/stats/residuals.html" class="external-link">resid</a></span><span class="op">(</span><span class="va">spflow_results</span><span class="op">)</span> <span class="co"># vector of residuals</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   [1]  2.11214557 -0.36023663 -1.75806550  4.43755610 -1.08440563 -1.13266261</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   [7]  1.16325220  0.87484956  1.04545095  1.63772435  1.09334055  1.87023785</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [13]  1.47642309 -0.24498214 -1.74180633  0.41396289  1.71223495  1.77733009</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [19]  1.93913996 -4.73442929 -0.30260089  1.01831469  0.71342108 -1.15517275</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [25]  1.21095272  2.58094572 -1.21192026  1.77090856 -0.27303455  1.56480488</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [31] -2.28205809  0.91231671  2.31036362  1.12820969  3.14325306  1.96065722</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [37]  4.27565758  2.53713761  0.66683090  0.51840422 -3.35303683  1.61610082</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [43]  1.42318765  0.14678234  1.51792212  1.35120186  1.95980976  2.13908753</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [49]  0.93127464  1.15534842  3.66505066  0.68510567  2.23823046  1.98636998</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [55]  0.41040366 -1.14542971 -3.02390631  1.52865462 -2.91340218  2.17919958</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [61] -1.35941686 -5.09645527  0.22899887  1.62894290  0.07269887 -3.22156758</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [67]  2.71277600 -2.45167352 -2.71376563 -0.58524680 -0.09683605  1.04538721</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [73]  0.79343093 -1.33730183 -4.19678148 -0.12432151  2.36690773  1.01667088</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [79] -0.83390404  0.31721417  0.26606105  0.63338389  3.03595542  0.01454020</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [85] -1.79106119 -1.39992425 -0.77020486  0.42146258  0.39075645  2.34650150</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [91]  0.61616984 -0.94772698 -3.93806220 -2.56815160  0.73339375 -1.07730804</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [97]  2.42977111 -1.77539142 -1.70861836 -4.40142723 -1.01707716  1.00188644</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [103] -0.40709191  0.88110370  1.50819541 -0.33973694  2.01923620 -0.52759788</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [109] -0.99142506 -0.35439926  0.29706016  1.02702759  2.34275955 -1.63374448</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [115]  0.11629430 -1.59737570  2.62034086 -0.37091780 -1.18266895 -0.28286607</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [121]  0.62398323  1.50071237 -3.90002041 -1.47012707 -3.61103024 -0.26725159</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [127]  1.30215109  3.15877799  0.98188518 -0.75192824 -2.40283602 -0.20594149</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [133]  2.27154955 -1.43780709  2.94741854  0.86891623  0.82781787  3.74875422</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [139] -2.12988063  1.52444590  0.55645231 -2.90053853 -1.56784232 -0.06277698</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [145] -0.96795523 -0.83857424 -3.38564672 -0.70961879 -0.92333927 -0.61810348</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [151]  1.19311641 -0.41358656 -3.25542683  1.61682033  0.12650768 -3.03048133</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [157]  0.39350582  1.92589163  1.52739252  0.42076257  1.76602737  0.52480168</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [163]  0.81831383  0.25964715 -0.96844614 -1.04543363 -3.05448354 -0.01815365</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [169]  0.49554882 -2.94328111 -3.54045340 -0.25398644  0.40380840  3.54493340</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [175] -2.99158992  1.33598056  2.63159833 -5.98139811 -0.15614415 -0.03062032</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [181]  5.48032286  0.30744589 -1.66195473 -0.83642002 -1.52076006 -4.03372781</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [187] -2.03983549  0.57782008 -1.40672009  0.30582596  1.26291439  5.79797760</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [193]  1.87016692 -0.88249070 -4.22356953 -1.10954938 -1.37561288  1.86301630</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [199] -0.24009593  4.42512100 -0.78363059 -1.30184875 -0.27800138 -1.13857913</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [205] -0.67901410 -1.37650520 -3.20553568 -1.48073210  0.18977673  2.38363666</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [211] -0.71877431  0.86256032 -3.07518637  3.13047681  0.81439309 -0.80584773</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [217]  0.56230413  1.21657369  0.91497762 -1.18324651 -1.65044093 -1.62354654</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [223] -4.04725502 -1.85122015  0.05755827  1.78439956 -5.40162334 -1.31147019</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [229]  1.49664909 -0.23470687  1.01518191  0.45971350  1.92472685 -0.29281371</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [235] -0.40713104  2.19692818  6.51250498  0.56201362 -0.50488285 -1.00520504</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [241]  0.42497453 -0.39394534  2.69021321 -1.13506296 -1.23135593 -0.36034678</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [247] -2.52104770 -0.59367162 -0.30425116 -0.51413495 -0.71558885 -2.04517574</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [253] -0.64098358 -1.28807101  2.60004032  0.41125208</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   [1]  2.11214514 -0.36023608 -1.75806680  4.43755945 -1.08440288 -1.13266088</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   [7]  1.16325271  0.87485174  1.04545118  1.63772552  1.09333930  1.87023862</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [13]  1.47642316 -0.24498135 -1.74180881  0.41396006  1.71222841  1.77732851</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [19]  1.93913800 -4.73442974 -0.30259970  1.01831525  0.71342279 -1.15517073</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [25]  1.21095372  2.58094837 -1.21191981  1.77091048 -0.27303257  1.56480736</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [31] -2.28205848  0.91231583  2.31035455  1.12820872  3.14325346  1.96066070</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [37]  4.27565875  2.53713948  0.66683022  0.51840733 -3.35303396  1.61610502</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [43]  1.42318977  0.14678503  1.51792516  1.35120638  1.95981058  2.13908927</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [49]  0.93127606  1.15534829  3.66505039  0.68510613  2.23823202  1.98637092</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [55]  0.41040316 -1.14542829 -3.02390742  1.52865502 -2.91340460  2.17920116</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [61] -1.35941639 -5.09645503  0.22899702  1.62893951  0.07269726 -3.22157135</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [67]  2.71277110 -2.45167656 -2.71376611 -0.58524790 -0.09683602  1.04538529</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [73]  0.79342982 -1.33730206 -4.19678177 -0.12431848  2.36691044  1.01667402</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [79] -0.83390265  0.31721541  0.26606021  0.63337982  3.03595133  0.01454234</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [85] -1.79106129 -1.39992376 -0.77020907  0.42146458  0.39075490  2.34650081</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [91]  0.61616375 -0.94772474 -3.93805935 -2.56814798  0.73339382 -1.07730709</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [97]  2.42976871 -1.77539197 -1.70862051 -4.40142627 -1.01707591  1.00188682</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [103] -0.40709153  0.88110389  1.50819554 -0.33973639  2.01923436 -0.52759714</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [109] -0.99142361 -0.35439571  0.29705948  1.02702855  2.34275842 -1.63374451</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [115]  0.11629287 -1.59737486  2.62034094 -0.37091715 -1.18267013 -0.28286629</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [121]  0.62398250  1.50071357 -3.90002191 -1.47012638 -3.61102954 -0.26724981</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [127]  1.30215092  3.15877660  0.98188639 -0.75192661 -2.40283394 -0.20594510</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [133]  2.27154948 -1.43780699  2.94742084  0.86891396  0.82781841  3.74875488</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [139] -2.12987885  1.52444210  0.55645235 -2.90053840 -1.56784108 -0.06277611</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [145] -0.96795717 -0.83857494 -3.38564727 -0.70961780 -0.92334047 -0.61810446</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [151]  1.19311184 -0.41358547 -3.25542774  1.61682070  0.12650374 -3.03047945</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [157]  0.39350570  1.92589277  1.52739323  0.42076456  1.76602611  0.52480121</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [163]  0.81831364  0.25964817 -0.96844474 -1.04543447 -3.05448556 -0.01815262</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [169]  0.49554949 -2.94328012 -3.54045432 -0.25398533  0.40381038  3.54493469</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [175] -2.99158913  1.33598296  2.63159488 -5.98139858 -0.15614663 -0.03061795</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [181]  5.48032343  0.30744542 -1.66195682 -0.83641828 -1.52076091 -4.03372627</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [187] -2.03983747  0.57782125 -1.40671831  0.30582816  1.26291385  5.79797746</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [193]  1.87016414 -0.88249135 -4.22357045 -1.10954732 -1.37561115  1.86301727</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [199] -0.24009616  4.42511943 -0.78363133 -1.30184847 -0.27800154 -1.13858067</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [205] -0.67901517 -1.37650543 -3.20553978 -1.48073898  0.18977448  2.38363548</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [211] -0.71877507  0.86256078 -3.07518488  3.13047824  0.81439417 -0.80584736</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [217]  0.56230286  1.21657523  0.91497607 -1.18324637 -1.65044114 -1.62354683</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [223] -4.04725903 -1.85122433  0.05755356  1.78439671 -5.40162602 -1.31146829</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [229]  1.49664962 -0.23470668  1.01518042  0.45971663  1.92472813 -0.29281082</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [235] -0.40713111  2.19693076  6.51250777  0.56201636 -0.50488173 -1.00520433</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [241]  0.42497081 -0.39394802  2.69021017 -1.13506342 -1.23135606 -0.36034669</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [247] -2.52104765 -0.59367156 -0.30425164 -0.51413292 -0.71558832 -2.04517397</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [253] -0.64098273 -1.28806789  2.60004031  0.41125216</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/stats/nobs.html" class="external-link">nobs</a></span><span class="op">(</span><span class="va">spflow_results</span><span class="op">)</span> <span class="co"># number of observations</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 256</span>
 <span class="r-in"><span><span class="fu"><a href="spflow_generics.html">sd_error</a></span><span class="op">(</span><span class="va">spflow_results</span><span class="op">)</span> <span class="co"># standard deviation of the error term</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 1.992727</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">spflow_results</span><span class="op">)</span> <span class="co"># computation of the in sample predictor</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     ID_DEST ID_ORIG      ACTUAL       SIGNAL      FITTED  PREDICTION</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1        SH      SH  68.4148262  45.14186120  70.5269718  73.3433091</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2        HH      SH  51.0915798  16.65171254  50.7313432  50.5508343</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3        MV      SH  60.9845481  20.78619159  59.2264826  58.4977449</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4        NW      SH  20.9280007   6.74200722  25.3655568  29.8333668</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5        HB      SH  46.6902544  19.83173802  45.6058488  45.0204345</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6        BB      SH  55.6089587  24.70944232  54.4762961  54.1563659</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 7        BE      SH  36.5147164  13.68923105  37.6779686  39.2350569</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 8        RP      SH  17.8758703   6.06732131  18.7507199  19.7131822</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 9        NI      SH  46.9381691  25.25084038  47.9836201  48.5063513</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 10       ST      SH  35.9326122  17.00245480  37.5703366  40.1078507</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 11       SN      SH  27.6936682  10.37996452  28.7870087  29.9427243</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 12       SL      SH   8.8203044   3.09034900  10.6905423  13.3920860</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 13       HE      SH  14.7202260   7.27460929  16.1966491  17.9051862</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 14       TH      SH  11.5233219   3.17513395  11.2783398  11.5937936</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 15       BW      SH  -3.1936452  -4.70142502  -4.9354515  -6.4251569</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 16       BY      SH  -5.9956280  -4.87625301  -5.5816651  -4.3004780</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 17       SH      HH  39.6252187   8.90617876  41.3374537  43.8499168</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 18       HH      HH  80.4047912  56.28421932  82.1821213  84.0948526</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 19       MV      HH  50.1815959  18.48233059  52.1207358  54.3192358</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 20       NW      HH  34.7149880   5.50691378  29.9805587  24.9194292</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 21       HB      HH  51.4474299  19.06371312  51.1448290  51.3751318</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 22       BB      HH  57.4900766  23.47434888  58.5083913  59.6261714</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 23       BE      HH  33.7440184  11.85243860  34.4574395  35.7488850</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 24       RP      HH  21.2242833   5.10583028  20.0691106  19.2050132</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 25       NI      HH  48.1719140  24.48281548  49.3828667  50.8444251</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 26       ST      HH  34.8719960  16.04096378  37.4529417  39.7907426</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 27       SN      HH  28.4297909   9.02759564  27.2178706  26.3855787</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 28       SL      HH   9.0874224   2.21962144  10.8583310  12.1871301</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 29       HE      HH  16.1230813   6.50658439  15.8500467  15.5003406</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 30       TH      HH   9.7477330   2.30440639  11.3125379  12.8813068</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 31       BW      HH  -3.4694232  -5.46944992  -5.7514813  -7.5868796</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 32       BY      HH  -7.1090509  -5.70742775  -6.1967342  -5.2906659</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 33       SH      MV  31.8272167   3.80608723  34.1375804  38.4658138</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 34       HH      MV  34.8867035   9.24776000  36.0149132  37.4726038</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 35       MV      MV  88.2518758  67.66715367  91.3951289  95.1124649</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 36       NW      MV  10.3896401  -0.66194531  12.3502974  14.6797453</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 37       HB      MV  37.1069503  13.96362159  41.3826078  45.6374372</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 38       BB      MV  50.6940892  20.54625758  53.2312269  55.9419668</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 39       BE      MV  37.0534713   9.99311486  37.7203022  39.5486312</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 40       RP      MV   6.8622353  -0.46132980   7.3806395   8.4022314</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 41       NI      MV  41.0833607  19.84979250  37.7303239  34.8620339</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 42       ST      MV  29.0462884  12.64580394  30.6623892  32.5762697</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 43       SN      MV  21.1427333   6.56657290  22.5659209  24.7788659</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 44       SL      MV  -0.3530937  -2.95666079  -0.2063114   0.2988444</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 45       HE      MV   4.9236348   2.06702753   6.4415569   7.7378318</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 46       TH      MV   1.4324217  -1.28421957   2.7836235   4.1464009</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 47       BW      MV -16.8460120  -9.80630412 -14.8862023 -12.3355420</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 48       BY      MV -17.3820966  -9.39875638 -15.2430090 -12.2148183</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 49       SH      NW  29.6314287  10.87254413  30.5627033  33.5032916</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 50       HH      NW  46.5974648  17.38298446  47.7528132  48.4785499</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 51       MV      NW  43.2034317  20.44869596  46.8684823  50.4488000</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 52       NW      NW  63.6169156  38.53994043  64.3020213  64.8064516</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 53       HB      NW  57.8378864  24.27084628  60.0761169  62.1891357</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 54       BB      NW  57.1876396  27.14564594  59.1740095  61.0000915</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 55       BE      NW  38.5548284  15.05666711  38.9652321  39.7320059</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 56       RP      NW  41.8135762  13.55373124  40.6681465  39.3064188</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 57       NI      NW  72.5148023  31.22578475  69.4908960  66.3906765</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 58       ST      NW  46.9755972  21.24809694  48.5042518  50.2506929</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 59       SN      NW  39.5871234  13.35942738  36.6737212  32.9939300</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 60       SL      NW  26.8665277  10.47405627  29.0457273  30.6525005</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 61       HE      NW  33.8553055  13.71662220  32.4958887  30.9422580</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 62       TH      NW  30.1174226   8.38684098  25.0209673  19.7018256</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 63       BW      NW  10.7016871   1.93405402  10.9306859  10.2240005</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 64       BY      NW   7.2947582   0.85664815   8.9237011   9.6651937</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 65       SH      HB  18.8627642   1.85060051  18.9354631  18.1268436</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 66       HH      HB  39.3559468   8.82810939  36.1343792  32.9535215</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 67       MV      HB  39.8994316  12.96258844  42.6122076  44.6547578</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 68       NW      HB  29.9107098   2.15917187  27.4590362  24.4082584</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 69       HB      HB  95.3968049  67.82888558  92.6830392  89.8419614</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 70       BB      HB  54.3081136  20.12660697  53.7228668  53.1191889</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 71       BE      HB  29.4944789   8.03762814  29.3976429  28.7006880</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 72       RP      HB  22.2611698   2.82685592  23.3065570  24.0325942</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 73       NI      HB  52.7395715  22.67090967  53.5330024  54.1150350</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 74       ST      HB  41.2684850  13.76198942  39.9311831  38.4419201</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 75       SN      HB  28.3596786   6.14692228  24.1628971  19.6579671</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 76       SL      HB   9.0219840   0.21424950   8.8976625   8.6065585</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 77       HE      HB  12.6026134   4.69467858  14.9695212  16.9179980</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 78       TH      HB   8.4180407   0.29903446   9.4347116  10.3337133</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 79       BW      HB  -7.5985895  -7.28135573  -8.4324936  -9.2939191</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 80       BY      HB  -9.9314637  -7.62203622  -9.6142495  -9.3098757</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 81       SH      BB   8.4730321  -2.98175652   8.7390931   9.4211274</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 82       HH      BB  25.1835958   3.52868381  25.8169797  26.1119554</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 83       MV      BB  34.1688753   9.83516310  37.2048307  39.8285673</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 84       NW      BB   6.3372813  -4.67608981   6.3518215   6.1033755</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 85       HB      BB  37.1312043  10.41654564  35.3401431  33.3203641</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 86       BB      BB 105.4636464  79.28864259 104.0637222 102.4496808</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 87       BE      BB  35.7539803   6.44603891  34.9837754  34.2670616</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 88       RP      BB   3.5443899  -3.54133721   3.9658525   3.7132704</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 89       NI      BB  42.1524450  17.37148410  42.5432014  42.6738200</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 90       ST      BB  33.9500019  10.63456409  36.2965034  38.3747920</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 91       SN      BB  29.4132517   4.08826450  30.0294215  30.2561458</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 92       SL      BB  -1.6416378  -5.55224462  -2.5893648  -4.3275966</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 93       HE      BB   8.5756506  -0.13767845   4.6375884   1.1119294</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 94       TH      BB   4.9464110  -3.29545942   2.3782594  -0.4468399</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 95       BW      BB -16.6937681 -11.92024663 -15.9603744 -15.8898582</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 96       BY      BB -14.9851085 -11.40999623 -16.0624166 -18.3801018</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 97       SH      BE  16.1006108   2.79044286  18.5303820  20.2606275</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 98       HH      BE  28.7435015   8.69918418  26.9681101  25.0376687</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 99       MV      BE  47.6973609  16.07443103  45.9887425  44.0713966</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 100      NW      BE  16.1941489   0.02734201  11.7927216   6.7571901</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 101      HB      BE  38.4536699  15.11997746  37.4365928  36.4038667</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 102      BB      BE  58.4857912  23.23844956  59.4876776  60.1599100</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 103      BE      BE  82.8481329  56.79367486  82.4410410  81.9151928</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 104      RP      BE  10.3951685   1.35556074  11.2762722  11.8663321</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 105      NI      BE  43.4202626  22.54198447  44.9284580  46.2383688</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 106      ST      BE  46.7714317  16.87383201  46.4316948  46.0768140</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 107      SN      BE  40.2327996  12.49953266  42.2520358  44.0411709</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 108      SL      BE   6.4434700  -0.26446882   5.9158721   4.9138522</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 109      HE      BE  15.5591935   5.63452093  14.5677684  13.3205108</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 110      TH      BE  13.6253932   3.41087705  13.2709939  12.7160908</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 111      BW      BE  -6.4319400  -5.75716940  -6.1348798  -6.0232057</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 112      BY      BE  -5.8267377  -4.51019363  -4.7997101  -3.7517432</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 113      SH      RP  22.3163367   7.03081571  24.6590962  26.7389149</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 114      HH      RP  39.1895413  13.81485846  37.5557968  35.6869349</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 115      MV      RP  41.9556715  17.48226897  42.0719658  41.6646489</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 116      NW      RP  40.9289816  10.38668874  39.3316059  37.3284526</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 117      HB      RP  53.3140852  21.77148784  55.9344260  58.1050009</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 118      BB      RP  55.9899779  25.11335604  55.6190601  55.0822915</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 119      BE      RP  38.3613642  13.21784334  37.1786953  35.6845268</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 120      RP      RP  69.5034605  44.98619423  69.2205945  68.9925516</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 121      NI      RP  69.9524473  30.89842654  70.5764305  71.0940327</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 122      ST      RP  47.2417418  20.45367019  48.7424542  50.1003603</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 123      SN      RP  39.3925773  12.37153450  35.4925569  30.9651611</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 124      SL      RP  39.2132063  11.68253417  37.7430792  35.7883375</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 125      HE      RP  43.2105984  14.45803155  39.5995682  35.8850068</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 126      TH      RP  27.5279254   8.52655133  27.2606738  26.2645634</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 127      BW      RP  14.1173888   2.94906579  15.4195398  16.0061873</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 128      BY      RP   8.6827454   1.48078207  11.8415234  14.2703926</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 129      SH      NI  -1.8873886  -7.06704834  -0.9055034  -0.7061170</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 130      HH      NI  13.4514100  -0.08953946  12.6994817  12.3005113</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 131      MV      NI  20.5622720   4.51200814  18.1594360  15.8918303</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 132      NW      NI  16.1267663  -5.22264088  15.9208248  15.8401231</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 133      HB      NI  31.3250800   8.33415847  33.5966295  35.3496297</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 134      BB      NI  40.9869847  12.74479422  39.5491776  37.9135003</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 135      BE      NI  13.2088565   1.12288394  16.1562751  18.9505259</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 136      RP      NI  16.7499169  -2.38295658  17.6188331  18.4518467</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 137      NI      NI 111.8449323  89.92710471 112.6727502 113.1773686</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 138      ST      NI  29.6706645   8.55217692  33.4194187  36.5632088</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 139      SN      NI  17.0139158   0.47004123  14.8840351  12.9964757</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 140      SL      NI  13.1136929  -3.92679545  14.6381388  16.0490454</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 141      HE      NI  17.3604798   1.02070218  17.9169322  18.4476084</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 142      TH      NI  13.8624768  -3.84201050  10.9619383   8.4560992</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 143      BW      NI  -7.4708816 -10.95533213  -9.0387240 -10.8550375</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 144      BY      NI -10.6788912 -11.48947875 -10.7416682 -11.6051151</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 145      SH      ST  10.9508987  -1.35407014   9.9829435   7.3510235</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 146      HH      ST  22.7539488   5.42997261  21.9153746  20.6999575</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 147      MV      ST  35.2198949  11.26938336  31.8342482  28.4570468</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 148      NW      ST  13.7605806  -1.23896491  13.0509618  11.2699767</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 149      HB      ST  41.9497631  13.38660199  41.0264239  39.9091592</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 150      BB      ST  53.9856189  19.96923799  53.3675154  52.1900598</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 151      BE      ST  38.7791143   9.41609526  39.9722307  40.6980851</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 152      RP      ST  14.5488615   1.13365084  14.1352749  13.0575397</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 153      NI      ST  55.7494614  22.51354069  52.4940346  49.1848020</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 154      ST      ST  90.7361450  67.88953505  92.3529653  93.4380108</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 155      SN      ST  38.1688195   9.23032109  38.2953272  38.1350245</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 156      SL      ST  13.1301918   0.05688052  10.0997105   6.5834250</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 157      HE      ST  23.0988968   6.07314570  23.4924026  23.4143472</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 158      TH      ST  19.5475629   3.38243327  21.4734545  22.4329338</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 159      BW      ST  -3.0488547  -5.43582006  -1.5214622  -0.2432570</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 160      BY      ST  -1.9266496  -4.73210353  -1.5058870  -1.0460776</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 161      SH      SN  12.3140295   1.67093633  14.0800569  15.9264718</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 162      HH      SN  24.5304716   8.06410124  25.0552733  24.7408394</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 163      MV      SN  37.0732012  14.83764908  37.8915150  37.8667631</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 164      NW      SN  13.4919748   0.51986229  13.7516219  13.4961856</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 165      HB      SN  39.4735594  15.41903161  38.5051132  36.8741907</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 166      BB      SN  61.1673134  23.07043516  60.1218798  59.2396682</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 167      BE      SN  52.4064691  14.68929267  49.3519855  45.6632096</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 168      RP      SN  14.5146190   2.69901191  14.4964653  14.0580504</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 169      NI      SN  48.4607167  24.07890176  48.9562656  48.7044035</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 170      ST      SN  54.6883157  18.87781785  51.7450346  49.1723716</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 171      SN      SN  85.3539281  56.43988629  81.8134747  77.5280470</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 172      SL      SN  12.0951492   1.81570772  11.8411627  11.1306041</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 173      HE      SN  21.3717446   8.10557532  21.7755530  21.5083363</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 174      TH      SN  23.3532644   6.48363044  26.8981978  29.9032423</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 175      BW      SN   4.3310194  -2.80169144   1.3394295  -2.0523531</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 176      BY      SN   2.5150709  -1.16383782   3.8510515   4.9897267</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 177      SH      SL  18.9910776   4.84215701  21.6226759  23.2441656</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 178      HH      SL  37.8830959  11.71696323  31.9016978  25.5526752</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 179      MV      SL  39.7768324  15.77525158  39.6206883  38.6220752</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 180      NW      SL  30.8825897   8.09532738  30.8519694  30.4118835</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 181      HB      SL  42.5385961  19.94719503  48.0189189  53.1257925</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 182      BB      SL  53.6271707  23.89076223  53.9346166  54.2049746</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 183      BE      SL  38.1887236  12.38612738  36.5267689  33.9329162</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 184      RP      SL  41.2328466  12.47084777  40.3964265  39.7369254</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 185      NI      SL  71.2827132  30.14290128  69.7619531  68.1829385</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 186      ST      SL  52.1421489  20.16521348  48.1084210  44.4023886</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 187      SN      SL  38.3906960  12.27654391  36.3508605  33.1542893</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 188      SL      SL  67.3680612  44.85883035  67.9458813  68.3445234</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 189      HE      SL  45.4242200  15.87450653  44.0174999  41.9987595</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 190      TH      SL  30.3496619   9.47595776  30.6554879  29.8787911</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 191      BW      SL  24.1517893   5.43430832  25.4147037  26.1128825</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 192      BY      SL  11.6888139   3.36432560  17.4867915  23.3295314</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 193      SH      HE  15.3874884   2.13176170  17.2576553  17.4259751</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 194      HH      HE  29.4299400   9.10927058  28.5474493  27.3191422</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 195      MV      HE  40.2226732  13.90428430  35.9991037  31.7955419</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 196      NW      HE  25.6019835   4.44323770  24.4924341  22.9940889</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 197      HB      HE  45.0500177  17.53296850  43.6744049  41.7607344</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 198      BB      HE  50.0242537  22.41067280  51.8872700  53.0744419</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 199      BE      HE  35.9633705  11.39046153  35.7232746  34.8136395</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 200      RP      HE  31.1369960   8.35168955  35.5621170  39.1654963</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 201      NI      HE  66.3801883  28.19574331  65.5965577  64.3656103</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 202      ST      HE  53.8113694  19.28682305  52.5095206  50.9048870</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 203      SN      HE  36.7566006  11.67175591  36.4785992  35.4433818</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 204      SL      HE  38.1787426   8.97985093  37.0401635  35.4208956</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 205      HE      HE  80.7985484  55.86371634  80.1195343  79.3503262</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 206      TH      HE  37.7228702   9.06463588  36.3463650  34.8674273</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 207      BW      HE  29.5630026   3.48715035  26.3574670  22.5427341</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 208      BY      HE  27.6304885   2.48593518  26.1497564  23.3147000</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 209      SH      TH  19.8386999   4.78095796  20.0284766  20.6229990</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 210      HH      TH  29.5058199  11.65576418  31.8894566  33.5738380</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 211      MV      TH  42.0413726  17.30170880  41.3225983  40.3990579</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 212      NW      TH  25.1332045   5.86212809  25.9957649  26.5157068</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 213      HB      TH  49.7193521  19.88599598  46.6441658  43.6245986</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 214      BB      TH  54.5830481  26.00156343  57.7135249  60.1013915</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 215      BE      TH  42.2700568  15.91548925  43.0844499  44.0954008</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 216      RP      TH  31.0875598   9.16888093  30.2817120  29.0151257</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 217      NI      TH  66.9399797  30.08170223  67.5022838  67.7048715</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 218      ST      TH  57.7447327  23.34478222  58.9613064  59.7412327</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 219      SN      TH  48.7738184  16.79848263  49.6887961  50.4350532</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 220      SL      TH  32.4706573   9.32997376  31.2874108  29.3647221</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 221      HE      TH  45.8465173  15.81330748  44.1960763  42.6660292</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 222      TH      TH  71.0654413  44.88241625  69.4418948  67.6116313</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 223      BW      TH  31.9614460   5.37310928  27.9141910  23.1801453</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 224      BY      TH  32.5003030   6.54389435  30.6490829  27.4585486</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 225      SH      BW  26.1619952   6.65531993  26.2195535  25.4051380</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 226      HH      BW  36.1207597  13.63282880  37.9051593  39.5046028</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 227      MV      BW  50.4520503  18.53054519  45.0504270  39.6244810</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 228      NW      BW  33.1206830   9.16026206  31.8092128  30.8334747</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 229      HB      BW  50.2640769  22.05652673  51.7607260  53.1520205</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 230      BB      BW  59.8482959  27.12769716  59.6135891  59.3910095</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 231      BE      BW  44.7839799  16.49836373  45.7991618  46.5938018</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 232      RP      BW  37.2513979  13.34231633  37.7111114  38.8286515</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 233      NI      BW  66.1677123  32.71930153  68.0924392  69.5531364</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 234      ST      BW  57.0860880  24.27744983  56.7932743  56.4580996</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 235      SN      BW  46.6029291  17.26408169  46.1957981  45.6608546</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 236      SL      BW  42.9423123  15.03924526  45.1392405  48.1970736</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 237      HE      BW  46.6187224  19.98674288  53.1312273  58.8927434</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 238      TH      BW  45.4592405  15.12403021  46.0212541  46.6453518</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 239      BW      BW  59.2419521  37.37243817  58.7370692  58.6124449</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 240      BY      BW  37.6144094  10.71732975  36.6092043  36.8193652</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 241      SH      BY  24.2232823   6.33450793  24.6482569  25.2819238</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 242      HH      BY  36.6611396  13.24886697  36.2671943  35.3087945</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 243      MV      BY  44.1953308  18.79210893  46.8855440  48.1579394</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 244      NW      BY  32.4136515   7.93687219  31.2785886  29.3928345</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 245      HB      BY  52.8088138  21.56986223  51.5774579  49.9076566</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 246      BB      BY  60.9728329  27.49196356  60.6124861  60.3586834</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 247      BE      BY  49.1836466  17.59935550  46.6625989  43.5917603</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 248      RP      BY  37.1598466  11.72804861  36.5661750  35.9819981</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 249      NI      BY  68.1563045  32.03917091  67.8520534  67.6284678</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 250      ST      BY  59.6373815  24.83518235  59.1232465  58.4924623</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 251      SN      BY  49.9928299  18.75595131  49.2772410  47.8228282</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 252      SL      BY  40.5632144  12.82327853  38.5180386  35.7294230</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 253      HE      BY  53.4507614  18.83954371  52.8097779  51.8503744</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 254      TH      BY  50.4813709  16.14883128  49.1932999  47.0807605</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 255      BW      BY  36.6000497  10.57134575  39.2000900  40.6588525</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 256      BY      BY  59.8385064  37.39602407  60.2497585  60.0175244</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1        SH      SH  68.4148262  45.14187869  70.5269714  73.3433069</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2        HH      SH  51.0915798  16.65173183  50.7313438  50.5508350</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3        MV      SH  60.9845481  20.78620988  59.2264813  58.4977416</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4        NW      SH  20.9280007   6.74202435  25.3655601  29.8333749</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5        HB      SH  46.6902544  19.83175525  45.6058515  45.0204405</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6        BB      SH  55.6089587  24.70945965  54.4762978  54.1563699</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 7        BE      SH  36.5147164  13.68924708  37.6779691  39.2350586</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 8        RP      SH  17.8758703   6.06733312  18.7507221  19.7131880</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 9        NI      SH  46.9381691  25.25085093  47.9836203  48.5063528</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10       ST      SH  35.9326122  17.00246835  37.5703377  40.1078545</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 11       SN      SH  27.6936682  10.37997566  28.7870075  29.9427223</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 12       SL      SH   8.8203044   3.09035668  10.6905430  13.3920884</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 13       HE      SH  14.7202260   7.27461553  16.1966491  17.9051881</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 14       TH      SH  11.5233219   3.17514177  11.2783405  11.5937970</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 15       BW      SH  -3.1936452  -4.70142469  -4.9354540  -6.4251620</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 16       BY      SH  -5.9956280  -4.87625289  -5.5816679  -4.3004844</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 17       SH      HH  39.6252187   8.90619695  41.3374471  43.8499013</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 18       HH      HH  80.4047912  56.28423399  82.1821197  84.0948500</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 19       MV      HH  50.1815959  18.48234820  52.1207339  54.3192325</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 20       NW      HH  34.7149880   5.50693165  29.9805582  24.9194289</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 21       HB      HH  51.4474299  19.06373172  51.1448302  51.3751342</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 22       BB      HH  57.4900766  23.47436695  58.5083918  59.6261725</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 23       BE      HH  33.7440184  11.85245456  34.4574412  35.7488878</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 24       RP      HH  21.2242833   5.10584320  20.0691126  19.2050183</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 25       NI      HH  48.1719140  24.48282739  49.3828677  50.8444281</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 26       ST      HH  34.8719960  16.04097843  37.4529444  39.7907488</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 27       SN      HH  28.4297909   9.02760737  27.2178711  26.3855800</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 28       SL      HH   9.0874224   2.21963035  10.8583329  12.1871358</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 29       HE      HH  16.1230813   6.50659199  15.8500487  15.5003457</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 30       TH      HH   9.7477330   2.30441544  11.3125403  12.8813129</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 31       BW      HH  -3.4694232  -5.46944823  -5.7514817  -7.5868789</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 32       BY      HH  -7.1090509  -5.70742635  -6.1967351  -5.2906657</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 33       SH      MV  31.8272167   3.80610118  34.1375713  38.4657908</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 34       HH      MV  34.8867035   9.24777437  36.0149122  37.4726019</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 35       MV      MV  88.2518758  67.66716631  91.3951293  95.1124657</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 36       NW      MV  10.3896401  -0.66193310  12.3503008  14.6797515</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 37       HB      MV  37.1069503  13.96363595  41.3826090  45.6374393</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 38       BB      MV  50.6940892  20.54627431  53.2312287  55.9419698</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 39       BE      MV  37.0534713   9.99313090  37.7203015  39.5486281</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 40       RP      MV   6.8622353  -0.46132174   7.3806426   8.4022380</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 41       NI      MV  41.0833607  19.84980079  37.7303268  34.8620392</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 42       ST      MV  29.0462884  12.64581662  30.6623934  32.5762780</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 43       SN      MV  21.1427333   6.56658390  22.5659230  24.7788697</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 44       SL      MV  -0.3530937  -2.95665623  -0.2063087   0.2988507</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 45       HE      MV   4.9236348   2.06703177   6.4415599   7.7378385</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 46       TH      MV   1.4324217  -1.28421275   2.7836281   4.1464103</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 47       BW      MV -16.8460120  -9.80630565 -14.8862015 -12.3355392</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 48       BY      MV -17.3820966  -9.39875734 -15.2430073 -12.2148136</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 49       SH      NW  29.6314287  10.87256117  30.5627047  33.5032918</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 50       HH      NW  46.5974648  17.38300334  47.7528130  48.4785495</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 51       MV      NW  43.2034317  20.44871242  46.8684821  50.4487996</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 52       NW      NW  63.6169156  38.53995989  64.3020217  64.8064531</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 53       HB      NW  57.8378864  24.27086805  60.0761184  62.1891396</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 54       BB      NW  57.1876396  27.14566513  59.1740105  61.0000945</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 55       BE      NW  38.5548284  15.05668358  38.9652316  39.7320052</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 56       RP      NW  41.8135762  13.55375164  40.6681479  39.3064228</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 57       NI      NW  72.5148023  31.22580187  69.4908949  66.3906747</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 58       ST      NW  46.9755972  21.24811476  48.5042522  50.2506954</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 59       SN      NW  39.5871234  13.35944111  36.6737188  32.9939261</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 60       SL      NW  26.8665277  10.47407241  29.0457289  30.6525058</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 61       HE      NW  33.8553055  13.71663564  32.4958891  30.9422606</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 62       TH      NW  30.1174226   8.38685437  25.0209675  19.7018279</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 63       BW      NW  10.7016871   1.93406181  10.9306841  10.2239990</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 64       BY      NW   7.2947582   0.85665453   8.9236977   9.6651894</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 65       SH      HB  18.8627642   1.85061197  18.9354615  18.1268404</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 66       HH      HB  39.3559468   8.82812331  36.1343754  32.9535146</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 67       MV      HB  39.8994316  12.96260136  42.6122027  44.6547494</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 68       NW      HB  29.9107098   2.15918795  27.4590332  24.4082536</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 69       HB      HB  95.3968049  67.82889877  92.6830387  89.8419618</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 70       BB      HB  54.3081136  20.12662324  53.7228657  53.1191875</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 71       BE      HB  29.4944789   8.03764169  29.3976429  28.7006894</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 72       RP      HB  22.2611698   2.82686847  23.3065551  24.0325921</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 73       NI      HB  52.7395715  22.67092183  53.5330013  54.1150348</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 74       ST      HB  41.2684850  13.76200370  39.9311829  38.4419208</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 75       SN      HB  28.3596786   6.14693284  24.1628968  19.6579683</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 76       SL      HB   9.0219840   0.21425840   8.8976655   8.6065659</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 77       HE      HB  12.6026134   4.69468644  14.9695239  16.9180049</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 78       TH      HB   8.4180407   0.29904350   9.4347148  10.3337208</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 79       BW      HB  -7.5985895  -7.28135378  -8.4324922  -9.2939148</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 80       BY      HB  -9.9314637  -7.62203470  -9.6142483  -9.3098710</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 81       SH      BB   8.4730321  -2.98174889   8.7390923   9.4211235</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 82       HH      BB  25.1835958   3.52869328  25.8169757  26.1119478</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 83       MV      BB  34.1688753   9.83517447  37.2048266  39.8285598</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 84       NW      BB   6.3372813  -4.67608023   6.3518237   6.1033809</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 85       HB      BB  37.1312043  10.41655799  35.3401430  33.3203646</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 86       BB      BB 105.4636464  79.28865402 104.0637226 102.4496829</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 87       BE      BB  35.7539803   6.44605294  34.9837712  34.2670531</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 88       RP      BB   3.5443899  -3.54133053   3.9658545   3.7132766</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 89       NI      BB  42.1524450  17.37149181  42.5431999  42.6738182</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 90       ST      BB  33.9500019  10.63457681  36.2965027  38.3747927</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 91       SN      BB  29.4132517   4.08827492  30.0294154  30.2561348</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 92       SL      BB  -1.6416378  -5.55224079  -2.5893626  -4.3275891</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 93       HE      BB   8.5756506  -0.13767442   4.6375913   1.1119357</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 94       TH      BB   4.9464110  -3.29545256   2.3782630  -0.4468313</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 95       BW      BB -16.6937681 -11.92024826 -15.9603743 -15.8898549</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 96       BY      BB -14.9851085 -11.40999715 -16.0624156 -18.3800959</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 97       SH      BE  16.1006108   2.79045325  18.5303796  20.2606236</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 98       HH      BE  28.7435015   8.69919562  26.9681095  25.0376683</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 99       MV      BE  47.6973609  16.07444578  45.9887403  44.0713929</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 100      NW      BE  16.1941489   0.02735294  11.7927226   6.7571944</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 101      HB      BE  38.4536699  15.11999116  37.4365940  36.4038703</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 102      BB      BE  58.4857912  23.23846766  59.4876780  60.1599121</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 103      BE      BE  82.8481329  56.79369123  82.4410414  81.9151941</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 104      RP      BE  10.3951685   1.35556902  11.2762724  11.8663350</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 105      NI      BE  43.4202626  22.54199414  44.9284581  46.2383705</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 106      ST      BE  46.7714317  16.87384812  46.4316953  46.0768166</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 107      SN      BE  40.2327996  12.49954937  42.2520340  44.0411680</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 108      SL      BE   6.4434700  -0.26446287   5.9158728   4.9138562</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 109      HE      BE  15.5591935   5.63452772  14.5677699  13.3205154</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 110      TH      BE  13.6253932   3.41088792  13.2709974  12.7160998</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 111      BW      BE  -6.4319400  -5.75716775  -6.1348805  -6.0232053</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 112      BY      BE  -5.8267377  -4.51019028  -4.7997091  -3.7517394</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 113      SH      RP  22.3163367   7.03082891  24.6590951  26.7389132</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 114      HH      RP  39.1895413  13.81487386  37.5557968  35.6869355</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 115      MV      RP  41.9556715  17.48228275  42.0719644  41.6646471</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 116      NW      RP  40.9289816  10.38671061  39.3316067  37.3284556</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 117      HB      RP  53.3140852  21.77150755  55.9344261  58.1050027</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 118      BB      RP  55.9899779  25.11337380  55.6190608  55.0822942</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 119      BE      RP  38.3613642  13.21785863  37.1786941  35.6845261</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 120      RP      RP  69.5034605  44.98621120  69.2205942  68.9925525</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 121      NI      RP  69.9524473  30.89844450  70.5764298  71.0940325</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 122      ST      RP  47.2417418  20.45368823  48.7424554  50.1003646</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 123      SN      RP  39.3925773  12.37154819  35.4925554  30.9651599</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 124      SL      RP  39.2132063  11.68255318  37.7430799  35.7883406</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 125      HE      RP  43.2105984  14.45804725  39.5995689  35.8850093</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 126      TH      RP  27.5279254   8.52656617  27.2606756  26.2645689</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 127      BW      RP  14.1173888   2.94907620  15.4195397  16.0061888</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 128      BY      RP   8.6827454   1.48079056  11.8415220  14.2703920</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 129      SH      NI  -1.8873886  -7.06704411  -0.9055022  -0.7061123</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 130      HH      NI  13.4514100  -0.08953277  12.6994834  12.3005144</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 131      MV      NI  20.5622720   4.51201446  18.1594381  15.8918339</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 132      NW      NI  16.1267663  -5.22262998  15.9208212  15.8401160</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 133      HB      NI  31.3250800   8.33417009  33.5966295  35.3496306</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 134      BB      NI  40.9869847  12.74480531  39.5491777  37.9135006</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 135      BE      NI  13.2088565   1.12289293  16.1562774  18.9505317</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 136      RP      NI  16.7499169  -2.38294632  17.6188308  18.4518430</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 137      NI      NI 111.8449323  89.92711162 112.6727508 113.1773718</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 138      ST      NI  29.6706645   8.55218891  33.4194194  36.5632111</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 139      SN      NI  17.0139158   0.47004888  14.8840369  12.9964805</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 140      SL      NI  13.1136929  -3.92678741  14.6381350  16.0490381</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 141      HE      NI  17.3604798   1.02070979  17.9169322  18.4476095</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 142      TH      NI  13.8624768  -3.84200232  10.9619384   8.4560995</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 143      BW      NI  -7.4708816 -10.95533043  -9.0387227 -10.8550340</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 144      BY      NI -10.6788912 -11.48947773 -10.7416673 -11.6051119</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 145      SH      ST  10.9508987  -1.35406291   9.9829415   7.3510222</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 146      HH      ST  22.7539488   5.42998205  21.9153739  20.6999573</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 147      MV      ST  35.2198949  11.26939407  31.8342476  28.4570463</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 148      NW      ST  13.7605806  -1.23895331  13.0509628  11.2699813</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 149      HB      ST  41.9497631  13.38661573  41.0264227  39.9091581</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 150      BB      ST  53.9856189  19.96925409  53.3675144  52.1900597</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 151      BE      ST  38.7791143   9.41611069  39.9722262  40.6980771</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 152      RP      ST  14.5488615   1.13366118  14.1352760  13.0575440</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 153      NI      ST  55.7494614  22.51355268  52.4940337  49.1848010</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 154      ST      ST  90.7361450  67.88954844  92.3529657  93.4380138</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 155      SN      ST  38.1688195   9.23033580  38.2953233  38.1350175</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 156      SL      ST  13.1301918   0.05688925  10.0997124   6.5834307</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 157      HE      ST  23.0988968   6.07315543  23.4924025  23.4143483</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 158      TH      ST  19.5475629   3.38244646  21.4734556  22.4329377</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 159      BW      ST  -3.0488547  -5.43581562  -1.5214615  -0.2432541</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 160      BY      ST  -1.9266496  -4.73209812  -1.5058850  -1.0460725</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 161      SH      SN  12.3140295   1.67094499  14.0800556  15.9264697</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 162      HH      SN  24.5304716   8.06411158  25.0552728  24.7408400</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 163      MV      SN  37.0732012  14.83766194  37.8915148  37.8667641</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 164      NW      SN  13.4919748   0.51987363  13.7516229  13.4961900</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 165      HB      SN  39.4735594  15.41904546  38.5051146  36.8741952</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 166      BB      SN  61.1673134  23.07045280  60.1218789  59.2396676</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 167      BE      SN  52.4064691  14.68931253  49.3519835  45.6632072</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 168      RP      SN  14.5146190   2.69902173  14.4964664  14.0580549</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 169      NI      SN  48.4607167  24.07891324  48.9562662  48.7044066</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 170      ST      SN  54.6883157  18.87783639  51.7450356  49.1723750</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 171      SN      SN  85.3539281  56.43990148  81.8134737  77.5280470</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 172      SL      SN  12.0951492   1.81571620  11.8411638  11.1306089</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 173      HE      SN  21.3717446   8.10558516  21.7755550  21.5083421</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 174      TH      SN  23.3532644   6.48364516  26.8981991  29.9032473</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 175      BW      SN   4.3310194  -2.80168609   1.3394303  -2.0523497</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 176      BY      SN   2.5150709  -1.16383025   3.8510539   4.9897341</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 177      SH      SL  18.9910776   4.84216720  21.6226725  23.2441600</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 178      HH      SL  37.8830959  11.71697575  31.9016973  25.5526752</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 179      MV      SL  39.7768324  15.77526300  39.6206858  38.6220722</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 180      NW      SL  30.8825897   8.09534611  30.8519718  30.4118901</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 181      HB      SL  42.5385961  19.94721222  48.0189195  53.1257957</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 182      BB      SL  53.6271707  23.89077828  53.9346162  54.2049756</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 183      BE      SL  38.1887236  12.38614148  36.5267668  33.9329145</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 184      RP      SL  41.2328466  12.47086792  40.3964283  39.7369302</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 185      NI      SL  71.2827132  30.14291815  69.7619523  68.1829375</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 186      ST      SL  52.1421489  20.16523104  48.1084226  44.4023933</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 187      SN      SL  38.3906960  12.27655739  36.3508586  33.1542877</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 188      SL      SL  67.3680612  44.85884689  67.9458825  68.3445274</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 189      HE      SL  45.4242200  15.87452403  44.0175017  41.9987643</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 190      TH      SL  30.3496619   9.47597378  30.6554901  29.8787977</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 191      BW      SL  24.1517893   5.43432195  25.4147031  26.1128829</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 192      BY      SL  11.6888139   3.36433651  17.4867914  23.3295325</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 193      SH      HE  15.3874884   2.13177058  17.2576525  17.4259730</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 194      HH      HE  29.4299400   9.10928192  28.5474487  27.3191426</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 195      MV      HE  40.2226732  13.90429553  35.9991028  31.7955413</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 196      NW      HE  25.6019835   4.44325387  24.4924361  22.9940945</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 197      HB      HE  45.0500177  17.53298477  43.6744066  41.7607393</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 198      BB      HE  50.0242537  22.41068917  51.8872710  53.0744455</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 199      BE      HE  35.9633705  11.39047659  35.7232743  34.8136414</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 200      RP      HE  31.1369960   8.35170651  35.5621154  39.1654952</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 201      NI      HE  66.3801883  28.19575987  65.5965569  64.3656109</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 202      ST      HE  53.8113694  19.28684174  52.5095209  50.9048890</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 203      SN      HE  36.7566006  11.67177087  36.4785991  35.4433840</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 204      SL      HE  38.1787426   8.97986855  37.0401619  35.4208937</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 205      HE      HE  80.7985484  55.86372959  80.1195332  79.3503263</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 206      TH      HE  37.7228702   9.06465365  36.3463648  34.8674285</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 207      BW      HE  29.5630026   3.48716368  26.3574629  22.5427277</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 208      BY      HE  27.6304885   2.48594721  26.1497495  23.3146884</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 209      SH      TH  19.8386999   4.78096809  20.0284743  20.6229942</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 210      HH      TH  29.5058199  11.65577664  31.8894554  33.5738372</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 211      MV      TH  42.0413726  17.30172227  41.3225975  40.3990571</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 212      NW      TH  25.1332045   5.86214386  25.9957653  26.5157090</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 213      HB      TH  49.7193521  19.88601311  46.6441672  43.6246023</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 214      BB      TH  54.5830481  26.00158230  57.7135263  60.1013958</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 215      BE      TH  42.2700568  15.91550806  43.0844510  44.0954036</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 216      RP      TH  31.0875598   9.16889669  30.2817124  29.0151283</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 217      NI      TH  66.9399797  30.08171903  67.5022825  67.7048706</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 218      ST      TH  57.7447327  23.34480404  58.9613080  59.7412373</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 219      SN      TH  48.7738184  16.79850215  49.6887945  50.4350513</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 220      SL      TH  32.4706573   9.32998957  31.2874109  29.3647244</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 221      HE      TH  45.8465173  15.81332491  44.1960761  42.6660303</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 222      TH      TH  71.0654413  44.88243287  69.4418945  67.6116326</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 223      BW      TH  31.9614460   5.37312284  27.9141870  23.1801396</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 224      BY      TH  32.5003030   6.54390950  30.6490787  27.4585429</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 225      SH      BW  26.1619952   6.65533055  26.2195488  25.4051288</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 226      HH      BW  36.1207597  13.63284189  37.9051564  39.5045985</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 227      MV      BW  50.4520503  18.53055830  45.0504243  39.6244760</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 228      NW      BW  33.1206830   9.16028023  31.8092147  30.8334791</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 229      HB      BW  50.2640769  22.05654475  51.7607265  53.1520227</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 230      BB      BW  59.8482959  27.12771553  59.6135893  59.3910111</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 231      BE      BW  44.7839799  16.49838132  45.7991604  46.5937999</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 232      RP      BW  37.2513979  13.34233565  37.7111146  38.8286582</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 233      NI      BW  66.1677123  32.71931984  68.0924405  69.5531399</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 234      ST      BW  57.0860880  24.27747088  56.7932772  56.4581065</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 235      SN      BW  46.6029291  17.26409982  46.1957980  45.6608556</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 236      SL      BW  42.9423123  15.03926667  45.1392431  48.1970789</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 237      HE      BW  46.6187224  19.98676387  53.1312301  58.8927503</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 238      TH      BW  45.4592405  15.12405177  46.0212568  46.6453579</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 239      BW      BW  59.2419521  37.37245371  58.7370703  58.6124471</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 240      BY      BW  37.6144094  10.71734846  36.6092050  36.8193662</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 241      SH      BY  24.2232823   6.33451815  24.6482531  25.2819151</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 242      HH      BY  36.6611396  13.24887956  36.2671916  35.3087908</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 243      MV      BY  44.1953308  18.79212240  46.8855409  48.1579354</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 244      NW      BY  32.4136515   7.93688875  31.2785881  29.3928360</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 245      HB      BY  52.8088138  21.56987962  51.5774578  49.9076584</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 246      BB      BY  60.9728329  27.49198243  60.6124862  60.3586853</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 247      BE      BY  49.1836466  17.59937458  46.6625990  43.5917623</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 248      RP      BY  37.1598466  11.72806580  36.5661751  35.9820005</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 249      NI      BY  68.1563045  32.03918833  67.8520529  67.6284680</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 250      ST      BY  59.6373815  24.83520417  59.1232486  58.4924684</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 251      SN      BY  49.9928299  18.75597145  49.2772416  47.8228317</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 252      SL      BY  40.5632144  12.82329701  38.5180404  35.7294293</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 253      HE      BY  53.4507614  18.83956319  52.8097787  51.8503777</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 254      TH      BY  50.4813709  16.14885422  49.1933030  47.0807689</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 255      BW      BY  36.6000497  10.57136425  39.2000900  40.6588545</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 256      BY      BY  59.8385064  37.39603969  60.2497586  60.0175270</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">spflow_results</span><span class="op">)</span> <span class="co"># some plots for assessing the model</span></span></span>
 <span class="r-plt img"><img src="spflow_model-class-1.png" alt="" width="700" height="433"></span>
 <span class="r-plt img"><img src="spflow_model-class-2.png" alt="" width="700" height="433"></span>
@@ -609,44 +609,44 @@ the parameter value is 0.</p></li>
 <span class="r-in"><span><span class="co"># MLE, OLS and S2SLS methods</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="spflow_generics.html">varcov</a></span><span class="op">(</span><span class="va">spflow_results</span><span class="op">)</span> <span class="co"># variance covariance matrix of the estimators</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                     rho_d         rho_o         rho_w (Intercept)     (Intra)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> rho_d        0.0009086571 -1.171460e-04 -0.0006129779  0.02147702 -0.01172770</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> rho_o       -0.0001171460  1.368082e-03 -0.0003832368  0.02821302 -0.01669415</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> rho_w       -0.0006129779 -3.832368e-04  0.0019625807  0.02782310  0.01641565</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept)  0.0214770205  2.821302e-02  0.0278231001  4.67111513 -1.07380231</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> (Intra)     -0.0117277030 -1.669415e-02  0.0164156489 -1.07380231  2.34531677</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> D_X         -0.0003185997  2.403975e-03 -0.0006536812  0.03998040 -0.01878981</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> D_X.lag1     0.0005358627  9.064061e-04  0.0029819577  0.14016447 -0.01330463</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> O_X         -0.0008347482 -2.966762e-04  0.0003416018 -0.04693017  0.02461833</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> O_X.lag1     0.0001175571 -1.661664e-03 -0.0019199726 -0.16095048  0.01739528</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> I_X          0.0001932829  6.065354e-05 -0.0004389803  0.01457881 -0.10706315</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> P_DISTANCE  -0.0032790528 -9.210098e-03 -0.0025193745 -0.68102575  0.23098235</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> sigma2       0.0006838942  6.436146e-04 -0.0008072647  0.02927557 -0.01883130</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> rho_d        0.0009086574 -1.171459e-04 -0.0006129781  0.02147703 -0.01172771</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> rho_o       -0.0001171459  1.368082e-03 -0.0003832369  0.02821303 -0.01669415</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> rho_w       -0.0006129781 -3.832369e-04  0.0019625809  0.02782310  0.01641565</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept)  0.0214770293  2.821303e-02  0.0278230978  4.67111589 -1.07380256</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> (Intra)     -0.0117277073 -1.669415e-02  0.0164156524 -1.07380256  2.34531706</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> D_X         -0.0003185996  2.403975e-03 -0.0006536813  0.03998041 -0.01878981</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> D_X.lag1     0.0005358630  9.064063e-04  0.0029819578  0.14016449 -0.01330464</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> O_X         -0.0008347485 -2.966763e-04  0.0003416020 -0.04693018  0.02461834</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> O_X.lag1     0.0001175570 -1.661665e-03 -0.0019199727 -0.16095050  0.01739528</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> I_X          0.0001932830  6.065356e-05 -0.0004389804  0.01457882 -0.10706317</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> P_DISTANCE  -0.0032790545 -9.210100e-03 -0.0025193738 -0.68102587  0.23098240</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> sigma2       0.0006839084  6.436158e-04 -0.0008072690  0.02927621 -0.01883151</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                       D_X      D_X.lag1           O_X      O_X.lag1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> rho_d       -0.0003185997  0.0005358627 -0.0008347482  0.0001175571</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> rho_o        0.0024039746  0.0009064061 -0.0002966762 -0.0016616645</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> rho_w       -0.0006536812  0.0029819577  0.0003416018 -0.0019199726</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept)  0.0399803979  0.1401644709 -0.0469301674 -0.1609504765</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> (Intra)     -0.0187898113 -0.0133046298  0.0246183319  0.0173952761</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> D_X          0.0047117727  0.0010099390 -0.0003375338 -0.0028026657</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> D_X.lag1     0.0010099390  0.0131443734 -0.0017261173 -0.0074675241</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> O_X         -0.0003375338 -0.0017261173  0.0014513350  0.0006614982</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> O_X.lag1    -0.0028026657 -0.0074675241  0.0006614982  0.0085780248</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> I_X         -0.0003876059 -0.0005796298 -0.0006125003  0.0003864860</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> P_DISTANCE  -0.0144762351 -0.0298811823  0.0088086642  0.0253592277</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> sigma2       0.0010424511  0.0006774951 -0.0008221469 -0.0006364170</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> rho_d       -0.0003185996  0.0005358630 -0.0008347485  0.0001175570</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> rho_o        0.0024039748  0.0009064063 -0.0002966763 -0.0016616647</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> rho_w       -0.0006536813  0.0029819578  0.0003416020 -0.0019199727</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept)  0.0399804068  0.1401644942 -0.0469301797 -0.1609504982</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> (Intra)     -0.0187898147 -0.0133046362  0.0246183380  0.0173952806</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> D_X          0.0047117731  0.0010099393 -0.0003375339 -0.0028026660</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> D_X.lag1     0.0010099393  0.0131443750 -0.0017261178 -0.0074675250</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> O_X         -0.0003375339 -0.0017261178  0.0014513353  0.0006614985</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> O_X.lag1    -0.0028026660 -0.0074675250  0.0006614985  0.0085780258</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> I_X         -0.0003876059 -0.0005796298 -0.0006125004  0.0003864860</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> P_DISTANCE  -0.0144762373 -0.0298811873  0.0088086667  0.0253592314</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> sigma2       0.0010424510  0.0006775221 -0.0008221625 -0.0006364295</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                       I_X   P_DISTANCE        sigma2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> rho_d        1.932829e-04 -0.003279053  0.0006838942</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> rho_o        6.065354e-05 -0.009210098  0.0006436146</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> rho_w       -4.389803e-04 -0.002519374 -0.0008072647</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept)  1.457881e-02 -0.681025746  0.0292755738</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> (Intra)     -1.070632e-01  0.230982348 -0.0188312966</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> D_X         -3.876059e-04 -0.014476235  0.0010424511</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> D_X.lag1    -5.796298e-04 -0.029881182  0.0006774951</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> O_X         -6.125003e-04  0.008808664 -0.0008221469</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> O_X.lag1     3.864860e-04  0.025359228 -0.0006364170</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> I_X          6.817459e-03 -0.001442223  0.0002110115</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> P_DISTANCE  -1.442223e-03  0.147405296 -0.0071250727</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> sigma2       2.110115e-04 -0.007125073  0.1241087121</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> rho_d        1.932830e-04 -0.003279055  0.0006839084</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> rho_o        6.065356e-05 -0.009210100  0.0006436158</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> rho_w       -4.389804e-04 -0.002519374 -0.0008072690</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept)  1.457882e-02 -0.681025872  0.0292762150</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> (Intra)     -1.070632e-01  0.230982398 -0.0188315100</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> D_X         -3.876059e-04 -0.014476237  0.0010424510</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> D_X.lag1    -5.796298e-04 -0.029881187  0.0006775221</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> O_X         -6.125004e-04  0.008808667 -0.0008221625</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> O_X.lag1     3.864860e-04  0.025359231 -0.0006364295</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> I_X          6.817460e-03 -0.001442223  0.0002110135</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> P_DISTANCE  -1.442223e-03  0.147405322 -0.0071251811</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> sigma2       2.110135e-04 -0.007125181  0.1241087598</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># MCMC methods</span></span></span>
 <span class="r-in"><span><span class="va">spflow_results_mcmc</span> <span class="op">&lt;-</span> <span class="fu"><a href="spflow.html">spflow</a></span><span class="op">(</span></span></span>
@@ -656,25 +656,25 @@ the parameter value is 0.</p></li>
 <span class="r-in"><span>                                model <span class="op">=</span> <span class="st">"model_2"</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="spflow_generics.html">results</a></span><span class="op">(</span><span class="va">spflow_results_mcmc</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                    est  quant_025  quant_975         sd     t.stat</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> rho_d        0.4417120  0.3873123  0.4938497 0.02802783  15.759766</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept) 10.4799348  6.8287844 14.1661003 1.87383505   5.592773</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> (Intra)     11.6728339  8.6991626 14.7809138 1.54110775   7.574314</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> D_X          1.0141170  0.9687150  1.0581689 0.02320858  43.695787</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> D_X.lag1     0.7332460  0.5868116  0.8808434 0.07428908   9.870172</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> O_X         -0.8043709 -0.8782461 -0.7322239 0.03747524 -21.464063</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> O_X.lag1    -0.4513538 -0.5656675 -0.3341852 0.05972683  -7.556969</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> I_X          1.9463220  1.7730459  2.1249539 0.08778647  22.171092</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> P_DISTANCE  -2.8869987 -3.3857366 -2.4095543 0.25105150 -11.499627</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> rho_d        0.4412606  0.3846987  0.4984196 0.02876601  15.339652</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept) 10.5011075  6.8392127 14.2699031 1.90103967   5.523876</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> (Intra)     11.6363307  8.7061345 14.5600127 1.48718766   7.824386</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> D_X          1.0143050  0.9692560  1.0594282 0.02302016  44.061601</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> D_X.lag1     0.7329137  0.5841528  0.8839473 0.07595332   9.649527</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> O_X         -0.8052802 -0.8808949 -0.7298320 0.03831536 -21.017165</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> O_X.lag1    -0.4503336 -0.5657120 -0.3325744 0.05938663  -7.583081</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> I_X          1.9481702  1.7885691  2.1126829 0.08435211  23.095691</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> P_DISTANCE  -2.8909145 -3.3959727 -2.3718988 0.26064096 -11.091559</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                     p.val</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> rho_d        3.718565e-39</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept)  5.932557e-08</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> (Intra)      7.291324e-13</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> D_X         6.239489e-118</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> D_X.lag1     1.424724e-19</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> O_X          2.670892e-58</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> O_X.lag1     8.124842e-13</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> I_X          1.378505e-60</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> P_DISTANCE   8.921796e-25</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> rho_d        1.016093e-37</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept)  8.423279e-08</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> (Intra)      1.506906e-13</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> D_X         1.011488e-118</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> D_X.lag1     6.835659e-19</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> O_X          7.664474e-57</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> O_X.lag1     6.902731e-13</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> I_X          1.532208e-63</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> P_DISTANCE   1.899431e-23</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu"><a href="spflow_generics.html">mcmc_results</a></span><span class="op">(</span><span class="va">spflow_results_mcmc</span><span class="op">)</span><span class="op">)</span> <span class="co"># parameter values during the mcmc sampling</span></span></span>
 <span class="r-plt img"><img src="spflow_model-class-10.png" alt="" width="700" height="433"></span>
 <span class="r-plt img"><img src="spflow_model-class-11.png" alt="" width="700" height="433"></span>
