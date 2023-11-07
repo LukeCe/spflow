@@ -63,6 +63,7 @@ setReplaceMethod(
            node_coord_columns,
            derive_coordinates = FALSE,
            prefer_lonlat = TRUE) {
+    # FIXME change value to last argument once this is fixed in S4
 
 
     value <- simplfy2df(value, derive_coordinates, prefer_lonlat)
@@ -380,8 +381,9 @@ spflow_network <- function(
   if (is.null(node_data))
     return(nodes)
 
-  dat(nodes,
+  dat(object = nodes,
       node_key_column = node_key_column,
+      node_coord_columns = if (missing(node_coord_columns)) NULL else node_coord_columns,
       derive_coordinates = derive_coordinates,
       prefer_lonlat = prefer_lonlat) <- node_data
   validObject(nodes)

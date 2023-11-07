@@ -63,7 +63,6 @@ setReplaceMethod(
 #' ## access the id of a network pair
 #' net_pair_ge_ge <- pull_member(multi_net_usa_ge,"ge_ge")
 #' id(net_pair_ge_ge)
-#' id(net_pair_ge_ge) <- "Germany_Germany"
 #'
 setMethod(
   f = "id",
@@ -83,11 +82,12 @@ setMethod(
 #'   A character indicating which of the ids to change, should be one of
 #'   `c("origin", "destination", "pair")`.
 #'   The first characters may be used as shortcuts.
-#' @export
+#' @keywords internal
 setReplaceMethod(
   f = "id",
   signature = "spflow_network_pair",
   function(object, value, which = "pair") {
+    # FIXME change value to last argument once this is fixed in S4
 
     assert_is_single_x(value, "character")
     is_which <- function(str) grepl(which, str, fixed = TRUE)

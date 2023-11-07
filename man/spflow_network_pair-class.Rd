@@ -63,7 +63,6 @@ dat(net_pair_ge_ge)
 ## access the id of a network pair
 net_pair_ge_ge <- pull_member(multi_net_usa_ge,"ge_ge")
 id(net_pair_ge_ge)
-id(net_pair_ge_ge) <- "Germany_Germany"
 
 ## access the number of node pairs in a network pair
 net_pair_ge_ge <- pull_member(multi_net_usa_ge,"ge_ge")
@@ -77,3 +76,4 @@ nnodes(net_pair_ge_ge)["dest"]
 prod(nnodes(net_pair_ge_ge) == npairs(net_pair_ge_ge))
 
 }
+\keyword{internal}
