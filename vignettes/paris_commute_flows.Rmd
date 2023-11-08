@@ -94,7 +94,7 @@ In our example, the origin and destination networks are the same because every m
 
 To estimate the model efficiently, the **spflow** package uses moment-based estimation methods, that exploit the relational structure of flow data.
 This avoids duplication arising from the fact that each municipality is at the origin and destination of many flows.
-For more details on the model and the estimation methods see LeSage (2008), Dargel (2021) and Dargel (2022).
+For more details on the model and the estimation methods see LeSage (2008), Dargel (2021) and Dargel and Thomas-Agnan (2023).
 
 ## The `spflow network objects`
 
@@ -274,8 +274,8 @@ plot(log(dat(paris10km_multinet, "paris_paris")[["DISTANCE"]] + 1), resid(result
 Finally we can evaluate the impact certain characteristics have on the outcome.
 Here we look at a scenario where the population in the central municipality is increased by 10%.
 As this has diverse effects on all flows we will first look at an image of the effect matrix.
-For a more detailed treatment of the effect decomposition in the spatial econometric interaction model see \cite{LeSage and Thomas-Agnan (2015)} and \cite{Laurent et.al (2022)}.
-
+For the effect decomposition in the spatial econometric interaction we follow the methods of LeSage and Thomas-Agnan (2015) and their extensions by Laurent et.al (2023).
+Additional technical details for the implementation can be found in Dargel and Thomas-Agnan (2023).
 
 ```{r, fig.width=7.5, fig.height=7.5}
 center_mun <- "75101"
@@ -323,6 +323,22 @@ options(old_opt)
 
 # References
 
-Dargel L, Thomas-Agnan C (2022). “A generalized framework for estimating spatial econometric interaction models.” TSE Working Paper, n. 22-1312, https://www.tse-fr.eu/publications/generalized-framework-estimating-spatial-econometric-interaction-models.
+Dargel, L. (2021). 
+“Revisiting estimation methods for spatial econometric interaction models.”
+Journal of Spatial Econometrics, 2(1), 10.
 
-Goulard M, Laurent T, Thomas-Agnan C (2017). “About predictions in spatial autoregressive models: optimal and almost optimal strategies.” Spatial Economic Analysis, 304–325. https://doi.org/10.1080/17421772.2017.1300679. 
+Dargel, L., and Thomas-Agnanm C. (2023). 
+“Efficient Estimation of Spatial Econometric Interaction Models for Sparse OD Matrices.”
+TSE Working Paper, n. 23-1409, February 2023. (https://www.tse-fr.eu/sites/default/files/TSE/documents/doc/wp/2023/wp_tse_1409.pdf)
+
+Laurent, T., Margaretic, P., and Thomas‐Agnan, C. (2023). 
+“Generalizing impact computations for the autoregressive spatial interaction model”.
+Geographical Analysis.
+
+LeSage, James P., and R. Kelley Pace (2008). 
+“Spatial econometric modeling of origin‐destination flows.” 
+Journal of Regional Science 48.5, 941-967.
+
+Goulard, M., Laurent T., and Thomas-Agnan C. (2017). 
+“About predictions in spatial autoregressive models: optimal and almost optimal strategies.”
+Spatial Economic Analysis, 304–325.
