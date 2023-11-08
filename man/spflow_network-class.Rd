@@ -17,6 +17,7 @@
 
 \S4method{dat}{spflow_network}(
   object,
+  ...,
   node_key_column,
   node_coord_columns,
   derive_coordinates = FALSE,
@@ -38,7 +39,8 @@
 \arguments{
 \item{object}{A spflow_network-class}
 
-\item{value}{An object to replace the existing id/data/neighborhood}
+\item{...}{not used, required for consistent argument matching
+(see https://bugs.r-project.org/show_bug.cgi?id=18538)}
 
 \item{node_key_column}{A character indicating the column containing the identifiers for the nodes}
 
@@ -50,6 +52,8 @@ coordinates from the node_data.}
 
 \item{prefer_lonlat}{A logical indicating whether the coordinates should be transformed to
 longitude and latitude.}
+
+\item{value}{An object to replace the existing id/data/neighborhood}
 
 \item{new_dat}{A data.frame}
 }

@@ -53,18 +53,19 @@ setMethod(
 
 # ---- ... dat <- -------------------------------------------------------------
 #' @rdname spflow_network-class
+#' @param ... not used, required for consistent argument matching
+#'   (see https://bugs.r-project.org/show_bug.cgi?id=18538)
 #' @inheritParams spflow_network
 setReplaceMethod(
   f = "dat",
   signature = "spflow_network",
   function(object,
-           value,
+           ...,
            node_key_column,
            node_coord_columns,
            derive_coordinates = FALSE,
-           prefer_lonlat = TRUE) {
-    # FIXME change value to last argument once this is fixed in S4
-
+           prefer_lonlat = TRUE,
+           value) {
 
     value <- simplfy2df(value, derive_coordinates, prefer_lonlat)
 

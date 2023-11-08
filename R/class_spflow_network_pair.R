@@ -49,7 +49,7 @@ setMethod(
 #' @rdname spflow_network_pair-class
 setReplaceMethod(
   f = "dat",
-  signature = "spflow_network_pair", function(object, value) {
+  signature = "spflow_network_pair", function(object, ..., value) {
 
     object@pair_data <- value
     validObject(object)
@@ -86,8 +86,7 @@ setMethod(
 setReplaceMethod(
   f = "id",
   signature = "spflow_network_pair",
-  function(object, value, which = "pair") {
-    # FIXME change value to last argument once this is fixed in S4
+  function(object, ..., which = "pair", value) {
 
     assert_is_single_x(value, "character")
     is_which <- function(str) grepl(which, str, fixed = TRUE)

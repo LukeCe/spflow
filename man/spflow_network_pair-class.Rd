@@ -14,11 +14,11 @@
 \usage{
 \S4method{dat}{spflow_network_pair}(object)
 
-\S4method{dat}{spflow_network_pair}(object) <- value
+\S4method{dat}{spflow_network_pair}(object, ...) <- value
 
 \S4method{id}{spflow_network_pair}(object)
 
-\S4method{id}{spflow_network_pair}(object, which = "pair") <- value
+\S4method{id}{spflow_network_pair}(object, ..., which = "pair") <- value
 
 \S4method{npairs}{spflow_network_pair}(object)
 
